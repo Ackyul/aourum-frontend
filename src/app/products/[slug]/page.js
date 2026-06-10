@@ -148,13 +148,7 @@ export default function ProductDetailPage({ params }) {
                     </td>
                   </tr>
                 )}
-                <tr>
-                  <td className="label">Ubicación de Origen</td>
-                  <td className="value" style={{ color: "var(--text-muted)", fontStyle: "italic", fontSize: "0.85rem" }}>
-                    <i className="fa-solid fa-location-dot" style={{ marginRight: 5, color: "var(--gold-primary)" }}></i>
-                    Por configurar
-                  </td>
-                </tr>
+
               </tbody>
             </table>
           </div>

@@ -56,6 +56,7 @@ function AppLayoutShell({ children }) {
     editLogoPreview, setEditLogoPreview,
     editMediaLink, setEditMediaLink,
     editSlug, setEditSlug,
+    editWhatsappNumber, setEditWhatsappNumber,
     editBrandIds, setEditBrandIds,
     editOrganizerIds, setEditOrganizerIds,
     editBandIds, setEditBandIds,
@@ -722,16 +723,31 @@ function AppLayoutShell({ children }) {
               )}
 
               {editProfileType === "brand" && (
-                <div className="grid-2-to-1">
-                  <div className="form-group">
-                    <label>Dueño / Fundador</label>
-                    <input type="text" className="form-control" value={editOwner} onChange={(e) => setEditOwner(e.target.value)} placeholder="Ej: María García" />
+                <>
+                  <div className="grid-2-to-1">
+                    <div className="form-group">
+                      <label>Dueño / Fundador</label>
+                      <input type="text" className="form-control" value={editOwner} onChange={(e) => setEditOwner(e.target.value)} placeholder="Ej: María García" />
+                    </div>
+                    <div className="form-group">
+                      <label>Categoría / Rubro</label>
+                      <input type="text" className="form-control" value={editCategory} onChange={(e) => setEditCategory(e.target.value)} placeholder="Ej: Orfebrería, Moda" />
+                    </div>
                   </div>
                   <div className="form-group">
-                    <label>Categoría / Rubro</label>
-                    <input type="text" className="form-control" value={editCategory} onChange={(e) => setEditCategory(e.target.value)} placeholder="Ej: Orfebrería, Moda" />
+                    <label>
+                      <i className="fa-brands fa-whatsapp" style={{ color: "#25d366", marginRight: 6 }}></i>
+                      Número de WhatsApp
+                    </label>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      value={editWhatsappNumber} 
+                      onChange={(e) => setEditWhatsappNumber(e.target.value.replace(/[^0-9+]/g, ""))} 
+                      placeholder="Ej: 51999999999 (número con código de país sin el +)" 
+                    />
                   </div>
-                </div>
+                </>
               )}
               {editProfileType === "fair" && (
                 <div className="form-group">

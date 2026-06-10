@@ -57,7 +57,8 @@ export default function BrandProfilePage({ params }) {
     setEditProfileType,
     setEditProfileId,
     setEditSlug,
-    setEditProfileOpen
+    setEditProfileOpen,
+    setEditWhatsappNumber
   } = useApp();
 
   const router = useRouter();
@@ -119,6 +120,7 @@ export default function BrandProfilePage({ params }) {
     setEditProfileType("brand");
     setEditProfileId(brand.id);
     setEditSlug(brand.slug || "");
+    setEditWhatsappNumber(brand.whatsappNumber || "");
     setEditProfileOpen(true);
   };
 

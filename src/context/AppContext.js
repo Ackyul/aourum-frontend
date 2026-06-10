@@ -150,6 +150,7 @@ export function AppContextProvider({ children }) {
   const [editLogoPreview, setEditLogoPreview] = useState("");
   const [editMediaLink, setEditMediaLink] = useState("");
   const [editSlug, setEditSlug] = useState("");
+  const [editWhatsappNumber, setEditWhatsappNumber] = useState("");
   const [uploadingEdit, setUploadingEdit] = useState(false);
   const [editBrandIds, setEditBrandIds] = useState([]);
   const [editOrganizerIds, setEditOrganizerIds] = useState([]);
@@ -552,7 +553,7 @@ export function AppContextProvider({ children }) {
     
     if (effectiveType === "brand") {
       url = `${API_URL}/api/brands/${effectiveId}`;
-      payload = { name: editName, owner: editOwner, category: editCategory, description: editDescription, logo: editLogo, slug: editSlug };
+      payload = { name: editName, owner: editOwner, category: editCategory, description: editDescription, logo: editLogo, slug: editSlug, whatsappNumber: editWhatsappNumber };
     } else if (effectiveType === "fair" || effectiveType === "organizer") {
       url = `${API_URL}/api/organizers/${effectiveId}`;
       payload = { name: editName, owner: editOwner, description: editDescription, logo: editLogo, slug: editSlug };
@@ -781,6 +782,7 @@ export function AppContextProvider({ children }) {
         editLogoPreview, setEditLogoPreview,
         editMediaLink, setEditMediaLink,
         editSlug, setEditSlug,
+        editWhatsappNumber, setEditWhatsappNumber,
         editBrandIds, setEditBrandIds,
         editOrganizerIds, setEditOrganizerIds,
         editBandIds, setEditBandIds,
