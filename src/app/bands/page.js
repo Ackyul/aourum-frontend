@@ -1,0 +1,79 @@
+"use client";
+
+import { useApp } from "../../context/AppContext";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+export default function BandsPage() {
+  const {
+    bands,
+    loading,
+    searchTerm
+  } = useApp();
+
+  const router = useRouter();
+
+  // Filter bands based on global search in the header
+  const filteredBands = bands.filter((band) => {
+    const matchesSearch = band.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          band.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          band.genre.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  });
+
+  return (
+    <div className="container" style={{ paddingBottom: "3rem" }}>
+      {loading ? (
+        <div style={{ textAlign: "center", padding: "6rem 0", display: "flex", flexDirection: "column", gap: "1rem", alignItems: "center" }}>
+          <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2.5rem", color: "var(--gold-primary)" }}></i>
+          <p style={{ color: "var(--text-muted)", fontWeight: "medium", fontSize: "0.95rem" }}>Cargando bandas de música...</p>
+        </div>
+      ) : (
+        <div className="fade-in">
+          <div>
+            <div style={{ marginBottom: "2.0rem" }}>
+              <span style={{ fontSize: "0.8rem", color: "var(--text-gold)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.08em" }}>Escena Musical Local</span>
+              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", marginTop: "2px" }}>Bandas & Música en Vivo</h2>
+            </div>
+            
+            {filteredBands.length === 0 ? (
+              <div style={{ padding: "5rem", textAlign: "center", background: "#FFFFFF", borderRadius: "12px", border: "1px solid var(--border-color)" }}>
+                <i className="fa-solid fa-guitar" style={{ fontSize: "3rem", color: "var(--border-color)", marginBottom: "1rem", opacity: 0.5 }}></i>
+                <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>No se encontraron bandas de música. Intenta buscando otro término.</p>
+              </div>
+            ) : (
+              <div className="grid-catalog">
+                {filteredBands.map((band) => (
+                  <div 
+                    key={band.id} 
+                    className="glass-panel" 
+                    style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer" }}
+                    onClick={() => router.push(`/bands/${band.slug || band.id}`)}
+                  >
+                    <div className="card-img-container" style={{ height: "230px", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-input)" }}>
+                      <img src={band.image} alt={band.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} className="card-img-hover" />
+                    </div>
+                    <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                      <span style={{ fontSize: "0.75rem", color: "var(--text-gold)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>🎸 {band.genre}</span>
+                      <h3 style={{ fontSize: "1.15rem", fontWeight: 800 }}>{band.name}</h3>
+                      <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", flex: 1, lineHeight: 1.45 }}>{band.description}</p>
+                      
+                      <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.6rem" }}>
+                        <i className="fa-solid fa-users" style={{ color: "var(--gold-primary)" }}></i>
+                        <span>Integrantes: <strong>{band.members}</strong></span>
+                      </div>
+
+                      <button className="btn-outline-gold" style={{ width: "100%", padding: "0.55rem 0", fontSize: "0.82rem", borderRadius: "6px" }}>
+                        Ver Dossier & Perfil
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
