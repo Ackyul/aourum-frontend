@@ -298,7 +298,8 @@ export default function BrandProfilePage({ params }) {
           {isOwner && brandProducts.length > 0 && (
             <div className="glass-panel" style={{ padding: "1.5rem", marginTop: "1.5rem", marginBottom: "1.5rem" }}>
               <h3 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "1rem" }}><i className="fa-solid fa-list-check" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i>Administrar Items en Catálogo</h3>
-              <div style={{ overflowX: "auto" }}>
+              <div className="admin-table-wrapper" style={{ overflowX: "auto" }}>
+
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem" }}>
                   <thead>
                     <tr style={{ borderBottom: "1px solid var(--border-color)", textAlign: "left", color: "var(--text-muted)", fontSize: "0.78rem", textTransform: "uppercase" }}>

@@ -321,12 +321,12 @@ function AppLayoutShell({ children }) {
       )}
 
       {/* ── MAIN WORKSPACE ─────────────────────────────────────────────────── */}
-      <main style={{ flex: 1, padding: "2rem 0" }}>
+      <main className="main-workspace" style={{ flex: 1, padding: "2rem 0" }}>
         {children}
       </main>
 
       {/* ── FOOTER ─────────────────────────────────────────────────────────── */}
-      <footer style={{ background: "#FFFFFF", borderTop: "1px solid var(--border-color)", padding: "2rem 0", marginTop: "4rem", textAlign: "center", fontSize: "0.88rem", color: "var(--text-muted)" }}>
+      <footer className="site-footer" style={{ background: "#FFFFFF", borderTop: "1px solid var(--border-color)", padding: "2rem 0", marginTop: "4rem", textAlign: "center", fontSize: "0.88rem", color: "var(--text-muted)" }}>
         <div className="container">
           <p>© {new Date().getFullYear()} AOURUM.</p>
           <p style={{ margin: "4px 0 0 0", fontSize: "0.82rem" }}>
@@ -786,19 +786,22 @@ function AppLayoutShell({ children }) {
 
       {/* ── FLOATING NOTIFICATION BANNER ───────────────────────────────────── */}
       {(errorMsg || successMsg) && (
-        <div style={{
-          position: "fixed",
-          bottom: "calc(24px + env(safe-area-inset-bottom, 0px))",
-          right: "16px",
-          left: "16px",
-          maxWidth: "420px",
-          margin: "0 auto",
-          background: successMsg ? "#10b981" : "#ef4444",
-          color: "#FFFFFF", padding: "1rem 1.2rem", borderRadius: "10px",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.12)", zIndex: 1500,
-          display: "flex", alignItems: "center", gap: "12px",
-          animation: "slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards"
-        }}>
+        <div
+          className="notification-toast"
+          style={{
+            position: "fixed",
+            bottom: "calc(var(--tab-bar-height) + 16px + env(safe-area-inset-bottom, 0px))",
+            right: "16px",
+            left: "16px",
+            maxWidth: "420px",
+            margin: "0 auto",
+            background: successMsg ? "#10b981" : "#ef4444",
+            color: "#FFFFFF", padding: "1rem 1.2rem", borderRadius: "10px",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.12)", zIndex: 1500,
+            display: "flex", alignItems: "center", gap: "12px",
+            animation: "slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards"
+          }}>
+
           <i className={successMsg ? "fa-solid fa-circle-check" : "fa-solid fa-triangle-exclamation"} style={{ fontSize: "1.2rem", flexShrink: 0 }}></i>
           <span style={{ fontWeight: 600, fontSize: "0.88rem" }}>{successMsg || errorMsg}</span>
         </div>
