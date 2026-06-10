@@ -53,6 +53,13 @@ body {
   }
 }
 
+/* ── MAIN CONTENT MOBILE ─────────────────────────────────── */
+@media (max-width: 768px) {
+  .main-workspace {
+    padding: 1.2rem 0 !important;
+  }
+}
+
 /* Scrollbar Customization */
 ::-webkit-scrollbar {
   width: 6px;
@@ -437,10 +444,66 @@ header {
   gap: 1.8rem;
 }
 
+/* Tablet: 2 columns */
+@media (max-width: 900px) {
+  .grid-catalog {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.2rem;
+  }
+}
+
+/* Mobile: always exactly 2 columns */
 @media (max-width: 640px) {
   .grid-catalog {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+  }
+}
+
+/* Very small phones: single column */
+@media (max-width: 380px) {
+  .grid-catalog {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Mobile card image: reduce height so cards don't overflow */
+@media (max-width: 640px) {
+  .grid-catalog .card-img-container {
+    height: 130px !important;
+  }
+
+  .grid-catalog .glass-panel > div:last-child {
+    padding: 0.7rem !important;
+    gap: 0.25rem !important;
+  }
+
+  .grid-catalog h3 {
+    font-size: 0.82rem !important;
+    line-height: 1.3;
+  }
+
+  .grid-catalog p {
+    font-size: 0.76rem !important;
+    -webkit-line-clamp: 2;
+  }
+
+  .grid-catalog .btn-outline-gold {
+    font-size: 0.72rem !important;
+    padding: 0.35rem 0 !important;
+  }
+
+  .grid-catalog span[style*="0.75rem"] {
+    font-size: 0.65rem !important;
+  }
+
+  /* Price & stock in catalog cards */
+  .grid-catalog [style*="1.1rem"] {
+    font-size: 0.9rem !important;
+  }
+  .grid-catalog [style*="borderTop"] {
+    padding-top: 0.5rem !important;
+    margin-top: 0.25rem !important;
   }
 }
 
@@ -458,14 +521,20 @@ header {
   }
 }
 
-/* 3 col → 1 col on mobile */
+/* 3 col → 2 col on tablet → 1 col on mobile */
 .grid-3-to-1 {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 1rem;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+  .grid-3-to-1 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
   .grid-3-to-1 {
     grid-template-columns: 1fr;
   }
@@ -581,7 +650,7 @@ header {
 
 @media (max-width: 480px) {
   .profile-body {
-    padding: 3rem 1rem 2rem 1rem;
+    padding: 2.5rem 0.85rem 2rem 0.85rem;
   }
 }
 
@@ -674,6 +743,12 @@ header {
   padding: 0 1rem 4rem 1rem;
 }
 
+@media (max-width: 640px) {
+  .product-details-container {
+    padding: 0 0.85rem 2.5rem 0.85rem;
+  }
+}
+
 .product-split-layout {
   display: grid;
   grid-template-columns: 1.15fr 0.85fr;
@@ -684,7 +759,24 @@ header {
 @media (max-width: 900px) {
   .product-split-layout {
     grid-template-columns: 1fr;
-    gap: 2rem;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .product-split-layout {
+    gap: 1.2rem;
+  }
+
+  /* Scale product title on mobile */
+  .product-details-container h1[style] {
+    font-size: 1.6rem !important;
+  }
+
+  /* Scale product price on mobile */
+  .product-details-container [style*="2.2rem"] {
+    font-size: 1.6rem !important;
   }
 }
 
@@ -765,8 +857,14 @@ header {
   .brand-banner-card {
     flex-direction: column;
     text-align: center;
-    padding: 1.5rem;
-    gap: 1.2rem;
+    padding: 1.2rem;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .brand-banner-card .btn-outline-gold {
+    width: 100%;
+    justify-content: center;
   }
 }
 
@@ -778,6 +876,13 @@ header {
   border: 3px solid var(--gold-primary);
   box-shadow: 0 6px 16px rgba(212, 175, 55, 0.15);
   flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .brand-banner-logo {
+    width: 80px;
+    height: 80px;
+  }
 }
 
 /* ── VISIBILITY UTILITIES ────────────────────────────────── */
@@ -891,6 +996,25 @@ header {
   }
 }
 
+/* ── PERSON PROFILE PAGE SPECIFIC ───────────────────────── */
+@media (max-width: 600px) {
+  /* Scale down large person avatar */
+  .person-avatar-large {
+    width: 100px !important;
+    height: 100px !important;
+  }
+
+  /* Scale down person name */
+  .person-name-heading {
+    font-size: 1.6rem !important;
+  }
+
+  /* Fix negative marginTop on mobile for person profile */
+  .person-profile-body-offset {
+    margin-top: -55px !important;
+  }
+}
+
 /* ── INLINE PRODUCT FORM GRID ────────────────────────────── */
 .prod-form-img-desc {
   display: grid;
@@ -912,11 +1036,25 @@ header {
   gap: 2rem;
 }
 
+@media (max-width: 640px) {
+  .collab-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
 /* ── PROJECTS AFFILIATION GRID ───────────────────────────── */
 .projects-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 2rem;
+}
+
+@media (max-width: 640px) {
+  .projects-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
 }
 
 /* ── GIG FORM FLEX ───────────────────────────────────────── */
@@ -929,7 +1067,22 @@ header {
 
 .gig-form input {
   flex: 1;
-  min-width: 200px;
+  min-width: 150px;
+}
+
+@media (max-width: 520px) {
+  .gig-form {
+    flex-direction: column;
+  }
+
+  .gig-form input {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .gig-form button {
+    width: 100%;
+  }
 }
 
 /* ── APPLY FAIR FORM ─────────────────────────────────────── */
@@ -955,6 +1108,17 @@ header {
   gap: 1rem;
 }
 
+@media (max-width: 480px) {
+  .profile-info-row h2 {
+    font-size: 1.4rem !important;
+  }
+
+  .profile-info-row h2[style*="1.8rem"],
+  .profile-info-row h2[style*="2rem"] {
+    font-size: 1.4rem !important;
+  }
+}
+
 /* ── CATALOG PAGE HEADER ─────────────────────────────────── */
 .catalog-page-header {
   display: flex;
@@ -963,6 +1127,13 @@ header {
   margin-bottom: 2rem;
   flex-wrap: wrap;
   gap: 1rem;
+}
+
+@media (max-width: 480px) {
+  /* Scale down catalog page h2 */
+  .container h2[style*="1.7rem"] {
+    font-size: 1.35rem !important;
+  }
 }
 
 /* ── FAIR POSTULACIONES GRID ─────────────────────────────── */
@@ -976,5 +1147,102 @@ header {
 @media (max-width: 640px) {
   .postulaciones-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ── NOTIFICATION TOAST MOBILE ───────────────────────────── */
+/* On desktop, reset bottom to normal (no tab bar) */
+@media (min-width: 769px) {
+  .notification-toast {
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* ── PROFILE PAGES MOBILE ────────────────────────────────── */
+@media (max-width: 600px) {
+  .profile-container {
+    border-radius: 12px;
+  }
+
+  /* Close/share buttons don't overlap on mobile */
+  .profile-close-btn {
+    top: 10px !important;
+    right: 10px !important;
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .profile-share-btn {
+    top: 10px !important;
+    right: 48px !important;
+    width: 30px !important;
+    height: 30px !important;
+  }
+}
+
+/* ── ADMIN TABLE MOBILE ──────────────────────────────────── */
+@media (max-width: 600px) {
+  /* Horizontal scroll for tables */
+  .admin-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ── TOUCH TARGETS ───────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Minimum 44px touch targets for interactive elements */
+  .btn-gold,
+  .btn-outline-gold {
+    min-height: 44px;
+  }
+
+  .mobile-tab-item {
+    min-height: 44px;
+  }
+}
+
+/* ── PROFILE BODY MOBILE ─────────────────────────────────── */
+@media (max-width: 480px) {
+  /* Reduce excessive top padding on profile body on small screens */
+  .profile-body {
+    padding-top: 2.8rem !important;
+  }
+
+  /* Fix person profile negative offset */
+  .profile-body[style*="marginTop: \"-80px\""],
+  .profile-body[style*="marginTop: '-80px'"] {
+    margin-top: -50px !important;
+  }
+}
+
+/* ── BANDS PAGE HEADER BANNER ────────────────────────────── */
+@media (max-width: 600px) {
+  .profile-header-banner[style*="260px"] {
+    height: 160px !important;
+  }
+
+  .profile-header-banner[style*="200px"] {
+    height: 130px !important;
+  }
+}
+
+/* ── SMALL SCREEN TYPOGRAPHY ─────────────────────────────── */
+@media (max-width: 380px) {
+  .brand-logo {
+    font-size: 1rem !important;
+  }
+
+  .header-inner {
+    padding: 0.5rem 0.75rem !important;
+  }
+}
+
+/* ── SITE FOOTER MOBILE ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .site-footer {
+    padding: 1.2rem 0 !important;
+    margin-top: 2rem !important;
+    font-size: 0.78rem !important;
   }
 }

@@ -239,11 +239,10 @@ export default function BandProfilePage({ params }) {
 
           {/* Formulario para añadir Gig si es Owner */}
           {isOwner && (
-            <form onSubmit={handleAddGigSubmit} style={{ display: "flex", gap: "10px", marginBottom: "1.5rem", flexWrap: "wrap" }}>
+            <form onSubmit={handleAddGigSubmit} className="gig-form">
               <input
                 type="text"
                 className="form-control"
-                style={{ flex: 1, minWidth: "250px" }}
                 placeholder="Ej: 15 Oct 2026 - Arequipa Rock Fest (Estadio Melgar)"
                 value={newGig}
                 onChange={(e) => setNewGig(e.target.value)}
@@ -255,6 +254,7 @@ export default function BandProfilePage({ params }) {
               </button>
             </form>
           )}
+
 
           {band.gigs && band.gigs.length > 0 ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>

@@ -122,7 +122,8 @@ export default function PersonProfilePage({ params }) {
             <img 
               src={person.logo || "https://placehold.co/120x120/d4af37/1C1C1E?text=P"} 
               alt={person.name} 
-              style={{ width: "140px", height: "140px", borderRadius: "50%", objectFit: "cover", border: "4px solid #FFFFFF", boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}
+              className="person-avatar-large"
+              style={{ width: "140px", height: "140px", borderRadius: "50%", objectFit: "cover", border: "4px solid #FFFFFF", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", flexShrink: 0 }}
             />
             <div style={{ flex: 1, paddingBottom: "10px", display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1rem" }}>
               <div>
@@ -131,7 +132,7 @@ export default function PersonProfilePage({ params }) {
                     {person.occupation}
                   </span>
                 )}
-                <h2 style={{ fontSize: "2.2rem", fontWeight: 800, marginTop: person.occupation ? "0.8rem" : "0", letterSpacing: "-0.02em" }}>{person.name}</h2>
+                <h2 className="person-name-heading" style={{ fontSize: "2.2rem", fontWeight: 800, marginTop: person.occupation ? "0.8rem" : "0", letterSpacing: "-0.02em" }}>{person.name}</h2>
               </div>
               {isOwner && (
                 <button 
