@@ -41,7 +41,6 @@ function loadToken() {
 export function AppContextProvider({ children }) {
   const session = loadSession();
 
-  // Global data states loaded from API
   const [products, setProducts] = useState([]);
   const [fairs, setFairs] = useState([]);
   const [bands, setBands] = useState([]);
@@ -50,12 +49,10 @@ export function AppContextProvider({ children }) {
   const [people, setPeople] = useState([]);
   const [invitations, setInvitations] = useState([]);
 
-  // Loading & status states
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  // Session / role states — null means "logged out"
   const [activeRole, setActiveRoleState] = useState(session?.role ?? null);
   const [activeBrandId, setActiveBrandIdState] = useState(session?.brandId ?? "");
   const [activeOrganizerId, setActiveOrganizerIdState] = useState(session?.organizerId ?? "");
@@ -63,7 +60,6 @@ export function AppContextProvider({ children }) {
   const [activePersonId, setActivePersonIdState] = useState(session?.personId ?? "");
   const [activeFairId, setActiveFairId] = useState("");
 
-  // Helpers that also persist to localStorage
   const setActiveRole = (role) => {
     setActiveRoleState(role);
     const current = loadSession() || {};
@@ -90,7 +86,6 @@ export function AppContextProvider({ children }) {
     saveSession({ ...current, personId: id });
   };
 
-  // Logout — clears all session state
   const logout = () => {
     clearSession();
     setActiveRoleState(null);
@@ -101,22 +96,17 @@ export function AppContextProvider({ children }) {
     setActiveFairId("");
   };
 
-  // UI state variables
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [filterCategory, setFilterCategory] = useState("all");
 
-  // Registration/Creation modal state
   const [showRegModal, setShowRegModal] = useState(false);
   const [regType, setRegType] = useState("person");
-  // Auth modal state (login)
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
 
-  // Form input states
-  // 1. Account registration
   const [regName, setRegName] = useState("");
   const [regUsername, setRegUsername] = useState("");
   const [regEmail, setRegEmail] = useState("");
@@ -134,7 +124,6 @@ export function AppContextProvider({ children }) {
   const [regLogoPreview, setRegLogoPreview] = useState("");
   const [uploadingReg, setUploadingReg] = useState(false);
 
-  // Profile Customization state
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [editProfileType, setEditProfileType] = useState("person");
   const [editProfileId, setEditProfileId] = useState("");
@@ -154,8 +143,8 @@ export function AppContextProvider({ children }) {
   const [editBrandIds, setEditBrandIds] = useState([]);
   const [editOrganizerIds, setEditOrganizerIds] = useState([]);
   const [editBandIds, setEditBandIds] = useState([]);
+  const [editWhatsapp, setEditWhatsapp] = useState("");
 
-  // 2. Product/Service creation & editing
   const [prodFormOpen, setProdFormOpen] = useState(false);
   const [editingProdId, setEditingProdId] = useState(null);
   const [prodName, setProdName] = useState("");
@@ -168,7 +157,6 @@ export function AppContextProvider({ children }) {
   const [prodImagePreview, setProdImagePreview] = useState("");
   const [uploadingProd, setUploadingProd] = useState(false);
 
-  // 3. Fair creation (within Organizer Dashboard)
   const [fairFormOpen, setFairFormOpen] = useState(false);
   const [fairName, setFairName] = useState("");
   const [fairLocation, setFairLocation] = useState("");
@@ -181,12 +169,10 @@ export function AppContextProvider({ children }) {
   const [fairLng, setFairLng] = useState(-71.53694);
   const [uploadingFair, setUploadingFair] = useState(false);
 
-  // 4. Fair Application (Brands & Bands)
   const [appFairId, setAppFairId] = useState("");
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-  // Fetch initial data
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -215,7 +201,6 @@ export function AppContextProvider({ children }) {
       if (Array.isArray(resPeople)) setPeople(resPeople);
       if (Array.isArray(resInvs)) setInvitations(resInvs);
 
-      // ── Session validation: if saved IDs don't exist anymore, auto-logout ──
       const currentSession = loadSession();
       if (currentSession?.role) {
         let valid = false;
@@ -229,7 +214,6 @@ export function AppContextProvider({ children }) {
           valid = resBands.some(b => b.id === Number(currentSession.bandId));
         }
         if (!valid) {
-          // Entity no longer in DB — clear stale session silently
           clearSession();
           setActiveRoleState(null);
           setActiveBrandIdState("");
@@ -252,7 +236,6 @@ export function AppContextProvider({ children }) {
     fetchData();
   }, []);
 
-  // Float notifications handler
   const triggerNotification = (success, msg) => {
     if (success) {
       setSuccessMsg(msg);
@@ -263,7 +246,6 @@ export function AppContextProvider({ children }) {
     }
   };
 
-  // Image upload helper
   const uploadImage = async (file, setUploading) => {
     setUploading(true);
     try {
@@ -284,7 +266,6 @@ export function AppContextProvider({ children }) {
     }
   };
 
-  // Submit handlers
   const handleProductSubmit = async (e, brandId) => {
     if (e) e.preventDefault();
     const targetBrandId = brandId || activeBrandId;
@@ -420,7 +401,6 @@ export function AppContextProvider({ children }) {
         personId: activeRole === "person" ? Number(activePersonId) : undefined
       };
     } else if (regType === "person") {
-      // ── Email + password registration via /api/auth/register ──
       if (!regEmail || !regPassword) {
         triggerNotification(false, "El correo y la contraseña son obligatorios.");
         return;
@@ -476,8 +456,6 @@ export function AppContextProvider({ children }) {
         triggerNotification(true, msg);
         const stringId = createdObj.id.toString();
 
-        // The user is already a Persona creating a sub-project,
-        // stay as Persona — the entity is linked via personId.
         const creatingAsPersona = activeRole === "person";
 
         if (regType === "brand") {
@@ -504,7 +482,6 @@ export function AppContextProvider({ children }) {
     }
   };
 
-  // ── Email + Password Login ────────────────────────────────────────────────
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!loginEmail || !loginPassword) {
@@ -552,7 +529,7 @@ export function AppContextProvider({ children }) {
     
     if (effectiveType === "brand") {
       url = `${API_URL}/api/brands/${effectiveId}`;
-      payload = { name: editName, owner: editOwner, category: editCategory, description: editDescription, logo: editLogo, slug: editSlug };
+      payload = { name: editName, owner: editOwner, category: editCategory, description: editDescription, logo: editLogo, slug: editSlug, whatsappNumber: editWhatsapp || undefined };
     } else if (effectiveType === "fair" || effectiveType === "organizer") {
       url = `${API_URL}/api/organizers/${effectiveId}`;
       payload = { name: editName, owner: editOwner, description: editDescription, logo: editLogo, slug: editSlug };
@@ -704,7 +681,6 @@ export function AppContextProvider({ children }) {
     }
   };
 
-  // Helper functions
   const getCurrentBrand = () => brands.find((b) => b.id === Number(activeBrandId));
   const getBrandName = (id) => {
     const b = brands.find((br) => br.id === Number(id));
@@ -784,6 +760,7 @@ export function AppContextProvider({ children }) {
         editBrandIds, setEditBrandIds,
         editOrganizerIds, setEditOrganizerIds,
         editBandIds, setEditBandIds,
+        editWhatsapp, setEditWhatsapp,
         uploadingEdit, setUploadingEdit,
         prodFormOpen, setProdFormOpen,
         editingProdId, setEditingProdId,

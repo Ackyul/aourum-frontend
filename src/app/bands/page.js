@@ -13,7 +13,6 @@ export default function BandsPage() {
 
   const router = useRouter();
 
-  // Filter bands based on global search in the header
   const filteredBands = bands.filter((band) => {
     const matchesSearch = band.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           band.description.toLowerCase().includes(searchTerm.toLowerCase()) ||

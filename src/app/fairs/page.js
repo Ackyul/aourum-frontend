@@ -14,7 +14,6 @@ export default function FairsPage() {
 
   const router = useRouter();
 
-  // Filter fairs based on global search in the header
   const filteredFairs = fairs.filter((fair) => {
     const matchesSearch = fair.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           fair.description.toLowerCase().includes(searchTerm.toLowerCase()) ||

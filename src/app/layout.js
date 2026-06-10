@@ -55,6 +55,7 @@ function AppLayoutShell({ children }) {
     editLogo, setEditLogo,
     editLogoPreview, setEditLogoPreview,
     editMediaLink, setEditMediaLink,
+    editWhatsapp, setEditWhatsapp,
     editSlug, setEditSlug,
     editBrandIds, setEditBrandIds,
     editOrganizerIds, setEditOrganizerIds,
@@ -101,11 +102,11 @@ function AppLayoutShell({ children }) {
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
 
-      {/* ── HEADER ─────────────────────────────────────────────────────────── */}
+      
       <header>
         <div className="header-inner">
           
-          {/* Logo */}
+          
           <Link href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none", flexShrink: 0 }}>
             <div style={{ background: "var(--gold-gradient)", width: "36px", height: "36px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(212,175,55,0.2)", flexShrink: 0 }}>
               <span style={{ color: "#1C1C1E", fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: "1.2rem" }}>A</span>
@@ -117,7 +118,7 @@ function AppLayoutShell({ children }) {
             <span className="show-on-mobile" style={{ fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: "1.1rem", color: "var(--text-primary)", letterSpacing: "0.05em" }}>AOURUM</span>
           </Link>
 
-          {/* Search bar */}
+          
           <div className="header-search">
             <i className="fa-solid fa-magnifying-glass search-icon"></i>
             <input 
@@ -128,9 +129,9 @@ function AppLayoutShell({ children }) {
             />
           </div>
 
-          {/* Nav links (desktop only) + account button */}
+          
           <nav style={{ display: "flex", gap: "0.6rem", alignItems: "center", flexShrink: 0 }} className="header-right">
-            {/* Desktop nav links */}
+            
             <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }} className="header-nav-links">
               {[
                 { href: "/", icon: "fa-compass", label: "Descubre" },
@@ -185,7 +186,7 @@ function AppLayoutShell({ children }) {
               {mounted && activePersonId && <span style={{ width: "1px", height: "18px", background: "var(--border-color)" }}></span>}
             </div>
 
-            {/* Account button (always visible) */}
+            
             <div style={{ position: "relative" }}>
               <button 
                 id="account-popover-trigger"
@@ -214,7 +215,7 @@ function AppLayoutShell({ children }) {
                 {mounted && activePersonId && <i className="fa-solid fa-chevron-down" style={{ fontSize: "0.7rem", opacity: 0.8, transition: "transform 0.3s", transform: accountDropdownOpen ? "rotate(180deg)" : "none" }}></i>}
               </button>
 
-              {/* Popover dropdown */}
+              
               {mounted && accountDropdownOpen && (
                 <div 
                   className="glass-panel fade-in"
@@ -282,7 +283,7 @@ function AppLayoutShell({ children }) {
         </div>
       </header>
 
-      {/* ── MOBILE BOTTOM TAB BAR ───────────────────────────────────────────── */}
+      
       {mounted && (
         <nav className="mobile-tab-bar">
           {[
@@ -320,12 +321,12 @@ function AppLayoutShell({ children }) {
         </nav>
       )}
 
-      {/* ── MAIN WORKSPACE ─────────────────────────────────────────────────── */}
+      
       <main className="main-workspace" style={{ flex: 1, padding: "2rem 0" }}>
         {children}
       </main>
 
-      {/* ── FOOTER ─────────────────────────────────────────────────────────── */}
+      
       <footer className="site-footer" style={{ background: "#FFFFFF", borderTop: "1px solid var(--border-color)", padding: "2rem 0", marginTop: "4rem", textAlign: "center", fontSize: "0.88rem", color: "var(--text-muted)" }}>
         <div className="container">
           <p>© {new Date().getFullYear()} AOURUM.</p>
@@ -336,7 +337,7 @@ function AppLayoutShell({ children }) {
         </div>
       </footer>
 
-      {/* ── ACCOUNT REGISTRATION MODAL ─────────────────────────────────────── */}
+      
       {showRegModal && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal-backdrop" onClick={() => setShowRegModal(false)}></div>
@@ -552,7 +553,7 @@ function AppLayoutShell({ children }) {
         </div>
       )}
 
-      {/* ── LOGIN MODAL ─────────────────────────────────────────────────────── */}
+      
       {showLoginModal && (
         <div className="modal-overlay" style={{ zIndex: 1200 }}>
           <div className="modal-backdrop" onClick={() => setShowLoginModal(false)}></div>
@@ -565,7 +566,7 @@ function AppLayoutShell({ children }) {
               <button onClick={() => setShowLoginModal(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>&#x00D7;</button>
             </div>
 
-            {/* Logo decorativo */}
+            
             <div style={{ textAlign: "center", marginBottom: "1.6rem" }}>
               <div style={{ width: "56px", height: "56px", background: "var(--gold-gradient)", borderRadius: "14px", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", boxShadow: "0 8px 24px rgba(212,175,55,0.25)" }}>
                 <span style={{ color: "#1C1C1E", fontFamily: "'Cinzel', serif", fontWeight: 900, fontSize: "1.6rem" }}>A</span>
@@ -641,7 +642,7 @@ function AppLayoutShell({ children }) {
         </div>
       )}
 
-      {/* ── EDIT PROFILE MODAL ─────────────────────────────────────────────── */}
+      
       {editProfileOpen && (
         <div className="modal-overlay" style={{ zIndex: 1150 }}>
           <div className="modal-backdrop" onClick={() => setEditProfileOpen(false)}></div>
@@ -733,6 +734,28 @@ function AppLayoutShell({ children }) {
                   </div>
                 </div>
               )}
+              {editProfileType === "brand" && (
+                <div className="form-group">
+                  <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <i className="fa-brands fa-whatsapp" style={{ color: "#25d366", fontSize: "1rem" }}></i>
+                    Número de WhatsApp de la Marca
+                    <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 400 }}>(solo dígitos, con código de país — ej: 51987654321)</span>
+                  </label>
+                  <input 
+                    type="tel" 
+                    className="form-control" 
+                    value={editWhatsapp} 
+                    onChange={(e) => setEditWhatsapp(e.target.value.replace(/[^0-9]/g, ""))} 
+                    placeholder="Ej: 51987654321"
+                  />
+                  {editWhatsapp && (
+                    <p style={{ fontSize: "0.72rem", color: "#25d366", marginTop: "4px", fontWeight: 600 }}>
+                      <i className="fa-brands fa-whatsapp" style={{ marginRight: 4 }}></i>
+                      Número configurado: +{editWhatsapp}
+                    </p>
+                  )}
+                </div>
+              )}
               {editProfileType === "fair" && (
                 <div className="form-group">
                   <label>Productor Responsable</label>
@@ -784,7 +807,7 @@ function AppLayoutShell({ children }) {
         </div>
       )}
 
-      {/* ── FLOATING NOTIFICATION BANNER ───────────────────────────────────── */}
+      
       {(errorMsg || successMsg) && (
         <div
           className="notification-toast"

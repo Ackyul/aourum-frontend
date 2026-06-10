@@ -28,7 +28,6 @@ export default function FairProfilePage({ params }) {
   const profileMapContainerRef = useRef(null);
   const profileLeafletMapRef = useRef(null);
 
-  // Edit states
   const [editFairOpen, setEditFairOpen] = useState(false);
   const [editFairName, setEditFairName] = useState("");
   const [editFairLocation, setEditFairLocation] = useState("");
@@ -42,7 +41,6 @@ export default function FairProfilePage({ params }) {
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Edit Map Refs
   const editMapContainerRef = useRef(null);
   const editLeafletMapRef = useRef(null);
   const editMarkerRef = useRef(null);
@@ -55,7 +53,6 @@ export default function FairProfilePage({ params }) {
     return f.slug === slug;
   });
 
-  // Initialize Profile Leaflet Map
   useEffect(() => {
     if (!fair || !profileMapContainerRef.current) return;
     if (profileLeafletMapRef.current) return;
@@ -98,7 +95,6 @@ export default function FairProfilePage({ params }) {
     };
   }, [fair]);
 
-  // Initialize Edit Leaflet Map when editing is opened
   useEffect(() => {
     if (!editFairOpen || !editMapContainerRef.current) return;
     if (editLeafletMapRef.current) return;
@@ -170,7 +166,6 @@ export default function FairProfilePage({ params }) {
     );
   }
 
-  // Check if the logged-in persona is an owner/organizer of this fair
   const currentPerson = people.find((p) => p.id === Number(activePersonId));
   const organizer = organizers.find((o) => o.id === fair.organizerId);
   
@@ -324,7 +319,7 @@ export default function FairProfilePage({ params }) {
             <span>{fair.location}</span>
           </div>
 
-          {/* Formulario de edición inline */}
+          
           {canEditFair && editFairOpen && (
             <div className="glass-panel fade-in" style={{ padding: "1.8rem", marginTop: "1.5rem", marginBottom: "1.5rem", border: "1.5px solid var(--gold-primary)" }}>
               <h3 style={{ fontSize: "1.15rem", fontWeight: 800, marginBottom: "1.2rem", color: "var(--text-gold)" }}>
@@ -358,7 +353,7 @@ export default function FairProfilePage({ params }) {
                   <textarea className="form-control" rows="3" style={{ resize: "none" }} value={editFairDescription} onChange={(e) => setEditFairDescription(e.target.value)} placeholder="Escribe los detalles de la feria, atracciones, etc."></textarea>
                 </div>
 
-                {/* Banner Upload */}
+                
                 <div className="form-group">
                   <label>Imagen del Banner del Evento</label>
                   <label
@@ -400,7 +395,7 @@ export default function FairProfilePage({ params }) {
                   />
                 </div>
 
-                {/* Edit Coordinates Leaflet Map */}
+                
                 <div style={{ marginBottom: "1.5rem" }}>
                   <label style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--text-primary)", display: "block", marginBottom: "0.5rem" }}>
                     📍 Ajustar ubicación en el mapa (Arrastra el marcador o haz clic)
@@ -423,13 +418,13 @@ export default function FairProfilePage({ params }) {
             </div>
           )}
 
-          {/* Ubicación del mapa principal */}
+          
           <div style={{ marginBottom: "2.2rem" }}>
             <h3 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "0.8rem", color: "var(--text-gold)" }}><i className="fa-solid fa-map"></i> Ubicación del Evento</h3>
             <div ref={profileMapContainerRef} style={{ height: "240px", width: "100%", borderRadius: "10px", border: "1px solid var(--border-color)", zIndex: 1, boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}></div>
           </div>
 
-          {/* Sección de Postulaciones Pendientes para Organizador */}
+          
           {isOwner && (
             <div className="glass-panel" style={{ padding: "1.8rem", marginTop: "1.5rem", marginBottom: "2.2rem" }}>
               <h3 style={{ fontSize: "1.15rem", fontWeight: 800, marginBottom: "1.2rem", color: "var(--text-gold)", display: "flex", alignItems: "center", gap: 8 }}>
@@ -437,7 +432,7 @@ export default function FairProfilePage({ params }) {
               </h3>
               
               <div className="postulaciones-grid">
-                {/* Marcas Pendientes */}
+                
                 <div>
                   <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.8rem", borderBottom: "1px dashed var(--border-color)", paddingBottom: "4px" }}>
                     🏪 Marcas ({fair.pendingBrands ? fair.pendingBrands.length : 0})
@@ -466,7 +461,7 @@ export default function FairProfilePage({ params }) {
                   )}
                 </div>
 
-                {/* Bandas Pendientes */}
+                
                 <div>
                   <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.8rem", borderBottom: "1px dashed var(--border-color)", paddingBottom: "4px" }}>
                     🎸 Bandas ({fair.pendingBands ? fair.pendingBands.length : 0})
@@ -500,7 +495,7 @@ export default function FairProfilePage({ params }) {
 
           <div className="fair-participants-grid">
             
-            {/* MARCAS PARTICIPANTES */}
+            
             <div>
               <h3 style={{ fontSize: "1.1rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)" }}><i className="fa-solid fa-store" style={{ color: "var(--gold-primary)", marginRight: 6 }}></i>Marcas Participantes</h3>
               {fair.acceptedBrands && fair.acceptedBrands.length > 0 ? (
@@ -529,7 +524,7 @@ export default function FairProfilePage({ params }) {
               )}
             </div>
 
-            {/* BANDAS DE MÚSICA */}
+            
             <div>
               <h3 style={{ fontSize: "1.1rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)" }}><i className="fa-solid fa-music" style={{ color: "var(--gold-primary)", marginRight: 6 }}></i>Lineup de Música</h3>
               {fair.acceptedBands && fair.acceptedBands.length > 0 ? (

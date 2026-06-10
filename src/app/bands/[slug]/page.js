@@ -68,7 +68,6 @@ export default function BandProfilePage({ params }) {
     );
   }
 
-  // Check collaborator role of the logged-in persona
   const currentPerson = people.find((p) => p.id === Number(activePersonId));
   const userCollaborator = band.collaborators ? band.collaborators.find(c => c.personId === Number(activePersonId)) : null;
   const userRole = userCollaborator ? userCollaborator.role : null;
@@ -237,7 +236,7 @@ export default function BandProfilePage({ params }) {
             </h3>
           </div>
 
-          {/* Formulario para añadir Gig si es Owner */}
+          
           {isOwner && (
             <form onSubmit={handleAddGigSubmit} className="gig-form">
               <input
@@ -294,12 +293,12 @@ export default function BandProfilePage({ params }) {
             <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>Próximamente se anunciarán las fechas para esta banda.</p>
           )}
 
-          {/* Opciones Desplegables de Administración y Colaboración */}
+          
           {isCollaborator && (
             <>
               <hr style={{ border: 0, borderTop: "1px solid var(--border-color)", margin: "2.2rem 0" }} />
               
-              {/* Opción 1: Postular Banda a Ferias */}
+              
               {isOwner && (
                 <div className="glass-panel" style={{ padding: "1.5rem", marginBottom: "1.5rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setShowFairs(!showFairs)}>
@@ -330,7 +329,7 @@ export default function BandProfilePage({ params }) {
                 </div>
               )}
 
-              {/* Opción 2: Integrantes de la Banda */}
+              
               <div className="glass-panel" style={{ padding: "1.5rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setShowCollabs(!showCollabs)}>
                   <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0 }}>

@@ -57,6 +57,7 @@ export default function BrandProfilePage({ params }) {
     setEditProfileType,
     setEditProfileId,
     setEditSlug,
+    setEditWhatsapp,
     setEditProfileOpen
   } = useApp();
 
@@ -91,7 +92,6 @@ export default function BrandProfilePage({ params }) {
 
   const brandProducts = products.filter((p) => p.brandId === brand.id);
 
-  // Check collaborator role of the logged-in persona
   const currentPerson = people.find((p) => p.id === Number(activePersonId));
   const userCollaborator = brand.collaborators ? brand.collaborators.find(c => c.personId === Number(activePersonId)) : null;
   const userRole = userCollaborator ? userCollaborator.role : null;
@@ -119,6 +119,7 @@ export default function BrandProfilePage({ params }) {
     setEditProfileType("brand");
     setEditProfileId(brand.id);
     setEditSlug(brand.slug || "");
+    setEditWhatsapp(brand.whatsappNumber || "");
     setEditProfileOpen(true);
   };
 
@@ -181,6 +182,26 @@ export default function BrandProfilePage({ params }) {
 
           <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", marginTop: "1.2rem", lineHeight: 1.65 }}>{brand.description}</p>
 
+          
+          {brand.whatsappNumber && (
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "0.8rem", padding: "0.7rem 1rem", background: "rgba(37,211,102,0.07)", borderRadius: "8px", border: "1px solid rgba(37,211,102,0.2)", width: "fit-content" }}>
+              <i className="fa-brands fa-whatsapp" style={{ color: "#25d366", fontSize: "1.2rem" }}></i>
+              <div>
+                <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", display: "block", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Número de WhatsApp</span>
+                <span 
+                  style={{ fontSize: "0.9rem", fontWeight: 700, color: "#25d366", cursor: "pointer", textDecoration: "underline" }}
+                  onClick={() => {
+                    navigator.clipboard?.writeText(brand.whatsappNumber);
+                    alert(`Número +${brand.whatsappNumber} copiado al portapapeles`);
+                  }}
+                  title="Haz clic para copiar"
+                >
+                  +{brand.whatsappNumber}
+                </span>
+              </div>
+            </div>
+          )}
+
           <hr style={{ border: 0, borderTop: "1px solid var(--border-color)", margin: "2.2rem 0" }} />
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
@@ -190,7 +211,7 @@ export default function BrandProfilePage({ params }) {
             </h3>
           </div>
 
-          {/* Formulario de creación/edición de producto inline */}
+          
           {isOwner && prodFormOpen && (
             <div className="glass-panel fade-in" style={{ padding: "1.6rem", marginTop: "1.5rem", marginBottom: "1.5rem", border: "1.5px solid var(--gold-primary)" }}>
               <h3 style={{ fontSize: "1.15rem", fontWeight: 800, marginBottom: "1.2rem", color: "var(--text-gold)" }}>
@@ -294,7 +315,7 @@ export default function BrandProfilePage({ params }) {
             </div>
           )}
 
-          {/* Tabla de administración del catálogo si es dueño */}
+          
           {isOwner && brandProducts.length > 0 && (
             <div className="glass-panel" style={{ padding: "1.5rem", marginTop: "1.5rem", marginBottom: "1.5rem" }}>
               <h3 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "1rem" }}><i className="fa-solid fa-list-check" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i>Administrar Items en Catálogo</h3>
@@ -360,7 +381,8 @@ export default function BrandProfilePage({ params }) {
           ) : (
             <div className="grid-catalog">
               {brandProducts.map((prod) => (
-                <div key={prod.id} className="glass-panel" style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer" }} onClick={() => router.push(`/products/${prod.id}`)}>
+                <div key={prod.id} className="glass-panel" style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer" }} onClick={() => router.push(`/products/${prod.slug || prod.id}`)}>
+
                   <div className="card-img-container" style={{ height: "180px", position: "relative" }}>
                     <img src={prod.image} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} className="card-img-hover" />
                     <span style={{
@@ -388,12 +410,12 @@ export default function BrandProfilePage({ params }) {
             </div>
           )}
 
-          {/* Opciones Desplegables de Administración y Colaboración */}
+          
           {isCollaborator && (
             <>
               <hr style={{ border: 0, borderTop: "1px solid var(--border-color)", margin: "2.2rem 0" }} />
               
-              {/* Opción 1: Postular Marca a Ferias */}
+              
               {isOwner && (
                 <div className="glass-panel" style={{ padding: "1.5rem", marginBottom: "1.5rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setShowFairs(!showFairs)}>
@@ -424,7 +446,7 @@ export default function BrandProfilePage({ params }) {
                 </div>
               )}
 
-              {/* Opción 2: Colaboradores de la Marca */}
+              
               <div className="glass-panel" style={{ padding: "1.5rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setShowCollabs(!showCollabs)}>
                   <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0 }}>

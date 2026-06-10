@@ -13,7 +13,6 @@ export default function BrandsPage() {
 
   const router = useRouter();
 
-  // Filter brands based on global search in the header
   const filteredBrands = brands.filter((brand) => {
     const matchesSearch = brand.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           brand.description.toLowerCase().includes(searchTerm.toLowerCase()) ||

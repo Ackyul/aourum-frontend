@@ -19,7 +19,6 @@ export default function Home() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const router = useRouter();
 
-  // Filter products based on global search & collapsible filters
   const filteredProducts = products.filter((prod) => {
     const matchesSearch = prod.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           prod.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -39,7 +38,7 @@ export default function Home() {
       ) : (
         <div className="fade-in">
           
-          {/* Header area of catalogue */}
+          
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2.0rem", flexWrap: "wrap", gap: "1rem" }}>
             <div>
               <span style={{ fontSize: "0.8rem", color: "var(--text-gold)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.08em" }}>Vitrina de Emprendedores</span>
@@ -68,7 +67,7 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Collapsible Filter Panel */}
+          
           {filtersOpen && (
             <div 
               className="glass-panel fade-in" 
@@ -117,7 +116,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* Catalog items grid */}
+          
           {filteredProducts.length === 0 ? (
             <div style={{ padding: "5rem", textAlign: "center", background: "#FFFFFF", borderRadius: "12px", border: "1px solid var(--border-color)" }}>
               <i className="fa-solid fa-store-slash" style={{ fontSize: "3rem", color: "var(--border-color)", marginBottom: "1rem" }}></i>
@@ -130,7 +129,7 @@ export default function Home() {
                   key={prod.id} 
                   className="glass-panel" 
                   style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer" }}
-                  onClick={() => router.push(`/products/${prod.id}`)}
+                  onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
                 >
                   <div className="card-img-container" style={{ height: "220px", width: "100%", position: "relative" }}>
                     <img src={prod.image} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} className="card-img-hover" />
@@ -161,7 +160,7 @@ export default function Home() {
                     
                     <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", textOverflow: "ellipsis", flex: 1, lineHeight: 1.45 }}>{prod.description}</p>
                     
-                    {/* Price and Stock / Agenda */}
+                    
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--border-color)", paddingTop: "0.8rem", marginTop: "0.4rem" }}>
                       <div>
                         <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "2px" }}>Precio</div>

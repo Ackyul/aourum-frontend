@@ -72,7 +72,6 @@ export default function PersonProfilePage({ params }) {
 
   const isOwner = Number(activePersonId) === person.id;
 
-  // Find related entities
   const relatedBrands = brands.filter((b) => (person.brandIds && person.brandIds.includes(b.id)) || (b.personIds && b.personIds.includes(person.id)));
   const relatedBands = bands.filter((b) => (person.bandIds && person.bandIds.includes(b.id)) || (b.personIds && b.personIds.includes(person.id)));
   const relatedOrganizers = organizers.filter((o) => (person.organizerIds && person.organizerIds.includes(o.id)) || (o.personIds && o.personIds.includes(person.id)));
@@ -151,10 +150,10 @@ export default function PersonProfilePage({ params }) {
             <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", lineHeight: 1.65, margin: 0 }}>{person.description || "Esta persona no ha escrito una biografía todavía."}</p>
           </div>
 
-          {/* Gestión del Propietario (Invitaciones y Creación de Proyectos) */}
+          
           {isOwner && (
             <div style={{ display: "flex", flexDirection: "column", gap: "2rem", marginBottom: "2.5rem" }}>
-              {/* Invitaciones de Colaboración */}
+              
               {(() => {
                 const receivedInvs = invitations.filter(inv => inv.receiverPersonId === person.id);
                 if (receivedInvs.length === 0) return null;
@@ -200,7 +199,7 @@ export default function PersonProfilePage({ params }) {
                 );
               })()}
 
-              {/* Crear Proyectos */}
+              
               <div className="glass-panel" style={{ padding: "1.5rem" }}>
                 <h3 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: 8 }}>
                   <i className="fa-solid fa-plus-circle" style={{ color: "var(--gold-primary)" }}></i> ¿Tienes un nuevo proyecto propio?
@@ -242,7 +241,7 @@ export default function PersonProfilePage({ params }) {
           </h3>
 
           <div className="projects-grid">
-            {/* MARCAS */}
+            
             <div>
               <h4 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
                 <i className="fa-solid fa-store" style={{ color: "var(--gold-primary)" }}></i> Marcas
@@ -269,7 +268,7 @@ export default function PersonProfilePage({ params }) {
               )}
             </div>
 
-            {/* BANDAS */}
+            
             <div>
               <h4 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
                 <i className="fa-solid fa-guitar" style={{ color: "var(--gold-primary)" }}></i> Bandas
@@ -296,7 +295,7 @@ export default function PersonProfilePage({ params }) {
               )}
             </div>
 
-            {/* FERIAS */}
+            
             <div>
               <h4 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
                 <i className="fa-solid fa-calendar-days" style={{ color: "var(--gold-primary)" }}></i> Ferias organizadas
