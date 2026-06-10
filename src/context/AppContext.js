@@ -296,7 +296,7 @@ export function AppContextProvider({ children }) {
       name: prodName,
       description: prodDescription,
       price: Number(prodPrice),
-      stock: prodType === "service" ? 99999 : Number(prodStock || 0),
+      stock: prodType === "service" ? 99999 : (prodStock === "" || prodStock == null ? null : Number(prodStock)),
       category: prodCategory,
       brandId: Number(targetBrandId),
       type: prodType,

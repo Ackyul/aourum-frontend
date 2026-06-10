@@ -171,8 +171,8 @@ export default function Home() {
                       </div>
                       <div style={{ textAlign: "right" }}>
                         <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "2px" }}>Disponibilidad</div>
-                        <span style={{ fontSize: "0.78rem", fontWeight: 700, color: prod.type === "service" ? "#2563eb" : prod.stock > 0 ? "var(--text-primary)" : "#ef4444" }}>
-                          {prod.type === "service" ? "Por Agenda" : prod.stock > 0 ? `Stock: ${prod.stock}` : "Agotado"}
+                        <span style={{ fontSize: "0.78rem", fontWeight: 700, color: prod.type === "service" ? "#2563eb" : prod.stock == null ? "var(--text-primary)" : prod.stock > 0 ? "var(--text-primary)" : "#ef4444" }}>
+                          {prod.type === "service" ? "Por Agenda" : prod.stock == null ? "Disponible" : prod.stock > 0 ? `Stock: ${prod.stock}` : "Agotado"}
                         </span>
                       </div>
                     </div>
