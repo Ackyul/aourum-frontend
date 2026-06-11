@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useMemo, useEffect } from "react";
 import { useApp } from "../../../context/AppContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -64,6 +64,11 @@ export default function BrandProfilePage({ params }) {
   const router = useRouter();
   const [showFairs, setShowFairs] = useState(false);
   const [showCollabs, setShowCollabs] = useState(false);
+  const [fairSearchQuery, setFairSearchQuery] = useState("");
+  const [showFairDropdown, setShowFairDropdown] = useState(false);
+  const [personSearchQuery, setPersonSearchQuery] = useState("");
+  const [showPersonDropdown, setShowPersonDropdown] = useState(false);
+  const [selectedPersonId, setSelectedPersonId] = useState("");
 
   if (loading) {
     return (
@@ -81,6 +86,14 @@ export default function BrandProfilePage({ params }) {
     }
     return b.slug === slug;
   });
+
+  // Redirect from numeric ID to slug-based URL
+  useEffect(() => {
+    if (brand && brand.slug && isNumeric) {
+      router.replace(`/brands/${brand.slug}`);
+    }
+  }, [brand, isNumeric]);
+
   if (!brand) {
     return (
       <div className="container" style={{ textAlign: "center", padding: "4rem 0" }}>
@@ -91,6 +104,11 @@ export default function BrandProfilePage({ params }) {
   }
 
   const brandProducts = products.filter((p) => p.brandId === brand.id);
+
+  const filteredFairs = useMemo(() => {
+    if (!fairSearchQuery.trim()) return fairs;
+    return fairs.filter(f => f.name.toLowerCase().includes(fairSearchQuery.toLowerCase()));
+  }, [fairs, fairSearchQuery]);
 
   // Check collaborator role of the logged-in persona
   const currentPerson = people.find((p) => p.id === Number(activePersonId));
@@ -412,14 +430,64 @@ export default function BrandProfilePage({ params }) {
                   {showFairs && (
                     <div className="fade-in" style={{ marginTop: "1.5rem", borderTop: "1px solid var(--border-color)", paddingTop: "1.5rem" }}>
                       <form onSubmit={(e) => handleApplyToFair(e, "brand", brand.id)} className="apply-fair-form">
-                        <div className="form-group" style={{ marginBottom: 0 }}>
-                          <label>Selecciona una feria del calendario local</label>
-                          <select className="form-control" value={appFairId} onChange={(e) => setAppFairId(e.target.value)} required>
-                            <option value="">-- Seleccionar Feria Disponible --</option>
-                            {fairs.map(f => (
-                              <option key={f.id} value={f.id.toString()}>{f.name} ({f.date})</option>
-                            ))}
-                          </select>
+                        <div className="form-group" style={{ marginBottom: "1rem", position: "relative" }}>
+                          <label>Buscar y seleccionar feria del calendario local</label>
+                          <div style={{ position: "relative" }}>
+                            <input
+                              type="text"
+                              className="form-control"
+                              placeholder="Escribe el nombre de la feria para buscar..."
+                              value={fairSearchQuery}
+                              onChange={(e) => {
+                                setFairSearchQuery(e.target.value);
+                                setShowFairDropdown(true);
+                              }}
+                              onFocus={() => setShowFairDropdown(true)}
+                              onBlur={() => setTimeout(() => setShowFairDropdown(false), 200)}
+                              required
+                            />
+                            {fairSearchQuery && (
+                              <button 
+                                type="button" 
+                                onClick={() => { setFairSearchQuery(""); setAppFairId(""); setShowFairDropdown(false); }}
+                                style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
+                              >
+                                &times;
+                              </button>
+                            )}
+                          </div>
+                          
+                          {showFairDropdown && filteredFairs.length > 0 && (
+                            <div 
+                              style={{
+                                position: "absolute", top: "100%", left: 0, right: 0,
+                                background: "var(--bg-card)", border: "1px solid var(--border-color)",
+                                borderRadius: "8px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                                maxHeight: "200px", overflowY: "auto", zIndex: 1000, marginTop: "4px"
+                              }}
+                            >
+                              {filteredFairs.map(f => (
+                                <div
+                                  key={f.id}
+                                  onClick={() => {
+                                    setAppFairId(f.id.toString());
+                                    setFairSearchQuery(`${f.name} (${f.date})`);
+                                    setShowFairDropdown(false);
+                                  }}
+                                  style={{
+                                    padding: "0.6rem 1rem", cursor: "pointer",
+                                    transition: "background 0.2s", fontSize: "0.85rem",
+                                    borderBottom: "1px solid rgba(0,0,0,0.02)",
+                                    color: "var(--text-primary)"
+                                  }}
+                                  onMouseEnter={(e) => e.target.style.background = "var(--bg-input)"}
+                                  onMouseLeave={(e) => e.target.style.background = "none"}
+                                >
+                                  <strong>{f.name}</strong> <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginLeft: "6px" }}>({f.date})</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <button type="submit" className="btn-gold" style={{ borderRadius: "8px" }}>Enviar Postulación</button>
                       </form>
@@ -499,6 +567,11 @@ export default function BrandProfilePage({ params }) {
                               const pendingReceiverIds = invitations.filter(inv => inv.senderType === "brand" && inv.senderId === brand.id).map(inv => inv.receiverPersonId);
                               const candidates = people.filter(p => !linkedIds.includes(p.id) && !pendingReceiverIds.includes(p.id));
 
+                                           const filteredCandidates = candidates.filter(p => 
+                                p.name.toLowerCase().includes(personSearchQuery.toLowerCase()) || 
+                                (p.occupation && p.occupation.toLowerCase().includes(personSearchQuery.toLowerCase()))
+                              );
+
                               return (
                                 <form onSubmit={(e) => {
                                   e.preventDefault();
@@ -506,20 +579,75 @@ export default function BrandProfilePage({ params }) {
                                   const inviteRole = e.target.elements.inviteRole.value;
                                   if (!receiverId || !inviteRole) return;
                                   sendInvitation("brand", brand.id, brand.name, receiverId, inviteRole);
+                                  setPersonSearchQuery("");
+                                  setSelectedPersonId("");
                                 }}>
-                                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                    <select name="invitePerson" className="form-control" style={{ fontSize: "0.85rem" }} required>
-                                      <option value="">-- Seleccionar Persona --</option>
-                                      {candidates.map(p => (
-                                        <option key={p.id} value={p.id}>{p.name}{p.occupation ? ` (${p.occupation})` : ""}</option>
-                                      ))}
-                                    </select>
+                                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", position: "relative" }}>
+                                    <input type="hidden" name="invitePerson" value={selectedPersonId} />
+                                    
+                                    <div style={{ position: "relative" }}>
+                                      <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Escribe el nombre para buscar..."
+                                        value={personSearchQuery}
+                                        onChange={(e) => {
+                                          setPersonSearchQuery(e.target.value);
+                                          setShowPersonDropdown(true);
+                                        }}
+                                        onFocus={() => setShowPersonDropdown(true)}
+                                        onBlur={() => setTimeout(() => setShowPersonDropdown(false), 200)}
+                                        required
+                                      />
+                                      {personSearchQuery && (
+                                        <button 
+                                          type="button" 
+                                          onClick={() => { setPersonSearchQuery(""); setSelectedPersonId(""); setShowPersonDropdown(false); }}
+                                          style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
+                                        >
+                                          &times;
+                                        </button>
+                                      )}
+                                    </div>
+
+                                    {showPersonDropdown && filteredCandidates.length > 0 && (
+                                      <div 
+                                        style={{
+                                          position: "absolute", top: "100%", left: 0, right: 0,
+                                          background: "var(--bg-card)", border: "1px solid var(--border-color)",
+                                          borderRadius: "8px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                                          maxHeight: "200px", overflowY: "auto", zIndex: 1000, marginTop: "4px"
+                                        }}
+                                      >
+                                        {filteredCandidates.map(p => (
+                                          <div
+                                            key={p.id}
+                                            onClick={() => {
+                                              setSelectedPersonId(p.id.toString());
+                                              setPersonSearchQuery(p.name + (p.occupation ? ` (${p.occupation})` : ""));
+                                              setShowPersonDropdown(false);
+                                            }}
+                                            style={{
+                                              padding: "0.6rem 1rem", cursor: "pointer",
+                                              transition: "background 0.2s", fontSize: "0.85rem",
+                                              borderBottom: "1px solid rgba(0,0,0,0.02)",
+                                              color: "var(--text-primary)"
+                                            }}
+                                            onMouseEnter={(e) => e.target.style.background = "var(--bg-input)"}
+                                            onMouseLeave={(e) => e.target.style.background = "none"}
+                                          >
+                                            <strong>{p.name}</strong> {p.occupation && <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginLeft: "6px" }}>({p.occupation})</span>}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+
                                     <select name="inviteRole" className="form-control" style={{ fontSize: "0.85rem" }} required>
                                       <option value="colaborador">Colaborador</option>
                                       <option value="gestor">Gestor</option>
                                       <option value="creador">Creador</option>
                                     </select>
-                                    <button type="submit" className="btn-gold" style={{ padding: "0.45rem 1rem", borderRadius: "6px", fontSize: "0.82rem", width: "100%" }} disabled={candidates.length === 0}>
+                                    <button type="submit" className="btn-gold" style={{ padding: "0.45rem 1rem", borderRadius: "6px", fontSize: "0.82rem", width: "100%" }} disabled={candidates.length === 0 || !selectedPersonId}>
                                       <i className="fa-solid fa-paper-plane" style={{ marginRight: 6 }}></i> Enviar Invitación
                                     </button>
                                   </div>

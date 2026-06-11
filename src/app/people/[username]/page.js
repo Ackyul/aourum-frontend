@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect } from "react";
 import { useApp } from "../../../context/AppContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -60,6 +60,13 @@ export default function PersonProfilePage({ params }) {
     }
     return false;
   });
+
+  // Redirect from numeric ID to username-based URL
+  useEffect(() => {
+    if (person && person.username && /^\d+$/.test(usernameParam)) {
+      router.replace(`/people/${person.username}`);
+    }
+  }, [person, usernameParam]);
 
   if (!person) {
     return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useMemo } from "react";
+import { use, useMemo, useEffect } from "react";
 import { useApp } from "../../../context/AppContext";
 import { useRouter } from "next/navigation";
 
@@ -24,6 +24,15 @@ export default function ProductDetailPage({ params }) {
     if (!isNaN(numId)) return products.find((p) => p.id === numId);
     return null;
   }, [products, slugParam]);
+
+  const isNumericSlug = /^\d+$/.test(slugParam);
+
+  // Redirect from numeric ID to slug-based URL
+  useEffect(() => {
+    if (prod && prod.slug && isNumericSlug) {
+      router.replace(`/products/${prod.slug}`);
+    }
+  }, [prod, isNumericSlug]);
 
   if (loading) {
     return (

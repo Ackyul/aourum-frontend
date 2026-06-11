@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useMemo, useEffect } from "react";
 import { useApp } from "../../../context/AppContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -42,6 +42,11 @@ export default function BandProfilePage({ params }) {
   const [isUpdatingGigs, setIsUpdatingGigs] = useState(false);
   const [showFairs, setShowFairs] = useState(false);
   const [showCollabs, setShowCollabs] = useState(false);
+  const [fairSearchQuery, setFairSearchQuery] = useState("");
+  const [showFairDropdown, setShowFairDropdown] = useState(false);
+  const [personSearchQuery, setPersonSearchQuery] = useState("");
+  const [showPersonDropdown, setShowPersonDropdown] = useState(false);
+  const [selectedPersonId, setSelectedPersonId] = useState("");
 
   if (loading) {
     return (
@@ -59,6 +64,14 @@ export default function BandProfilePage({ params }) {
     }
     return b.slug === slug;
   });
+
+  // Redirect from numeric ID to slug-based URL
+  useEffect(() => {
+    if (band && band.slug && isNumeric) {
+      router.replace(`/bands/${band.slug}`);
+    }
+  }, [band, isNumeric]);
+
   if (!band) {
     return (
       <div className="container" style={{ textAlign: "center", padding: "4rem 0" }}>
@@ -67,6 +80,11 @@ export default function BandProfilePage({ params }) {
       </div>
     );
   }
+
+  const filteredFairs = useMemo(() => {
+    if (!fairSearchQuery.trim()) return fairs;
+    return fairs.filter(f => f.name.toLowerCase().includes(fairSearchQuery.toLowerCase()));
+  }, [fairs, fairSearchQuery]);
 
   // Check collaborator role of the logged-in persona
   const currentPerson = people.find((p) => p.id === Number(activePersonId));
@@ -314,14 +332,64 @@ export default function BandProfilePage({ params }) {
                   {showFairs && (
                     <div className="fade-in" style={{ marginTop: "1.5rem", borderTop: "1px solid var(--border-color)", paddingTop: "1.5rem" }}>
                       <form onSubmit={(e) => handleApplyToFair(e, "band", band.id)} className="apply-fair-form">
-                        <div className="form-group" style={{ marginBottom: 0 }}>
-                          <label>Selecciona una feria del calendario local</label>
-                          <select className="form-control" value={appFairId} onChange={(e) => setAppFairId(e.target.value)} required>
-                            <option value="">-- Seleccionar Feria Disponible --</option>
-                            {fairs.map(f => (
-                              <option key={f.id} value={f.id.toString()}>{f.name} ({f.date})</option>
-                            ))}
-                          </select>
+                        <div className="form-group" style={{ marginBottom: "1rem", position: "relative" }}>
+                          <label>Buscar y seleccionar feria del calendario local</label>
+                          <div style={{ position: "relative" }}>
+                            <input
+                              type="text"
+                              className="form-control"
+                              placeholder="Escribe el nombre de la feria para buscar..."
+                              value={fairSearchQuery}
+                              onChange={(e) => {
+                                setFairSearchQuery(e.target.value);
+                                setShowFairDropdown(true);
+                              }}
+                              onFocus={() => setShowFairDropdown(true)}
+                              onBlur={() => setTimeout(() => setShowFairDropdown(false), 200)}
+                              required
+                            />
+                            {fairSearchQuery && (
+                              <button 
+                                type="button" 
+                                onClick={() => { setFairSearchQuery(""); setAppFairId(""); setShowFairDropdown(false); }}
+                                style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
+                              >
+                                &times;
+                              </button>
+                            )}
+                          </div>
+                          
+                          {showFairDropdown && filteredFairs.length > 0 && (
+                            <div 
+                              style={{
+                                position: "absolute", top: "100%", left: 0, right: 0,
+                                background: "var(--bg-card)", border: "1px solid var(--border-color)",
+                                borderRadius: "8px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                                maxHeight: "200px", overflowY: "auto", zIndex: 1000, marginTop: "4px"
+                              }}
+                            >
+                              {filteredFairs.map(f => (
+                                <div
+                                  key={f.id}
+                                  onClick={() => {
+                                    setAppFairId(f.id.toString());
+                                    setFairSearchQuery(`${f.name} (${f.date})`);
+                                    setShowFairDropdown(false);
+                                  }}
+                                  style={{
+                                    padding: "0.6rem 1rem", cursor: "pointer",
+                                    transition: "background 0.2s", fontSize: "0.85rem",
+                                    borderBottom: "1px solid rgba(0,0,0,0.02)",
+                                    color: "var(--text-primary)"
+                                  }}
+                                  onMouseEnter={(e) => e.target.style.background = "var(--bg-input)"}
+                                  onMouseLeave={(e) => e.target.style.background = "none"}
+                                >
+                                  <strong>{f.name}</strong> <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginLeft: "6px" }}>({f.date})</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <button type="submit" className="btn-gold" style={{ borderRadius: "8px" }}>Enviar Postulación</button>
                       </form>

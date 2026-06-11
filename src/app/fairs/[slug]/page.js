@@ -55,6 +55,13 @@ export default function FairProfilePage({ params }) {
     return f.slug === slug;
   });
 
+  // Redirect from numeric ID to slug-based URL
+  useEffect(() => {
+    if (fair && fair.slug && isNumeric) {
+      router.replace(`/fairs/${fair.slug}`);
+    }
+  }, [fair, isNumeric]);
+
   // Initialize Profile Leaflet Map
   useEffect(() => {
     if (!fair || !profileMapContainerRef.current) return;
