@@ -37,7 +37,12 @@ export default function PersonProfilePage({ params }) {
     setEditBandIds,
     setEditProfileType,
     setEditProfileId,
-    setEditProfileOpen
+    setEditProfileOpen,
+    setEditInstagram,
+    setEditFacebook,
+    setEditTiktok,
+    setEditWebsite,
+    parseDescription
   } = useApp();
 
   const router = useRouter();
@@ -95,11 +100,12 @@ export default function PersonProfilePage({ params }) {
   };
 
   const handleEditClick = () => {
+    const parsed = parseDescription(person.description);
     setEditName(person.name);
     setEditUsername(person.username || "");
     setEditOwner("");
     setEditCategory("");
-    setEditDescription(person.description || "");
+    setEditDescription(parsed.text);
     setEditLogo(person.logo || "");
     setEditLogoPreview(person.logo || "");
     setEditGenre("");
@@ -109,6 +115,10 @@ export default function PersonProfilePage({ params }) {
     setEditBrandIds(person.brandIds || []);
     setEditOrganizerIds(person.organizerIds || []);
     setEditBandIds(person.bandIds || []);
+    setEditInstagram(parsed.instagram);
+    setEditFacebook(parsed.facebook);
+    setEditTiktok(parsed.tiktok);
+    setEditWebsite(parsed.website);
     setEditProfileType("person");
     setEditProfileId(person.id);
     setEditProfileOpen(true);
@@ -155,7 +165,71 @@ export default function PersonProfilePage({ params }) {
 
           <div style={{ background: "rgba(0,0,0,0.01)", border: "1px solid var(--border-color)", borderRadius: "12px", padding: "1.5rem", marginBottom: "2.5rem" }}>
             <h3 style={{ fontSize: "1.0rem", fontWeight: 800, marginBottom: "0.6rem", color: "var(--text-primary)" }}>Biografía / Propuesta</h3>
-            <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", lineHeight: 1.65, margin: 0 }}>{person.description || "Esta persona no ha escrito una biografía todavía."}</p>
+            <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", lineHeight: 1.65, margin: 0 }}>
+              {parseDescription(person.description).text || "Esta persona no ha escrito una biografía todavía."}
+            </p>
+
+            {(() => {
+              const parsed = parseDescription(person.description);
+              const hasSocials = parsed.instagram || parsed.facebook || parsed.tiktok || parsed.website;
+              if (!hasSocials) return null;
+              return (
+                <div style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "1rem", flexWrap: "wrap" }}>
+                  {parsed.instagram && (
+                    <a 
+                      href={`https://instagram.com/${parsed.instagram.trim()}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      style={{ color: "#e1306c", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
+                      onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
+                      onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
+                      title="Instagram"
+                    >
+                      <i className="fa-brands fa-instagram"></i>
+                    </a>
+                  )}
+                  {parsed.facebook && (
+                    <a 
+                      href={`https://facebook.com/${parsed.facebook.trim()}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      style={{ color: "#1877f2", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
+                      onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
+                      onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
+                      title="Facebook"
+                    >
+                      <i className="fa-brands fa-facebook"></i>
+                    </a>
+                  )}
+                  {parsed.tiktok && (
+                    <a 
+                      href={`https://tiktok.com/@${parsed.tiktok.trim().replace(/^@/, "")}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      style={{ color: "#000000", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
+                      onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
+                      onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
+                      title="TikTok"
+                    >
+                      <i className="fa-brands fa-tiktok"></i>
+                    </a>
+                  )}
+                  {parsed.website && (
+                    <a 
+                      href={parsed.website.trim().startsWith("http") ? parsed.website.trim() : `https://${parsed.website.trim()}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      style={{ color: "var(--gold-primary)", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
+                      onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
+                      onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
+                      title="Sitio Web"
+                    >
+                      <i className="fa-solid fa-globe"></i>
+                    </a>
+                  )}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Gestión del Propietario (Invitaciones y Creación de Proyectos) */}

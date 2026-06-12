@@ -34,7 +34,12 @@ export default function BandProfilePage({ params }) {
     setEditSlug,
     setEditProfileOpen,
     fetchData,
-    triggerNotification
+    triggerNotification,
+    setEditInstagram,
+    setEditFacebook,
+    setEditTiktok,
+    setEditWebsite,
+    parseDescription
   } = useApp();
 
   const router = useRouter();
@@ -105,16 +110,21 @@ export default function BandProfilePage({ params }) {
   };
 
   const handleEditClick = () => {
+    const parsed = parseDescription(band.description);
     setEditName(band.name);
     setEditGenre(band.genre || "");
     setEditMembers(band.members || 1);
-    setEditDescription(band.description || "");
+    setEditDescription(parsed.text);
     setEditLogo(band.image || "");
     setEditLogoPreview(band.image || "");
     setEditMediaLink(band.mediaLink || "");
     setEditProfileType("band");
     setEditProfileId(band.id);
     setEditSlug(band.slug || "");
+    setEditInstagram(parsed.instagram);
+    setEditFacebook(parsed.facebook);
+    setEditTiktok(parsed.tiktok);
+    setEditWebsite(parsed.website);
     setEditProfileOpen(true);
   };
 
@@ -236,7 +246,71 @@ export default function BandProfilePage({ params }) {
             )}
           </div>
 
-          <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", marginTop: "1.2rem", lineHeight: 1.65 }}>{band.description}</p>
+          <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", marginTop: "1.2rem", lineHeight: 1.65 }}>
+            {parseDescription(band.description).text}
+          </p>
+
+          {(() => {
+            const parsed = parseDescription(band.description);
+            const hasSocials = parsed.instagram || parsed.facebook || parsed.tiktok || parsed.website;
+            if (!hasSocials) return null;
+            return (
+              <div style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "1rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+                {parsed.instagram && (
+                  <a 
+                    href={`https://instagram.com/${parsed.instagram.trim()}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={{ color: "#e1306c", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
+                    title="Instagram"
+                  >
+                    <i className="fa-brands fa-instagram"></i>
+                  </a>
+                )}
+                {parsed.facebook && (
+                  <a 
+                    href={`https://facebook.com/${parsed.facebook.trim()}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={{ color: "#1877f2", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
+                    title="Facebook"
+                  >
+                    <i className="fa-brands fa-facebook"></i>
+                  </a>
+                )}
+                {parsed.tiktok && (
+                  <a 
+                    href={`https://tiktok.com/@${parsed.tiktok.trim().replace(/^@/, "")}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={{ color: "#000000", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
+                    title="TikTok"
+                  >
+                    <i className="fa-brands fa-tiktok"></i>
+                  </a>
+                )}
+                {parsed.website && (
+                  <a 
+                    href={parsed.website.trim().startsWith("http") ? parsed.website.trim() : `https://${parsed.website.trim()}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={{ color: "var(--gold-primary)", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
+                    title="Sitio Web"
+                  >
+                    <i className="fa-solid fa-globe"></i>
+                  </a>
+                )}
+              </div>
+            );
+          })()}
 
           {band.mediaLink && (
             <div style={{ marginTop: "1.6rem" }}>

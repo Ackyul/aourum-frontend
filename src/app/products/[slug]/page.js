@@ -11,7 +11,8 @@ export default function ProductDetailPage({ params }) {
   const {
     products,
     brands,
-    loading
+    loading,
+    parseDescription
   } = useApp();
 
   const router = useRouter();
@@ -299,7 +300,7 @@ export default function ProductDetailPage({ params }) {
                 </p>
               )}
               <p style={{ fontSize: "0.88rem", color: "var(--text-primary)", lineHeight: 1.55, marginBottom: "1.2rem" }}>
-                {brand.description}
+                {parseDescription(brand.description).text}
               </p>
               <button 
                 onClick={() => router.push(`/brands/${brand.slug || brand.id}`)}

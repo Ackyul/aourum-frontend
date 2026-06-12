@@ -57,6 +57,10 @@ function AppLayoutShell({ children }) {
     editMediaLink, setEditMediaLink,
     editSlug, setEditSlug,
     editWhatsappNumber, setEditWhatsappNumber,
+    editInstagram, setEditInstagram,
+    editFacebook, setEditFacebook,
+    editTiktok, setEditTiktok,
+    editWebsite, setEditWebsite,
     editBrandIds, setEditBrandIds,
     editOrganizerIds, setEditOrganizerIds,
     editBandIds, setEditBandIds,
@@ -779,6 +783,68 @@ function AppLayoutShell({ children }) {
                   <input type="text" className="form-control" value={editOccupation} onChange={(e) => setEditOccupation(e.target.value)} placeholder="Ej: Ilustrador, Diseñador" />
                 </div>
               )}
+
+              <div style={{ borderTop: "1px dashed var(--border-color)", paddingTop: "1rem", marginTop: "1rem", marginBottom: "1rem" }}>
+                <h4 style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--text-gold)", marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: 6 }}>
+                  <i className="fa-solid fa-share-nodes"></i> Redes Sociales y Enlaces (Opcional)
+                </h4>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "10px" }}>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem" }}>
+                      <i className="fa-brands fa-instagram" style={{ color: "#e1306c" }}></i> Instagram
+                    </label>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      value={editInstagram} 
+                      onChange={(e) => setEditInstagram(e.target.value)} 
+                      placeholder="Ej: usuario_instagram" 
+                      style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                    />
+                  </div>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem" }}>
+                      <i className="fa-brands fa-facebook" style={{ color: "#1877f2" }}></i> Facebook
+                    </label>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      value={editFacebook} 
+                      onChange={(e) => setEditFacebook(e.target.value)} 
+                      placeholder="Ej: pagina.facebook" 
+                      style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem" }}>
+                      <i className="fa-brands fa-tiktok" style={{ color: "#000000" }}></i> TikTok
+                    </label>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      value={editTiktok} 
+                      onChange={(e) => setEditTiktok(e.target.value)} 
+                      placeholder="Ej: usuario_tiktok" 
+                      style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                    />
+                  </div>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem" }}>
+                      <i className="fa-solid fa-globe" style={{ color: "var(--gold-primary)" }}></i> Sitio Web / Enlace
+                    </label>
+                    <input 
+                      type="url" 
+                      className="form-control" 
+                      value={editWebsite} 
+                      onChange={(e) => setEditWebsite(e.target.value)} 
+                      placeholder="https://tuweb.com" 
+                      style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                    />
+                  </div>
+                </div>
+              </div>
 
               <div className="form-group">
                 <label>Descripción / Historia</label>

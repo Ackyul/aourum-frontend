@@ -58,7 +58,12 @@ export default function BrandProfilePage({ params }) {
     setEditProfileId,
     setEditSlug,
     setEditProfileOpen,
-    setEditWhatsappNumber
+    setEditWhatsappNumber,
+    setEditInstagram,
+    setEditFacebook,
+    setEditTiktok,
+    setEditWebsite,
+    parseDescription
   } = useApp();
 
   const router = useRouter();
@@ -129,16 +134,21 @@ export default function BrandProfilePage({ params }) {
   };
 
   const handleEditClick = () => {
+    const parsed = parseDescription(brand.description);
     setEditName(brand.name);
     setEditOwner(brand.owner || "");
     setEditCategory(brand.category || "");
-    setEditDescription(brand.description || "");
+    setEditDescription(parsed.text);
     setEditLogo(brand.logo || "");
     setEditLogoPreview(brand.logo || "");
     setEditProfileType("brand");
     setEditProfileId(brand.id);
     setEditSlug(brand.slug || "");
     setEditWhatsappNumber(brand.whatsappNumber || "");
+    setEditInstagram(parsed.instagram);
+    setEditFacebook(parsed.facebook);
+    setEditTiktok(parsed.tiktok);
+    setEditWebsite(parsed.website);
     setEditProfileOpen(true);
   };
 
@@ -199,7 +209,84 @@ export default function BrandProfilePage({ params }) {
             )}
           </div>
 
-          <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", marginTop: "1.2rem", lineHeight: 1.65 }}>{brand.description}</p>
+          <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", marginTop: "1.2rem", lineHeight: 1.65 }}>
+            {parseDescription(brand.description).text}
+          </p>
+
+          {(() => {
+            const parsed = parseDescription(brand.description);
+            const hasSocials = parsed.instagram || parsed.facebook || parsed.tiktok || parsed.website || brand.whatsappNumber;
+            if (!hasSocials) return null;
+            return (
+              <div style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "1rem", flexWrap: "wrap" }}>
+                {brand.whatsappNumber && (
+                  <a 
+                    href={`https://api.whatsapp.com/send?phone=${brand.whatsappNumber.replace(/[^0-9]/g, "")}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={{ color: "#25d366", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
+                    title="WhatsApp"
+                  >
+                    <i className="fa-brands fa-whatsapp"></i>
+                  </a>
+                )}
+                {parsed.instagram && (
+                  <a 
+                    href={`https://instagram.com/${parsed.instagram.trim()}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={{ color: "#e1306c", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
+                    title="Instagram"
+                  >
+                    <i className="fa-brands fa-instagram"></i>
+                  </a>
+                )}
+                {parsed.facebook && (
+                  <a 
+                    href={`https://facebook.com/${parsed.facebook.trim()}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={{ color: "#1877f2", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
+                    title="Facebook"
+                  >
+                    <i className="fa-brands fa-facebook"></i>
+                  </a>
+                )}
+                {parsed.tiktok && (
+                  <a 
+                    href={`https://tiktok.com/@${parsed.tiktok.trim().replace(/^@/, "")}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={{ color: "#000000", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
+                    title="TikTok"
+                  >
+                    <i className="fa-brands fa-tiktok"></i>
+                  </a>
+                )}
+                {parsed.website && (
+                  <a 
+                    href={parsed.website.trim().startsWith("http") ? parsed.website.trim() : `https://${parsed.website.trim()}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={{ color: "var(--gold-primary)", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
+                    title="Sitio Web"
+                  >
+                    <i className="fa-solid fa-globe"></i>
+                  </a>
+                )}
+              </div>
+            );
+          })()}
 
           <hr style={{ border: 0, borderTop: "1px solid var(--border-color)", margin: "2.2rem 0" }} />
 

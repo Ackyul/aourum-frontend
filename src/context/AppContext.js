@@ -151,6 +151,10 @@ export function AppContextProvider({ children }) {
   const [editMediaLink, setEditMediaLink] = useState("");
   const [editSlug, setEditSlug] = useState("");
   const [editWhatsappNumber, setEditWhatsappNumber] = useState("");
+  const [editInstagram, setEditInstagram] = useState("");
+  const [editFacebook, setEditFacebook] = useState("");
+  const [editTiktok, setEditTiktok] = useState("");
+  const [editWebsite, setEditWebsite] = useState("");
   const [uploadingEdit, setUploadingEdit] = useState(false);
   const [editBrandIds, setEditBrandIds] = useState([]);
   const [editOrganizerIds, setEditOrganizerIds] = useState([]);
@@ -551,22 +555,30 @@ export function AppContextProvider({ children }) {
     const effectiveType = type || editProfileType || activeRole;
     const effectiveId = targetId || editProfileId || (effectiveType === "brand" ? activeBrandId : effectiveType === "fair" ? activeOrganizerId : effectiveType === "band" ? activeBandId : activePersonId);
     
+    const descriptionPayload = JSON.stringify({
+      text: editDescription,
+      instagram: editInstagram,
+      facebook: editFacebook,
+      tiktok: editTiktok,
+      website: editWebsite
+    });
+
     if (effectiveType === "brand") {
       url = `${API_URL}/api/brands/${effectiveId}`;
-      payload = { name: editName, owner: editOwner, category: editCategory, description: editDescription, logo: editLogo, slug: editSlug, whatsappNumber: editWhatsappNumber };
+      payload = { name: editName, owner: editOwner, category: editCategory, description: descriptionPayload, logo: editLogo, slug: editSlug, whatsappNumber: editWhatsappNumber };
     } else if (effectiveType === "fair" || effectiveType === "organizer") {
       url = `${API_URL}/api/organizers/${effectiveId}`;
-      payload = { name: editName, owner: editOwner, description: editDescription, logo: editLogo, slug: editSlug };
+      payload = { name: editName, owner: editOwner, description: descriptionPayload, logo: editLogo, slug: editSlug };
     } else if (effectiveType === "band") {
       url = `${API_URL}/api/bands/${effectiveId}`;
-      payload = { name: editName, genre: editGenre, members: Number(editMembers), description: editDescription, image: editLogo, mediaLink: editMediaLink, slug: editSlug };
+      payload = { name: editName, genre: editGenre, members: Number(editMembers), description: descriptionPayload, image: editLogo, mediaLink: editMediaLink, slug: editSlug };
     } else if (effectiveType === "person") {
       url = `${API_URL}/api/people/${effectiveId}`;
       payload = { 
         name: editName, 
         username: editUsername,
         occupation: editOccupation, 
-        description: editDescription, 
+        description: descriptionPayload, 
         logo: editLogo,
         brandIds: editBrandIds,
         organizerIds: editOrganizerIds,
@@ -783,6 +795,10 @@ export function AppContextProvider({ children }) {
         editMediaLink, setEditMediaLink,
         editSlug, setEditSlug,
         editWhatsappNumber, setEditWhatsappNumber,
+        editInstagram, setEditInstagram,
+        editFacebook, setEditFacebook,
+        editTiktok, setEditTiktok,
+        editWebsite, setEditWebsite,
         editBrandIds, setEditBrandIds,
         editOrganizerIds, setEditOrganizerIds,
         editBandIds, setEditBandIds,
@@ -833,12 +849,34 @@ export function AppContextProvider({ children }) {
         getCurrentPerson,
         getPersonName,
         triggerNotification,
-        logout
+        logout,
+        parseDescription
       }}
     >
       {children}
     </AppContext.Provider>
   );
+}
+
+export function parseDescription(description) {
+  const defaultVal = { text: description || "", instagram: "", facebook: "", tiktok: "", website: "" };
+  if (!description) return defaultVal;
+  const trimmed = description.trim();
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+    try {
+      const parsed = JSON.parse(description);
+      return {
+        text: parsed.text || "",
+        instagram: parsed.instagram || "",
+        facebook: parsed.facebook || "",
+        tiktok: parsed.tiktok || "",
+        website: parsed.website || ""
+      };
+    } catch (e) {
+      return defaultVal;
+    }
+  }
+  return defaultVal;
 }
 
 export function useApp() {
