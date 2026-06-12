@@ -70,15 +70,6 @@ export default function BrandProfilePage({ params }) {
   const [showPersonDropdown, setShowPersonDropdown] = useState(false);
   const [selectedPersonId, setSelectedPersonId] = useState("");
 
-  if (loading) {
-    return (
-      <div style={{ textAlign: "center", padding: "6rem 0" }}>
-        <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2.5rem", color: "var(--gold-primary)" }}></i>
-        <p style={{ color: "var(--text-muted)", marginTop: "10px" }}>Cargando perfil de marca...</p>
-      </div>
-    );
-  }
-
   const isNumeric = /^\d+$/.test(slug);
   const brand = brands.find((b) => {
     if (isNumeric) {
@@ -92,7 +83,21 @@ export default function BrandProfilePage({ params }) {
     if (brand && brand.slug && isNumeric) {
       router.replace(`/brands/${brand.slug}`);
     }
-  }, [brand, isNumeric]);
+  }, [brand, isNumeric, router]);
+
+  const filteredFairs = useMemo(() => {
+    if (!fairSearchQuery.trim()) return fairs;
+    return fairs.filter(f => f.name.toLowerCase().includes(fairSearchQuery.toLowerCase()));
+  }, [fairs, fairSearchQuery]);
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", padding: "6rem 0" }}>
+        <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2.5rem", color: "var(--gold-primary)" }}></i>
+        <p style={{ color: "var(--text-muted)", marginTop: "10px" }}>Cargando perfil de marca...</p>
+      </div>
+    );
+  }
 
   if (!brand) {
     return (
@@ -104,11 +109,6 @@ export default function BrandProfilePage({ params }) {
   }
 
   const brandProducts = products.filter((p) => p.brandId === brand.id);
-
-  const filteredFairs = useMemo(() => {
-    if (!fairSearchQuery.trim()) return fairs;
-    return fairs.filter(f => f.name.toLowerCase().includes(fairSearchQuery.toLowerCase()));
-  }, [fairs, fairSearchQuery]);
 
   // Check collaborator role of the logged-in persona
   const currentPerson = people.find((p) => p.id === Number(activePersonId));

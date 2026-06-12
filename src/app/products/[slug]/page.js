@@ -32,7 +32,14 @@ export default function ProductDetailPage({ params }) {
     if (prod && prod.slug && isNumericSlug) {
       router.replace(`/products/${prod.slug}`);
     }
-  }, [prod, isNumericSlug]);
+  }, [prod, isNumericSlug, router]);
+
+  const randomBrandProds = useMemo(() => {
+    if (!prod) return [];
+    const brandProds = products.filter((p) => p.brandId === prod.brandId && p.id !== prod.id);
+    const shuffled = [...brandProds].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 8);
+  }, [prod, products]);
 
   if (loading) {
     return (
@@ -53,12 +60,6 @@ export default function ProductDetailPage({ params }) {
   }
 
   const brand = brands.find((b) => b.id === prod.brandId);
-
-  const brandProds = products.filter((p) => p.brandId === prod.brandId && p.id !== prod.id);
-  const randomBrandProds = useMemo(() => {
-    const shuffled = [...brandProds].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 8);
-  }, [prod.id, prod.brandId, products.length]);
 
   const whatsappNumber = brand?.whatsappNumber || "51999999999";
   const whatsappLink = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=Hola%20${brand ? encodeURIComponent(brand.name) : "Productor"}%20desde%20AOURUM,%20estoy%20interesado%20en%20el%20item%20"${encodeURIComponent(prod.name)}".`;

@@ -42,15 +42,6 @@ export default function PersonProfilePage({ params }) {
 
   const router = useRouter();
 
-  if (loading) {
-    return (
-      <div style={{ textAlign: "center", padding: "6rem 0" }}>
-        <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2.5rem", color: "var(--gold-primary)" }}></i>
-        <p style={{ color: "var(--text-muted)", marginTop: "10px" }}>Cargando perfil...</p>
-      </div>
-    );
-  }
-
   const person = people.find((p) => {
     if (p.username && p.username.toLowerCase() === usernameParam.toLowerCase()) {
       return true;
@@ -66,7 +57,16 @@ export default function PersonProfilePage({ params }) {
     if (person && person.username && /^\d+$/.test(usernameParam)) {
       router.replace(`/people/${person.username}`);
     }
-  }, [person, usernameParam]);
+  }, [person, usernameParam, router]);
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", padding: "6rem 0" }}>
+        <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2.5rem", color: "var(--gold-primary)" }}></i>
+        <p style={{ color: "var(--text-muted)", marginTop: "10px" }}>Cargando perfil...</p>
+      </div>
+    );
+  }
 
   if (!person) {
     return (
