@@ -154,13 +154,13 @@ export default function BrandProfilePage({ params }) {
 
   return (
     <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
-      <div className="glass-panel" style={{ position: "relative", overflow: "visible", borderRadius: "16px" }}>
+      <div className="glass-panel" style={{ position: "relative", overflow: "hidden", borderRadius: "16px" }}>
         <button onClick={() => router.push("/brands")} className="profile-close-btn" style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>&times;</button>
         <button onClick={copyLink} className="profile-share-btn" style={{ position: "absolute", top: "15px", right: "60px", zIndex: 10 }} title="Copiar enlace de perfil">
           <i className="fa-solid fa-share-nodes"></i>
         </button>
         
-        <div className="profile-header-banner" style={{ height: "200px", borderTopLeftRadius: "16px", borderTopRightRadius: "16px", overflow: "hidden" }}>
+        <div className="profile-header-banner" style={{ height: "200px" }}>
           <div className="profile-avatar-wrapper">
             <img src={brand.logo} alt={brand.name} />
           </div>
@@ -504,7 +504,7 @@ export default function BrandProfilePage({ params }) {
               
               {/* Opción 1: Postular Marca a Ferias */}
               {isOwner && (
-                <div className="glass-panel" style={{ padding: "1.5rem", marginBottom: "1.5rem" }}>
+                <div className="glass-panel" style={{ padding: "1.5rem", marginBottom: "1.5rem", overflow: "visible" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setShowFairs(!showFairs)}>
                     <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0 }}>
                       <i className="fa-solid fa-paper-plane" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Postular Marca a Ferias
@@ -584,7 +584,7 @@ export default function BrandProfilePage({ params }) {
               )}
 
               {/* Opción 2: Colaboradores de la Marca */}
-              <div className="glass-panel" style={{ padding: "1.5rem" }}>
+              <div className="glass-panel" style={{ padding: "1.5rem", overflow: "visible" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setShowCollabs(!showCollabs)}>
                   <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0 }}>
                     <i className="fa-solid fa-users" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Colaboradores de la Marca
@@ -671,63 +671,62 @@ export default function BrandProfilePage({ params }) {
                                 }}>
                                   <div style={{ display: "flex", flexDirection: "column", gap: "8px", position: "relative" }}>
                                     <input type="hidden" name="invitePerson" value={selectedPersonId} />
-                                    
                                     <div style={{ position: "relative" }}>
-                                      <input
-                                        type="text"
-                                        className="form-control"
-                                        placeholder="Escribe el nombre para buscar..."
-                                        value={personSearchQuery}
-                                        onChange={(e) => {
-                                          setPersonSearchQuery(e.target.value);
-                                          setShowPersonDropdown(true);
-                                        }}
-                                        onFocus={() => setShowPersonDropdown(true)}
-                                        onBlur={() => setTimeout(() => setShowPersonDropdown(false), 200)}
-                                        required
-                                      />
-                                      {personSearchQuery && (
-                                        <button 
-                                          type="button" 
-                                          onClick={() => { setPersonSearchQuery(""); setSelectedPersonId(""); setShowPersonDropdown(false); }}
-                                          style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
-                                        >
-                                          &times;
-                                        </button>
-                                      )}
-                                    </div>
+                                       <input
+                                         type="text"
+                                         className="form-control"
+                                         placeholder="Escribe el nombre para buscar..."
+                                         value={personSearchQuery}
+                                         onChange={(e) => {
+                                           setPersonSearchQuery(e.target.value);
+                                           setShowPersonDropdown(true);
+                                         }}
+                                         onFocus={() => setShowPersonDropdown(true)}
+                                         onBlur={() => setTimeout(() => setShowPersonDropdown(false), 200)}
+                                         required
+                                       />
+                                       {personSearchQuery && (
+                                         <button 
+                                           type="button" 
+                                           onClick={() => { setPersonSearchQuery(""); setSelectedPersonId(""); setShowPersonDropdown(false); }}
+                                           style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
+                                         >
+                                           &times;
+                                         </button>
+                                       )}
 
-                                    {showPersonDropdown && filteredCandidates.length > 0 && (
-                                      <div 
-                                        style={{
-                                          position: "absolute", top: "100%", left: 0, right: 0,
-                                          background: "var(--bg-card)", border: "1px solid var(--border-color)",
-                                          borderRadius: "8px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-                                          maxHeight: "200px", overflowY: "auto", zIndex: 1000, marginTop: "4px"
-                                        }}
-                                      >
-                                        {filteredCandidates.map(p => (
-                                          <div
-                                            key={p.id}
-                                            onClick={() => {
-                                              setSelectedPersonId(p.id.toString());
-                                              setPersonSearchQuery(p.name + (p.occupation ? ` (${p.occupation})` : ""));
-                                              setShowPersonDropdown(false);
-                                            }}
-                                            style={{
-                                              padding: "0.6rem 1rem", cursor: "pointer",
-                                              transition: "background 0.2s", fontSize: "0.85rem",
-                                              borderBottom: "1px solid rgba(0,0,0,0.02)",
-                                              color: "var(--text-primary)"
-                                            }}
-                                            onMouseEnter={(e) => e.target.style.background = "var(--bg-input)"}
-                                            onMouseLeave={(e) => e.target.style.background = "none"}
-                                          >
-                                            <strong>{p.name}</strong> {p.occupation && <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginLeft: "6px" }}>({p.occupation})</span>}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
+                                       {showPersonDropdown && filteredCandidates.length > 0 && (
+                                         <div 
+                                           style={{
+                                             position: "absolute", top: "100%", left: 0, right: 0,
+                                             background: "var(--bg-card)", border: "1px solid var(--border-color)",
+                                             borderRadius: "8px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                                             maxHeight: "160px", overflowY: "auto", zIndex: 1000, marginTop: "4px"
+                                           }}
+                                         >
+                                           {filteredCandidates.map(p => (
+                                             <div
+                                               key={p.id}
+                                               onClick={() => {
+                                                 setSelectedPersonId(p.id.toString());
+                                                 setPersonSearchQuery(p.name + (p.occupation ? ` (${p.occupation})` : ""));
+                                                 setShowPersonDropdown(false);
+                                               }}
+                                               style={{
+                                                 padding: "0.6rem 1rem", cursor: "pointer",
+                                                 transition: "background 0.2s", fontSize: "0.85rem",
+                                                 borderBottom: "1px solid rgba(0,0,0,0.02)",
+                                                 color: "var(--text-primary)"
+                                               }}
+                                               onMouseEnter={(e) => e.target.style.background = "var(--bg-input)"}
+                                               onMouseLeave={(e) => e.target.style.background = "none"}
+                                             >
+                                               <strong>{p.name}</strong> {p.occupation && <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginLeft: "6px" }}>({p.occupation})</span>}
+                                             </div>
+                                           ))}
+                                         </div>
+                                       )}
+                                     </div>
 
                                     <select name="inviteRole" className="form-control" style={{ fontSize: "0.85rem" }} required>
                                       <option value="colaborador">Colaborador</option>

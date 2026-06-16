@@ -196,13 +196,13 @@ export default function BandProfilePage({ params }) {
 
   return (
     <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
-      <div className="glass-panel" style={{ position: "relative", overflow: "visible", borderRadius: "16px" }}>
+      <div className="glass-panel" style={{ position: "relative", overflow: "hidden", borderRadius: "16px" }}>
         <button onClick={() => router.push("/bands")} className="profile-close-btn" style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>&times;</button>
         <button onClick={copyLink} className="profile-share-btn" style={{ position: "absolute", top: "15px", right: "60px", zIndex: 10 }} title="Copiar enlace de la banda">
           <i className="fa-solid fa-share-nodes"></i>
         </button>
         
-        <div className="profile-header-banner" style={{ height: "260px", borderTopLeftRadius: "16px", borderTopRightRadius: "16px", overflow: "hidden" }}>
+        <div className="profile-header-banner" style={{ height: "260px" }}>
           <img src={band.image} alt={band.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
 
@@ -393,7 +393,7 @@ export default function BandProfilePage({ params }) {
               
               {/* Opción 1: Postular Banda a Ferias */}
               {isOwner && (
-                <div className="glass-panel" style={{ padding: "1.5rem", marginBottom: "1.5rem" }}>
+                <div className="glass-panel" style={{ padding: "1.5rem", marginBottom: "1.5rem", overflow: "visible" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setShowFairs(!showFairs)}>
                     <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0 }}>
                       <i className="fa-solid fa-paper-plane" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Postular Banda a Ferias
