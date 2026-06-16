@@ -983,6 +983,25 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es" className={inter.variable}>
       <head>
+        <title>Aourum - La nueva era del comercio</title>
+        <meta name="description" content="Aourum es el mercado cultural y comercial de Arequipa. Encuentra las mejores ferias independientes, marcas locales y bandas de música en la nueva era del comercio." />
+        <meta name="keywords" content="aourum, aourum arequipa, mercado arequipa, ferias arequipa, marcas locales arequipa, bandas arequipa, comprar arequipa, comercio cultural" />
+        <meta name="author" content="Ackyul" />
+        
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://aourum.com/" />
+        <meta property="og:title" content="Aourum - La nueva era del comercio" />
+        <meta property="og:description" content="Aourum es el mercado cultural de Arequipa que conecta ferias, marcas locales, diseñadores y bandas en una nueva plataforma interactiva." />
+        <meta property="og:image" content="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80" />
+
+        {/* Twitter */}
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://aourum.com/" />
+        <meta property="twitter:title" content="Aourum - La nueva era del comercio" />
+        <meta property="twitter:description" content="Aourum es el mercado cultural de Arequipa que conecta ferias, marcas locales, diseñadores y bandas." />
+        <meta property="twitter:image" content="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80" />
+
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossOrigin="anonymous" referrerPolicy="no-referrer" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossOrigin="" />
       </head>
