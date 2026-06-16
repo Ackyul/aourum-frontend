@@ -544,6 +544,48 @@ export function AppContextProvider({ children }) {
     }
   };
 
+  const forgotPassword = async (email) => {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        triggerNotification(true, data.message);
+        return { success: true, message: data.message };
+      } else {
+        triggerNotification(false, data.error || "No se pudo procesar la solicitud.");
+        return { success: false, error: data.error };
+      }
+    } catch (err) {
+      triggerNotification(false, "Error de red al solicitar restablecimiento.");
+      return { success: false, error: "Error de red" };
+    }
+  };
+
+  const resetPassword = async (token, email, password) => {
+    try {
+      const response = await fetch(`${API_URL}/api/auth/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, email, password })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        triggerNotification(true, data.message || "Contraseña restablecida con éxito.");
+        return { success: true };
+      } else {
+        triggerNotification(false, data.error || "No se pudo restablecer la contraseña.");
+        return { success: false, error: data.error };
+      }
+    } catch (err) {
+      triggerNotification(false, "Error de red al restablecer la contraseña.");
+      return { success: false, error: "Error de red" };
+    }
+  };
+
   const handleEditProfileSubmit = async (e, type, targetId) => {
     if (e) e.preventDefault();
     if (!editName) {
@@ -833,6 +875,8 @@ export function AppContextProvider({ children }) {
         handleFairSubmit,
         handleAccountRegistration,
         handleLogin,
+        forgotPassword,
+        resetPassword,
         handleEditProfileSubmit,
         handleApplyToFair,
         invitations,

@@ -77,6 +77,7 @@ function AppLayoutShell({ children }) {
     brands, organizers, bands, people,
     searchTerm, setSearchTerm,
     getCurrentBrand, getCurrentOrganizer, getCurrentBand, getCurrentPerson,
+    forgotPassword,
     logout
   } = useApp();
 
@@ -87,6 +88,10 @@ function AppLayoutShell({ children }) {
 
   const [loginPasswordVisible, setLoginPasswordVisible] = useState(false);
   const [regPasswordVisible, setRegPasswordVisible] = useState(false);
+
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const pathname = usePathname();
@@ -617,6 +622,15 @@ function AppLayoutShell({ children }) {
                     <i className={`fa-solid ${loginPasswordVisible ? "fa-eye-slash" : "fa-eye"}`} style={{ fontSize: "0.9rem" }}></i>
                   </button>
                 </div>
+                <div style={{ textAlign: "right", marginTop: "6px" }}>
+                  <button 
+                    type="button"
+                    onClick={() => { setShowLoginModal(false); setShowForgotModal(true); }}
+                    style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: "0.78rem", cursor: "pointer", textDecoration: "underline", padding: 0 }}
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </button>
+                </div>
               </div>
 
               <button 
@@ -639,6 +653,79 @@ function AppLayoutShell({ children }) {
                   style={{ background: "none", border: "none", color: "var(--gold-dark)", fontWeight: 700, fontSize: "0.85rem", cursor: "pointer", textDecoration: "underline" }}
                 >
                   Regístrate gratis
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── FORGOT PASSWORD MODAL ────────────────────────────────────────────── */}
+      {showForgotModal && (
+        <div className="modal-overlay" style={{ zIndex: 1200 }}>
+          <div className="modal-backdrop" onClick={() => setShowForgotModal(false)}></div>
+          <div className="modal-panel fade-in" style={{ maxWidth: "420px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.8rem" }}>
+              <div>
+                <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: "0 0 4px 0" }}>Recuperar Contraseña</h3>
+                <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: 0 }}>Te enviaremos un enlace para restablecerla</p>
+              </div>
+              <button onClick={() => setShowForgotModal(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>&#x00D7;</button>
+            </div>
+
+            {/* Logo decorativo */}
+            <div style={{ textAlign: "center", marginBottom: "1.6rem" }}>
+              <div style={{ width: "56px", height: "56px", background: "var(--gold-gradient)", borderRadius: "14px", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", boxShadow: "0 8px 24px rgba(212,175,55,0.25)" }}>
+                <span style={{ color: "#1C1C1E", fontFamily: "'Cinzel', serif", fontWeight: 900, fontSize: "1.6rem" }}>A</span>
+              </div>
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              if (!forgotEmail) return;
+              setForgotLoading(true);
+              const res = await forgotPassword(forgotEmail);
+              setForgotLoading(false);
+              if (res.success) {
+                setForgotEmail("");
+                setShowForgotModal(false);
+              }
+            }}>
+              <div className="form-group">
+                <label style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <i className="fa-solid fa-envelope" style={{ color: "var(--gold-primary)", fontSize: "0.85rem" }}></i>
+                  Correo electrónico
+                </label>
+                <input 
+                  type="email"
+                  className="form-control"
+                  placeholder="tu@correo.com"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <button 
+                type="submit" 
+                className="btn-gold"
+                disabled={forgotLoading}
+                style={{ width: "100%", padding: "0.75rem", borderRadius: "10px", fontSize: "0.95rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginTop: "1rem" }}
+              >
+                {forgotLoading 
+                  ? <><i className="fa-solid fa-spinner fa-spin"></i> Enviando...</>
+                  : <><i className="fa-solid fa-paper-plane"></i> Enviar Enlace</>
+                }
+              </button>
+
+              <div style={{ textAlign: "center", marginTop: "1.2rem", paddingTop: "1rem", borderTop: "1px solid var(--border-color)" }}>
+                <button 
+                  type="button"
+                  onClick={() => { setShowForgotModal(false); setShowLoginModal(true); }}
+                  style={{ background: "none", border: "none", color: "var(--gold-dark)", fontWeight: 700, fontSize: "0.85rem", cursor: "pointer", textDecoration: "underline" }}
+                >
+                  Volver al inicio de sesión
                 </button>
               </div>
             </form>

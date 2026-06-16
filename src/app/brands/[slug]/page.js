@@ -154,13 +154,13 @@ export default function BrandProfilePage({ params }) {
 
   return (
     <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
-      <div className="glass-panel" style={{ position: "relative", overflow: "hidden", borderRadius: "16px" }}>
+      <div className="glass-panel" style={{ position: "relative", overflow: "visible", borderRadius: "16px" }}>
         <button onClick={() => router.push("/brands")} className="profile-close-btn" style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>&times;</button>
         <button onClick={copyLink} className="profile-share-btn" style={{ position: "absolute", top: "15px", right: "60px", zIndex: 10 }} title="Copiar enlace de perfil">
           <i className="fa-solid fa-share-nodes"></i>
         </button>
         
-        <div className="profile-header-banner" style={{ height: "200px" }}>
+        <div className="profile-header-banner" style={{ height: "200px", borderTopLeftRadius: "16px", borderTopRightRadius: "16px", overflow: "hidden" }}>
           <div className="profile-avatar-wrapper">
             <img src={brand.logo} alt={brand.name} />
           </div>
