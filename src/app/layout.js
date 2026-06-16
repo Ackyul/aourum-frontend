@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppContextProvider, useApp } from "../context/AppContext";
@@ -61,6 +61,12 @@ function AppLayoutShell({ children }) {
     editFacebook, setEditFacebook,
     editTiktok, setEditTiktok,
     editWebsite, setEditWebsite,
+    editRubroGeneral, setEditRubroGeneral,
+    editRubroEspecifico, setEditRubroEspecifico,
+    editHasLocal, setEditHasLocal,
+    editLocalAddress, setEditLocalAddress,
+    editLocalLat, setEditLocalLat,
+    editLocalLng, setEditLocalLng,
     editBrandIds, setEditBrandIds,
     editOrganizerIds, setEditOrganizerIds,
     editBandIds, setEditBandIds,
@@ -85,6 +91,81 @@ function AppLayoutShell({ children }) {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const [activeEditTab, setActiveEditTab] = useState("basic");
+
+  useEffect(() => {
+    if (editProfileOpen) {
+      setActiveEditTab("basic");
+    }
+  }, [editProfileOpen]);
+
+  const localMapContainerRef = useRef(null);
+  const localLeafletMapRef = useRef(null);
+  const localMarkerRef = useRef(null);
+
+  useEffect(() => {
+    if (!editProfileOpen || editProfileType !== "brand" || activeEditTab !== "local" || !editHasLocal || !localMapContainerRef.current) {
+      if (localLeafletMapRef.current) {
+        localLeafletMapRef.current.remove();
+        localLeafletMapRef.current = null;
+        localMarkerRef.current = null;
+      }
+      return;
+    }
+    if (localLeafletMapRef.current) return;
+
+    const initLocalMap = () => {
+      if (!localMapContainerRef.current || typeof window === "undefined" || !window.L) return;
+
+      const L = window.L;
+      delete L.Icon.Default.prototype._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      });
+
+      const lat = editLocalLat || -16.39889;
+      const lng = editLocalLng || -71.53694;
+
+      const eMap = L.map(localMapContainerRef.current, { zoomControl: false }).setView([lat, lng], 14);
+      localLeafletMapRef.current = eMap;
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; OpenStreetMap',
+        maxZoom: 19,
+      }).addTo(eMap);
+
+      const marker = L.marker([lat, lng], { draggable: true }).addTo(eMap);
+      localMarkerRef.current = marker;
+
+      marker.on("dragend", () => {
+        const position = marker.getLatLng();
+        setEditLocalLat(position.lat);
+        setEditLocalLng(position.lng);
+      });
+
+      eMap.on("click", (e) => {
+        const { lat, lng } = e.latlng;
+        marker.setLatLng([lat, lng]);
+        setEditLocalLat(lat);
+        setEditLocalLng(lng);
+      });
+
+      L.control.zoom({ position: "bottomright" }).addTo(eMap);
+    };
+
+    const timer = setTimeout(initLocalMap, 300);
+    return () => {
+      clearTimeout(timer);
+      if (localLeafletMapRef.current) {
+        localLeafletMapRef.current.remove();
+        localLeafletMapRef.current = null;
+        localMarkerRef.current = null;
+      }
+    };
+  }, [editProfileOpen, editProfileType, activeEditTab, editHasLocal]);
 
   const [loginPasswordVisible, setLoginPasswordVisible] = useState(false);
   const [regPasswordVisible, setRegPasswordVisible] = useState(false);
@@ -340,7 +421,7 @@ function AppLayoutShell({ children }) {
         <div className="container">
           <p>© {new Date().getFullYear()} AOURUM.</p>
           <p style={{ margin: "4px 0 0 0", fontSize: "0.82rem" }}>
-            Creado por <strong style={{ color: "var(--text-primary)" }}>Yoshua Josafat Núñez Huaccoto</strong> · <span style={{ color: "var(--text-gold)", fontWeight: 600 }}>Ackyul</span>
+            Creado por <a href="https://ackyul.github.io/yoshuanunez.github.io/" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-primary)", fontWeight: "bold", textDecoration: "underline" }}>Yoshua Josafat Núñez Huaccoto</a> · <a href="https://ackyul.github.io/yoshuanunez.github.io/" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-gold)", fontWeight: 600, textDecoration: "underline" }}>Ackyul</a>
           </p>
           <span style={{ fontSize: "0.75rem", color: "var(--text-gold)", display: "block", marginTop: "6px", fontWeight: 500 }}>Arequipa, Perú</span>
         </div>
@@ -746,205 +827,372 @@ function AppLayoutShell({ children }) {
             </div>
 
             <form onSubmit={handleEditProfileSubmit}>
-              <div className="form-group">
-                <label>Foto de Perfil / Logotipo</label>
-                <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: "10px", padding: "1rem" }}>
-                  <div style={{ position: "relative", flexShrink: 0 }}>
-                    <img 
-                      src={editLogoPreview || "https://placehold.co/80x80/d4af37/1C1C1E?text=P"} 
-                      alt="preview"
-                      style={{ width: "72px", height: "72px", borderRadius: editProfileType === "person" || editProfileType === "band" ? "50%" : "12px", objectFit: "cover", border: "2px solid var(--gold-primary)", boxShadow: "0 4px 12px rgba(212,175,55,0.15)" }}
-                    />
-                    {uploadingEdit && (
-                      <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.8)", borderRadius: "inherit", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <i className="fa-solid fa-spinner fa-spin" style={{ color: "var(--gold-primary)" }}></i>
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label htmlFor="edit-logo-upload" style={{ display: "inline-block", cursor: "pointer", padding: "0.4rem 1rem", background: "var(--gold-gradient)", color: "#1C1C1E", borderRadius: "6px", fontSize: "0.82rem", fontWeight: 700 }}>
-                      <i className="fa-solid fa-upload" style={{ marginRight: 6 }}></i> {uploadingEdit ? "Subiendo..." : "Cambiar imagen"}
-                    </label>
-                    <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "6px" }}>JPG, PNG o WEBP — máx 8 MB</p>
-                  </div>
-                </div>
-                <input 
-                  id="edit-logo-upload" type="file" accept="image/*" style={{ display: "none" }} disabled={uploadingEdit}
-                  onChange={async (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    setEditLogoPreview(URL.createObjectURL(file));
-                    const url = await uploadImage(file, setUploadingEdit);
-                    if (url) setEditLogo(url);
+              {/* Tab bar header */}
+              <div style={{ display: "flex", gap: "6px", borderBottom: "1.5px solid var(--border-color)", paddingBottom: "0.6rem", marginBottom: "1.2rem", overflowX: "auto", scrollbarWidth: "none" }}>
+                <button 
+                  type="button" 
+                  onClick={() => setActiveEditTab("basic")} 
+                  style={{
+                    background: activeEditTab === "basic" ? "var(--gold-gradient)" : "transparent",
+                    color: activeEditTab === "basic" ? "#1C1C1E" : "var(--text-muted)",
+                    border: "1px solid " + (activeEditTab === "basic" ? "var(--gold-primary)" : "transparent"),
+                    padding: "0.45rem 1rem",
+                    borderRadius: "20px",
+                    fontSize: "0.82rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    transition: "var(--transition-smooth)",
+                    boxShadow: activeEditTab === "basic" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
                   }}
-                />
+                >
+                  📝 Datos Básicos
+                </button>
+                {editProfileType === "brand" && (
+                  <button 
+                    type="button" 
+                    onClick={() => setActiveEditTab("rubro")} 
+                    style={{
+                      background: activeEditTab === "rubro" ? "var(--gold-gradient)" : "transparent",
+                      color: activeEditTab === "rubro" ? "#1C1C1E" : "var(--text-muted)",
+                      border: "1px solid " + (activeEditTab === "rubro" ? "var(--gold-primary)" : "transparent"),
+                      padding: "0.45rem 1rem",
+                      borderRadius: "20px",
+                      fontSize: "0.82rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                      transition: "var(--transition-smooth)",
+                      boxShadow: activeEditTab === "rubro" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
+                    }}
+                  >
+                    🏷️ Rubro
+                  </button>
+                )}
+                <button 
+                  type="button" 
+                  onClick={() => setActiveEditTab("connections")} 
+                  style={{
+                    background: activeEditTab === "connections" ? "var(--gold-gradient)" : "transparent",
+                    color: activeEditTab === "connections" ? "#1C1C1E" : "var(--text-muted)",
+                    border: "1px solid " + (activeEditTab === "connections" ? "var(--gold-primary)" : "transparent"),
+                    padding: "0.45rem 1rem",
+                    borderRadius: "20px",
+                    fontSize: "0.82rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    transition: "var(--transition-smooth)",
+                    boxShadow: activeEditTab === "connections" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
+                  }}
+                >
+                  🌐 Conexiones
+                </button>
+                {editProfileType === "brand" && (
+                  <button 
+                    type="button" 
+                    onClick={() => setActiveEditTab("local")} 
+                    style={{
+                      background: activeEditTab === "local" ? "var(--gold-gradient)" : "transparent",
+                      color: activeEditTab === "local" ? "#1C1C1E" : "var(--text-muted)",
+                      border: "1px solid " + (activeEditTab === "local" ? "var(--gold-primary)" : "transparent"),
+                      padding: "0.45rem 1rem",
+                      borderRadius: "20px",
+                      fontSize: "0.82rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                      transition: "var(--transition-smooth)",
+                      boxShadow: activeEditTab === "local" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
+                    }}
+                  >
+                    📍 Local
+                  </button>
+                )}
               </div>
 
-              <div className="form-group">
-                <label>Nombre *</label>
-                <input type="text" className="form-control" value={editName} onChange={(e) => setEditName(e.target.value)} required placeholder="Nombre de tu perfil" />
-              </div>
-
-              {editProfileType === "person" && (
-                <div className="form-group">
-                  <label>Nombre de Usuario *</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    value={editUsername} 
-                    onChange={(e) => setEditUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))} 
-                    required 
-                    placeholder="Ej: juan_perez" 
-                  />
-                </div>
-              )}
-
-              {editProfileType !== "person" && (
-                <div className="form-group">
-                  <label>Identificador de URL (Slug) *</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    value={editSlug} 
-                    onChange={(e) => setEditSlug(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))} 
-                    required 
-                    placeholder="Ej: abunga" 
-                  />
-                </div>
-              )}
-
-              {editProfileType === "brand" && (
-                <>
-                  <div className="grid-2-to-1">
-                    <div className="form-group">
-                      <label>Dueño / Fundador</label>
-                      <input type="text" className="form-control" value={editOwner} onChange={(e) => setEditOwner(e.target.value)} placeholder="Ej: María García" />
+              {/* Tab: Datos Básicos */}
+              {activeEditTab === "basic" && (
+                <div className="fade-in">
+                  <div className="form-group">
+                    <label>Foto de Perfil / Logotipo</label>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: "10px", padding: "1rem" }}>
+                      <div style={{ position: "relative", flexShrink: 0 }}>
+                        <img 
+                          src={editLogoPreview || "https://placehold.co/80x80/d4af37/1C1C1E?text=P"} 
+                          alt="preview"
+                          style={{ width: "72px", height: "72px", borderRadius: editProfileType === "person" || editProfileType === "band" ? "50%" : "12px", objectFit: "cover", border: "2px solid var(--gold-primary)", boxShadow: "0 4px 12px rgba(212,175,55,0.15)" }}
+                        />
+                        {uploadingEdit && (
+                          <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.8)", borderRadius: "inherit", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <i className="fa-solid fa-spinner fa-spin" style={{ color: "var(--gold-primary)" }}></i>
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <label htmlFor="edit-logo-upload" style={{ display: "inline-block", cursor: "pointer", padding: "0.4rem 1rem", background: "var(--gold-gradient)", color: "#1C1C1E", borderRadius: "6px", fontSize: "0.82rem", fontWeight: 700 }}>
+                          <i className="fa-solid fa-upload" style={{ marginRight: 6 }}></i> {uploadingEdit ? "Subiendo..." : "Cambiar imagen"}
+                        </label>
+                        <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "6px" }}>JPG, PNG o WEBP — máx 8 MB</p>
+                      </div>
                     </div>
+                    <input 
+                      id="edit-logo-upload" type="file" accept="image/*" style={{ display: "none" }} disabled={uploadingEdit}
+                      onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        setEditLogoPreview(URL.createObjectURL(file));
+                        const url = await uploadImage(file, setUploadingEdit);
+                        if (url) setEditLogo(url);
+                      }}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Nombre *</label>
+                    <input type="text" className="form-control" value={editName} onChange={(e) => setEditName(e.target.value)} required placeholder="Nombre de tu perfil" />
+                  </div>
+
+                  {editProfileType === "person" && (
                     <div className="form-group">
-                      <label>Categoría / Rubro</label>
-                      <input type="text" className="form-control" value={editCategory} onChange={(e) => setEditCategory(e.target.value)} placeholder="Ej: Orfebrería, Moda" />
+                      <label>Nombre de Usuario *</label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        value={editUsername} 
+                        onChange={(e) => setEditUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))} 
+                        required 
+                        placeholder="Ej: juan_perez" 
+                      />
+                    </div>
+                  )}
+
+                  {editProfileType !== "person" && (
+                    <div className="form-group">
+                      <label>Identificador de URL (Slug) *</label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        value={editSlug} 
+                        onChange={(e) => setEditSlug(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))} 
+                        required 
+                        placeholder="Ej: abunga" 
+                      />
+                    </div>
+                  )}
+
+                  {editProfileType === "brand" && (
+                    <>
+                      <div className="form-group">
+                        <label>Dueño / Fundador</label>
+                        <input type="text" className="form-control" value={editOwner} onChange={(e) => setEditOwner(e.target.value)} placeholder="Ej: María García" />
+                      </div>
+                      <div className="form-group">
+                        <label>
+                          <i className="fa-brands fa-whatsapp" style={{ color: "#25d366", marginRight: 6 }}></i>
+                          Número de WhatsApp
+                        </label>
+                        <input 
+                          type="text" 
+                          className="form-control" 
+                          value={editWhatsappNumber} 
+                          onChange={(e) => setEditWhatsappNumber(e.target.value.replace(/[^0-9+]/g, ""))} 
+                          placeholder="Ej: 51999999999 (número con código de país sin el +)" 
+                        />
+                      </div>
+                    </>
+                  )}
+                  {editProfileType === "fair" && (
+                    <div className="form-group">
+                      <label>Productor Responsable</label>
+                      <input type="text" className="form-control" value={editOwner} onChange={(e) => setEditOwner(e.target.value)} placeholder="Ej: Carlos Mendoza" />
+                    </div>
+                  )}
+                  {editProfileType === "band" && (
+                    <div className="grid-2-to-1">
+                      <div className="form-group">
+                        <label>Género Musical</label>
+                        <input type="text" className="form-control" value={editGenre} onChange={(e) => setEditGenre(e.target.value)} placeholder="Ej: Folk, Rock" />
+                      </div>
+                      <div className="form-group">
+                        <label>Nº de Integrantes</label>
+                        <input type="number" className="form-control" value={editMembers} onChange={(e) => setEditMembers(e.target.value)} placeholder="Ej: 4" />
+                      </div>
+                    </div>
+                  )}
+                  {editProfileType === "person" && (
+                    <div className="form-group">
+                      <label>Especialidad / Ocupación</label>
+                      <input type="text" className="form-control" value={editOccupation} onChange={(e) => setEditOccupation(e.target.value)} placeholder="Ej: Ilustrador, Diseñador" />
+                    </div>
+                  )}
+
+                  <div className="form-group">
+                    <label>Descripción / Historia</label>
+                    <textarea 
+                      className="form-control" rows="4" style={{ resize: "none" }}
+                      value={editDescription} onChange={(e) => setEditDescription(e.target.value)}
+                      placeholder="Cuéntanos tu historia, propuesta de valor, qué te inspira..."
+                    ></textarea>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab: Rubro (Exclusivo para Marcas) */}
+              {editProfileType === "brand" && activeEditTab === "rubro" && (
+                <div className="fade-in">
+                  <div className="form-group">
+                    <label>Rubro General *</label>
+                    <select 
+                      className="form-control" 
+                      value={editRubroGeneral} 
+                      onChange={(e) => setEditRubroGeneral(e.target.value)}
+                      required
+                    >
+                      <option value="">-- Selecciona un Rubro --</option>
+                      <option value="Comida">Comida / Gastronomía</option>
+                      <option value="Snacks">Snacks / Alimentos Deshidratados</option>
+                      <option value="Joyería">Joyería / Orfebrería</option>
+                      <option value="Moda y Accesorios">Moda y Accesorios</option>
+                      <option value="Arte y Diseño">Arte y Diseño</option>
+                      <option value="Hogar y Decoración">Hogar y Decoración</option>
+                      <option value="Salud y Belleza">Salud y Belleza</option>
+                      <option value="Otro">Otro Rubro</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label>Rubro Específico *</label>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      value={editRubroEspecifico} 
+                      onChange={(e) => setEditRubroEspecifico(e.target.value)} 
+                      placeholder="Ej: Snacks Deshidratados, Joyas de Plata 950, Repostería Vegana"
+                      required
+                    />
+                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px", display: "block" }}>
+                      Escribe detalladamente qué hace tu marca.
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Tab: Conexiones */}
+              {activeEditTab === "connections" && (
+                <div className="fade-in">
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "10px" }}>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem" }}>
+                        <i className="fa-brands fa-instagram" style={{ color: "#e1306c" }}></i> Instagram
+                      </label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        value={editInstagram} 
+                        onChange={(e) => setEditInstagram(e.target.value)} 
+                        placeholder="Ej: usuario_instagram" 
+                        style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                      />
+                    </div>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem" }}>
+                        <i className="fa-brands fa-facebook" style={{ color: "#1877f2" }}></i> Facebook
+                      </label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        value={editFacebook} 
+                        onChange={(e) => setEditFacebook(e.target.value)} 
+                        placeholder="Ej: pagina.facebook" 
+                        style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                      />
                     </div>
                   </div>
-                  <div className="form-group">
-                    <label>
-                      <i className="fa-brands fa-whatsapp" style={{ color: "#25d366", marginRight: 6 }}></i>
-                      Número de WhatsApp
-                    </label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      value={editWhatsappNumber} 
-                      onChange={(e) => setEditWhatsappNumber(e.target.value.replace(/[^0-9+]/g, ""))} 
-                      placeholder="Ej: 51999999999 (número con código de país sin el +)" 
-                    />
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem" }}>
+                        <i className="fa-brands fa-tiktok" style={{ color: "#000000" }}></i> TikTok
+                      </label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        value={editTiktok} 
+                        onChange={(e) => setEditTiktok(e.target.value)} 
+                        placeholder="Ej: usuario_tiktok" 
+                        style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                      />
+                    </div>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem" }}>
+                        <i className="fa-solid fa-globe" style={{ color: "var(--gold-primary)" }}></i> Sitio Web / Enlace
+                      </label>
+                      <input 
+                        type="url" 
+                        className="form-control" 
+                        value={editWebsite} 
+                        onChange={(e) => setEditWebsite(e.target.value)} 
+                        placeholder="https://tuweb.com" 
+                        style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                      />
+                    </div>
                   </div>
-                </>
-              )}
-              {editProfileType === "fair" && (
-                <div className="form-group">
-                  <label>Productor Responsable</label>
-                  <input type="text" className="form-control" value={editOwner} onChange={(e) => setEditOwner(e.target.value)} placeholder="Ej: Carlos Mendoza" />
-                </div>
-              )}
-              {editProfileType === "band" && (
-                <div className="grid-2-to-1">
-                  <div className="form-group">
-                    <label>Género Musical</label>
-                    <input type="text" className="form-control" value={editGenre} onChange={(e) => setEditGenre(e.target.value)} placeholder="Ej: Folk, Rock" />
-                  </div>
-                  <div className="form-group">
-                    <label>Nº de Integrantes</label>
-                    <input type="number" className="form-control" value={editMembers} onChange={(e) => setEditMembers(e.target.value)} placeholder="Ej: 4" />
-                  </div>
-                </div>
-              )}
-              {editProfileType === "band" && (
-                <div className="form-group">
-                  <label><i className="fa-brands fa-spotify" style={{ marginRight: 6, color: "#1db954" }}></i>Link de Música (Spotify / YouTube)</label>
-                  <input type="url" className="form-control" value={editMediaLink} onChange={(e) => setEditMediaLink(e.target.value)} placeholder="https://open.spotify.com/artist/..." />
-                </div>
-              )}
-              {editProfileType === "person" && (
-                <div className="form-group">
-                  <label>Especialidad / Ocupación</label>
-                  <input type="text" className="form-control" value={editOccupation} onChange={(e) => setEditOccupation(e.target.value)} placeholder="Ej: Ilustrador, Diseñador" />
+
+                  {editProfileType === "band" && (
+                    <div className="form-group" style={{ marginTop: "12px" }}>
+                      <label><i className="fa-brands fa-spotify" style={{ marginRight: 6, color: "#1db954" }}></i>Link de Música (Spotify / YouTube)</label>
+                      <input type="url" className="form-control" value={editMediaLink} onChange={(e) => setEditMediaLink(e.target.value)} placeholder="https://open.spotify.com/artist/..." />
+                    </div>
+                  )}
                 </div>
               )}
 
-              <div style={{ borderTop: "1px dashed var(--border-color)", paddingTop: "1rem", marginTop: "1rem", marginBottom: "1rem" }}>
-                <h4 style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--text-gold)", marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: 6 }}>
-                  <i className="fa-solid fa-share-nodes"></i> Redes Sociales y Enlaces (Opcional)
-                </h4>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "10px" }}>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem" }}>
-                      <i className="fa-brands fa-instagram" style={{ color: "#e1306c" }}></i> Instagram
-                    </label>
+              {/* Tab: Local (Exclusivo para Marcas) */}
+              {editProfileType === "brand" && activeEditTab === "local" && (
+                <div className="fade-in">
+                  <div className="form-group" style={{ display: "flex", alignItems: "center", gap: "10px", background: "var(--bg-input)", padding: "0.75rem", borderRadius: "8px", border: "1px solid var(--border-color)", marginBottom: "1.2rem" }}>
                     <input 
-                      type="text" 
-                      className="form-control" 
-                      value={editInstagram} 
-                      onChange={(e) => setEditInstagram(e.target.value)} 
-                      placeholder="Ej: usuario_instagram" 
-                      style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                      type="checkbox" 
+                      id="editHasLocalCheckbox"
+                      checked={editHasLocal} 
+                      onChange={(e) => setEditHasLocal(e.target.checked)}
+                      style={{ width: "18px", height: "18px", accentColor: "var(--gold-primary)", cursor: "pointer" }}
                     />
-                  </div>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem" }}>
-                      <i className="fa-brands fa-facebook" style={{ color: "#1877f2" }}></i> Facebook
+                    <label htmlFor="editHasLocalCheckbox" style={{ fontWeight: 700, margin: 0, cursor: "pointer", fontSize: "0.88rem" }}>
+                      Tengo un local físico / tienda
                     </label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      value={editFacebook} 
-                      onChange={(e) => setEditFacebook(e.target.value)} 
-                      placeholder="Ej: pagina.facebook" 
-                      style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
-                    />
                   </div>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem" }}>
-                      <i className="fa-brands fa-tiktok" style={{ color: "#000000" }}></i> TikTok
-                    </label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      value={editTiktok} 
-                      onChange={(e) => setEditTiktok(e.target.value)} 
-                      placeholder="Ej: usuario_tiktok" 
-                      style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
-                    />
-                  </div>
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem" }}>
-                      <i className="fa-solid fa-globe" style={{ color: "var(--gold-primary)" }}></i> Sitio Web / Enlace
-                    </label>
-                    <input 
-                      type="url" 
-                      className="form-control" 
-                      value={editWebsite} 
-                      onChange={(e) => setEditWebsite(e.target.value)} 
-                      placeholder="https://tuweb.com" 
-                      style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
-                    />
-                  </div>
-                </div>
-              </div>
 
-              <div className="form-group">
-                <label>Descripción / Historia</label>
-                <textarea 
-                  className="form-control" rows="4" style={{ resize: "none" }}
-                  value={editDescription} onChange={(e) => setEditDescription(e.target.value)}
-                  placeholder="Cuéntanos tu historia, propuesta de valor, qué te inspira..."
-                ></textarea>
-              </div>
+                  {editHasLocal && (
+                    <>
+                      <div className="form-group">
+                        <label>Dirección del Local *</label>
+                        <input 
+                          type="text" 
+                          className="form-control" 
+                          value={editLocalAddress} 
+                          onChange={(e) => setEditLocalAddress(e.target.value)} 
+                          placeholder="Ej: Calle Mercaderes 123, Arequipa" 
+                          required={editHasLocal}
+                        />
+                      </div>
 
-              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "0.5rem" }}>
+                      <div style={{ marginBottom: "1rem" }}>
+                        <label style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--text-primary)", display: "block", marginBottom: "0.5rem" }}>
+                          📍 Ajustar ubicación en el mapa (Haz clic o arrastra el marcador)
+                        </label>
+                        <div ref={localMapContainerRef} style={{ height: "200px", width: "100%", borderRadius: "8px", border: "1px solid var(--border-color)", zIndex: 1 }}></div>
+                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px", display: "block" }}>
+                          Coordenadas del local: Lat: {editLocalLat.toFixed(5)}, Lng: {editLocalLng.toFixed(5)}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1.2rem", borderTop: "1px solid var(--border-color)", paddingTop: "1rem" }}>
                 <button type="button" onClick={() => setEditProfileOpen(false)} className="btn-outline-gold" style={{ padding: "0.5rem 1.3rem", borderRadius: "8px", fontSize: "0.88rem" }}>Cancelar</button>
-                <button type="submit" className="btn-gold" style={{ padding: "0.5rem 1.6rem", borderRadius: "8px", fontSize: "0.88rem" }} disabled={uploadingEdit}>
+                <button type="submit" className="btn-gold" style={{ padding: "0.5rem 1.6rem", borderRadius: "8px", fontSize: "0.88rem", fontWeight: 700 }} disabled={uploadingEdit}>
                   <i className="fa-solid fa-check"></i> Guardar Cambios
                 </button>
               </div>

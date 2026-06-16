@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useMemo, useEffect } from "react";
+import { use, useState, useMemo, useEffect, useRef } from "react";
 import { useApp } from "../../../context/AppContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -63,6 +63,12 @@ export default function BrandProfilePage({ params }) {
     setEditFacebook,
     setEditTiktok,
     setEditWebsite,
+    setEditRubroGeneral,
+    setEditRubroEspecifico,
+    setEditHasLocal,
+    setEditLocalAddress,
+    setEditLocalLat,
+    setEditLocalLng,
     parseDescription
   } = useApp();
 
@@ -74,6 +80,9 @@ export default function BrandProfilePage({ params }) {
   const [personSearchQuery, setPersonSearchQuery] = useState("");
   const [showPersonDropdown, setShowPersonDropdown] = useState(false);
   const [selectedPersonId, setSelectedPersonId] = useState("");
+  
+  const brandMapContainerRef = useRef(null);
+  const brandLeafletMapRef = useRef(null);
 
   const isNumeric = /^\d+$/.test(slug);
   const brand = brands.find((b) => {
@@ -82,6 +91,50 @@ export default function BrandProfilePage({ params }) {
     }
     return b.slug === slug;
   });
+
+  useEffect(() => {
+    if (!brand || typeof window === "undefined") return;
+    const parsed = parseDescription(brand.description);
+    if (!parsed.has_local || !brandMapContainerRef.current) return;
+    if (brandLeafletMapRef.current) return;
+
+    const initBrandMap = () => {
+      if (!brandMapContainerRef.current || !window.L) return;
+
+      const L = window.L;
+      delete L.Icon.Default.prototype._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      });
+
+      const lat = parsed.local_lat || -16.39889;
+      const lng = parsed.local_lng || -71.53694;
+
+      const pMap = L.map(brandMapContainerRef.current, { zoomControl: false }).setView([lat, lng], 16);
+      brandLeafletMapRef.current = pMap;
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; OpenStreetMap',
+        maxZoom: 19,
+      }).addTo(pMap);
+
+      L.marker([lat, lng]).addTo(pMap)
+        .bindPopup(`<b>${brand.name}</b><br/>${parsed.local_address || "Local"}`).openPopup();
+
+      L.control.zoom({ position: "bottomright" }).addTo(pMap);
+    };
+
+    const timer = setTimeout(initBrandMap, 300);
+    return () => {
+      clearTimeout(timer);
+      if (brandLeafletMapRef.current) {
+        brandLeafletMapRef.current.remove();
+        brandLeafletMapRef.current = null;
+      }
+    };
+  }, [brand]);
 
   // Redirect from numeric ID to slug-based URL
   useEffect(() => {
@@ -149,6 +202,12 @@ export default function BrandProfilePage({ params }) {
     setEditFacebook(parsed.facebook);
     setEditTiktok(parsed.tiktok);
     setEditWebsite(parsed.website);
+    setEditRubroGeneral(parsed.rubro_general || "");
+    setEditRubroEspecifico(parsed.rubro_especifico || "");
+    setEditHasLocal(!!parsed.has_local);
+    setEditLocalAddress(parsed.local_address || "");
+    setEditLocalLat(parsed.local_lat !== undefined ? Number(parsed.local_lat) : -16.39889);
+    setEditLocalLng(parsed.local_lng !== undefined ? Number(parsed.local_lng) : -71.53694);
     setEditProfileOpen(true);
   };
 
@@ -284,6 +343,24 @@ export default function BrandProfilePage({ params }) {
                     <i className="fa-solid fa-globe"></i>
                   </a>
                 )}
+              </div>
+            );
+          })()}
+
+          {/* Ubicación del local (si tiene) */}
+          {(() => {
+            const parsed = parseDescription(brand.description);
+            if (!parsed.has_local) return null;
+            return (
+              <div style={{ marginBottom: "2.2rem", marginTop: "1.5rem" }}>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "0.8rem", color: "var(--text-gold)" }}>
+                  <i className="fa-solid fa-map"></i> Ubicación de nuestro Local
+                </h3>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary)", marginBottom: "0.8rem" }}>
+                  <i className="fa-solid fa-location-dot" style={{ color: "var(--gold-primary)" }}></i>
+                  <span>{parsed.local_address || "Dirección no especificada"}</span>
+                </div>
+                <div ref={brandMapContainerRef} style={{ height: "240px", width: "100%", borderRadius: "10px", border: "1px solid var(--border-color)", zIndex: 1, boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}></div>
               </div>
             );
           })()}

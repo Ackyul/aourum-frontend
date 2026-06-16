@@ -155,6 +155,12 @@ export function AppContextProvider({ children }) {
   const [editFacebook, setEditFacebook] = useState("");
   const [editTiktok, setEditTiktok] = useState("");
   const [editWebsite, setEditWebsite] = useState("");
+  const [editRubroGeneral, setEditRubroGeneral] = useState("");
+  const [editRubroEspecifico, setEditRubroEspecifico] = useState("");
+  const [editHasLocal, setEditHasLocal] = useState(false);
+  const [editLocalAddress, setEditLocalAddress] = useState("");
+  const [editLocalLat, setEditLocalLat] = useState(-16.39889);
+  const [editLocalLng, setEditLocalLng] = useState(-71.53694);
   const [uploadingEdit, setUploadingEdit] = useState(false);
   const [editBrandIds, setEditBrandIds] = useState([]);
   const [editOrganizerIds, setEditOrganizerIds] = useState([]);
@@ -602,12 +608,26 @@ export function AppContextProvider({ children }) {
       instagram: editInstagram,
       facebook: editFacebook,
       tiktok: editTiktok,
-      website: editWebsite
+      website: editWebsite,
+      rubro_general: effectiveType === "brand" ? editRubroGeneral : "",
+      rubro_especifico: effectiveType === "brand" ? editRubroEspecifico : "",
+      has_local: effectiveType === "brand" ? editHasLocal : false,
+      local_address: effectiveType === "brand" ? editLocalAddress : "",
+      local_lat: effectiveType === "brand" ? editLocalLat : -16.39889,
+      local_lng: effectiveType === "brand" ? editLocalLng : -71.53694
     });
 
     if (effectiveType === "brand") {
       url = `${API_URL}/api/brands/${effectiveId}`;
-      payload = { name: editName, owner: editOwner, category: editCategory, description: descriptionPayload, logo: editLogo, slug: editSlug, whatsappNumber: editWhatsappNumber };
+      payload = { 
+        name: editName, 
+        owner: editOwner, 
+        category: editRubroEspecifico || editRubroGeneral || editCategory, 
+        description: descriptionPayload, 
+        logo: editLogo, 
+        slug: editSlug, 
+        whatsappNumber: editWhatsappNumber 
+      };
     } else if (effectiveType === "fair" || effectiveType === "organizer") {
       url = `${API_URL}/api/organizers/${effectiveId}`;
       payload = { name: editName, owner: editOwner, description: descriptionPayload, logo: editLogo, slug: editSlug };
@@ -841,6 +861,12 @@ export function AppContextProvider({ children }) {
         editFacebook, setEditFacebook,
         editTiktok, setEditTiktok,
         editWebsite, setEditWebsite,
+        editRubroGeneral, setEditRubroGeneral,
+        editRubroEspecifico, setEditRubroEspecifico,
+        editHasLocal, setEditHasLocal,
+        editLocalAddress, setEditLocalAddress,
+        editLocalLat, setEditLocalLat,
+        editLocalLng, setEditLocalLng,
         editBrandIds, setEditBrandIds,
         editOrganizerIds, setEditOrganizerIds,
         editBandIds, setEditBandIds,
@@ -903,7 +929,19 @@ export function AppContextProvider({ children }) {
 }
 
 export function parseDescription(description) {
-  const defaultVal = { text: description || "", instagram: "", facebook: "", tiktok: "", website: "" };
+  const defaultVal = { 
+    text: description || "", 
+    instagram: "", 
+    facebook: "", 
+    tiktok: "", 
+    website: "",
+    rubro_general: "",
+    rubro_especifico: "",
+    has_local: false,
+    local_address: "",
+    local_lat: -16.39889,
+    local_lng: -71.53694
+  };
   if (!description) return defaultVal;
   const trimmed = description.trim();
   if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
@@ -914,7 +952,13 @@ export function parseDescription(description) {
         instagram: parsed.instagram || "",
         facebook: parsed.facebook || "",
         tiktok: parsed.tiktok || "",
-        website: parsed.website || ""
+        website: parsed.website || "",
+        rubro_general: parsed.rubro_general || "",
+        rubro_especifico: parsed.rubro_especifico || "",
+        has_local: !!parsed.has_local,
+        local_address: parsed.local_address || "",
+        local_lat: parsed.local_lat !== undefined ? Number(parsed.local_lat) : -16.39889,
+        local_lng: parsed.local_lng !== undefined ? Number(parsed.local_lng) : -71.53694
       };
     } catch (e) {
       return defaultVal;
