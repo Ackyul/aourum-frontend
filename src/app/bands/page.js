@@ -8,15 +8,17 @@ export default function BandsPage() {
   const {
     bands,
     loading,
-    searchTerm
+    searchTerm,
+    parseDescription
   } = useApp();
 
   const router = useRouter();
 
   // Filter bands based on global search in the header
   const filteredBands = bands.filter((band) => {
+    const descText = parseDescription(band.description).text;
     const matchesSearch = band.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          band.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          descText.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           band.genre.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
@@ -56,7 +58,7 @@ export default function BandsPage() {
                     <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                       <span style={{ fontSize: "0.75rem", color: "var(--text-gold)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>🎸 {band.genre}</span>
                       <h3 style={{ fontSize: "1.15rem", fontWeight: 800 }}>{band.name}</h3>
-                      <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", flex: 1, lineHeight: 1.45 }}>{band.description}</p>
+                      <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", flex: 1, lineHeight: 1.45 }}>{parseDescription(band.description).text}</p>
                       
                       <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.6rem" }}>
                         <i className="fa-solid fa-users" style={{ color: "var(--gold-primary)" }}></i>

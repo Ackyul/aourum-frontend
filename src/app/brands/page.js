@@ -8,15 +8,17 @@ export default function BrandsPage() {
   const {
     brands,
     loading,
-    searchTerm
+    searchTerm,
+    parseDescription
   } = useApp();
 
   const router = useRouter();
 
   // Filter brands based on global search in the header
   const filteredBrands = brands.filter((brand) => {
+    const descText = parseDescription(brand.description).text;
     const matchesSearch = brand.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          brand.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          descText.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           brand.category.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
@@ -56,7 +58,7 @@ export default function BrandsPage() {
                     <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                       <span style={{ fontSize: "0.75rem", color: "var(--text-gold)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>{brand.category}</span>
                       <h3 style={{ fontSize: "1.15rem", fontWeight: 800 }}>{brand.name}</h3>
-                      <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", flex: 1, lineHeight: 1.45 }}>{brand.description}</p>
+                      <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", flex: 1, lineHeight: 1.45 }}>{parseDescription(brand.description).text}</p>
                       
                       <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.6rem" }}>
                         <i className="fa-solid fa-user-tag" style={{ color: "var(--gold-primary)" }}></i>
