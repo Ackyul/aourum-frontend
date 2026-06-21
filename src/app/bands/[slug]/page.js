@@ -291,28 +291,47 @@ export default function BandProfilePage({ params }) {
             <div>
               <span style={{ fontSize: "0.8rem", color: "var(--text-gold)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.08em" }}>{band.genre}</span>
               <h2 style={{ fontSize: "1.8rem", fontWeight: 800, marginTop: "0.2rem", letterSpacing: "-0.015em" }}>{band.name}</h2>
-              <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginTop: "0.3rem" }}>
-                <i className="fa-solid fa-users" style={{ marginRight: 6 }}></i>
-                {totalMembers} Integrantes en Escenario
-                {band.collaborators && band.collaborators.length > 1 && (
-                  <span style={{ marginLeft: "6px" }}>
-                    (Integrantes registrados:{" "}
-                    {band.collaborators.map((c, idx) => {
+              <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginTop: "0.3rem", display: "flex", alignItems: "center", gap: "6px" }}>
+                <i className="fa-solid fa-users"></i>
+                <span>{totalMembers} Integrantes en Escenario</span>
+              </p>
+              
+              {band.collaborators && band.collaborators.length > 0 && (
+                <div style={{ marginTop: "0.8rem", display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-gold)", textTransform: "uppercase", letterSpacing: "0.05em", display: "block" }}>
+                    Integrantes registrados:
+                  </span>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "4px" }}>
+                    {band.collaborators.map((c) => {
                       const p = people.find(person => person.id === c.personId);
                       if (!p) return null;
                       return (
-                        <span key={p.id}>
-                          <Link href={`/people/${p.username || p.id}`} style={{ color: "var(--gold-dark)", textDecoration: "underline", fontWeight: 700 }}>
-                            {p.name} ({c.role})
-                          </Link>
-                          {idx < band.collaborators.length - 1 ? ", " : ""}
-                        </span>
+                        <Link 
+                          key={p.id}
+                          href={`/people/${p.username || p.id}`}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            textDecoration: "none",
+                            width: "fit-content",
+                            padding: "2px 0"
+                          }}
+                        >
+                          <img 
+                            src={p.logo || "https://placehold.co/24x24/d4af37/1C1C1E?text=P"} 
+                            alt={p.name} 
+                            style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} 
+                          />
+                          <span style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.88rem", textDecoration: "underline" }}>
+                            {p.name}
+                          </span>
+                        </Link>
                       );
                     })}
-                    )
-                  </span>
-                )}
-              </p>
+                  </div>
+                </div>
+              )}
             </div>
 
              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
