@@ -494,29 +494,16 @@ function AppLayoutShell({ children }) {
               )}
 
               {regType === "band" && (
-                <div className="grid-2-to-1">
-                  <div className="form-group">
-                    <label>Género Musical *</label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      placeholder="Ej: Folk, Indie Rock" 
-                      value={regGenre} 
-                      onChange={(e) => setRegGenre(e.target.value)} 
-                      required={regType === "band"}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Integrantes *</label>
-                    <input 
-                      type="number" 
-                      className="form-control" 
-                      placeholder="Ej: 4" 
-                      value={regMembers} 
-                      onChange={(e) => setRegMembers(e.target.value)} 
-                      required={regType === "band"}
-                    />
-                  </div>
+                <div className="form-group">
+                  <label>Género Musical *</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    placeholder="Ej: Folk, Indie Rock" 
+                    value={regGenre} 
+                    onChange={(e) => setRegGenre(e.target.value)} 
+                    required={regType === "band"}
+                  />
                 </div>
               )}
 
@@ -1009,15 +996,9 @@ function AppLayoutShell({ children }) {
                     </div>
                   )}
                   {editProfileType === "band" && (
-                    <div className="grid-2-to-1">
-                      <div className="form-group">
-                        <label>Género Musical</label>
-                        <input type="text" className="form-control" value={editGenre} onChange={(e) => setEditGenre(e.target.value)} placeholder="Ej: Folk, Rock" />
-                      </div>
-                      <div className="form-group">
-                        <label>Nº de Integrantes</label>
-                        <input type="number" className="form-control" value={editMembers} onChange={(e) => setEditMembers(e.target.value)} placeholder="Ej: 4" />
-                      </div>
+                    <div className="form-group">
+                      <label>Género Musical</label>
+                      <input type="text" className="form-control" value={editGenre} onChange={(e) => setEditGenre(e.target.value)} placeholder="Ej: Folk, Rock" />
                     </div>
                   )}
                   {editProfileType === "person" && (

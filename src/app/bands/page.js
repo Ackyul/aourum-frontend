@@ -61,8 +61,7 @@ export default function BandsPage() {
                       <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", flex: 1, lineHeight: 1.45 }}>{parseDescription(band.description).text}</p>
                       
                       {(() => {
-                        const extraMembers = band.collaborators ? band.collaborators.filter(c => c.role !== 'creador_original').length : 0;
-                        const totalMembers = (band.members || 1) + extraMembers;
+                        const totalMembers = band.collaborators ? band.collaborators.length : 1;
                         return (
                           <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.6rem" }}>
                             <i className="fa-solid fa-users" style={{ color: "var(--gold-primary)" }}></i>

@@ -64,8 +64,7 @@ export default function BandProfilePage({ params }) {
     return b.slug === slug;
   });
 
-  const extraMembers = band?.collaborators ? band.collaborators.filter(c => c.role !== 'creador_original').length : 0;
-  const totalMembers = band ? (band.members || 1) + extraMembers : 1;
+  const totalMembers = band?.collaborators ? band.collaborators.length : 1;
 
   // Redirect from numeric ID to slug-based URL
   useEffect(() => {
