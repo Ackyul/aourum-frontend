@@ -39,12 +39,15 @@ export default function BandProfilePage({ params }) {
     setEditFacebook,
     setEditTiktok,
     setEditWebsite,
-    parseDescription
+    parseDescription,
+    handleDeleteBand
   } = useApp();
 
   const router = useRouter();
   const [newGig, setNewGig] = useState("");
   const [isUpdatingGigs, setIsUpdatingGigs] = useState(false);
+  const [newSong, setNewSong] = useState("");
+  const [isUpdatingSongs, setIsUpdatingSongs] = useState(false);
   const [showFairs, setShowFairs] = useState(false);
   const [showCollabs, setShowCollabs] = useState(false);
   const [fairSearchQuery, setFairSearchQuery] = useState("");
@@ -60,6 +63,9 @@ export default function BandProfilePage({ params }) {
     }
     return b.slug === slug;
   });
+
+  const extraMembers = band?.collaborators ? band.collaborators.filter(c => c.role !== 'creador_original').length : 0;
+  const totalMembers = band ? (band.members || 1) + extraMembers : 1;
 
   // Redirect from numeric ID to slug-based URL
   useEffect(() => {
@@ -194,6 +200,81 @@ export default function BandProfilePage({ params }) {
     }
   };
 
+  const handleAddSongSubmit = async (e) => {
+    e.preventDefault();
+    if (!newSong.trim()) return;
+    setIsUpdatingSongs(true);
+    const parsed = parseDescription(band.description);
+    const updatedSongs = [...(parsed.songs || []), newSong.trim()];
+    const updatedDescription = JSON.stringify({
+      ...parsed,
+      songs: updatedSongs
+    });
+    try {
+      const response = await fetch(`${API_URL}/api/bands/${band.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: band.name,
+          genre: band.genre,
+          members: band.members,
+          description: updatedDescription,
+          image: band.image,
+          mediaLink: band.mediaLink,
+          gigs: band.gigs
+        })
+      });
+      if (response.ok) {
+        triggerNotification(true, "🎵 ¡Nueva canción agregada al repertorio!");
+        setNewSong("");
+        fetchData();
+      } else {
+        triggerNotification(false, "No se pudo agregar la canción.");
+      }
+    } catch (err) {
+      triggerNotification(false, "Error de red al intentar agregar canción.");
+    } finally {
+      setIsUpdatingSongs(false);
+    }
+  };
+
+  const handleDeleteSong = async (songIndex) => {
+    if (!confirm("¿Seguro que deseas remover esta canción del repertorio?")) return;
+    setIsUpdatingSongs(true);
+    const parsed = parseDescription(band.description);
+    const updatedSongs = (parsed.songs || []).filter((_, idx) => idx !== songIndex);
+    const updatedDescription = JSON.stringify({
+      ...parsed,
+      songs: updatedSongs
+    });
+    try {
+      const response = await fetch(`${API_URL}/api/bands/${band.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: band.name,
+          genre: band.genre,
+          members: band.members,
+          description: updatedDescription,
+          image: band.image,
+          mediaLink: band.mediaLink,
+          gigs: band.gigs
+        })
+      });
+      if (response.ok) {
+        triggerNotification(true, "Canción removida correctamente.");
+        fetchData();
+      } else {
+        triggerNotification(false, "No se pudo remover la canción.");
+      }
+    } catch (err) {
+      triggerNotification(false, "Error de red al intentar remover la canción.");
+    } finally {
+      setIsUpdatingSongs(false);
+    }
+  };
+
+
   return (
     <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
       <div className="glass-panel" style={{ position: "relative", overflow: "hidden", borderRadius: "16px" }}>
@@ -213,7 +294,7 @@ export default function BandProfilePage({ params }) {
               <h2 style={{ fontSize: "1.8rem", fontWeight: 800, marginTop: "0.2rem", letterSpacing: "-0.015em" }}>{band.name}</h2>
               <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginTop: "0.3rem" }}>
                 <i className="fa-solid fa-users" style={{ marginRight: 6 }}></i>
-                {band.members} Integrantes en Escenario
+                {totalMembers} Integrantes en Escenario
                 {band.collaborators && band.collaborators.length > 1 && (
                   <span style={{ marginLeft: "6px" }}>
                     (Integrantes registrados:{" "}
@@ -235,15 +316,30 @@ export default function BandProfilePage({ params }) {
               </p>
             </div>
 
-            {canEditProfile && (
-              <button
-                onClick={handleEditClick}
-                className="btn-outline-gold"
-                style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
-              >
-                <i className="fa-solid fa-gear"></i> Editar Perfil
-              </button>
-            )}
+             <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+               {userRole === 'creador_original' && (
+                 <button
+                   onClick={async () => {
+                     if (await handleDeleteBand(band.id)) {
+                       router.push("/bands");
+                     }
+                   }}
+                   className="btn-outline-gold"
+                   style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px", color: "#ef4444", borderColor: "#ef4444", background: "transparent", cursor: "pointer" }}
+                 >
+                   <i className="fa-solid fa-trash"></i> Eliminar Banda
+                 </button>
+               )}
+               {canEditProfile && (
+                 <button
+                   onClick={handleEditClick}
+                   className="btn-outline-gold"
+                   style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                 >
+                   <i className="fa-solid fa-gear"></i> Editar Perfil
+                 </button>
+               )}
+             </div>
           </div>
 
           <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", marginTop: "1.2rem", lineHeight: 1.65 }}>
@@ -385,6 +481,75 @@ export default function BandProfilePage({ params }) {
           ) : (
             <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>Próximamente se anunciarán las fechas para esta banda.</p>
           )}
+
+          <hr style={{ border: 0, borderTop: "1px solid var(--border-color)", margin: "2.2rem 0" }} />
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem", flexWrap: "wrap", gap: "1rem" }}>
+            <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0 }}>
+              <i className="fa-solid fa-music" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i>
+              Repertorio de Canciones
+            </h3>
+          </div>
+
+          {/* Formulario para añadir Canción si es Owner */}
+          {isOwner && (
+            <form onSubmit={handleAddSongSubmit} className="gig-form" style={{ marginBottom: "1.5rem" }}>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Ej: Arequipa Rock (Cover / Tema Propio)"
+                value={newSong}
+                onChange={(e) => setNewSong(e.target.value)}
+                required
+                disabled={isUpdatingSongs}
+              />
+              <button type="submit" className="btn-gold" style={{ borderRadius: "8px" }} disabled={isUpdatingSongs || !newSong.trim()}>
+                {isUpdatingSongs ? "Agregando..." : "+ Agregar Canción"}
+              </button>
+            </form>
+          )}
+
+          {(() => {
+            const parsed = parseDescription(band.description);
+            const songs = parsed.songs || [];
+            return songs.length > 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
+                {songs.map((song, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      background: "var(--bg-input)",
+                      padding: "0.9rem",
+                      borderRadius: "8px",
+                      border: "1px solid var(--border-color)",
+                      fontWeight: 500,
+                      fontSize: "0.9rem"
+                    }}
+                  >
+                    <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                      <i className="fa-solid fa-music" style={{ color: "var(--gold-primary)" }}></i>
+                      <span>{song}</span>
+                    </div>
+                    {isOwner && (
+                      <button
+                        onClick={() => handleDeleteSong(idx)}
+                        style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", fontWeight: 700 }}
+                        disabled={isUpdatingSongs}
+                        title="Eliminar Canción"
+                      >
+                        <i className="fa-solid fa-trash"></i>
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>No se han agregado canciones al repertorio de esta banda.</p>
+            );
+          })()}
 
           {/* Opciones Desplegables de Administración y Colaboración */}
           {isCollaborator && (

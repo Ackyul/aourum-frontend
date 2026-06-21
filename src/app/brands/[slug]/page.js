@@ -69,7 +69,8 @@ export default function BrandProfilePage({ params }) {
     setEditLocalAddress,
     setEditLocalLat,
     setEditLocalLng,
-    parseDescription
+    parseDescription,
+    handleDeleteBrand
   } = useApp();
 
   const router = useRouter();
@@ -247,25 +248,38 @@ export default function BrandProfilePage({ params }) {
             </div>
 
             {isCollaborator && (
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                <button
-                  onClick={() => setProdFormOpen(true)}
-                  className="btn-gold"
-                  style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
-                >
-                  <i className="fa-solid fa-plus"></i> Añadir Item
-                </button>
-                {canEditProfile && (
-                  <button
-                    onClick={handleEditClick}
-                    className="btn-outline-gold"
-                    style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
-                  >
-                    <i className="fa-solid fa-gear"></i> Editar Perfil
-                  </button>
-                )}
-              </div>
-            )}
+               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                 <button
+                   onClick={() => setProdFormOpen(true)}
+                   className="btn-gold"
+                   style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                 >
+                   <i className="fa-solid fa-plus"></i> Añadir Item
+                 </button>
+                 {userRole === 'creador_original' && (
+                   <button
+                     onClick={async () => {
+                       if (await handleDeleteBrand(brand.id)) {
+                         router.push("/brands");
+                       }
+                     }}
+                     className="btn-outline-gold"
+                     style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px", color: "#ef4444", borderColor: "#ef4444", background: "transparent", cursor: "pointer" }}
+                   >
+                     <i className="fa-solid fa-trash"></i> Eliminar Marca
+                   </button>
+                 )}
+                 {canEditProfile && (
+                   <button
+                     onClick={handleEditClick}
+                     className="btn-outline-gold"
+                     style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                   >
+                     <i className="fa-solid fa-gear"></i> Editar Perfil
+                   </button>
+                 )}
+               </div>
+             )}
           </div>
 
           <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", marginTop: "1.2rem", lineHeight: 1.65 }}>

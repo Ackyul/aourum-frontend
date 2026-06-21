@@ -42,7 +42,10 @@ export default function PersonProfilePage({ params }) {
     setEditFacebook,
     setEditTiktok,
     setEditWebsite,
-    parseDescription
+    parseDescription,
+    handleDeleteBand,
+    handleDeleteBrand,
+    handleDeleteOrganizer
   } = useApp();
 
   const router = useRouter();
@@ -333,18 +336,28 @@ export default function PersonProfilePage({ params }) {
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
                   {relatedBrands.map((b) => (
-                    <Link 
-                      href={`/brands/${b.slug || b.id}`} 
-                      key={b.id} 
-                      style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "12px", padding: "0.8rem", background: "var(--bg-input)", borderRadius: "8px", border: "1px solid var(--border-color)", transition: "transform 0.2s" }}
-                      className="glass-panel-hover"
-                    >
-                      <img src={b.logo} alt={b.name} style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
-                      <div>
-                        <strong style={{ fontSize: "0.88rem", color: "var(--text-primary)", display: "block" }}>{b.name}</strong>
-                        <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>{b.category}</span>
-                      </div>
-                    </Link>
+                    <div key={b.id} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                      <Link 
+                        href={`/brands/${b.slug || b.id}`} 
+                        style={{ flex: 1, textDecoration: "none", display: "flex", alignItems: "center", gap: "12px", padding: "0.8rem", background: "var(--bg-input)", borderRadius: "8px", border: "1px solid var(--border-color)", transition: "transform 0.2s" }}
+                        className="glass-panel-hover"
+                      >
+                        <img src={b.logo} alt={b.name} style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
+                        <div>
+                          <strong style={{ fontSize: "0.88rem", color: "var(--text-primary)", display: "block" }}>{b.name}</strong>
+                          <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>{b.category}</span>
+                        </div>
+                      </Link>
+                      {isOwner && (
+                        <button 
+                          onClick={() => handleDeleteBrand(b.id)}
+                          style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", padding: "0.5rem", fontSize: "0.95rem" }}
+                          title="Eliminar Marca"
+                        >
+                          <i className="fa-solid fa-trash"></i>
+                        </button>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
@@ -360,46 +373,80 @@ export default function PersonProfilePage({ params }) {
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
                   {relatedBands.map((b) => (
-                    <Link 
-                      href={`/bands/${b.slug || b.id}`} 
-                      key={b.id} 
-                      style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "12px", padding: "0.8rem", background: "var(--bg-input)", borderRadius: "8px", border: "1px solid var(--border-color)" }}
-                      className="glass-panel-hover"
-                    >
-                      <img src={b.image} alt={b.name} style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
-                      <div>
-                        <strong style={{ fontSize: "0.88rem", color: "var(--text-primary)", display: "block" }}>{b.name}</strong>
-                        <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>{b.genre}</span>
-                      </div>
-                    </Link>
+                    <div key={b.id} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                      <Link 
+                        href={`/bands/${b.slug || b.id}`} 
+                        style={{ flex: 1, textDecoration: "none", display: "flex", alignItems: "center", gap: "12px", padding: "0.8rem", background: "var(--bg-input)", borderRadius: "8px", border: "1px solid var(--border-color)" }}
+                        className="glass-panel-hover"
+                      >
+                        <img src={b.image} alt={b.name} style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
+                        <div>
+                          <strong style={{ fontSize: "0.88rem", color: "var(--text-primary)", display: "block" }}>{b.name}</strong>
+                          <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>{b.genre}</span>
+                        </div>
+                      </Link>
+                      {isOwner && (
+                        <button 
+                          onClick={() => handleDeleteBand(b.id)}
+                          style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", padding: "0.5rem", fontSize: "0.95rem" }}
+                          title="Eliminar Banda"
+                        >
+                          <i className="fa-solid fa-trash"></i>
+                        </button>
+                      )}
+                    </div>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* FERIAS */}
+            {/* PRODUCTORAS & FERIAS */}
             <div>
               <h4 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
-                <i className="fa-solid fa-calendar-days" style={{ color: "var(--gold-primary)" }}></i> Ferias organizadas
+                <i className="fa-solid fa-calendar-days" style={{ color: "var(--gold-primary)" }}></i> Productoras & Ferias
               </h4>
-              {relatedFairs.length === 0 ? (
-                <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>No tiene ferias organizadas.</p>
+              {relatedOrganizers.length === 0 ? (
+                <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>No tiene productoras vinculadas.</p>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
-                  {relatedFairs.map((f) => (
-                    <Link 
-                      href={`/fairs/${f.slug || f.id}`} 
-                      key={f.id} 
-                      style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "12px", padding: "0.8rem", background: "var(--bg-input)", borderRadius: "8px", border: "1px solid var(--border-color)" }}
-                      className="glass-panel-hover"
-                    >
-                      <img src={f.banner} alt={f.name} style={{ width: "50px", height: "36px", borderRadius: "6px", objectFit: "cover", border: "1px solid var(--border-color)" }} />
-                      <div>
-                        <strong style={{ fontSize: "0.88rem", color: "var(--text-primary)", display: "block" }}>{f.name}</strong>
-                        <span style={{ fontSize: "0.72rem", color: "var(--gold-dark)", fontWeight: 600 }}>{f.date}</span>
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  {relatedOrganizers.map((o) => {
+                    const oFairs = fairs.filter(f => f.organizerId === o.id);
+                    return (
+                      <div key={o.id} style={{ background: "rgba(0,0,0,0.02)", border: "1px solid var(--border-color)", borderRadius: "10px", padding: "0.8rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                            <img src={o.logo} alt={o.name} style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }} />
+                            <strong style={{ fontSize: "0.85rem", color: "var(--text-primary)" }}>{o.name}</strong>
+                          </div>
+                          {isOwner && (
+                            <button 
+                              onClick={() => handleDeleteOrganizer(o.id)}
+                              style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "0.85rem" }}
+                              title="Eliminar Productora"
+                            >
+                              <i className="fa-solid fa-trash"></i>
+                            </button>
+                          )}
+                        </div>
+                        {oFairs.length === 0 ? (
+                          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontStyle: "italic" }}>Sin ferias creadas</span>
+                        ) : (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                            {oFairs.map(f => (
+                              <Link 
+                                href={`/fairs/${f.slug || f.id}`} 
+                                key={f.id}
+                                style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "8px", padding: "0.4rem", background: "#FFFFFF", borderRadius: "6px", border: "1px solid var(--border-color)" }}
+                              >
+                                <img src={f.banner} alt={f.name} style={{ width: "30px", height: "22px", objectFit: "cover", borderRadius: "3px" }} />
+                                <span style={{ fontSize: "0.75rem", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1 }}>{f.name}</span>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    </Link>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

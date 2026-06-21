@@ -360,6 +360,60 @@ export function AppContextProvider({ children }) {
     }
   };
 
+  const handleDeleteBand = async (id) => {
+    if (!confirm("¿Seguro que deseas eliminar esta banda de música?")) return false;
+    try {
+      const response = await fetch(`${API_URL}/api/bands/${id}`, { method: "DELETE" });
+      if (response.ok) {
+        triggerNotification(true, "Banda eliminada correctamente.");
+        fetchData();
+        return true;
+      } else {
+        triggerNotification(false, "No se pudo eliminar la banda.");
+        return false;
+      }
+    } catch (err) {
+      triggerNotification(false, "Error de red al intentar eliminar la banda.");
+      return false;
+    }
+  };
+
+  const handleDeleteBrand = async (id) => {
+    if (!confirm("¿Seguro que deseas eliminar esta marca y todos sus productos?")) return false;
+    try {
+      const response = await fetch(`${API_URL}/api/brands/${id}`, { method: "DELETE" });
+      if (response.ok) {
+        triggerNotification(true, "Marca eliminada correctamente.");
+        fetchData();
+        return true;
+      } else {
+        triggerNotification(false, "No se pudo eliminar la marca.");
+        return false;
+      }
+    } catch (err) {
+      triggerNotification(false, "Error de red al intentar eliminar la marca.");
+      return false;
+    }
+  };
+
+  const handleDeleteOrganizer = async (id) => {
+    if (!confirm("¿Seguro que deseas eliminar esta productora y todas sus ferias?")) return false;
+    try {
+      const response = await fetch(`${API_URL}/api/organizers/${id}`, { method: "DELETE" });
+      if (response.ok) {
+        triggerNotification(true, "Productora eliminada correctamente.");
+        fetchData();
+        return true;
+      } else {
+        triggerNotification(false, "No se pudo eliminar la productora.");
+        return false;
+      }
+    } catch (err) {
+      triggerNotification(false, "Error de red al intentar eliminar la productora.");
+      return false;
+    }
+  };
+
   const handleFairSubmit = async (e, organizerId) => {
     if (e) e.preventDefault();
     const targetOrganizerId = organizerId || activeOrganizerId;
@@ -898,6 +952,9 @@ export function AppContextProvider({ children }) {
         uploadImage,
         handleProductSubmit,
         handleDeleteProduct,
+        handleDeleteBand,
+        handleDeleteBrand,
+        handleDeleteOrganizer,
         handleFairSubmit,
         handleAccountRegistration,
         handleLogin,
@@ -940,7 +997,8 @@ export function parseDescription(description) {
     has_local: false,
     local_address: "",
     local_lat: -16.39889,
-    local_lng: -71.53694
+    local_lng: -71.53694,
+    songs: []
   };
   if (!description) return defaultVal;
   const trimmed = description.trim();
@@ -958,7 +1016,8 @@ export function parseDescription(description) {
         has_local: !!parsed.has_local,
         local_address: parsed.local_address || "",
         local_lat: parsed.local_lat !== undefined ? Number(parsed.local_lat) : -16.39889,
-        local_lng: parsed.local_lng !== undefined ? Number(parsed.local_lng) : -71.53694
+        local_lng: parsed.local_lng !== undefined ? Number(parsed.local_lng) : -71.53694,
+        songs: parsed.songs || []
       };
     } catch (e) {
       return defaultVal;
