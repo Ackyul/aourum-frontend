@@ -73,7 +73,7 @@ export default function Home() {
               Mercado Virtual Cultural
             </span>
             <h1 style={{ fontSize: "2.6rem", fontWeight: 900, fontFamily: "'Cinzel', serif", letterSpacing: "-0.02em", color: "var(--text-primary)", margin: "0 0 1rem 0", lineHeight: "1.2" }}>
-              Aourum: La nueva era del comercio
+              Aourum: El nodo central del talento local
             </h1>
             <p style={{ fontSize: "1.05rem", color: "var(--text-muted)", maxWidth: "680px", margin: "0 auto 1.8rem auto", lineHeight: "1.6" }}>
               Conectamos las ferias más vibrantes, las marcas locales más creativas y el lineup musical independiente en una sola plataforma diseñada para impulsar el talento arequipeño.
