@@ -139,6 +139,7 @@ export function AppContextProvider({ children }) {
   const [editProfileType, setEditProfileType] = useState("person");
   const [editProfileId, setEditProfileId] = useState("");
   const [editName, setEditName] = useState("");
+  const [editLastName, setEditLastName] = useState("");
   const [editUsername, setEditUsername] = useState("");
   const [editOwner, setEditOwner] = useState("");
   const [editCategory, setEditCategory] = useState("");
@@ -698,7 +699,8 @@ export function AppContextProvider({ children }) {
         logo: editLogo,
         brandIds: editBrandIds,
         organizerIds: editOrganizerIds,
-        bandIds: editBandIds
+        bandIds: editBandIds,
+        lastName: editLastName
       };
     }
     try {
@@ -899,6 +901,7 @@ export function AppContextProvider({ children }) {
         editProfileType, setEditProfileType,
         editProfileId, setEditProfileId,
         editName, setEditName,
+        editLastName, setEditLastName,
         editUsername, setEditUsername,
         editOwner, setEditOwner,
         editCategory, setEditCategory,

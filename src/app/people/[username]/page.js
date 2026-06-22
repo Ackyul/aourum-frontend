@@ -22,6 +22,7 @@ export default function PersonProfilePage({ params }) {
     setShowRegModal,
     setRegType,
     setEditName,
+    setEditLastName,
     setEditUsername,
     setEditOwner,
     setEditCategory,
@@ -105,6 +106,7 @@ export default function PersonProfilePage({ params }) {
   const handleEditClick = () => {
     const parsed = parseDescription(person.description);
     setEditName(person.name);
+    setEditLastName(person.lastName || "");
     setEditUsername(person.username || "");
     setEditOwner("");
     setEditCategory("");
@@ -152,7 +154,7 @@ export default function PersonProfilePage({ params }) {
                     {person.occupation}
                   </span>
                 )}
-                <h2 className="person-name-heading" style={{ fontSize: "2.2rem", fontWeight: 800, marginTop: person.occupation ? "0.8rem" : "0", letterSpacing: "-0.02em" }}>{person.name}</h2>
+                <h2 className="person-name-heading" style={{ fontSize: "2.2rem", fontWeight: 800, marginTop: person.occupation ? "0.8rem" : "0", letterSpacing: "-0.02em" }}>{person.name} {person.lastName || ""}</h2>
               </div>
               {isOwner && (
                 <button 

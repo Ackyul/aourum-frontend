@@ -45,6 +45,7 @@ function AppLayoutShell({ children }) {
     editProfileType, setEditProfileType,
     editProfileId, setEditProfileId,
     editName, setEditName,
+    editLastName, setEditLastName,
     editUsername, setEditUsername,
     editOwner, setEditOwner,
     editCategory, setEditCategory,
@@ -939,6 +940,13 @@ function AppLayoutShell({ children }) {
                     <label>Nombre *</label>
                     <input type="text" className="form-control" value={editName} onChange={(e) => setEditName(e.target.value)} required placeholder="Nombre de tu perfil" />
                   </div>
+
+                  {editProfileType === "person" && (
+                    <div className="form-group">
+                      <label>Apellido <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 400 }}>(opcional)</span></label>
+                      <input type="text" className="form-control" value={editLastName} onChange={(e) => setEditLastName(e.target.value)} placeholder="Tu apellido" />
+                    </div>
+                  )}
 
                   {editProfileType === "person" && (
                     <div className="form-group">

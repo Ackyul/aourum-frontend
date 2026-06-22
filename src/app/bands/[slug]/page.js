@@ -616,7 +616,7 @@ export default function BandProfilePage({ params }) {
                             )}
                           </div>
                           
-                          {showFairDropdown && filteredFairs.length > 0 && (
+                          {showFairDropdown && fairSearchQuery.trim() !== "" && filteredFairs.length > 0 && (
                             <div 
                               style={{
                                 position: "absolute", top: "100%", left: 0, right: 0,
@@ -726,6 +726,12 @@ export default function BandProfilePage({ params }) {
                               const pendingReceiverIds = invitations.filter(inv => inv.senderType === "band" && inv.senderId === band.id).map(inv => inv.receiverPersonId);
                               const candidates = people.filter(p => !linkedIds.includes(p.id) && !pendingReceiverIds.includes(p.id));
 
+                              const filteredCandidates = candidates.filter(p => 
+                                p.name.toLowerCase().includes(personSearchQuery.toLowerCase()) || 
+                                (p.username && p.username.toLowerCase().includes(personSearchQuery.toLowerCase())) ||
+                                (p.occupation && p.occupation.toLowerCase().includes(personSearchQuery.toLowerCase()))
+                              );
+
                               return (
                                 <form onSubmit={(e) => {
                                   e.preventDefault();
@@ -733,20 +739,73 @@ export default function BandProfilePage({ params }) {
                                   const inviteRole = e.target.elements.inviteRole.value;
                                   if (!receiverId || !inviteRole) return;
                                   sendInvitation("band", band.id, band.name, receiverId, inviteRole);
+                                  setPersonSearchQuery("");
+                                  setSelectedPersonId("");
                                 }}>
-                                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                    <select name="invitePerson" className="form-control" style={{ fontSize: "0.85rem" }} required>
-                                      <option value="">-- Seleccionar Persona --</option>
-                                      {candidates.map(p => (
-                                        <option key={p.id} value={p.id}>{p.name}{p.occupation ? ` (${p.occupation})` : ""}</option>
-                                      ))}
-                                    </select>
+                                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", position: "relative" }}>
+                                    <input type="hidden" name="invitePerson" value={selectedPersonId} />
+                                    <div style={{ position: "relative" }}>
+                                       <input
+                                         type="text"
+                                         className="form-control"
+                                         placeholder="Escribe el nombre para buscar..."
+                                         value={personSearchQuery}
+                                         onChange={(e) => {
+                                           setPersonSearchQuery(e.target.value);
+                                           setShowPersonDropdown(true);
+                                         }}
+                                         onFocus={() => setShowPersonDropdown(true)}
+                                         onBlur={() => setTimeout(() => setShowPersonDropdown(false), 200)}
+                                         required
+                                       />
+                                       {personSearchQuery && (
+                                         <button 
+                                           type="button" 
+                                           onClick={() => { setPersonSearchQuery(""); setSelectedPersonId(""); setShowPersonDropdown(false); }}
+                                           style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
+                                         >
+                                           &times;
+                                         </button>
+                                       )}
+
+                                       {showPersonDropdown && personSearchQuery.trim() !== "" && filteredCandidates.length > 0 && (
+                                         <div 
+                                           style={{
+                                             position: "absolute", top: "100%", left: 0, right: 0,
+                                             background: "var(--bg-card)", border: "1px solid var(--border-color)",
+                                             borderRadius: "8px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                                             maxHeight: "160px", overflowY: "auto", zIndex: 1000, marginTop: "4px"
+                                           }}
+                                         >
+                                           {filteredCandidates.map(p => (
+                                             <div
+                                               key={p.id}
+                                               onClick={() => {
+                                                 setSelectedPersonId(p.id.toString());
+                                                 setPersonSearchQuery(p.name + (p.occupation ? ` (${p.occupation})` : ""));
+                                                 setShowPersonDropdown(false);
+                                               }}
+                                               style={{
+                                                 padding: "0.6rem 1rem", cursor: "pointer",
+                                                 transition: "background 0.2s", fontSize: "0.85rem",
+                                                 borderBottom: "1px solid rgba(0,0,0,0.02)",
+                                                 color: "var(--text-primary)"
+                                               }}
+                                               onMouseEnter={(e) => e.target.style.background = "var(--bg-input)"}
+                                               onMouseLeave={(e) => e.target.style.background = "none"}
+                                             >
+                                               <strong>{p.name}</strong> {p.occupation && <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginLeft: "6px" }}>({p.occupation})</span>}
+                                             </div>
+                                           ))}
+                                         </div>
+                                       )}
+                                     </div>
                                     <select name="inviteRole" className="form-control" style={{ fontSize: "0.85rem" }} required>
                                       <option value="colaborador">Colaborador</option>
                                       <option value="gestor">Gestor</option>
                                       <option value="creador">Creador</option>
                                     </select>
-                                    <button type="submit" className="btn-gold" style={{ padding: "0.45rem 1rem", borderRadius: "6px", fontSize: "0.82rem", width: "100%" }} disabled={candidates.length === 0}>
+                                    <button type="submit" className="btn-gold" style={{ padding: "0.45rem 1rem", borderRadius: "6px", fontSize: "0.82rem", width: "100%" }} disabled={candidates.length === 0 || !selectedPersonId}>
                                       <i className="fa-solid fa-paper-plane" style={{ marginRight: 6 }}></i> Enviar Invitación
                                     </button>
                                   </div>

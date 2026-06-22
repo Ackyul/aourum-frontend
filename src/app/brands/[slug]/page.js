@@ -635,7 +635,7 @@ export default function BrandProfilePage({ params }) {
                             )}
                           </div>
                           
-                          {showFairDropdown && filteredFairs.length > 0 && (
+                          {showFairDropdown && fairSearchQuery.trim() !== "" && filteredFairs.length > 0 && (
                             <div 
                               style={{
                                 position: "absolute", top: "100%", left: 0, right: 0,
@@ -745,8 +745,9 @@ export default function BrandProfilePage({ params }) {
                               const pendingReceiverIds = invitations.filter(inv => inv.senderType === "brand" && inv.senderId === brand.id).map(inv => inv.receiverPersonId);
                               const candidates = people.filter(p => !linkedIds.includes(p.id) && !pendingReceiverIds.includes(p.id));
 
-                                           const filteredCandidates = candidates.filter(p => 
+                              const filteredCandidates = candidates.filter(p => 
                                 p.name.toLowerCase().includes(personSearchQuery.toLowerCase()) || 
+                                (p.username && p.username.toLowerCase().includes(personSearchQuery.toLowerCase())) ||
                                 (p.occupation && p.occupation.toLowerCase().includes(personSearchQuery.toLowerCase()))
                               );
 
@@ -786,7 +787,7 @@ export default function BrandProfilePage({ params }) {
                                          </button>
                                        )}
 
-                                       {showPersonDropdown && filteredCandidates.length > 0 && (
+                                       {showPersonDropdown && personSearchQuery.trim() !== "" && filteredCandidates.length > 0 && (
                                          <div 
                                            style={{
                                              position: "absolute", top: "100%", left: 0, right: 0,
