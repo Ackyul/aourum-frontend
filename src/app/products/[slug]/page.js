@@ -122,10 +122,32 @@ export default function ProductDetailPage({ params }) {
           </div>
 
           <div style={{ background: "var(--bg-input)", padding: "1.2rem 1.5rem", borderRadius: "12px", border: "1px solid var(--border-color)", marginBottom: "1.8rem" }}>
-            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "block", marginBottom: "2px", fontWeight: 500 }}>Precio Exclusivo AOURUM</span>
-            <div style={{ display: "flex", alignItems: "baseline", gap: "10px" }}>
-              <span style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>S/ {prod.price.toLocaleString("es-PE")}</span>
-              <span style={{ fontSize: "0.85rem", color: "var(--text-gold)", fontWeight: 700 }}><i className="fa-solid fa-shield-halved"></i> Precio Justo Local</span>
+            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "block", marginBottom: "2px", fontWeight: 500 }}>
+              {prod.priceAourum ? "Oferta Especial AOURUM" : "Precio Exclusivo"}
+            </span>
+            <div style={{ display: "flex", alignItems: "baseline", gap: "12px", flexWrap: "wrap" }}>
+              {prod.priceAourum ? (
+                <>
+                  <span style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--text-gold)", letterSpacing: "-0.02em" }}>
+                    S/ {prod.priceAourum.toLocaleString("es-PE")}
+                  </span>
+                  <span style={{ fontSize: "1.3rem", color: "var(--text-muted)", textDecoration: "line-through", fontWeight: 500 }}>
+                    S/ {prod.price.toLocaleString("es-PE")}
+                  </span>
+                  <span style={{ fontSize: "0.85rem", color: "var(--text-gold)", fontWeight: 700 }}>
+                    <i className="fa-solid fa-gift"></i> Precio Especial
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
+                    S/ {prod.price.toLocaleString("es-PE")}
+                  </span>
+                  <span style={{ fontSize: "0.85rem", color: "var(--text-gold)", fontWeight: 700 }}>
+                    <i className="fa-solid fa-shield-halved"></i> Precio Justo Local
+                  </span>
+                </>
+              )}
             </div>
           </div>
 
@@ -252,7 +274,18 @@ export default function ProductDetailPage({ params }) {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(0,0,0,0.04)", paddingTop: "0.6rem", marginTop: "0.4rem" }}>
                     <div>
                       <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "2px" }}>Precio</div>
-                      <span style={{ fontSize: "1.1rem", fontWeight: 800 }}>S/ {rp.price.toLocaleString("es-PE")}</span>
+                      {rp.priceAourum ? (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+                          <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", textDecoration: "line-through" }}>
+                            S/ {rp.price.toLocaleString("es-PE")}
+                          </span>
+                          <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-gold)" }}>
+                            S/ {rp.priceAourum.toLocaleString("es-PE")}
+                          </span>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: "1.1rem", fontWeight: 800 }}>S/ {rp.price.toLocaleString("es-PE")}</span>
+                      )}
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "2px" }}>Tipo</div>

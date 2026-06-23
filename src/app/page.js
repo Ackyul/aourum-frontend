@@ -215,9 +215,25 @@ export default function Home() {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--border-color)", paddingTop: "0.8rem", marginTop: "0.4rem" }}>
                       <div>
                         <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "2px" }}>Precio</div>
-                        <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-primary)" }}>
-                          S/ {prod.price.toLocaleString("es-PE")}
-                        </span>
+                        {prod.priceAourum ? (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", textDecoration: "line-through" }}>
+                              S/ {prod.price.toLocaleString("es-PE")}
+                            </span>
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                              <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-gold)" }}>
+                                S/ {prod.priceAourum.toLocaleString("es-PE")}
+                              </span>
+                              <span style={{ fontSize: "0.62rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "4px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                                Aourum
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-primary)" }}>
+                            S/ {prod.price.toLocaleString("es-PE")}
+                          </span>
+                        )}
                       </div>
                       <div style={{ textAlign: "right" }}>
                         <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "2px" }}>Disponibilidad</div>

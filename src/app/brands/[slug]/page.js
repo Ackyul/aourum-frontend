@@ -25,6 +25,8 @@ export default function BrandProfilePage({ params }) {
     setProdDescription,
     prodPrice,
     setProdPrice,
+    prodPriceAourum,
+    setProdPriceAourum,
     prodStock,
     setProdStock,
     prodCategory,
@@ -406,17 +408,13 @@ export default function BrandProfilePage({ params }) {
                   </div>
                 </div>
 
-                <div className="grid-3-to-1">
+                <div className="grid-2-to-1">
                   <div className="form-group">
                     <label>Tipo de Item</label>
                     <select className="form-control" value={prodType} onChange={(e) => setProdType(e.target.value)}>
                       <option value="product">Producto Físico (Con Stock)</option>
                       <option value="service">Servicio (Por Agenda / Cita)</option>
                     </select>
-                  </div>
-                  <div className="form-group">
-                    <label>Precio de Venta (S/.) *</label>
-                    <input type="number" className="form-control" placeholder="Ej: 150" value={prodPrice} onChange={(e) => setProdPrice(e.target.value)} required />
                   </div>
                   <div className="form-group">
                     <label>Stock (Opcional)</label>
@@ -428,6 +426,17 @@ export default function BrandProfilePage({ params }) {
                       onChange={(e) => setProdStock(e.target.value)} 
                       disabled={prodType === "service"}
                     />
+                  </div>
+                </div>
+
+                <div className="grid-2-to-1" style={{ marginTop: "1rem" }}>
+                  <div className="form-group">
+                    <label>Precio Normal (S/.) *</label>
+                    <input type="number" className="form-control" placeholder="Ej: 10" value={prodPrice} onChange={(e) => setProdPrice(e.target.value)} required />
+                  </div>
+                  <div className="form-group">
+                    <label>Precio AOURUM (S/.) (Opcional)</label>
+                    <input type="number" className="form-control" placeholder="Ej: 8" value={prodPriceAourum} onChange={(e) => setProdPriceAourum(e.target.value)} />
                   </div>
                 </div>
 
@@ -523,13 +532,25 @@ export default function BrandProfilePage({ params }) {
                             {prod.type === "service" ? "Servicio" : "Producto"}
                           </span>
                         </td>
-                        <td style={{ fontWeight: "bold" }}>S/ {prod.price.toLocaleString("es-PE")}</td>
+                        <td style={{ fontWeight: "bold" }}>
+                          {prod.priceAourum ? (
+                            <div>
+                              <span style={{ color: "var(--text-gold)" }}>S/ {prod.priceAourum.toLocaleString("es-PE")}</span>
+                              <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textDecoration: "line-through", marginLeft: "6px" }}>
+                                S/ {prod.price.toLocaleString("es-PE")}
+                              </span>
+                            </div>
+                          ) : (
+                            <span>S/ {prod.price.toLocaleString("es-PE")}</span>
+                          )}
+                        </td>
                         <td>{prod.type === "service" ? "Por Agenda" : (prod.stock == null ? "Ilimitado / Opcional" : prod.stock)}</td>
                         <td style={{ textAlign: "right" }}>
                           <button 
                             onClick={() => {
                               setEditingProdId(prod.id); 
                               setProdName(prod.name); setProdDescription(prod.description); setProdPrice(prod.price);
+                              setProdPriceAourum(prod.priceAourum == null ? "" : prod.priceAourum);
                               setProdStock(prod.stock == null ? "" : prod.stock); setProdCategory(prod.category); setProdType(prod.type);
                               setProdImage(prod.image); setProdImagePreview(prod.image); setProdFormOpen(true);
                             }}
@@ -577,7 +598,18 @@ export default function BrandProfilePage({ params }) {
                     <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", flex: 1, lineHeight: 1.4 }}>{prod.description}</p>
                     
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(0,0,0,0.04)", paddingTop: "0.6rem" }}>
-                      <span style={{ fontSize: "1.0rem", fontWeight: 800 }}>S/ {prod.price.toLocaleString("es-PE")}</span>
+                      {prod.priceAourum ? (
+                        <div style={{ display: "flex", flexDirection: "column" }}>
+                          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textDecoration: "line-through" }}>
+                            S/ {prod.price.toLocaleString("es-PE")}
+                          </span>
+                          <span style={{ fontSize: "1.0rem", fontWeight: 800, color: "var(--text-gold)" }}>
+                            S/ {prod.priceAourum.toLocaleString("es-PE")}
+                          </span>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: "1.0rem", fontWeight: 800 }}>S/ {prod.price.toLocaleString("es-PE")}</span>
+                      )}
                       <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 600 }}>
                         {prod.type === "service" ? "Por Agenda" : (prod.stock == null ? "Disponible" : `Stock: ${prod.stock}`)}
                       </span>

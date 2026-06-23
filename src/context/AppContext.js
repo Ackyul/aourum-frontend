@@ -173,6 +173,7 @@ export function AppContextProvider({ children }) {
   const [prodName, setProdName] = useState("");
   const [prodDescription, setProdDescription] = useState("");
   const [prodPrice, setProdPrice] = useState("");
+  const [prodPriceAourum, setProdPriceAourum] = useState("");
   const [prodStock, setProdStock] = useState("");
   const [prodCategory, setProdCategory] = useState("");
   const [prodType, setProdType] = useState("product");
@@ -308,6 +309,7 @@ export function AppContextProvider({ children }) {
       name: prodName,
       description: prodDescription,
       price: Number(prodPrice),
+      priceAourum: prodPriceAourum === "" || prodPriceAourum == null ? null : Number(prodPriceAourum),
       stock: prodType === "service" ? 99999 : (prodStock === "" || prodStock == null ? null : Number(prodStock)),
       category: prodCategory,
       brandId: Number(targetBrandId),
@@ -333,7 +335,7 @@ export function AppContextProvider({ children }) {
 
       if (response.ok) {
         triggerNotification(true, editingProdId ? "✨ Producto/Servicio actualizado exitosamente" : "✨ ¡Nuevo item añadido al catálogo!");
-        setProdName(""); setProdDescription(""); setProdPrice("");
+        setProdName(""); setProdDescription(""); setProdPrice(""); setProdPriceAourum("");
         setProdStock(""); setProdCategory(""); setProdType("product");
         setProdImage(""); setProdImagePreview("");
         setProdFormOpen(false); setEditingProdId(null);
@@ -933,6 +935,7 @@ export function AppContextProvider({ children }) {
         prodName, setProdName,
         prodDescription, setProdDescription,
         prodPrice, setProdPrice,
+        prodPriceAourum, setProdPriceAourum,
         prodStock, setProdStock,
         prodCategory, setProdCategory,
         prodType, setProdType,
