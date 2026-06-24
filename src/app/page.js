@@ -39,55 +39,6 @@ export default function Home() {
       ) : (
         <div className="fade-in">
           
-          {/* Hero Section */}
-          <div 
-            className="glass-panel" 
-            style={{ 
-              padding: "3.5rem 2rem", 
-              marginBottom: "3rem", 
-              borderRadius: "20px", 
-              background: "linear-gradient(135deg, rgba(212,175,55,0.06) 0%, rgba(28,28,30,0.02) 100%)",
-              border: "1.5px solid rgba(212,175,55,0.15)",
-              textAlign: "center",
-              position: "relative",
-              overflow: "hidden",
-              boxShadow: "0 10px 30px rgba(212,175,55,0.03)"
-            }}
-          >
-            {/* Decorative gold glowing circle */}
-            <div 
-              style={{ 
-                position: "absolute", 
-                top: "-100px", 
-                right: "-100px", 
-                width: "250px", 
-                height: "250px", 
-                borderRadius: "50%", 
-                background: "radial-gradient(circle, rgba(212,175,55,0.15) 0%, rgba(255,255,255,0) 70%)",
-                filter: "blur(30px)",
-                pointerEvents: "none"
-              }}
-            />
-            
-            <span style={{ fontSize: "0.85rem", color: "var(--text-gold)", textTransform: "uppercase", fontWeight: 800, letterSpacing: "0.15em", display: "block", marginBottom: "0.5rem" }}>
-              Mercado Virtual Cultural
-            </span>
-            <h1 style={{ fontSize: "2.6rem", fontWeight: 900, fontFamily: "'Cinzel', serif", letterSpacing: "-0.02em", color: "var(--text-primary)", margin: "0 0 1rem 0", lineHeight: "1.2" }}>
-              Aourum: El nodo central del talento local
-            </h1>
-            <p style={{ fontSize: "1.05rem", color: "var(--text-muted)", maxWidth: "680px", margin: "0 auto 1.8rem auto", lineHeight: "1.6" }}>
-              Conectamos las ferias más vibrantes, las marcas locales más creativas y el lineup musical independiente en una sola plataforma diseñada para impulsar el talento arequipeño.
-            </p>
-            
-            <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-              <Link href="/brands" className="btn-gold" style={{ textDecoration: "none", borderRadius: "30px", padding: "0.6rem 1.6rem", fontSize: "0.88rem" }}>
-                <i className="fa-solid fa-store"></i> Explorar Marcas
-              </Link>
-              <Link href="/fairs" className="btn-outline-gold" style={{ textDecoration: "none", borderRadius: "30px", padding: "0.6rem 1.6rem", fontSize: "0.88rem" }}>
-                <i className="fa-solid fa-calendar-days"></i> Ver Próximas Ferias
-              </Link>
-            </div>
-          </div>
 
           {/* Header area of catalogue */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2.0rem", flexWrap: "wrap", gap: "1rem" }}>

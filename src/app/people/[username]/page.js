@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect } from "react";
+import { use, useEffect, useState } from "react";
 import { useApp } from "../../../context/AppContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -8,6 +8,9 @@ import Link from "next/link";
 export default function PersonProfilePage({ params }) {
   const unwrappedParams = use(params);
   const usernameParam = unwrappedParams.username;
+
+  const [createProjectOpen, setCreateProjectOpen] = useState(false);
+  const [projectsOpen, setProjectsOpen] = useState(true);
 
   const {
     people,
@@ -288,171 +291,190 @@ export default function PersonProfilePage({ params }) {
 
               {/* Crear Proyectos */}
               <div className="glass-panel" style={{ padding: "1.5rem" }}>
-                <h3 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: 8 }}>
-                  <i className="fa-solid fa-plus-circle" style={{ color: "var(--gold-primary)" }}></i> ¿Tienes un nuevo proyecto propio?
-                </h3>
-                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1.2rem", lineHeight: 1.5 }}>
-                  Registra tu marca, banda de música, o productora de eventos. Se asociarán automáticamente a tu cuenta de persona en la base de datos.
-                </p>
-                <div className="projects-grid" style={{ gap: "10px" }}>
-                  <button 
-                    onClick={() => { setRegType("brand"); setShowRegModal(true); }}
-                    className="btn-outline-gold"
-                    style={{ borderRadius: "8px", padding: "0.6rem 1rem", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
-                  >
-                    🏪 Crear Marca
-                  </button>
-                  <button 
-                    onClick={() => { setRegType("organizer"); setShowRegModal(true); }}
-                    className="btn-outline-gold"
-                    style={{ borderRadius: "8px", padding: "0.6rem 1rem", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
-                  >
-                    🎪 Crear Productora
-                  </button>
-                  <button 
-                    onClick={() => { setRegType("band"); setShowRegModal(true); }}
-                    className="btn-outline-gold"
-                    style={{ borderRadius: "8px", padding: "0.6rem 1rem", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
-                  >
-                    🎸 Crear Banda
-                  </button>
+                <div 
+                  onClick={() => setCreateProjectOpen(!createProjectOpen)}
+                  style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}
+                >
+                  <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                    <i className="fa-solid fa-plus-circle" style={{ color: "var(--gold-primary)" }}></i> ¿Tienes un nuevo proyecto propio?
+                  </h3>
+                  <i className={`fa-solid fa-chevron-${createProjectOpen ? "up" : "down"}`} style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}></i>
                 </div>
+                
+                {createProjectOpen && (
+                  <div className="fade-in" style={{ marginTop: "1.2rem" }}>
+                    <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "1.2rem", lineHeight: 1.5 }}>
+                      Registra tu marca, banda de música, o productora de eventos. Se asociarán automáticamente a tu cuenta de persona en la base de datos.
+                    </p>
+                    <div className="projects-grid" style={{ gap: "10px" }}>
+                      <button 
+                        onClick={() => { setRegType("brand"); setShowRegModal(true); }}
+                        className="btn-outline-gold"
+                        style={{ borderRadius: "8px", padding: "0.6rem 1rem", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                      >
+                        🏪 Crear Marca
+                      </button>
+                      <button 
+                        onClick={() => { setRegType("organizer"); setShowRegModal(true); }}
+                        className="btn-outline-gold"
+                        style={{ borderRadius: "8px", padding: "0.6rem 1rem", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                      >
+                        🎪 Crear Productora
+                      </button>
+                      <button 
+                        onClick={() => { setRegType("band"); setShowRegModal(true); }}
+                        className="btn-outline-gold"
+                        style={{ borderRadius: "8px", padding: "0.6rem 1rem", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                      >
+                        🎸 Crear Banda
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
           <hr style={{ border: 0, borderTop: "1px solid var(--border-color)", margin: "2.2rem 0" }} />
 
-          <h3 style={{ fontSize: "1.3rem", fontWeight: 800, marginBottom: "1.8rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 10 }}>
-            <i className="fa-solid fa-link" style={{ color: "var(--gold-primary)" }}></i> Proyectos y Afiliaciones
-          </h3>
+          <div 
+            onClick={() => setProjectsOpen(!projectsOpen)}
+            style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", marginBottom: "1.8rem" }}
+          >
+            <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 10 }}>
+              <i className="fa-solid fa-link" style={{ color: "var(--gold-primary)" }}></i> Proyectos y Afiliaciones
+            </h3>
+            <i className={`fa-solid fa-chevron-${projectsOpen ? "up" : "down"}`} style={{ color: "var(--text-muted)", fontSize: "1.1rem" }}></i>
+          </div>
 
-          <div className="projects-grid">
-            {/* MARCAS */}
-            <div>
-              <h4 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
-                <i className="fa-solid fa-store" style={{ color: "var(--gold-primary)" }}></i> Marcas
-              </h4>
-              {relatedBrands.length === 0 ? (
-                <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>No tiene marcas vinculadas.</p>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
-                  {relatedBrands.map((b) => (
-                    <div key={b.id} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                      <Link 
-                        href={`/brands/${b.slug || b.id}`} 
-                        style={{ flex: 1, textDecoration: "none", display: "flex", alignItems: "center", gap: "12px", padding: "0.8rem", background: "var(--bg-input)", borderRadius: "8px", border: "1px solid var(--border-color)", transition: "transform 0.2s" }}
-                        className="glass-panel-hover"
-                      >
-                        <img src={b.logo} alt={b.name} style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
-                        <div>
-                          <strong style={{ fontSize: "0.88rem", color: "var(--text-primary)", display: "block" }}>{b.name}</strong>
-                          <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>{b.category}</span>
-                        </div>
-                      </Link>
-                      {isOwner && (
-                        <button 
-                          onClick={() => handleDeleteBrand(b.id)}
-                          style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", padding: "0.5rem", fontSize: "0.95rem" }}
-                          title="Eliminar Marca"
+          {projectsOpen && (
+            <div className="projects-grid fade-in">
+              {/* MARCAS */}
+              <div>
+                <h4 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
+                  <i className="fa-solid fa-store" style={{ color: "var(--gold-primary)" }}></i> Marcas
+                </h4>
+                {relatedBrands.length === 0 ? (
+                  <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>No tiene marcas vinculadas.</p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
+                    {relatedBrands.map((b) => (
+                      <div key={b.id} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                        <Link 
+                          href={`/brands/${b.slug || b.id}`} 
+                          style={{ flex: 1, textDecoration: "none", display: "flex", alignItems: "center", gap: "12px", padding: "0.8rem", background: "var(--bg-input)", borderRadius: "8px", border: "1px solid var(--border-color)", transition: "transform 0.2s" }}
+                          className="glass-panel-hover"
                         >
-                          <i className="fa-solid fa-trash"></i>
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* BANDAS */}
-            <div>
-              <h4 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
-                <i className="fa-solid fa-guitar" style={{ color: "var(--gold-primary)" }}></i> Bandas
-              </h4>
-              {relatedBands.length === 0 ? (
-                <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>No pertenece a ninguna banda.</p>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
-                  {relatedBands.map((b) => (
-                    <div key={b.id} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                      <Link 
-                        href={`/bands/${b.slug || b.id}`} 
-                        style={{ flex: 1, textDecoration: "none", display: "flex", alignItems: "center", gap: "12px", padding: "0.8rem", background: "var(--bg-input)", borderRadius: "8px", border: "1px solid var(--border-color)" }}
-                        className="glass-panel-hover"
-                      >
-                        <img src={b.image} alt={b.name} style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
-                        <div>
-                          <strong style={{ fontSize: "0.88rem", color: "var(--text-primary)", display: "block" }}>{b.name}</strong>
-                          <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>{b.genre}</span>
-                        </div>
-                      </Link>
-                      {isOwner && (
-                        <button 
-                          onClick={() => handleDeleteBand(b.id)}
-                          style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", padding: "0.5rem", fontSize: "0.95rem" }}
-                          title="Eliminar Banda"
-                        >
-                          <i className="fa-solid fa-trash"></i>
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* PRODUCTORAS & FERIAS */}
-            <div>
-              <h4 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
-                <i className="fa-solid fa-calendar-days" style={{ color: "var(--gold-primary)" }}></i> Productoras & Ferias
-              </h4>
-              {relatedOrganizers.length === 0 ? (
-                <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>No tiene productoras vinculadas.</p>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                  {relatedOrganizers.map((o) => {
-                    const oFairs = fairs.filter(f => f.organizerId === o.id);
-                    return (
-                      <div key={o.id} style={{ background: "rgba(0,0,0,0.02)", border: "1px solid var(--border-color)", borderRadius: "10px", padding: "0.8rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                            <img src={o.logo} alt={o.name} style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }} />
-                            <strong style={{ fontSize: "0.85rem", color: "var(--text-primary)" }}>{o.name}</strong>
+                          <img src={b.logo} alt={b.name} style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
+                          <div>
+                            <strong style={{ fontSize: "0.88rem", color: "var(--text-primary)", display: "block" }}>{b.name}</strong>
+                            <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>{b.category}</span>
                           </div>
-                          {isOwner && (
-                            <button 
-                              onClick={() => handleDeleteOrganizer(o.id)}
-                              style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "0.85rem" }}
-                              title="Eliminar Productora"
-                            >
-                              <i className="fa-solid fa-trash"></i>
-                            </button>
-                          )}
-                        </div>
-                        {oFairs.length === 0 ? (
-                          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontStyle: "italic" }}>Sin ferias creadas</span>
-                        ) : (
-                          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                            {oFairs.map(f => (
-                              <Link 
-                                href={`/fairs/${f.slug || f.id}`} 
-                                key={f.id}
-                                style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "8px", padding: "0.4rem", background: "#FFFFFF", borderRadius: "6px", border: "1px solid var(--border-color)" }}
-                              >
-                                <img src={f.banner} alt={f.name} style={{ width: "30px", height: "22px", objectFit: "cover", borderRadius: "3px" }} />
-                                <span style={{ fontSize: "0.75rem", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1 }}>{f.name}</span>
-                              </Link>
-                            ))}
-                          </div>
+                        </Link>
+                        {isOwner && (
+                          <button 
+                            onClick={() => handleDeleteBrand(b.id)}
+                            style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", padding: "0.5rem", fontSize: "0.95rem" }}
+                            title="Eliminar Marca"
+                          >
+                            <i className="fa-solid fa-trash"></i>
+                          </button>
                         )}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* BANDAS */}
+              <div>
+                <h4 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
+                  <i className="fa-solid fa-guitar" style={{ color: "var(--gold-primary)" }}></i> Bandas
+                </h4>
+                {relatedBands.length === 0 ? (
+                  <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>No pertenece a ninguna banda.</p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
+                    {relatedBands.map((b) => (
+                      <div key={b.id} style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                        <Link 
+                          href={`/bands/${b.slug || b.id}`} 
+                          style={{ flex: 1, textDecoration: "none", display: "flex", alignItems: "center", gap: "12px", padding: "0.8rem", background: "var(--bg-input)", borderRadius: "8px", border: "1px solid var(--border-color)" }}
+                          className="glass-panel-hover"
+                        >
+                          <img src={b.image} alt={b.name} style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
+                          <div>
+                            <strong style={{ fontSize: "0.88rem", color: "var(--text-primary)", display: "block" }}>{b.name}</strong>
+                            <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>{b.genre}</span>
+                          </div>
+                        </Link>
+                        {isOwner && (
+                          <button 
+                            onClick={() => handleDeleteBand(b.id)}
+                            style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", padding: "0.5rem", fontSize: "0.95rem" }}
+                            title="Eliminar Banda"
+                          >
+                            <i className="fa-solid fa-trash"></i>
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* PRODUCTORAS & FERIAS */}
+              <div>
+                <h4 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
+                  <i className="fa-solid fa-calendar-days" style={{ color: "var(--gold-primary)" }}></i> Productoras & Ferias
+                </h4>
+                {relatedOrganizers.length === 0 ? (
+                  <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>No tiene productoras vinculadas.</p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                    {relatedOrganizers.map((o) => {
+                      const oFairs = fairs.filter(f => f.organizerId === o.id);
+                      return (
+                        <div key={o.id} style={{ background: "rgba(0,0,0,0.02)", border: "1px solid var(--border-color)", borderRadius: "10px", padding: "0.8rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                              <img src={o.logo} alt={o.name} style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }} />
+                              <strong style={{ fontSize: "0.85rem", color: "var(--text-primary)" }}>{o.name}</strong>
+                            </div>
+                            {isOwner && (
+                              <button 
+                                onClick={() => handleDeleteOrganizer(o.id)}
+                                style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "0.85rem" }}
+                                title="Eliminar Productora"
+                              >
+                                <i className="fa-solid fa-trash"></i>
+                              </button>
+                            )}
+                          </div>
+                          {oFairs.length === 0 ? (
+                            <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontStyle: "italic" }}>Sin ferias creadas</span>
+                          ) : (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                              {oFairs.map(f => (
+                                <Link 
+                                  href={`/fairs/${f.slug || f.id}`} 
+                                  key={f.id}
+                                  style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "8px", padding: "0.4rem", background: "#FFFFFF", borderRadius: "6px", border: "1px solid var(--border-color)" }}
+                                >
+                                  <img src={f.banner} alt={f.name} style={{ width: "30px", height: "22px", objectFit: "cover", borderRadius: "3px" }} />
+                                  <span style={{ fontSize: "0.75rem", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1 }}>{f.name}</span>
+                                </Link>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

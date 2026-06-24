@@ -1221,6 +1221,7 @@ export default function RootLayout({ children }) {
     <html lang="es" className={inter.variable}>
       <head>
         <title>Aourum - La nueva era del comercio</title>
+        <meta name="google-site-verification" content="googlea671984f4696598d" />
         <meta name="description" content="Aourum es el mercado cultural y comercial de Arequipa. Encuentra las mejores ferias independientes, marcas locales y bandas de música en la nueva era del comercio." />
         <meta name="keywords" content="aourum, aourum arequipa, mercado arequipa, ferias arequipa, marcas locales arequipa, bandas arequipa, comprar arequipa, comercio cultural" />
         <meta name="author" content="Ackyul" />

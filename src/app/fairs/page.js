@@ -33,8 +33,7 @@ export default function FairsPage() {
         <div className="fade-in">
           <div>
             <div style={{ marginBottom: "2.0rem" }}>
-              <span style={{ fontSize: "0.8rem", color: "var(--text-gold)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.08em" }}>Agenda Local</span>
-              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", marginTop: "2px" }}>Calendario de Ferias & Eventos</h2>
+              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", marginTop: "2px" }}>Ferias y Eventos</h2>
             </div>
             
             {filteredFairs.length === 0 ? (
