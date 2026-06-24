@@ -120,9 +120,11 @@ export default function BrandProfilePage({ params }) {
       if (!canvas) return;
       const ctx = canvas.getContext("2d");
       
-      const canvasW = 300;
-      const canvasH = aspectRatio === "1:1" ? 300 : 225;
+      // Use high-resolution canvas internally for crisp quality (800px width)
+      const canvasW = 800;
+      const canvasH = aspectRatio === "1:1" ? 800 : 600;
       
+      // Clear the canvas
       ctx.clearRect(0, 0, canvasW, canvasH);
       
       // Calculate cover dimensions to fill canvas aspect ratio
@@ -142,8 +144,14 @@ export default function BrandProfilePage({ params }) {
       const drawW = baseW * scale;
       const drawH = baseH * scale;
       
-      const x = (canvasW - drawW) / 2 + imgPos.x;
-      const y = (canvasH - drawH) / 2 + imgPos.y;
+      // Drag coordinates are stored in visual screen pixels (300px width base).
+      // Scale them up to the canvas coordinate space (800px width base).
+      const scaleFactor = canvasW / 300;
+      const offsetX = imgPos.x * scaleFactor;
+      const offsetY = imgPos.y * scaleFactor;
+      
+      const x = (canvasW - drawW) / 2 + offsetX;
+      const y = (canvasH - drawH) / 2 + offsetY;
       
       ctx.drawImage(img, x, y, drawW, drawH);
       
@@ -841,8 +849,8 @@ export default function BrandProfilePage({ params }) {
             <div style={{ position: "relative", width: "300px", height: aspectRatio === "1:1" ? "300px" : "225px", maxWidth: "100%", margin: "0 auto 1.2rem auto", overflow: "hidden" }}>
               <canvas 
                 id="editor-canvas"
-                width={300}
-                height={aspectRatio === "1:1" ? 300 : 225}
+                width={800}
+                height={aspectRatio === "1:1" ? 800 : 600}
                 style={{
                   width: "100%",
                   height: "auto",
