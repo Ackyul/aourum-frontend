@@ -576,80 +576,97 @@ export default function BandProfilePage({ params }) {
               
               {/* Opción 1: Postular Banda a Ferias */}
               {isOwner && (
-                <div className="glass-panel" style={{ padding: "1.5rem", marginBottom: "1.5rem", overflow: "visible" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setShowFairs(!showFairs)}>
+                <div className="glass-panel" style={{ padding: "1.5rem", marginBottom: "1.5rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setShowFairs(true)}>
                     <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0 }}>
                       <i className="fa-solid fa-paper-plane" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Postular Banda a Ferias
                     </h3>
                     <button type="button" className="btn-outline-gold" style={{ padding: "4px 12px", fontSize: "0.75rem", borderRadius: "6px", fontWeight: 700 }}>
-                      {showFairs ? "Ocultar" : "Mostrar / Postular"}
+                      Postular
                     </button>
                   </div>
 
                   {showFairs && (
-                    <div className="fade-in" style={{ marginTop: "1.5rem", borderTop: "1px solid var(--border-color)", paddingTop: "1.5rem" }}>
-                      <form onSubmit={(e) => handleApplyToFair(e, "band", band.id)} className="apply-fair-form">
-                        <div className="form-group" style={{ marginBottom: "1rem", position: "relative" }}>
-                          <label>Buscar y seleccionar feria del calendario local</label>
-                          <div style={{ position: "relative" }}>
-                            <input
-                              type="text"
-                              className="form-control"
-                              placeholder="Escribe el nombre de la feria para buscar..."
-                              value={fairSearchQuery}
-                              onChange={(e) => {
-                                setFairSearchQuery(e.target.value);
-                                setShowFairDropdown(true);
-                              }}
-                              onFocus={() => setShowFairDropdown(true)}
-                              onBlur={() => setTimeout(() => setShowFairDropdown(false), 200)}
-                              required
-                            />
-                            {fairSearchQuery && (
-                              <button 
-                                type="button" 
-                                onClick={() => { setFairSearchQuery(""); setAppFairId(""); setShowFairDropdown(false); }}
-                                style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
+                    <div className="modal-overlay" style={{ zIndex: 1100 }}>
+                      <div className="modal-backdrop" onClick={() => setShowFairs(false)}></div>
+                      <div className="modal-panel fade-in" style={{ maxWidth: "550px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", position: "relative" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+                          <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0 }}>
+                            <i className="fa-solid fa-paper-plane" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Postular Banda a Ferias
+                          </h3>
+                          <button 
+                            onClick={() => setShowFairs(false)} 
+                            style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
+                          >
+                            &times;
+                          </button>
+                        </div>
+                        <form onSubmit={(e) => handleApplyToFair(e, "band", band.id)} className="apply-fair-form">
+                          <div className="form-group" style={{ marginBottom: "1.5rem", position: "relative" }}>
+                            <label style={{ fontWeight: 600, fontSize: "0.9rem", display: "block", marginBottom: "0.5rem" }}>Buscar y seleccionar feria del calendario local</label>
+                            <div style={{ position: "relative" }}>
+                              <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Escribe el nombre de la feria para buscar..."
+                                value={fairSearchQuery}
+                                onChange={(e) => {
+                                  setFairSearchQuery(e.target.value);
+                                  setShowFairDropdown(true);
+                                }}
+                                onFocus={() => setShowFairDropdown(true)}
+                                onBlur={() => setTimeout(() => setShowFairDropdown(false), 200)}
+                                required
+                              />
+                              {fairSearchQuery && (
+                                <button 
+                                  type="button" 
+                                  onClick={() => { setFairSearchQuery(""); setAppFairId(""); setShowFairDropdown(false); }}
+                                  style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
+                                >
+                                  &times;
+                                </button>
+                              )}
+                            </div>
+                            
+                            {showFairDropdown && fairSearchQuery.trim() !== "" && filteredFairs.length > 0 && (
+                              <div 
+                                style={{
+                                  position: "absolute", top: "100%", left: 0, right: 0,
+                                  background: "var(--bg-card)", border: "1px solid var(--border-color)",
+                                  borderRadius: "8px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                                  maxHeight: "200px", overflowY: "auto", zIndex: 1000, marginTop: "4px"
+                                }}
                               >
-                                &times;
-                              </button>
+                                {filteredFairs.map(f => (
+                                  <div
+                                    key={f.id}
+                                    onClick={() => {
+                                      setAppFairId(f.id.toString());
+                                      setFairSearchQuery(`${f.name} (${f.date})`);
+                                      setShowFairDropdown(false);
+                                    }}
+                                    style={{
+                                      padding: "0.6rem 1rem", cursor: "pointer",
+                                      transition: "background 0.2s", fontSize: "0.85rem",
+                                      borderBottom: "1px solid rgba(0,0,0,0.02)",
+                                      color: "var(--text-primary)"
+                                    }}
+                                    onMouseEnter={(e) => e.target.style.background = "var(--bg-input)"}
+                                    onMouseLeave={(e) => e.target.style.background = "none"}
+                                  >
+                                    <strong>{f.name}</strong> <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginLeft: "6px" }}>({f.date})</span>
+                                  </div>
+                                ))}
+                              </div>
                             )}
                           </div>
-                          
-                          {showFairDropdown && fairSearchQuery.trim() !== "" && filteredFairs.length > 0 && (
-                            <div 
-                              style={{
-                                position: "absolute", top: "100%", left: 0, right: 0,
-                                background: "var(--bg-card)", border: "1px solid var(--border-color)",
-                                borderRadius: "8px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-                                maxHeight: "200px", overflowY: "auto", zIndex: 1000, marginTop: "4px"
-                              }}
-                            >
-                              {filteredFairs.map(f => (
-                                <div
-                                  key={f.id}
-                                  onClick={() => {
-                                    setAppFairId(f.id.toString());
-                                    setFairSearchQuery(`${f.name} (${f.date})`);
-                                    setShowFairDropdown(false);
-                                  }}
-                                  style={{
-                                    padding: "0.6rem 1rem", cursor: "pointer",
-                                    transition: "background 0.2s", fontSize: "0.85rem",
-                                    borderBottom: "1px solid rgba(0,0,0,0.02)",
-                                    color: "var(--text-primary)"
-                                  }}
-                                  onMouseEnter={(e) => e.target.style.background = "var(--bg-input)"}
-                                  onMouseLeave={(e) => e.target.style.background = "none"}
-                                >
-                                  <strong>{f.name}</strong> <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginLeft: "6px" }}>({f.date})</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <button type="submit" className="btn-gold" style={{ borderRadius: "8px" }}>Enviar Postulación</button>
-                      </form>
+                          <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                            <button type="button" onClick={() => setShowFairs(false)} className="btn-outline-gold" style={{ padding: "0.5rem 1.2rem", borderRadius: "6px" }}>Cancelar</button>
+                            <button type="submit" className="btn-gold" style={{ padding: "0.5rem 1.4rem", borderRadius: "6px", fontWeight: 700 }}>Enviar Postulación</button>
+                          </div>
+                        </form>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -657,184 +674,201 @@ export default function BandProfilePage({ params }) {
 
               {/* Opción 2: Integrantes de la Banda */}
               <div className="glass-panel" style={{ padding: "1.5rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setShowCollabs(!showCollabs)}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setShowCollabs(true)}>
                   <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0 }}>
                     <i className="fa-solid fa-users" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Integrantes de la Banda
                   </h3>
                   <button type="button" className="btn-outline-gold" style={{ padding: "4px 12px", fontSize: "0.75rem", borderRadius: "6px", fontWeight: 700 }}>
-                    {showCollabs ? "Ocultar" : "Mostrar / Invitar"}
+                    Administrar
                   </button>
                 </div>
 
                 {showCollabs && (
-                  <div className="fade-in" style={{ marginTop: "1.5rem", borderTop: "1px solid var(--border-color)", paddingTop: "1.5rem" }}>
-                    <div className="collab-grid">
-                      <div>
-                        <h4 style={{ fontSize: "0.9rem", fontWeight: 700, marginBottom: "0.6rem", color: "var(--text-gold)" }}>Miembros Vinculados</h4>
-                        {band.collaborators && band.collaborators.length === 0 ? (
-                          <p style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>No hay integrantes adicionales vinculados.</p>
-                        ) : (
-                          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                            {band.collaborators && band.collaborators.map(c => {
-                              const p = people.find(person => person.id === c.personId);
-                              if (!p) return null;
-                              const isThisCollaboratorOriginalCreator = c.role === 'creador_original';
-                              return (
-                                <div key={p.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-input)", padding: "0.5rem", borderRadius: "6px", gap: "10px" }}>
-                                  <div onClick={() => router.push(`/people/${p.username || p.id}`)} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-                                    <img src={p.logo} alt={p.name} style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover" }} />
-                                    <span style={{ fontSize: "0.85rem", fontWeight: 600, textDecoration: "underline" }}>{p.name}</span>
-                                    <span style={{ fontSize: "0.72rem", color: "var(--text-gold)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>({c.role})</span>
+                  <div className="modal-overlay" style={{ zIndex: 1100 }}>
+                    <div className="modal-backdrop" onClick={() => setShowCollabs(false)}></div>
+                    <div className="modal-panel fade-in" style={{ maxWidth: "750px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+                        <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0 }}>
+                          <i className="fa-solid fa-users" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Integrantes de la Banda
+                        </h3>
+                        <button 
+                          onClick={() => setShowCollabs(false)} 
+                          style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
+                        >
+                          &times;
+                        </button>
+                      </div>
+                      
+                      <div className="collab-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "2rem" }}>
+                        <div>
+                          <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.8rem", color: "var(--text-gold)" }}>Miembros Vinculados</h4>
+                          {band.collaborators && band.collaborators.length === 0 ? (
+                            <p style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>No hay colaboradores adicionales.</p>
+                          ) : (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                              {band.collaborators && band.collaborators.map(c => {
+                                const p = people.find(person => person.id === c.personId);
+                                if (!p) return null;
+                                const isThisCollaboratorOriginalCreator = c.role === 'creador_original';
+                                return (
+                                  <div key={p.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-input)", padding: "0.5rem", borderRadius: "6px", gap: "10px" }}>
+                                    <div onClick={() => { router.push(`/people/${p.username || p.id}`); setShowCollabs(false); }} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                                      <img src={p.logo} alt={p.name} style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover" }} />
+                                      <span style={{ fontSize: "0.85rem", fontWeight: 600, textDecoration: "underline" }}>{p.name}</span>
+                                      <span style={{ fontSize: "0.72rem", color: "var(--text-gold)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>({c.role})</span>
+                                    </div>
+                                    
+                                    {userRole === 'creador_original' && !isThisCollaboratorOriginalCreator && (
+                                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                        <select 
+                                          value={c.role} 
+                                          onChange={(e) => changeCollaboratorRole('band', band.id, p.id, e.target.value)}
+                                          className="form-control" 
+                                          style={{ padding: "2px 6px", fontSize: "0.75rem", width: "auto" }}
+                                        >
+                                          <option value="colaborador">Colaborador</option>
+                                          <option value="gestor">Gestor</option>
+                                          <option value="creador">Creador</option>
+                                        </select>
+                                        <button 
+                                          onClick={() => {
+                                            if (confirm(`¿Seguro que deseas desvincular a ${p.name}?`)) {
+                                              removeCollaborator('band', band.id, p.id);
+                                            }
+                                          }}
+                                          style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "0.82rem", fontWeight: 700 }}
+                                        >
+                                          <i className="fa-solid fa-user-minus"></i>
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
-                                  
-                                  {userRole === 'creador_original' && !isThisCollaboratorOriginalCreator && (
-                                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                      <select 
-                                        value={c.role} 
-                                        onChange={(e) => changeCollaboratorRole('band', band.id, p.id, e.target.value)}
-                                        className="form-control" 
-                                        style={{ padding: "2px 6px", fontSize: "0.75rem", width: "auto" }}
-                                      >
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div>
+                          {canInvite && (
+                            <>
+                              <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.8rem", color: "var(--text-gold)" }}>Invitar Integrante</h4>
+                              {(() => {
+                                const linkedIds = (band.collaborators || []).map(c => c.personId);
+                                const pendingReceiverIds = invitations.filter(inv => inv.senderType === "band" && inv.senderId === band.id).map(inv => inv.receiverPersonId);
+                                const candidates = people.filter(p => !linkedIds.includes(p.id) && !pendingReceiverIds.includes(p.id));
+
+                                const filteredCandidates = candidates.filter(p => 
+                                  p.name.toLowerCase().includes(personSearchQuery.toLowerCase()) || 
+                                  (p.username && p.username.toLowerCase().includes(personSearchQuery.toLowerCase())) ||
+                                  (p.occupation && p.occupation.toLowerCase().includes(personSearchQuery.toLowerCase()))
+                                );
+
+                                return (
+                                  <form onSubmit={(e) => {
+                                    e.preventDefault();
+                                    const receiverId = Number(e.target.elements.invitePerson.value);
+                                    const inviteRole = e.target.elements.inviteRole.value;
+                                    if (!receiverId || !inviteRole) return;
+                                    sendInvitation("band", band.id, band.name, receiverId, inviteRole);
+                                    setPersonSearchQuery("");
+                                    setSelectedPersonId("");
+                                  }}>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", position: "relative" }}>
+                                      <input type="hidden" name="invitePerson" value={selectedPersonId} />
+                                      <div style={{ position: "relative" }}>
+                                        <input
+                                          type="text"
+                                          className="form-control"
+                                          placeholder="Escribe el nombre para buscar..."
+                                          value={personSearchQuery}
+                                          onChange={(e) => {
+                                            setPersonSearchQuery(e.target.value);
+                                            setShowPersonDropdown(true);
+                                          }}
+                                          onFocus={() => setShowPersonDropdown(true)}
+                                          onBlur={() => setTimeout(() => setShowPersonDropdown(false), 200)}
+                                          required
+                                        />
+                                        {personSearchQuery && (
+                                          <button 
+                                            type="button" 
+                                            onClick={() => { setPersonSearchQuery(""); setSelectedPersonId(""); setShowPersonDropdown(false); }}
+                                            style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
+                                          >
+                                            &times;
+                                          </button>
+                                        )}
+
+                                        {showPersonDropdown && personSearchQuery.trim() !== "" && filteredCandidates.length > 0 && (
+                                          <div 
+                                            style={{
+                                              position: "absolute", top: "100%", left: 0, right: 0,
+                                              background: "var(--bg-card)", border: "1px solid var(--border-color)",
+                                              borderRadius: "8px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                                              maxHeight: "160px", overflowY: "auto", zIndex: 1000, marginTop: "4px"
+                                            }}
+                                          >
+                                            {filteredCandidates.map(p => (
+                                              <div
+                                                key={p.id}
+                                                onClick={() => {
+                                                  setSelectedPersonId(p.id.toString());
+                                                  setPersonSearchQuery(p.name + (p.occupation ? ` (${p.occupation})` : ""));
+                                                  setShowPersonDropdown(false);
+                                                }}
+                                                style={{
+                                                  padding: "0.6rem 1rem", cursor: "pointer",
+                                                  transition: "background 0.2s", fontSize: "0.85rem",
+                                                  borderBottom: "1px solid rgba(0,0,0,0.02)",
+                                                  color: "var(--text-primary)"
+                                                }}
+                                                onMouseEnter={(e) => e.target.style.background = "var(--bg-input)"}
+                                                onMouseLeave={(e) => e.target.style.background = "none"}
+                                              >
+                                                <strong>{p.name}</strong> {p.occupation && <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginLeft: "6px" }}>({p.occupation})</span>}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      <select name="inviteRole" className="form-control" style={{ fontSize: "0.85rem" }} required>
                                         <option value="colaborador">Colaborador</option>
                                         <option value="gestor">Gestor</option>
                                         <option value="creador">Creador</option>
                                       </select>
-                                      <button 
-                                        onClick={() => {
-                                          if (confirm(`¿Seguro que deseas desvincular a ${p.name}?`)) {
-                                            removeCollaborator('band', band.id, p.id);
-                                          }
-                                        }}
-                                        style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "0.82rem", fontWeight: 700 }}
-                                      >
-                                        <i className="fa-solid fa-user-minus"></i>
+                                      <button type="submit" className="btn-gold" style={{ padding: "0.45rem 1rem", borderRadius: "6px", fontSize: "0.82rem", width: "100%" }} disabled={candidates.length === 0 || !selectedPersonId}>
+                                        <i className="fa-solid fa-paper-plane" style={{ marginRight: 6 }}></i> Enviar Invitación
                                       </button>
                                     </div>
-                                  )}
+                                  </form>
+                                );
+                              })()}
+                            </>
+                          )}
+
+                          {(() => {
+                            const pending = invitations.filter(inv => inv.senderType === "band" && inv.senderId === band.id);
+                            if (pending.length === 0) return null;
+                            return (
+                              <div style={{ marginTop: "1rem", borderTop: "1px dashed var(--border-color)", paddingTop: "0.8rem" }}>
+                                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>Invitaciones Pendientes:</span>
+                                <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "6px" }}>
+                                  {pending.map(inv => {
+                                    const receiver = people.find(p => p.id === inv.receiverPersonId);
+                                    return (
+                                      <div key={inv.id} style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                        <span>✉️ {receiver ? receiver.name : `Persona #${inv.receiverPersonId}`} <span style={{ fontSize: "0.72rem", color: "var(--text-gold)" }}>({inv.role})</span></span>
+                                        <span style={{ fontStyle: "italic", fontSize: "0.75rem" }}>Enviada</span>
+                                      </div>
+                                    );
+                                  })}
                                 </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        {canInvite && (
-                          <>
-                            <h4 style={{ fontSize: "0.9rem", fontWeight: 700, marginBottom: "0.6rem", color: "var(--text-gold)" }}>Invitar Integrante</h4>
-                            {(() => {
-                              const linkedIds = (band.collaborators || []).map(c => c.personId);
-                              const pendingReceiverIds = invitations.filter(inv => inv.senderType === "band" && inv.senderId === band.id).map(inv => inv.receiverPersonId);
-                              const candidates = people.filter(p => !linkedIds.includes(p.id) && !pendingReceiverIds.includes(p.id));
-
-                              const filteredCandidates = candidates.filter(p => 
-                                p.name.toLowerCase().includes(personSearchQuery.toLowerCase()) || 
-                                (p.username && p.username.toLowerCase().includes(personSearchQuery.toLowerCase())) ||
-                                (p.occupation && p.occupation.toLowerCase().includes(personSearchQuery.toLowerCase()))
-                              );
-
-                              return (
-                                <form onSubmit={(e) => {
-                                  e.preventDefault();
-                                  const receiverId = Number(e.target.elements.invitePerson.value);
-                                  const inviteRole = e.target.elements.inviteRole.value;
-                                  if (!receiverId || !inviteRole) return;
-                                  sendInvitation("band", band.id, band.name, receiverId, inviteRole);
-                                  setPersonSearchQuery("");
-                                  setSelectedPersonId("");
-                                }}>
-                                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", position: "relative" }}>
-                                    <input type="hidden" name="invitePerson" value={selectedPersonId} />
-                                    <div style={{ position: "relative" }}>
-                                       <input
-                                         type="text"
-                                         className="form-control"
-                                         placeholder="Escribe el nombre para buscar..."
-                                         value={personSearchQuery}
-                                         onChange={(e) => {
-                                           setPersonSearchQuery(e.target.value);
-                                           setShowPersonDropdown(true);
-                                         }}
-                                         onFocus={() => setShowPersonDropdown(true)}
-                                         onBlur={() => setTimeout(() => setShowPersonDropdown(false), 200)}
-                                         required
-                                       />
-                                       {personSearchQuery && (
-                                         <button 
-                                           type="button" 
-                                           onClick={() => { setPersonSearchQuery(""); setSelectedPersonId(""); setShowPersonDropdown(false); }}
-                                           style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
-                                         >
-                                           &times;
-                                         </button>
-                                       )}
-
-                                       {showPersonDropdown && personSearchQuery.trim() !== "" && filteredCandidates.length > 0 && (
-                                         <div 
-                                           style={{
-                                             position: "absolute", top: "100%", left: 0, right: 0,
-                                             background: "var(--bg-card)", border: "1px solid var(--border-color)",
-                                             borderRadius: "8px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-                                             maxHeight: "160px", overflowY: "auto", zIndex: 1000, marginTop: "4px"
-                                           }}
-                                         >
-                                           {filteredCandidates.map(p => (
-                                             <div
-                                               key={p.id}
-                                               onClick={() => {
-                                                 setSelectedPersonId(p.id.toString());
-                                                 setPersonSearchQuery(p.name + (p.occupation ? ` (${p.occupation})` : ""));
-                                                 setShowPersonDropdown(false);
-                                               }}
-                                               style={{
-                                                 padding: "0.6rem 1rem", cursor: "pointer",
-                                                 transition: "background 0.2s", fontSize: "0.85rem",
-                                                 borderBottom: "1px solid rgba(0,0,0,0.02)",
-                                                 color: "var(--text-primary)"
-                                               }}
-                                               onMouseEnter={(e) => e.target.style.background = "var(--bg-input)"}
-                                               onMouseLeave={(e) => e.target.style.background = "none"}
-                                             >
-                                               <strong>{p.name}</strong> {p.occupation && <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginLeft: "6px" }}>({p.occupation})</span>}
-                                             </div>
-                                           ))}
-                                         </div>
-                                       )}
-                                     </div>
-                                    <select name="inviteRole" className="form-control" style={{ fontSize: "0.85rem" }} required>
-                                      <option value="colaborador">Colaborador</option>
-                                      <option value="gestor">Gestor</option>
-                                      <option value="creador">Creador</option>
-                                    </select>
-                                    <button type="submit" className="btn-gold" style={{ padding: "0.45rem 1rem", borderRadius: "6px", fontSize: "0.82rem", width: "100%" }} disabled={candidates.length === 0 || !selectedPersonId}>
-                                      <i className="fa-solid fa-paper-plane" style={{ marginRight: 6 }}></i> Enviar Invitación
-                                    </button>
-                                  </div>
-                                </form>
-                              );
-                            })()}
-                          </>
-                        )}
-
-                        {(() => {
-                          const pending = invitations.filter(inv => inv.senderType === "band" && inv.senderId === band.id);
-                          if (pending.length === 0) return null;
-                          return (
-                            <div style={{ marginTop: "1rem", borderTop: "1px dashed var(--border-color)", paddingTop: "0.8rem" }}>
-                              <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>Invitaciones Pendientes:</span>
-                              <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "6px" }}>
-                                {pending.map(inv => {
-                                  const receiver = people.find(p => p.id === inv.receiverPersonId);
-                                  return (
-                                    <div key={inv.id} style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                      <span>✉️ {receiver ? receiver.name : `Persona #${inv.receiverPersonId}`} <span style={{ fontSize: "0.72rem", color: "var(--text-gold)" }}>({inv.role})</span></span>
-                                      <span style={{ fontStyle: "italic", fontSize: "0.75rem" }}>Enviada</span>
-                                    </div>
-                                  );
-                                })}
                               </div>
-                            </div>
-                          );
-                        })()}
+                            );
+                          })()}
+                        </div>
                       </div>
                     </div>
                   </div>

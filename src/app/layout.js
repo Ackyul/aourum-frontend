@@ -1220,25 +1220,71 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es" className={inter.variable}>
       <head>
-        <title>Aourum - La nueva era del comercio</title>
+        <title>Aourum | Mercado Cultural y Comercial de Arequipa</title>
         <meta name="google-site-verification" content="googlea671984f4696598d" />
-        <meta name="description" content="Aourum es el mercado cultural y comercial de Arequipa. Encuentra las mejores ferias independientes, marcas locales y bandas de música en la nueva era del comercio." />
-        <meta name="keywords" content="aourum, aourum arequipa, mercado arequipa, ferias arequipa, marcas locales arequipa, bandas arequipa, comprar arequipa, comercio cultural" />
-        <meta name="author" content="Ackyul" />
+        <meta name="description" content="Aourum es el mercado cultural y comercial de Arequipa. Conecta con marcas locales, diseñadores, ferias independientes y las mejores bandas de música en la nueva era del comercio." />
+        <meta name="keywords" content="aourum, aourum arequipa, mercado arequipa, ferias arequipa, marcas locales arequipa, bandas arequipa, comprar arequipa, comercio cultural, diseño independiente, arte arequipa" />
+        <meta name="author" content="Aourum" />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://aourum.com/" />
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://aourum.com/" />
-        <meta property="og:title" content="Aourum - La nueva era del comercio" />
-        <meta property="og:description" content="Aourum es el mercado cultural de Arequipa que conecta ferias, marcas locales, diseñadores y bandas en una nueva plataforma interactiva." />
+        <meta property="og:title" content="Aourum | Mercado Cultural y Comercial de Arequipa" />
+        <meta property="og:description" content="Aourum es el mercado cultural y comercial de Arequipa. Conecta con marcas locales, diseñadores, ferias independientes y las mejores bandas de música." />
         <meta property="og:image" content="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80" />
 
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content="https://aourum.com/" />
-        <meta property="twitter:title" content="Aourum - La nueva era del comercio" />
-        <meta property="twitter:description" content="Aourum es el mercado cultural de Arequipa que conecta ferias, marcas locales, diseñadores y bandas." />
+        <meta property="twitter:title" content="Aourum | Mercado Cultural y Comercial de Arequipa" />
+        <meta property="twitter:description" content="Aourum es el mercado cultural y comercial de Arequipa. Conecta con marcas locales, diseñadores, ferias independientes y las mejores bandas de música." />
         <meta property="twitter:image" content="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80" />
+
+        {/* JSON-LD Structured Data for Google Rich Snippets */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  "@id": "https://aourum.com/#organization",
+                  "name": "Aourum",
+                  "url": "https://aourum.com/",
+                  "logo": "https://aourum.com/favicon.ico",
+                  "description": "Mercado cultural y comercial de Arequipa que reúne marcas de diseño, arte, ferias y bandas locales.",
+                  "sameAs": [
+                    "https://www.instagram.com/aourum",
+                    "https://www.facebook.com/aourum"
+                  ]
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": "https://aourum.com/#website",
+                  "url": "https://aourum.com/",
+                  "name": "Aourum",
+                  "description": "Mercado Cultural y Comercial de Arequipa",
+                  "publisher": {
+                    "@id": "https://aourum.com/#organization"
+                  },
+                  "potentialAction": [
+                    {
+                      "@type": "SearchAction",
+                      "target": {
+                        "@type": "EntryPoint",
+                        "urlTemplate": "https://aourum.com/?search={search_term_string}"
+                      },
+                      "query-input": "required name=search_term_string"
+                    }
+                  ]
+                }
+              ]
+            })
+          }}
+        />
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossOrigin="anonymous" referrerPolicy="no-referrer" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossOrigin="" />
