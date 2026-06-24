@@ -179,15 +179,18 @@ function AppLayoutShell({ children }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Lock body scroll when any layout-level modal is open
+  // Lock background scroll when any layout-level modal is open
   useEffect(() => {
     const isModalOpen = showRegModal || showLoginModal || editProfileOpen || showForgotModal;
     if (isModalOpen) {
+      document.documentElement.style.overflow = "hidden";
       document.body.style.overflow = "hidden";
     } else {
+      document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     }
     return () => {
+      document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     };
   }, [showRegModal, showLoginModal, editProfileOpen, showForgotModal]);

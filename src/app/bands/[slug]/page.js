@@ -56,15 +56,18 @@ export default function BandProfilePage({ params }) {
   const [showPersonDropdown, setShowPersonDropdown] = useState(false);
   const [selectedPersonId, setSelectedPersonId] = useState("");
 
-  // Lock body scroll when any modal is open
+  // Lock background scroll when any modal is open
   useEffect(() => {
     const isModalOpen = showFairs || showCollabs;
     if (isModalOpen) {
+      document.documentElement.style.overflow = "hidden";
       document.body.style.overflow = "hidden";
     } else {
+      document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     }
     return () => {
+      document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     };
   }, [showFairs, showCollabs]);

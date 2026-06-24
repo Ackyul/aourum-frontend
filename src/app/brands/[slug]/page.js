@@ -94,15 +94,18 @@ export default function BrandProfilePage({ params }) {
   const [removeBg, setRemoveBg] = useState(false);
   const [tolerance, setTolerance] = useState(30);
 
-  // Lock body scroll when any modal is open
+  // Lock background scroll when any modal is open
   useEffect(() => {
     const isModalOpen = prodFormOpen || editorOpen || showFairs || showCollabs;
     if (isModalOpen) {
+      document.documentElement.style.overflow = "hidden";
       document.body.style.overflow = "hidden";
     } else {
+      document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     }
     return () => {
+      document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     };
   }, [prodFormOpen, editorOpen, showFairs, showCollabs]);
