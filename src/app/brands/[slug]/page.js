@@ -490,10 +490,10 @@ export default function BrandProfilePage({ params }) {
           {isOwner && prodFormOpen && (
             <div className="modal-overlay" style={{ zIndex: 1100 }}>
               <div className="modal-backdrop" onClick={() => { setProdFormOpen(false); setEditingProdId(null); }}></div>
-              <div className="modal-panel fade-in" style={{ maxWidth: "750px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
+              <div className="modal-panel fade-in" style={{ maxWidth: "560px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                  <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0 }}>
-                    {editingProdId ? "✨ Editar Item de Catálogo" : "✨ Publicar Nuevo Item"}
+                  <h3 style={{ fontSize: "1.25rem", fontWeight: 800, display: "flex", alignItems: "center", gap: 10 }}>
+                    <i className="fa-solid fa-box-archive" style={{ color: "var(--gold-primary)" }}></i> {editingProdId ? "Editar Item de Catálogo" : "Publicar Nuevo Item"}
                   </h3>
                   <button 
                     onClick={() => { setProdFormOpen(false); setEditingProdId(null); }} 
@@ -503,112 +503,116 @@ export default function BrandProfilePage({ params }) {
                   </button>
                 </div>
                 <form onSubmit={(e) => handleProductSubmit(e, brand.id)}>
-                  <div className="grid-2-to-1">
-                    <div className="form-group">
-                      <label>Nombre del Item *</label>
-                      <input type="text" className="form-control" placeholder="Ej: Anillo de Plata 950" value={prodName} onChange={(e) => setProdName(e.target.value)} required />
+                  
+                  {/* Foto del Item / Producto */}
+                  <div className="form-group" style={{ marginBottom: "1.2rem" }}>
+                    <label>Imagen del Item *</label>
+                    <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: "10px", padding: "1rem" }}>
+                      <div style={{ position: "relative", flexShrink: 0 }}>
+                        <img 
+                          src={prodImagePreview || "https://placehold.co/80x80/d4af37/1C1C1E?text=Item"} 
+                          alt="preview"
+                          style={{ width: "72px", height: "72px", borderRadius: "12px", objectFit: "cover", border: "2px solid var(--gold-primary)", boxShadow: "0 4px 12px rgba(212,175,55,0.15)" }}
+                        />
+                        {uploadingProd && (
+                          <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.8)", borderRadius: "inherit", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <i className="fa-solid fa-spinner fa-spin" style={{ color: "var(--gold-primary)" }}></i>
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <label htmlFor="prod-img-upload" style={{ display: "inline-block", cursor: "pointer", padding: "0.4rem 1rem", background: "var(--gold-gradient)", color: "#1C1C1E", borderRadius: "6px", fontSize: "0.82rem", fontWeight: 700 }}>
+                          <i className="fa-solid fa-upload" style={{ marginRight: 6 }}></i> {uploadingProd ? "Subiendo..." : "Elegir imagen"}
+                        </label>
+                        <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "6px" }}>Proporción recomendada: Cuadrada 1:1</p>
+                      </div>
                     </div>
-                    <div className="form-group">
-                      <label>Categoría / Rubro *</label>
-                      <input type="text" className="form-control" placeholder="Ej: Joyería, Bienestar" value={prodCategory} onChange={(e) => setProdCategory(e.target.value)} required />
-                    </div>
+                    <input 
+                      id="prod-img-upload" 
+                      type="file" 
+                      accept="image/*" 
+                      style={{ display: "none" }} 
+                      disabled={uploadingProd} 
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          setEditorSource(reader.result);
+                          setZoom(1);
+                          setImgPos({ x: 0, y: 0 });
+                          setRemoveBg(false);
+                          setEditorOpen(true);
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
                   </div>
 
-                  <div className="grid-2-to-1">
-                    <div className="form-group">
+                  <div className="form-group" style={{ marginBottom: "1.2rem" }}>
+                    <label>Nombre del Item *</label>
+                    <input type="text" className="form-control" placeholder="Ej: Anillo de Plata 950" value={prodName} onChange={(e) => setProdName(e.target.value)} required />
+                  </div>
+
+                  <div className="form-group" style={{ marginBottom: "1.2rem" }}>
+                    <label>Categoría / Rubro *</label>
+                    <input type="text" className="form-control" placeholder="Ej: Joyería, Bienestar" value={prodCategory} onChange={(e) => setProdCategory(e.target.value)} required />
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "1.2rem" }}>
+                    <div className="form-group" style={{ margin: 0 }}>
                       <label>Tipo de Item</label>
-                      <select className="form-control" value={prodType} onChange={(e) => setProdType(e.target.value)}>
-                        <option value="product">Producto Físico (Con Stock)</option>
-                        <option value="service">Servicio (Por Agenda / Cita)</option>
+                      <select className="form-control" value={prodType} onChange={(e) => setProdType(e.target.value)} style={{ fontSize: "0.85rem" }}>
+                        <option value="product">Producto Físico</option>
+                        <option value="service">Servicio (Por Agenda)</option>
                       </select>
                     </div>
-                    <div className="form-group">
+                    <div className="form-group" style={{ margin: 0 }}>
                       <label>Stock (Opcional)</label>
                       <input 
                         type="number" 
                         className="form-control" 
-                        placeholder={prodType === "service" ? "No requiere stock" : "Ej: 15"} 
+                        placeholder={prodType === "service" ? "N/A" : "Ej: 15"} 
                         value={prodStock} 
                         onChange={(e) => setProdStock(e.target.value)} 
                         disabled={prodType === "service"}
+                        style={{ fontSize: "0.85rem" }}
                       />
                     </div>
                   </div>
 
-                  <div className="grid-2-to-1" style={{ marginTop: "1rem" }}>
-                    <div className="form-group">
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "1.2rem" }}>
+                    <div className="form-group" style={{ margin: 0 }}>
                       <label>Precio Normal (S/.) *</label>
-                      <input type="number" className="form-control" placeholder="Ej: 10" value={prodPrice} onChange={(e) => setProdPrice(e.target.value)} required />
+                      <input type="number" className="form-control" placeholder="Ej: 10" value={prodPrice} onChange={(e) => setProdPrice(e.target.value)} required style={{ fontSize: "0.85rem" }} />
                     </div>
-                    <div className="form-group">
-                      <label>Precio AOURUM (S/.) (Opcional)</label>
-                      <input type="number" className="form-control" placeholder="Ej: 8" value={prodPriceAourum} onChange={(e) => setProdPriceAourum(e.target.value)} />
-                    </div>
-                  </div>
-
-                  <div className="prod-form-img-desc" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem", marginTop: "1rem" }}>
-                    <div className="form-group">
-                      <label>Subir Imagen</label>
-                      <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block", marginTop: "-3px", marginBottom: "5px" }}>
-                        Proporción recomendada: Cuadrada (1:1, ej. 800x800 px) o 4:3
-                      </span>
-                      <label
-                        htmlFor="prod-img-upload"
-                        style={{
-                          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                          border: "2px dashed var(--border-color)", borderRadius: "8px",
-                          height: "120px", cursor: "pointer", transition: "var(--transition-smooth)",
-                          background: "var(--bg-input)"
-                        }}
-                      >
-                        {prodImagePreview ? (
-                          <img src={prodImagePreview} alt="preview" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "6px" }} />
-                        ) : (
-                          <div style={{ textAlign: "center", padding: "0.5rem" }}>
-                            <i className="fa-solid fa-cloud-arrow-up" style={{ color: "var(--gold-primary)", fontSize: "1.4rem", marginBottom: 4 }}></i>
-                            <span style={{ fontSize: "0.75rem", display: "block", color: "var(--text-muted)" }}>Elegir archivo</span>
-                          </div>
-                        )}
-                      </label>
-                      <input 
-                        id="prod-img-upload" 
-                        type="file" 
-                        accept="image/*" 
-                        style={{ display: "none" }} 
-                        disabled={uploadingProd} 
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (!file) return;
-                          const reader = new FileReader();
-                          reader.onload = () => {
-                            setEditorSource(reader.result);
-                            setZoom(1);
-                            setImgPos({ x: 0, y: 0 });
-                            setRemoveBg(false);
-                            setEditorOpen(true);
-                          };
-                          reader.readAsDataURL(file);
-                        }}
-                      />
-                    </div>
-
-                    <div className="form-group" style={{ flex: 1 }}>
-                      <label>Descripción del Producto *</label>
-                      <textarea className="form-control" rows="4" style={{ resize: "none" }} placeholder="Describe los materiales, dimensiones o proceso..." value={prodDescription} onChange={(e) => setProdDescription(e.target.value)}></textarea>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label>Precio AOURUM (S/.)</label>
+                      <input type="number" className="form-control" placeholder="Ej: 8" value={prodPriceAourum} onChange={(e) => setProdPriceAourum(e.target.value)} style={{ fontSize: "0.85rem" }} />
                     </div>
                   </div>
 
-                  <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1.5rem" }}>
+                  <div className="form-group" style={{ marginBottom: "1.2rem" }}>
+                    <label>Descripción del Producto *</label>
+                    <textarea className="form-control" rows="4" style={{ resize: "none", fontSize: "0.85rem" }} placeholder="Describe los materiales, dimensiones o proceso..." value={prodDescription} onChange={(e) => setProdDescription(e.target.value)} required></textarea>
+                  </div>
+
+                  <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1.5rem", borderTop: "1px solid var(--border-color)", paddingTop: "1rem" }}>
                     <button 
                       type="button" 
                       onClick={() => { setProdFormOpen(false); setEditingProdId(null); }} 
                       className="btn-outline-gold"
-                      style={{ padding: "0.45rem 1.2rem", borderRadius: "6px", fontSize: "0.85rem" }}
+                      style={{ padding: "0.5rem 1.3rem", borderRadius: "8px", fontSize: "0.88rem" }}
                     >
                       Cancelar
                     </button>
-                    <button type="submit" className="btn-gold" style={{ padding: "0.45rem 1.2rem", borderRadius: "6px", fontSize: "0.85rem" }} disabled={uploadingProd}>
-                      {uploadingProd ? "Subiendo..." : editingProdId ? "Actualizar Item" : "Publicar Item"}
+                    <button 
+                      type="submit" 
+                      className="btn-gold" 
+                      style={{ padding: "0.5rem 1.6rem", borderRadius: "8px", fontSize: "0.88rem", fontWeight: 700 }} 
+                      disabled={uploadingProd}
+                    >
+                      <i className="fa-solid fa-check"></i> {editingProdId ? "Actualizar Item" : "Publicar Item"}
                     </button>
                   </div>
                 </form>
