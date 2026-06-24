@@ -140,9 +140,9 @@ export default function PersonProfilePage({ params }) {
           <i className="fa-solid fa-share-nodes"></i>
         </button>
         
-        <div className="profile-header-banner" style={{ height: "200px", background: "var(--gold-gradient)", opacity: 0.15 }}></div>
+        <div className="profile-header-banner" style={{ background: "var(--gold-gradient)", opacity: 0.15 }}></div>
 
-        <div className="profile-body" style={{ marginTop: "-80px", position: "relative", zIndex: 1 }}>
+        <div className="profile-body person-profile-body-offset" style={{ position: "relative", zIndex: 1 }}>
           <div style={{ display: "flex", gap: "2rem", alignItems: "flex-end", flexWrap: "wrap", marginBottom: "2rem" }}>
             <img 
               src={person.logo || "https://placehold.co/120x120/d4af37/1C1C1E?text=P"} 

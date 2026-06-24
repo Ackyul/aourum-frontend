@@ -335,7 +335,7 @@ export default function BrandProfilePage({ params }) {
           <i className="fa-solid fa-share-nodes"></i>
         </button>
         
-        <div className="profile-header-banner" style={{ height: "200px" }}>
+        <div className="profile-header-banner">
           <div className="profile-avatar-wrapper">
             <img src={brand.logo} alt={brand.name} />
           </div>
@@ -723,7 +723,7 @@ export default function BrandProfilePage({ params }) {
                 </div>
               </div>
 
-              <div className="prod-form-img-desc" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem", marginTop: "1rem" }}>
+              <div className="prod-form-img-desc" style={{ marginTop: "1rem" }}>
                 <div className="form-group">
                   <label>Subir Imagen</label>
                   <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block", marginTop: "-3px", marginBottom: "5px" }}>
@@ -815,14 +815,15 @@ export default function BrandProfilePage({ params }) {
             </div>
 
             {/* Viewport de Canvas interactivo */}
-            <div style={{ position: "relative", width: "300px", height: "300px", margin: "0 auto 1.2rem auto", overflow: "hidden" }}>
+            <div style={{ position: "relative", width: "300px", height: "300px", maxWidth: "100%", margin: "0 auto 1.2rem auto", overflow: "hidden" }}>
               <canvas 
                 id="editor-canvas"
                 width={300}
                 height={300}
                 style={{
-                  width: "300px",
-                  height: "300px",
+                  width: "100%",
+                  height: "auto",
+                  aspectRatio: "1/1",
                   border: "2px solid var(--gold-primary)",
                   borderRadius: "8px",
                   background: "repeating-conic-gradient(#f0f0f0 0% 25%, #ffffff 0% 50%) 50% / 20px 20px",
@@ -1021,7 +1022,7 @@ export default function BrandProfilePage({ params }) {
               </button>
             </div>
             
-            <div className="collab-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "2rem" }}>
+            <div className="collab-grid">
               <div>
                 <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.8rem", color: "var(--text-gold)" }}>Miembros Vinculados</h4>
                 {brand.collaborators && brand.collaborators.length === 0 ? (

@@ -593,9 +593,16 @@ header {
   position: relative;
 }
 
+.profile-header-banner.banner-tall {
+  height: 260px;
+}
+
 @media (max-width: 600px) {
   .profile-header-banner {
-    height: 140px;
+    height: 130px;
+  }
+  .profile-header-banner.banner-tall {
+    height: 160px;
   }
 }
 
@@ -1000,6 +1007,10 @@ header {
   }
 }
 
+.person-profile-body-offset {
+  margin-top: -80px;
+}
+
 /* ── PERSON PROFILE PAGE SPECIFIC ───────────────────────── */
 @media (max-width: 600px) {
   /* Scale down large person avatar */
@@ -1214,22 +1225,12 @@ header {
   }
 
   /* Fix person profile negative offset */
-  .profile-body[style*="marginTop: \"-80px\""],
-  .profile-body[style*="marginTop: '-80px'"] {
+  .person-profile-body-offset {
     margin-top: -50px !important;
   }
 }
 
-/* ── BANDS PAGE HEADER BANNER ────────────────────────────── */
-@media (max-width: 600px) {
-  .profile-header-banner[style*="260px"] {
-    height: 160px !important;
-  }
-
-  .profile-header-banner[style*="200px"] {
-    height: 130px !important;
-  }
-}
+/* ── BANDS PAGE HEADER BANNER (Handled via classes) ──────── */
 
 /* ── SMALL SCREEN TYPOGRAPHY ─────────────────────────────── */
 @media (max-width: 380px) {

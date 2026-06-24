@@ -277,7 +277,7 @@ export default function FairProfilePage({ params }) {
           <i className="fa-solid fa-share-nodes"></i>
         </button>
         
-        <div className="profile-header-banner" style={{ height: "260px" }}>
+        <div className="profile-header-banner banner-tall">
           <img src={fair.banner} alt={fair.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
 

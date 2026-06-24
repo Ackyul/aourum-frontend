@@ -298,7 +298,7 @@ export default function BandProfilePage({ params }) {
           <i className="fa-solid fa-share-nodes"></i>
         </button>
         
-        <div className="profile-header-banner" style={{ height: "260px" }}>
+        <div className="profile-header-banner banner-tall">
           <img src={band.image} alt={band.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
 
@@ -727,7 +727,7 @@ export default function BandProfilePage({ params }) {
               </button>
             </div>
             
-            <div className="collab-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "2rem" }}>
+            <div className="collab-grid">
               <div>
                 <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.8rem", color: "var(--text-gold)" }}>Miembros Vinculados</h4>
                 {band.collaborators && band.collaborators.length === 0 ? (
