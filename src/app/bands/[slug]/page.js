@@ -56,6 +56,19 @@ export default function BandProfilePage({ params }) {
   const [showPersonDropdown, setShowPersonDropdown] = useState(false);
   const [selectedPersonId, setSelectedPersonId] = useState("");
 
+  // Lock body scroll when any modal is open
+  useEffect(() => {
+    const isModalOpen = showFairs || showCollabs;
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showFairs, showCollabs]);
+
   const isNumeric = /^\d+$/.test(slug);
   const band = bands.find((b) => {
     if (isNumeric) {

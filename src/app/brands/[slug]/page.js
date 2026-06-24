@@ -94,6 +94,19 @@ export default function BrandProfilePage({ params }) {
   const [removeBg, setRemoveBg] = useState(false);
   const [tolerance, setTolerance] = useState(30);
 
+  // Lock body scroll when any modal is open
+  useEffect(() => {
+    const isModalOpen = prodFormOpen || editorOpen || showFairs || showCollabs;
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [prodFormOpen, editorOpen, showFairs, showCollabs]);
+
   // Redraw canvas on zoom, drag, background removal toggle, and tolerance changes
   useEffect(() => {
     if (!editorOpen || !editorSource) return;

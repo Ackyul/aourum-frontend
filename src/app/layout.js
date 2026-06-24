@@ -179,6 +179,19 @@ function AppLayoutShell({ children }) {
   const pathname = usePathname();
   const router = useRouter();
 
+  // Lock body scroll when any layout-level modal is open
+  useEffect(() => {
+    const isModalOpen = showRegModal || showLoginModal || editProfileOpen || showForgotModal;
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showRegModal, showLoginModal, editProfileOpen, showForgotModal]);
+
   const renderAccountBtnContent = () => {
     if (!activePersonId) return <span>Iniciar Sesión</span>;
     const p = getCurrentPerson();
