@@ -88,6 +88,7 @@ export default function BrandProfilePage({ params }) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editorSource, setEditorSource] = useState(null);
   const [aspectRatio, setAspectRatio] = useState("1:1"); // "1:1" o "4:3"
+  const [scale, setScale] = useState(1); // 0.1 (alejar) a 3.0 (acercar)
   const [imgPos, setImgPos] = useState({ x: 0, y: 0 });
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -110,7 +111,7 @@ export default function BrandProfilePage({ params }) {
     };
   }, [prodFormOpen, editorOpen, showFairs, showCollabs]);
 
-  // Redraw canvas on aspect ratio changes, drag, background removal toggle, and tolerance changes
+  // Redraw canvas on aspect ratio/scale changes, drag, background removal toggle, and tolerance changes
   useEffect(() => {
     if (!editorOpen || !editorSource) return;
     const img = new Image();
@@ -128,14 +129,18 @@ export default function BrandProfilePage({ params }) {
       const imgRatio = img.width / img.height;
       const canvasRatio = canvasW / canvasH;
       
-      let drawW, drawH;
+      let baseW, baseH;
       if (imgRatio > canvasRatio) {
-        drawH = canvasH;
-        drawW = canvasH * imgRatio;
+        baseH = canvasH;
+        baseW = canvasH * imgRatio;
       } else {
-        drawW = canvasW;
-        drawH = canvasW / imgRatio;
+        baseW = canvasW;
+        baseH = canvasW / imgRatio;
       }
+      
+      // Apply scale (zoom) on top of base cover dimensions
+      const drawW = baseW * scale;
+      const drawH = baseH * scale;
       
       const x = (canvasW - drawW) / 2 + imgPos.x;
       const y = (canvasH - drawH) / 2 + imgPos.y;
@@ -190,7 +195,7 @@ export default function BrandProfilePage({ params }) {
       }
     };
     img.src = editorSource;
-  }, [editorOpen, editorSource, aspectRatio, imgPos, removeBg, tolerance]);
+  }, [editorOpen, editorSource, aspectRatio, scale, imgPos, removeBg, tolerance]);
 
   const handleSaveEditor = async () => {
     const canvas = document.getElementById("editor-canvas");
@@ -777,6 +782,7 @@ export default function BrandProfilePage({ params }) {
                       reader.onload = () => {
                         setEditorSource(reader.result);
                         setAspectRatio("1:1");
+                        setScale(1);
                         setImgPos({ x: 0, y: 0 });
                         setRemoveBg(false);
                         setEditorOpen(true);
@@ -887,7 +893,7 @@ export default function BrandProfilePage({ params }) {
               <div style={{ display: "flex", gap: "10px" }}>
                 <button
                   type="button"
-                  onClick={() => { setAspectRatio("1:1"); setImgPos({ x: 0, y: 0 }); }}
+                  onClick={() => { setAspectRatio("1:1"); setScale(1); setImgPos({ x: 0, y: 0 }); }}
                   className={aspectRatio === "1:1" ? "btn-gold" : "btn-outline-gold"}
                   style={{
                     flex: 1,
@@ -906,7 +912,7 @@ export default function BrandProfilePage({ params }) {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setAspectRatio("4:3"); setImgPos({ x: 0, y: 0 }); }}
+                  onClick={() => { setAspectRatio("4:3"); setScale(1); setImgPos({ x: 0, y: 0 }); }}
                   className={aspectRatio === "4:3" ? "btn-gold" : "btn-outline-gold"}
                   style={{
                     flex: 1,
@@ -924,6 +930,68 @@ export default function BrandProfilePage({ params }) {
                   <i className="fa-solid fa-image"></i> Rectangular (4:3)
                 </button>
               </div>
+            </div>
+
+            {/* Control de Zoom / Escala (Alejar/Acercar) */}
+            <div className="form-group" style={{ marginBottom: "1.2rem", textAlign: "left" }}>
+              <label style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.5rem" }}>
+                <span>🔍 Zoom / Escala:</span>
+                <span style={{ color: "var(--gold-primary)", fontWeight: 800 }}>{scale.toFixed(2)}x</span>
+              </label>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <button
+                  type="button"
+                  onClick={() => setScale(prev => Math.max(0.1, Math.round((prev - 0.05) * 100) / 100))}
+                  style={{
+                    background: "var(--bg-input)",
+                    border: "1px solid var(--border-color)",
+                    borderRadius: "6px",
+                    width: "32px",
+                    height: "32px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    color: "var(--text-primary)",
+                    transition: "all 0.2s"
+                  }}
+                  title="Alejar la foto"
+                >
+                  <i className="fa-solid fa-minus"></i>
+                </button>
+                <input 
+                  type="range" 
+                  min="0.1" 
+                  max="3.0" 
+                  step="0.05" 
+                  value={scale} 
+                  onChange={(e) => setScale(parseFloat(e.target.value))} 
+                  style={{ flex: 1, accentColor: "var(--gold-primary)", cursor: "pointer" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setScale(prev => Math.min(3.0, Math.round((prev + 0.05) * 100) / 100))}
+                  style={{
+                    background: "var(--bg-input)",
+                    border: "1px solid var(--border-color)",
+                    borderRadius: "6px",
+                    width: "32px",
+                    height: "32px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    color: "var(--text-primary)",
+                    transition: "all 0.2s"
+                  }}
+                  title="Acercar la foto"
+                >
+                  <i className="fa-solid fa-plus"></i>
+                </button>
+              </div>
+              <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", display: "block", marginTop: "6px" }}>
+                Tip: Usa los botones o el deslizador para alejar (reducir) la foto, o arrástrala con el mouse/dedo para acomodarla.
+              </span>
             </div>
 
             {/* Controles de Eliminación de Fondo */}
