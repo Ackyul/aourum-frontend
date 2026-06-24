@@ -486,265 +486,9 @@ export default function BrandProfilePage({ params }) {
             </h3>
           </div>
 
-          {/* Formulario de creación/edición de producto en Ventana Superpuesta (Modal) */}
-          {isOwner && prodFormOpen && (
-            <div className="modal-overlay" style={{ zIndex: 1100 }}>
-              <div className="modal-backdrop" onClick={() => { setProdFormOpen(false); setEditingProdId(null); }}></div>
-              <div className="modal-panel fade-in" style={{ maxWidth: "560px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                  <h3 style={{ fontSize: "1.25rem", fontWeight: 800, display: "flex", alignItems: "center", gap: 10 }}>
-                    <i className="fa-solid fa-box-archive" style={{ color: "var(--gold-primary)" }}></i> {editingProdId ? "Editar Item de Catálogo" : "Publicar Nuevo Item"}
-                  </h3>
-                  <button 
-                    onClick={() => { setProdFormOpen(false); setEditingProdId(null); }} 
-                    style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
-                  >
-                    &times;
-                  </button>
-                </div>
-                <form onSubmit={(e) => handleProductSubmit(e, brand.id)}>
-                  
-                  {/* Foto del Item / Producto */}
-                  <div className="form-group" style={{ marginBottom: "1.2rem" }}>
-                    <label>Imagen del Item *</label>
-                    <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: "10px", padding: "1rem" }}>
-                      <div style={{ position: "relative", flexShrink: 0 }}>
-                        <img 
-                          src={prodImagePreview || "https://placehold.co/80x80/d4af37/1C1C1E?text=Item"} 
-                          alt="preview"
-                          style={{ width: "72px", height: "72px", borderRadius: "12px", objectFit: "cover", border: "2px solid var(--gold-primary)", boxShadow: "0 4px 12px rgba(212,175,55,0.15)" }}
-                        />
-                        {uploadingProd && (
-                          <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.8)", borderRadius: "inherit", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            <i className="fa-solid fa-spinner fa-spin" style={{ color: "var(--gold-primary)" }}></i>
-                          </div>
-                        )}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <label htmlFor="prod-img-upload" style={{ display: "inline-block", cursor: "pointer", padding: "0.4rem 1rem", background: "var(--gold-gradient)", color: "#1C1C1E", borderRadius: "6px", fontSize: "0.82rem", fontWeight: 700 }}>
-                          <i className="fa-solid fa-upload" style={{ marginRight: 6 }}></i> {uploadingProd ? "Subiendo..." : "Elegir imagen"}
-                        </label>
-                        <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "6px" }}>Proporción recomendada: Cuadrada 1:1</p>
-                      </div>
-                    </div>
-                    <input 
-                      id="prod-img-upload" 
-                      type="file" 
-                      accept="image/*" 
-                      style={{ display: "none" }} 
-                      disabled={uploadingProd} 
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (!file) return;
-                        const reader = new FileReader();
-                        reader.onload = () => {
-                          setEditorSource(reader.result);
-                          setZoom(1);
-                          setImgPos({ x: 0, y: 0 });
-                          setRemoveBg(false);
-                          setEditorOpen(true);
-                        };
-                        reader.readAsDataURL(file);
-                      }}
-                    />
-                  </div>
+          {/* Formulario de creación/edición de producto en Ventana Superpuesta (Modal) se trasladó al final del archivo */}
 
-                  <div className="form-group" style={{ marginBottom: "1.2rem" }}>
-                    <label>Nombre del Item *</label>
-                    <input type="text" className="form-control" placeholder="Ej: Anillo de Plata 950" value={prodName} onChange={(e) => setProdName(e.target.value)} required />
-                  </div>
-
-                  <div className="form-group" style={{ marginBottom: "1.2rem" }}>
-                    <label>Categoría / Rubro *</label>
-                    <input type="text" className="form-control" placeholder="Ej: Joyería, Bienestar" value={prodCategory} onChange={(e) => setProdCategory(e.target.value)} required />
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "1.2rem" }}>
-                    <div className="form-group" style={{ margin: 0 }}>
-                      <label>Tipo de Item</label>
-                      <select className="form-control" value={prodType} onChange={(e) => setProdType(e.target.value)} style={{ fontSize: "0.85rem" }}>
-                        <option value="product">Producto Físico</option>
-                        <option value="service">Servicio (Por Agenda)</option>
-                      </select>
-                    </div>
-                    <div className="form-group" style={{ margin: 0 }}>
-                      <label>Stock (Opcional)</label>
-                      <input 
-                        type="number" 
-                        className="form-control" 
-                        placeholder={prodType === "service" ? "N/A" : "Ej: 15"} 
-                        value={prodStock} 
-                        onChange={(e) => setProdStock(e.target.value)} 
-                        disabled={prodType === "service"}
-                        style={{ fontSize: "0.85rem" }}
-                      />
-                    </div>
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "1.2rem" }}>
-                    <div className="form-group" style={{ margin: 0 }}>
-                      <label>Precio Normal (S/.) *</label>
-                      <input type="number" className="form-control" placeholder="Ej: 10" value={prodPrice} onChange={(e) => setProdPrice(e.target.value)} required style={{ fontSize: "0.85rem" }} />
-                    </div>
-                    <div className="form-group" style={{ margin: 0 }}>
-                      <label>Precio AOURUM (S/.)</label>
-                      <input type="number" className="form-control" placeholder="Ej: 8" value={prodPriceAourum} onChange={(e) => setProdPriceAourum(e.target.value)} style={{ fontSize: "0.85rem" }} />
-                    </div>
-                  </div>
-
-                  <div className="form-group" style={{ marginBottom: "1.2rem" }}>
-                    <label>Descripción del Producto *</label>
-                    <textarea className="form-control" rows="4" style={{ resize: "none", fontSize: "0.85rem" }} placeholder="Describe los materiales, dimensiones o proceso..." value={prodDescription} onChange={(e) => setProdDescription(e.target.value)} required></textarea>
-                  </div>
-
-                  <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1.5rem", borderTop: "1px solid var(--border-color)", paddingTop: "1rem" }}>
-                    <button 
-                      type="button" 
-                      onClick={() => { setProdFormOpen(false); setEditingProdId(null); }} 
-                      className="btn-outline-gold"
-                      style={{ padding: "0.5rem 1.3rem", borderRadius: "8px", fontSize: "0.88rem" }}
-                    >
-                      Cancelar
-                    </button>
-                    <button 
-                      type="submit" 
-                      className="btn-gold" 
-                      style={{ padding: "0.5rem 1.6rem", borderRadius: "8px", fontSize: "0.88rem", fontWeight: 700 }} 
-                      disabled={uploadingProd}
-                    >
-                      <i className="fa-solid fa-check"></i> {editingProdId ? "Actualizar Item" : "Publicar Item"}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-
-          {/* Modal del Editor de Imagen (Recorte y Eliminación de Fondo) */}
-          {editorOpen && (
-            <div className="modal-overlay" style={{ zIndex: 1200 }}>
-              <div className="modal-backdrop" onClick={() => setEditorOpen(false)}></div>
-              <div className="modal-panel fade-in" style={{ maxWidth: "500px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", textAlign: "center" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                  <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0 }}>
-                    ✨ Editor de Imagen
-                  </h3>
-                  <button 
-                    onClick={() => setEditorOpen(false)} 
-                    style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
-                  >
-                    &times;
-                  </button>
-                </div>
-
-                <div style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
-                  Arrastra la imagen dentro del recuadro para centrarla. Usa los controles inferiores para recortar o quitar el fondo.
-                </div>
-
-                {/* Viewport de Canvas interactivo */}
-                <div style={{ position: "relative", width: "300px", height: "300px", margin: "0 auto 1.2rem auto", overflow: "hidden" }}>
-                  <canvas 
-                    id="editor-canvas"
-                    width={300}
-                    height={300}
-                    style={{
-                      width: "300px",
-                      height: "300px",
-                      border: "2px solid var(--gold-primary)",
-                      borderRadius: "8px",
-                      background: "repeating-conic-gradient(#f0f0f0 0% 25%, #ffffff 0% 50%) 50% / 20px 20px",
-                      cursor: isDragging ? "grabbing" : "grab",
-                      display: "block",
-                      touchAction: "none"
-                    }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      setIsDragging(true);
-                      setDragStart({ x: e.clientX - imgPos.x, y: e.clientY - imgPos.y });
-                    }}
-                    onMouseMove={(e) => {
-                      if (!isDragging) return;
-                      setImgPos({
-                        x: e.clientX - dragStart.x,
-                        y: e.clientY - dragStart.y
-                      });
-                    }}
-                    onMouseUp={() => setIsDragging(false)}
-                    onMouseLeave={() => setIsDragging(false)}
-                  />
-                </div>
-
-                {/* Controles de Zoom */}
-                <div className="form-group" style={{ marginBottom: "1.2rem", textAlign: "left" }}>
-                  <label style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", fontWeight: 600 }}>
-                    <span>🔍 Zoom:</span>
-                    <span>{zoom.toFixed(1)}x</span>
-                  </label>
-                  <input 
-                    type="range" 
-                    min="1" 
-                    max="3" 
-                    step="0.1" 
-                    value={zoom} 
-                    onChange={(e) => setZoom(parseFloat(e.target.value))} 
-                    style={{ width: "100%", accentColor: "var(--gold-primary)", cursor: "pointer" }}
-                  />
-                </div>
-
-                {/* Controles de Eliminación de Fondo */}
-                <div style={{ background: "var(--bg-input)", padding: "1rem", borderRadius: "8px", marginBottom: "1.5rem", textAlign: "left", border: "1px solid var(--border-color)" }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: "10px", fontWeight: 700, fontSize: "0.88rem", cursor: "pointer" }}>
-                    <input 
-                      type="checkbox" 
-                      checked={removeBg} 
-                      onChange={(e) => setRemoveBg(e.target.checked)} 
-                      style={{ accentColor: "var(--gold-primary)", width: "16px", height: "16px" }}
-                    />
-                    <span>🪄 Remover Fondo (Inteligente)</span>
-                  </label>
-                  
-                  {removeBg && (
-                    <div className="fade-in" style={{ marginTop: "0.8rem" }}>
-                      <label style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", color: "var(--text-muted)" }}>
-                        <span>Tolerancia de color:</span>
-                        <span>{tolerance}</span>
-                      </label>
-                      <input 
-                        type="range" 
-                        min="5" 
-                        max="100" 
-                        value={tolerance} 
-                        onChange={(e) => setTolerance(parseInt(e.target.value))} 
-                        style={{ width: "100%", accentColor: "var(--gold-primary)", cursor: "pointer", marginTop: "4px" }}
-                      />
-                      <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", display: "block", marginTop: "4px" }}>
-                        Tip: Ajusta la tolerancia para quitar tonos similares al color detectado en las esquinas de la foto.
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-                  <button 
-                    type="button" 
-                    onClick={() => setEditorOpen(false)} 
-                    className="btn-outline-gold"
-                    style={{ padding: "0.5rem 1.2rem", borderRadius: "6px", fontSize: "0.85rem" }}
-                  >
-                    Cancelar
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={handleSaveEditor} 
-                    className="btn-gold" 
-                    style={{ padding: "0.5rem 1.4rem", borderRadius: "6px", fontSize: "0.85rem", fontWeight: 700 }}
-                  >
-                    Guardar
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Modal del Editor de Imagen se trasladó al final del archivo */}
 
           {/* Tabla de administración del catálogo si es dueño */}
           {isOwner && brandProducts.length > 0 && (
@@ -880,89 +624,7 @@ export default function BrandProfilePage({ params }) {
                     </button>
                   </div>
 
-                  {showFairs && (
-                    <div className="modal-overlay" style={{ zIndex: 1100 }}>
-                      <div className="modal-backdrop" onClick={() => setShowFairs(false)}></div>
-                      <div className="modal-panel fade-in" style={{ maxWidth: "550px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", position: "relative" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                          <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0 }}>
-                            <i className="fa-solid fa-paper-plane" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Postular Marca a Ferias
-                          </h3>
-                          <button 
-                            onClick={() => setShowFairs(false)} 
-                            style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
-                          >
-                            &times;
-                          </button>
-                        </div>
-                        <form onSubmit={(e) => handleApplyToFair(e, "brand", brand.id)} className="apply-fair-form">
-                          <div className="form-group" style={{ marginBottom: "1.5rem", position: "relative" }}>
-                            <label style={{ fontWeight: 600, fontSize: "0.9rem", display: "block", marginBottom: "0.5rem" }}>Buscar y seleccionar feria del calendario local</label>
-                            <div style={{ position: "relative" }}>
-                              <input
-                                type="text"
-                                className="form-control"
-                                placeholder="Escribe el nombre de la feria para buscar..."
-                                value={fairSearchQuery}
-                                onChange={(e) => {
-                                  setFairSearchQuery(e.target.value);
-                                  setShowFairDropdown(true);
-                                }}
-                                onFocus={() => setShowFairDropdown(true)}
-                                onBlur={() => setTimeout(() => setShowFairDropdown(false), 200)}
-                                required
-                              />
-                              {fairSearchQuery && (
-                                <button 
-                                  type="button" 
-                                  onClick={() => { setFairSearchQuery(""); setAppFairId(""); setShowFairDropdown(false); }}
-                                  style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
-                                >
-                                  &times;
-                                </button>
-                              )}
-                            </div>
-                            
-                            {showFairDropdown && fairSearchQuery.trim() !== "" && filteredFairs.length > 0 && (
-                              <div 
-                                style={{
-                                  position: "absolute", top: "100%", left: 0, right: 0,
-                                  background: "var(--bg-card)", border: "1px solid var(--border-color)",
-                                  borderRadius: "8px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-                                  maxHeight: "200px", overflowY: "auto", zIndex: 1000, marginTop: "4px"
-                                }}
-                              >
-                                {filteredFairs.map(f => (
-                                  <div
-                                    key={f.id}
-                                    onClick={() => {
-                                      setAppFairId(f.id.toString());
-                                      setFairSearchQuery(`${f.name} (${f.date})`);
-                                      setShowFairDropdown(false);
-                                    }}
-                                    style={{
-                                      padding: "0.6rem 1rem", cursor: "pointer",
-                                      transition: "background 0.2s", fontSize: "0.85rem",
-                                      borderBottom: "1px solid rgba(0,0,0,0.02)",
-                                      color: "var(--text-primary)"
-                                    }}
-                                    onMouseEnter={(e) => e.target.style.background = "var(--bg-input)"}
-                                    onMouseLeave={(e) => e.target.style.background = "none"}
-                                  >
-                                    <strong>{f.name}</strong> <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginLeft: "6px" }}>({f.date})</span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-                            <button type="button" onClick={() => setShowFairs(false)} className="btn-outline-gold" style={{ padding: "0.5rem 1.2rem", borderRadius: "6px" }}>Cancelar</button>
-                            <button type="submit" className="btn-gold" style={{ padding: "0.5rem 1.4rem", borderRadius: "6px", fontWeight: 700 }}>Enviar Postulación</button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  )}
+                  {/* Modal de postulación a ferias se trasladó al final del archivo */}
                 </div>
               )}
 
@@ -977,201 +639,546 @@ export default function BrandProfilePage({ params }) {
                   </button>
                 </div>
 
-                {showCollabs && (
-                  <div className="modal-overlay" style={{ zIndex: 1100 }}>
-                    <div className="modal-backdrop" onClick={() => setShowCollabs(false)}></div>
-                    <div className="modal-panel fade-in" style={{ maxWidth: "750px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                        <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0 }}>
-                          <i className="fa-solid fa-users" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Colaboradores de la Marca
-                        </h3>
-                        <button 
-                          onClick={() => setShowCollabs(false)} 
-                          style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
-                        >
-                          &times;
-                        </button>
-                      </div>
-                      
-                      <div className="collab-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "2rem" }}>
-                        <div>
-                          <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.8rem", color: "var(--text-gold)" }}>Miembros Vinculados</h4>
-                          {brand.collaborators && brand.collaborators.length === 0 ? (
-                            <p style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>No hay colaboradores adicionales.</p>
-                          ) : (
-                            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                              {brand.collaborators && brand.collaborators.map(c => {
-                                const p = people.find(person => person.id === c.personId);
-                                if (!p) return null;
-                                const isThisCollaboratorOriginalCreator = c.role === 'creador_original';
-                                return (
-                                  <div key={p.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-input)", padding: "0.5rem", borderRadius: "6px", gap: "10px" }}>
-                                    <div onClick={() => { router.push(`/people/${p.username || p.id}`); setShowCollabs(false); }} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-                                      <img src={p.logo} alt={p.name} style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover" }} />
-                                      <span style={{ fontSize: "0.85rem", fontWeight: 600, textDecoration: "underline" }}>{p.name}</span>
-                                      <span style={{ fontSize: "0.72rem", color: "var(--text-gold)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>({c.role})</span>
-                                    </div>
-                                    
-                                    {userRole === 'creador_original' && !isThisCollaboratorOriginalCreator && (
-                                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                        <select 
-                                          value={c.role} 
-                                          onChange={(e) => changeCollaboratorRole('brand', brand.id, p.id, e.target.value)}
-                                          className="form-control" 
-                                          style={{ padding: "2px 6px", fontSize: "0.75rem", width: "auto" }}
-                                        >
-                                          <option value="colaborador">Colaborador</option>
-                                          <option value="gestor">Gestor</option>
-                                          <option value="creador">Creador</option>
-                                        </select>
-                                        <button 
-                                          onClick={() => {
-                                            if (confirm(`¿Seguro que deseas desvincular a ${p.name}?`)) {
-                                              removeCollaborator('brand', brand.id, p.id);
-                                            }
-                                          }}
-                                          style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "0.82rem", fontWeight: 700 }}
-                                        >
-                                          <i className="fa-solid fa-user-minus"></i>
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div>
-                          {canInvite && (
-                            <>
-                              <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.8rem", color: "var(--text-gold)" }}>Invitar Colaborador</h4>
-                              {(() => {
-                                const linkedIds = (brand.collaborators || []).map(c => c.personId);
-                                const pendingReceiverIds = invitations.filter(inv => inv.senderType === "brand" && inv.senderId === brand.id).map(inv => inv.receiverPersonId);
-                                const candidates = people.filter(p => !linkedIds.includes(p.id) && !pendingReceiverIds.includes(p.id));
-
-                                const filteredCandidates = candidates.filter(p => 
-                                  p.name.toLowerCase().includes(personSearchQuery.toLowerCase()) || 
-                                  (p.username && p.username.toLowerCase().includes(personSearchQuery.toLowerCase())) ||
-                                  (p.occupation && p.occupation.toLowerCase().includes(personSearchQuery.toLowerCase()))
-                                );
-
-                                return (
-                                  <form onSubmit={(e) => {
-                                    e.preventDefault();
-                                    const receiverId = Number(e.target.elements.invitePerson.value);
-                                    const inviteRole = e.target.elements.inviteRole.value;
-                                    if (!receiverId || !inviteRole) return;
-                                    sendInvitation("brand", brand.id, brand.name, receiverId, inviteRole);
-                                    setPersonSearchQuery("");
-                                    setSelectedPersonId("");
-                                  }}>
-                                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", position: "relative" }}>
-                                      <input type="hidden" name="invitePerson" value={selectedPersonId} />
-                                      <div style={{ position: "relative" }}>
-                                        <input
-                                          type="text"
-                                          className="form-control"
-                                          placeholder="Escribe el nombre para buscar..."
-                                          value={personSearchQuery}
-                                          onChange={(e) => {
-                                            setPersonSearchQuery(e.target.value);
-                                            setShowPersonDropdown(true);
-                                          }}
-                                          onFocus={() => setShowPersonDropdown(true)}
-                                          onBlur={() => setTimeout(() => setShowPersonDropdown(false), 200)}
-                                          required
-                                        />
-                                        {personSearchQuery && (
-                                          <button 
-                                            type="button" 
-                                            onClick={() => { setPersonSearchQuery(""); setSelectedPersonId(""); setShowPersonDropdown(false); }}
-                                            style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
-                                          >
-                                            &times;
-                                          </button>
-                                        )}
-
-                                        {showPersonDropdown && personSearchQuery.trim() !== "" && filteredCandidates.length > 0 && (
-                                          <div 
-                                            style={{
-                                              position: "absolute", top: "100%", left: 0, right: 0,
-                                              background: "var(--bg-card)", border: "1px solid var(--border-color)",
-                                              borderRadius: "8px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-                                              maxHeight: "160px", overflowY: "auto", zIndex: 1000, marginTop: "4px"
-                                            }}
-                                          >
-                                            {filteredCandidates.map(p => (
-                                              <div
-                                                key={p.id}
-                                                onClick={() => {
-                                                  setSelectedPersonId(p.id.toString());
-                                                  setPersonSearchQuery(p.name + (p.occupation ? ` (${p.occupation})` : ""));
-                                                  setShowPersonDropdown(false);
-                                                }}
-                                                style={{
-                                                  padding: "0.6rem 1rem", cursor: "pointer",
-                                                  transition: "background 0.2s", fontSize: "0.85rem",
-                                                  borderBottom: "1px solid rgba(0,0,0,0.02)",
-                                                  color: "var(--text-primary)"
-                                                }}
-                                                onMouseEnter={(e) => e.target.style.background = "var(--bg-input)"}
-                                                onMouseLeave={(e) => e.target.style.background = "none"}
-                                              >
-                                                <strong>{p.name}</strong> {p.occupation && <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginLeft: "6px" }}>({p.occupation})</span>}
-                                              </div>
-                                            ))}
-                                          </div>
-                                        )}
-                                      </div>
-
-                                      <select name="inviteRole" className="form-control" style={{ fontSize: "0.85rem" }} required>
-                                        <option value="colaborador">Colaborador</option>
-                                        <option value="gestor">Gestor</option>
-                                        <option value="creador">Creador</option>
-                                      </select>
-                                      <button type="submit" className="btn-gold" style={{ padding: "0.45rem 1rem", borderRadius: "6px", fontSize: "0.82rem", width: "100%" }} disabled={candidates.length === 0 || !selectedPersonId}>
-                                        <i className="fa-solid fa-paper-plane" style={{ marginRight: 6 }}></i> Enviar Invitación
-                                      </button>
-                                    </div>
-                                  </form>
-                                );
-                              })()}
-                            </>
-                          )}
-
-                          {(() => {
-                            const pending = invitations.filter(inv => inv.senderType === "brand" && inv.senderId === brand.id);
-                            if (pending.length === 0) return null;
-                            return (
-                              <div style={{ marginTop: "1rem", borderTop: "1px dashed var(--border-color)", paddingTop: "0.8rem" }}>
-                                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>Invitaciones Pendientes:</span>
-                                <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "6px" }}>
-                                  {pending.map(inv => {
-                                    const receiver = people.find(p => p.id === inv.receiverPersonId);
-                                    return (
-                                      <div key={inv.id} style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                        <span>✉️ {receiver ? receiver.name : `Persona #${inv.receiverPersonId}`} <span style={{ fontSize: "0.72rem", color: "var(--text-gold)" }}>({inv.role})</span></span>
-                                        <span style={{ fontStyle: "italic", fontSize: "0.75rem" }}>Enviada</span>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            );
-                          })()}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                {/* Modal de colaboradores se trasladó al final del archivo */}
               </div>
             </>
           )}
         </div>
       </div>
+
+      {/* ── VENTANAS SUPERPUESTAS (MODALS) RENDERIZADAS A NIVEL DE RAÍZ DEL COMPONENTE ── */}
+      {/* 1. Formulario de creación/edición de producto en Ventana Superpuesta (Modal) */}
+      {isOwner && prodFormOpen && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+          <div className="modal-backdrop" onClick={() => { setProdFormOpen(false); setEditingProdId(null); }}></div>
+          <div className="modal-panel fade-in" style={{ maxWidth: "750px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+              <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0 }}>
+                {editingProdId ? "✨ Editar Item de Catálogo" : "✨ Publicar Nuevo Item"}
+              </h3>
+              <button 
+                onClick={() => { setProdFormOpen(false); setEditingProdId(null); }} 
+                style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
+              >
+                &times;
+              </button>
+            </div>
+            <form onSubmit={(e) => handleProductSubmit(e, brand.id)}>
+              <div className="grid-2-to-1">
+                <div className="form-group">
+                  <label>Nombre del Item *</label>
+                  <input type="text" className="form-control" placeholder="Ej: Anillo de Plata 950" value={prodName} onChange={(e) => setProdName(e.target.value)} required />
+                </div>
+                <div className="form-group">
+                  <label>Categoría / Rubro *</label>
+                  <input type="text" className="form-control" placeholder="Ej: Joyería, Bienestar" value={prodCategory} onChange={(e) => setProdCategory(e.target.value)} required />
+                </div>
+              </div>
+
+              <div className="grid-2-to-1">
+                <div className="form-group">
+                  <label>Tipo de Item</label>
+                  <select className="form-control" value={prodType} onChange={(e) => setProdType(e.target.value)}>
+                    <option value="product">Producto Físico (Con Stock)</option>
+                    <option value="service">Servicio (Por Agenda / Cita)</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Stock (Opcional)</label>
+                  <input 
+                    type="number" 
+                    className="form-control" 
+                    placeholder={prodType === "service" ? "No requiere stock" : "Ej: 15"} 
+                    value={prodStock} 
+                    onChange={(e) => setProdStock(e.target.value)} 
+                    disabled={prodType === "service"}
+                  />
+                </div>
+              </div>
+
+              <div className="grid-2-to-1" style={{ marginTop: "1rem" }}>
+                <div className="form-group">
+                  <label>Precio Normal (S/.) *</label>
+                  <input type="number" className="form-control" placeholder="Ej: 10" value={prodPrice} onChange={(e) => setProdPrice(e.target.value)} required />
+                </div>
+                <div className="form-group">
+                  <label>Precio AOURUM (S/.) (Opcional)</label>
+                  <input type="number" className="form-control" placeholder="Ej: 8" value={prodPriceAourum} onChange={(e) => setProdPriceAourum(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="prod-form-img-desc" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem", marginTop: "1rem" }}>
+                <div className="form-group">
+                  <label>Subir Imagen</label>
+                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block", marginTop: "-3px", marginBottom: "5px" }}>
+                    Proporción recomendada: Cuadrada (1:1, ej. 800x800 px) o 4:3
+                  </span>
+                  <label
+                    htmlFor="prod-img-upload"
+                    style={{
+                      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                      border: "2px dashed var(--border-color)", borderRadius: "8px",
+                      height: "120px", cursor: "pointer", transition: "var(--transition-smooth)",
+                      background: "var(--bg-input)"
+                    }}
+                  >
+                    {prodImagePreview ? (
+                      <img src={prodImagePreview} alt="preview" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "6px" }} />
+                    ) : (
+                      <div style={{ textAlign: "center", padding: "0.5rem" }}>
+                        <i className="fa-solid fa-cloud-arrow-up" style={{ color: "var(--gold-primary)", fontSize: "1.4rem", marginBottom: 4 }}></i>
+                        <span style={{ fontSize: "0.75rem", display: "block", color: "var(--text-muted)" }}>Elegir archivo</span>
+                      </div>
+                    )}
+                  </label>
+                  <input 
+                    id="prod-img-upload" 
+                    type="file" 
+                    accept="image/*" 
+                    style={{ display: "none" }} 
+                    disabled={uploadingProd} 
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        setEditorSource(reader.result);
+                        setZoom(1);
+                        setImgPos({ x: 0, y: 0 });
+                        setRemoveBg(false);
+                        setEditorOpen(true);
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>Descripción del Producto *</label>
+                  <textarea className="form-control" rows="4" style={{ resize: "none" }} placeholder="Describe los materiales, dimensiones o proceso..." value={prodDescription} onChange={(e) => setProdDescription(e.target.value)}></textarea>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1.5rem" }}>
+                <button 
+                  type="button" 
+                  onClick={() => { setProdFormOpen(false); setEditingProdId(null); }} 
+                  className="btn-outline-gold"
+                  style={{ padding: "0.45rem 1.2rem", borderRadius: "6px", fontSize: "0.85rem" }}
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="btn-gold" style={{ padding: "0.45rem 1.2rem", borderRadius: "6px", fontSize: "0.85rem" }} disabled={uploadingProd}>
+                  {uploadingProd ? "Subiendo..." : editingProdId ? "Actualizar Item" : "Publicar Item"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 2. Modal del Editor de Imagen (Recorte y Eliminación de Fondo) */}
+      {editorOpen && (
+        <div className="modal-overlay" style={{ zIndex: 1200 }}>
+          <div className="modal-backdrop" onClick={() => setEditorOpen(false)}></div>
+          <div className="modal-panel fade-in" style={{ maxWidth: "500px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", textAlign: "center" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+              <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0 }}>
+                ✨ Editor de Imagen
+              </h3>
+              <button 
+                onClick={() => setEditorOpen(false)} 
+                style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
+              >
+                &times;
+              </button>
+            </div>
+
+            <div style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: "1rem" }}>
+              Arrastra la imagen dentro del recuadro para centrarla. Usa los controles inferiores para recortar o quitar el fondo.
+            </div>
+
+            {/* Viewport de Canvas interactivo */}
+            <div style={{ position: "relative", width: "300px", height: "300px", margin: "0 auto 1.2rem auto", overflow: "hidden" }}>
+              <canvas 
+                id="editor-canvas"
+                width={300}
+                height={300}
+                style={{
+                  width: "300px",
+                  height: "300px",
+                  border: "2px solid var(--gold-primary)",
+                  borderRadius: "8px",
+                  background: "repeating-conic-gradient(#f0f0f0 0% 25%, #ffffff 0% 50%) 50% / 20px 20px",
+                  cursor: isDragging ? "grabbing" : "grab",
+                  display: "block",
+                  touchAction: "none"
+                }}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                  setDragStart({ x: e.clientX - imgPos.x, y: e.clientY - imgPos.y });
+                }}
+                onMouseMove={(e) => {
+                  if (!isDragging) return;
+                  setImgPos({
+                    x: e.clientX - dragStart.x,
+                    y: e.clientY - dragStart.y
+                  });
+                }}
+                onMouseUp={() => setIsDragging(false)}
+                onMouseLeave={() => setIsDragging(false)}
+              />
+            </div>
+
+            {/* Controles de Zoom */}
+            <div className="form-group" style={{ marginBottom: "1.2rem", textAlign: "left" }}>
+              <label style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", fontWeight: 600 }}>
+                <span>🔍 Zoom:</span>
+                <span>{zoom.toFixed(1)}x</span>
+              </label>
+              <input 
+                type="range" 
+                min="1" 
+                max="3" 
+                step="0.1" 
+                value={zoom} 
+                onChange={(e) => setZoom(parseFloat(e.target.value))} 
+                style={{ width: "100%", accentColor: "var(--gold-primary)", cursor: "pointer" }}
+              />
+            </div>
+
+            {/* Controles de Eliminación de Fondo */}
+            <div style={{ background: "var(--bg-input)", padding: "1rem", borderRadius: "8px", marginBottom: "1.5rem", textAlign: "left", border: "1px solid var(--border-color)" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: "10px", fontWeight: 700, fontSize: "0.88rem", cursor: "pointer" }}>
+                <input 
+                  type="checkbox" 
+                  checked={removeBg} 
+                  onChange={(e) => setRemoveBg(e.target.checked)} 
+                  style={{ accentColor: "var(--gold-primary)", width: "16px", height: "16px" }}
+                />
+                <span>🪄 Remover Fondo (Inteligente)</span>
+              </label>
+              
+              {removeBg && (
+                <div className="fade-in" style={{ marginTop: "0.8rem" }}>
+                  <label style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", color: "var(--text-muted)" }}>
+                    <span>Tolerancia de color:</span>
+                    <span>{tolerance}</span>
+                  </label>
+                  <input 
+                    type="range" 
+                    min="5" 
+                    max="100" 
+                    value={tolerance} 
+                    onChange={(e) => setTolerance(parseInt(e.target.value))} 
+                    style={{ width: "100%", accentColor: "var(--gold-primary)", cursor: "pointer", marginTop: "4px" }}
+                  />
+                  <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", display: "block", marginTop: "4px" }}>
+                    Tip: Ajusta la tolerancia para quitar tonos similares al color detectado en las esquinas de la foto.
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              <button 
+                type="button" 
+                onClick={() => setEditorOpen(false)} 
+                className="btn-outline-gold"
+                style={{ padding: "0.5rem 1.2rem", borderRadius: "6px", fontSize: "0.85rem" }}
+              >
+                Cancelar
+              </button>
+              <button 
+                type="button" 
+                onClick={handleSaveEditor} 
+                className="btn-gold" 
+                style={{ padding: "0.5rem 1.4rem", borderRadius: "6px", fontSize: "0.85rem", fontWeight: 700 }}
+              >
+                Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. Modal de postulación a ferias */}
+      {isOwner && showFairs && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+          <div className="modal-backdrop" onClick={() => setShowFairs(false)}></div>
+          <div className="modal-panel fade-in" style={{ maxWidth: "550px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", position: "relative" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+              <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0 }}>
+                <i className="fa-solid fa-paper-plane" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Postular Marca a Ferias
+              </h3>
+              <button 
+                onClick={() => setShowFairs(false)} 
+                style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
+              >
+                &times;
+              </button>
+            </div>
+            <form onSubmit={(e) => handleApplyToFair(e, "brand", brand.id)} className="apply-fair-form">
+              <div className="form-group" style={{ marginBottom: "1.5rem", position: "relative" }}>
+                <label style={{ fontWeight: 600, fontSize: "0.9rem", display: "block", marginBottom: "0.5rem" }}>Buscar y seleccionar feria del calendario local</label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Escribe el nombre de la feria para buscar..."
+                    value={fairSearchQuery}
+                    onChange={(e) => {
+                      setFairSearchQuery(e.target.value);
+                      setShowFairDropdown(true);
+                    }}
+                    onFocus={() => setShowFairDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowFairDropdown(false), 200)}
+                    required
+                  />
+                  {fairSearchQuery && (
+                    <button 
+                      type="button" 
+                      onClick={() => { setFairSearchQuery(""); setAppFairId(""); setShowFairDropdown(false); }}
+                      style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
+                    >
+                      &times;
+                    </button>
+                  )}
+                </div>
+                
+                {showFairDropdown && fairSearchQuery.trim() !== "" && filteredFairs.length > 0 && (
+                  <div 
+                    style={{
+                      position: "absolute", top: "100%", left: 0, right: 0,
+                      background: "var(--bg-card)", border: "1px solid var(--border-color)",
+                      borderRadius: "8px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                      maxHeight: "200px", overflowY: "auto", zIndex: 1000, marginTop: "4px"
+                    }}
+                  >
+                    {filteredFairs.map(f => (
+                      <div
+                        key={f.id}
+                        onClick={() => {
+                          setAppFairId(f.id.toString());
+                          setFairSearchQuery(`${f.name} (${f.date})`);
+                          setShowFairDropdown(false);
+                        }}
+                        style={{
+                          padding: "0.6rem 1rem", cursor: "pointer",
+                          transition: "background 0.2s", fontSize: "0.85rem",
+                          borderBottom: "1px solid rgba(0,0,0,0.02)",
+                          color: "var(--text-primary)"
+                        }}
+                        onMouseEnter={(e) => e.target.style.background = "var(--bg-input)"}
+                        onMouseLeave={(e) => e.target.style.background = "none"}
+                      >
+                        <strong>{f.name}</strong> <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginLeft: "6px" }}>({f.date})</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                <button type="button" onClick={() => setShowFairs(false)} className="btn-outline-gold" style={{ padding: "0.5rem 1.2rem", borderRadius: "6px" }}>Cancelar</button>
+                <button type="submit" className="btn-gold" style={{ padding: "0.5rem 1.4rem", borderRadius: "6px", fontWeight: 700 }}>Enviar Postulación</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 4. Modal de colaboradores de la marca */}
+      {showCollabs && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+          <div className="modal-backdrop" onClick={() => setShowCollabs(false)}></div>
+          <div className="modal-panel fade-in" style={{ maxWidth: "750px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+              <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0 }}>
+                <i className="fa-solid fa-users" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Colaboradores de la Marca
+              </h3>
+              <button 
+                onClick={() => setShowCollabs(false)} 
+                style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
+              >
+                &times;
+              </button>
+            </div>
+            
+            <div className="collab-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "2rem" }}>
+              <div>
+                <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.8rem", color: "var(--text-gold)" }}>Miembros Vinculados</h4>
+                {brand.collaborators && brand.collaborators.length === 0 ? (
+                  <p style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>No hay colaboradores adicionales.</p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {brand.collaborators && brand.collaborators.map(c => {
+                      const p = people.find(person => person.id === c.personId);
+                      if (!p) return null;
+                      const isThisCollaboratorOriginalCreator = c.role === 'creador_original';
+                      return (
+                        <div key={p.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-input)", padding: "0.5rem", borderRadius: "6px", gap: "10px" }}>
+                          <div onClick={() => { router.push(`/people/${p.username || p.id}`); setShowCollabs(false); }} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                            <img src={p.logo} alt={p.name} style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover" }} />
+                            <span style={{ fontSize: "0.85rem", fontWeight: 600, textDecoration: "underline" }}>{p.name}</span>
+                            <span style={{ fontSize: "0.72rem", color: "var(--text-gold)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>({c.role})</span>
+                          </div>
+                          
+                          {userRole === 'creador_original' && !isThisCollaboratorOriginalCreator && (
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <select 
+                                value={c.role} 
+                                onChange={(e) => changeCollaboratorRole('brand', brand.id, p.id, e.target.value)}
+                                className="form-control" 
+                                style={{ padding: "2px 6px", fontSize: "0.75rem", width: "auto" }}
+                              >
+                                <option value="colaborador">Colaborador</option>
+                                <option value="gestor">Gestor</option>
+                                <option value="creador">Creador</option>
+                              </select>
+                              <button 
+                                onClick={() => {
+                                  if (confirm(`¿Seguro que deseas desvincular a ${p.name}?`)) {
+                                    removeCollaborator('brand', brand.id, p.id);
+                                  }
+                                }}
+                                style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "0.82rem", fontWeight: 700 }}
+                              >
+                                <i className="fa-solid fa-user-minus"></i>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              
+              <div>
+                {canInvite && (
+                  <>
+                    <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.8rem", color: "var(--text-gold)" }}>Invitar Colaborador</h4>
+                    {(() => {
+                      const linkedIds = (brand.collaborators || []).map(c => c.personId);
+                      const pendingReceiverIds = invitations.filter(inv => inv.senderType === "brand" && inv.senderId === brand.id).map(inv => inv.receiverPersonId);
+                      const candidates = people.filter(p => !linkedIds.includes(p.id) && !pendingReceiverIds.includes(p.id));
+
+                      const filteredCandidates = candidates.filter(p => 
+                        p.name.toLowerCase().includes(personSearchQuery.toLowerCase()) || 
+                        (p.username && p.username.toLowerCase().includes(personSearchQuery.toLowerCase())) ||
+                        (p.occupation && p.occupation.toLowerCase().includes(personSearchQuery.toLowerCase()))
+                      );
+
+                      return (
+                        <form onSubmit={(e) => {
+                          e.preventDefault();
+                          const receiverId = Number(e.target.elements.invitePerson.value);
+                          const inviteRole = e.target.elements.inviteRole.value;
+                          if (!receiverId || !inviteRole) return;
+                          sendInvitation("brand", brand.id, brand.name, receiverId, inviteRole);
+                          setPersonSearchQuery("");
+                          setSelectedPersonId("");
+                        }}>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "8px", position: "relative" }}>
+                            <input type="hidden" name="invitePerson" value={selectedPersonId} />
+                            <div style={{ position: "relative" }}>
+                              <input
+                                type="text"
+                                className="form-control"
+                                placeholder="Escribe el nombre para buscar..."
+                                value={personSearchQuery}
+                                onChange={(e) => {
+                                  setPersonSearchQuery(e.target.value);
+                                  setShowPersonDropdown(true);
+                                }}
+                                onFocus={() => setShowPersonDropdown(true)}
+                                onBlur={() => setTimeout(() => setShowPersonDropdown(false), 200)}
+                                required
+                              />
+                              {personSearchQuery && (
+                                <button 
+                                  type="button" 
+                                  onClick={() => { setPersonSearchQuery(""); setSelectedPersonId(""); setShowPersonDropdown(false); }}
+                                  style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
+                                >
+                                  &times;
+                                </button>
+                              )}
+
+                              {showPersonDropdown && personSearchQuery.trim() !== "" && filteredCandidates.length > 0 && (
+                                <div 
+                                  style={{
+                                    position: "absolute", top: "100%", left: 0, right: 0,
+                                    background: "var(--bg-card)", border: "1px solid var(--border-color)",
+                                    borderRadius: "8px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                                    maxHeight: "160px", overflowY: "auto", zIndex: 1000, marginTop: "4px"
+                                  }}
+                                >
+                                  {filteredCandidates.map(p => (
+                                    <div
+                                      key={p.id}
+                                      onClick={() => {
+                                        setSelectedPersonId(p.id.toString());
+                                        setPersonSearchQuery(p.name + (p.occupation ? ` (${p.occupation})` : ""));
+                                        setShowPersonDropdown(false);
+                                      }}
+                                      style={{
+                                        padding: "0.6rem 1rem", cursor: "pointer",
+                                        transition: "background 0.2s", fontSize: "0.85rem",
+                                        borderBottom: "1px solid rgba(0,0,0,0.02)",
+                                        color: "var(--text-primary)"
+                                      }}
+                                      onMouseEnter={(e) => e.target.style.background = "var(--bg-input)"}
+                                      onMouseLeave={(e) => e.target.style.background = "none"}
+                                    >
+                                      <strong>{p.name}</strong> {p.occupation && <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginLeft: "6px" }}>({p.occupation})</span>}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            <select name="inviteRole" className="form-control" style={{ fontSize: "0.85rem" }} required>
+                              <option value="colaborador">Colaborador</option>
+                              <option value="gestor">Gestor</option>
+                              <option value="creador">Creador</option>
+                            </select>
+                            <button type="submit" className="btn-gold" style={{ padding: "0.45rem 1rem", borderRadius: "6px", fontSize: "0.82rem", width: "100%" }} disabled={candidates.length === 0 || !selectedPersonId}>
+                              <i className="fa-solid fa-paper-plane" style={{ marginRight: 6 }}></i> Enviar Invitación
+                            </button>
+                          </div>
+                        </form>
+                      );
+                    })()}
+                  </>
+                )}
+
+                {(() => {
+                  const pending = invitations.filter(inv => inv.senderType === "brand" && inv.senderId === brand.id);
+                  if (pending.length === 0) return null;
+                  return (
+                    <div style={{ marginTop: "1rem", borderTop: "1px dashed var(--border-color)", paddingTop: "0.8rem" }}>
+                      <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>Invitaciones Pendientes:</span>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "6px" }}>
+                        {pending.map(inv => {
+                          const receiver = people.find(p => p.id === inv.receiverPersonId);
+                          return (
+                            <div key={inv.id} style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                              <span>✉️ {receiver ? receiver.name : `Persona #${inv.receiverPersonId}`} <span style={{ fontSize: "0.72rem", color: "var(--text-gold)" }}>({inv.role})</span></span>
+                              <span style={{ fontStyle: "italic", fontSize: "0.75rem" }}>Enviada</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
