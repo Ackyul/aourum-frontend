@@ -87,7 +87,7 @@ export default function BrandProfilePage({ params }) {
   // States for the interactive image editor
   const [editorOpen, setEditorOpen] = useState(false);
   const [editorSource, setEditorSource] = useState(null);
-  const [zoom, setZoom] = useState(1);
+  const [aspectRatio, setAspectRatio] = useState("1:1"); // "1:1" o "4:3"
   const [imgPos, setImgPos] = useState({ x: 0, y: 0 });
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -110,7 +110,7 @@ export default function BrandProfilePage({ params }) {
     };
   }, [prodFormOpen, editorOpen, showFairs, showCollabs]);
 
-  // Redraw canvas on zoom, drag, background removal toggle, and tolerance changes
+  // Redraw canvas on aspect ratio changes, drag, background removal toggle, and tolerance changes
   useEffect(() => {
     if (!editorOpen || !editorSource) return;
     const img = new Image();
@@ -118,37 +118,54 @@ export default function BrandProfilePage({ params }) {
       const canvas = document.getElementById("editor-canvas");
       if (!canvas) return;
       const ctx = canvas.getContext("2d");
-      ctx.clearRect(0, 0, 300, 300);
       
-      const w = 300 * zoom;
-      const h = 300 * zoom;
-      const x = 150 - w/2 + imgPos.x;
-      const y = 150 - h/2 + imgPos.y;
+      const canvasW = 300;
+      const canvasH = aspectRatio === "1:1" ? 300 : 225;
       
-      ctx.drawImage(img, x, y, w, h);
+      ctx.clearRect(0, 0, canvasW, canvasH);
+      
+      // Calculate cover dimensions to fill canvas aspect ratio
+      const imgRatio = img.width / img.height;
+      const canvasRatio = canvasW / canvasH;
+      
+      let drawW, drawH;
+      if (imgRatio > canvasRatio) {
+        drawH = canvasH;
+        drawW = canvasH * imgRatio;
+      } else {
+        drawW = canvasW;
+        drawH = canvasW / imgRatio;
+      }
+      
+      const x = (canvasW - drawW) / 2 + imgPos.x;
+      const y = (canvasH - drawH) / 2 + imgPos.y;
+      
+      ctx.drawImage(img, x, y, drawW, drawH);
       
       if (removeBg) {
-        const imgData = ctx.getImageData(0, 0, 300, 300);
+        const imgData = ctx.getImageData(0, 0, canvasW, canvasH);
         const data = imgData.data;
         
         const getPixel = (pixelData, px, py) => {
-          const idx = (py * 300 + px) * 4;
+          const idx = (py * canvasW + px) * 4;
           return { r: pixelData[idx], g: pixelData[idx+1], b: pixelData[idx+2] };
         };
 
         // Average colors of the four corners to detect the background color
         const corners = [
           getPixel(data, 0, 0),
-          getPixel(data, 299, 0),
-          getPixel(data, 0, 299),
-          getPixel(data, 299, 299)
+          getPixel(data, canvasW - 1, 0),
+          getPixel(data, 0, canvasH - 1),
+          getPixel(data, canvasW - 1, canvasH - 1)
         ];
         
         let rBg = 0, gBg = 0, bBg = 0;
         corners.forEach(c => {
-          rBg += c.r;
-          gBg += c.g;
-          bBg += c.b;
+          if (c) {
+            rBg += c.r;
+            gBg += c.g;
+            bBg += c.b;
+          }
         });
         rBg /= 4;
         gBg /= 4;
@@ -173,7 +190,7 @@ export default function BrandProfilePage({ params }) {
       }
     };
     img.src = editorSource;
-  }, [editorOpen, editorSource, zoom, imgPos, removeBg, tolerance]);
+  }, [editorOpen, editorSource, aspectRatio, imgPos, removeBg, tolerance]);
 
   const handleSaveEditor = async () => {
     const canvas = document.getElementById("editor-canvas");
@@ -759,7 +776,7 @@ export default function BrandProfilePage({ params }) {
                       const reader = new FileReader();
                       reader.onload = () => {
                         setEditorSource(reader.result);
-                        setZoom(1);
+                        setAspectRatio("1:1");
                         setImgPos({ x: 0, y: 0 });
                         setRemoveBg(false);
                         setEditorOpen(true);
@@ -815,15 +832,15 @@ export default function BrandProfilePage({ params }) {
             </div>
 
             {/* Viewport de Canvas interactivo */}
-            <div style={{ position: "relative", width: "300px", height: "300px", maxWidth: "100%", margin: "0 auto 1.2rem auto", overflow: "hidden" }}>
+            <div style={{ position: "relative", width: "300px", height: aspectRatio === "1:1" ? "300px" : "225px", maxWidth: "100%", margin: "0 auto 1.2rem auto", overflow: "hidden" }}>
               <canvas 
                 id="editor-canvas"
                 width={300}
-                height={300}
+                height={aspectRatio === "1:1" ? 300 : 225}
                 style={{
                   width: "100%",
                   height: "auto",
-                  aspectRatio: "1/1",
+                  aspectRatio: aspectRatio === "1:1" ? "1/1" : "4/3",
                   border: "2px solid var(--gold-primary)",
                   borderRadius: "8px",
                   background: "repeating-conic-gradient(#f0f0f0 0% 25%, #ffffff 0% 50%) 50% / 20px 20px",
@@ -845,24 +862,68 @@ export default function BrandProfilePage({ params }) {
                 }}
                 onMouseUp={() => setIsDragging(false)}
                 onMouseLeave={() => setIsDragging(false)}
+                onTouchStart={(e) => {
+                  const touch = e.touches[0];
+                  setIsDragging(true);
+                  setDragStart({ x: touch.clientX - imgPos.x, y: touch.clientY - imgPos.y });
+                }}
+                onTouchMove={(e) => {
+                  if (!isDragging) return;
+                  const touch = e.touches[0];
+                  setImgPos({
+                    x: touch.clientX - dragStart.x,
+                    y: touch.clientY - dragStart.y
+                  });
+                }}
+                onTouchEnd={() => setIsDragging(false)}
               />
             </div>
 
-            {/* Controles de Zoom */}
+            {/* Opciones de Medida / Proporción de Recorte */}
             <div className="form-group" style={{ marginBottom: "1.2rem", textAlign: "left" }}>
-              <label style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", fontWeight: 600 }}>
-                <span>🔍 Zoom:</span>
-                <span>{zoom.toFixed(1)}x</span>
+              <label style={{ fontSize: "0.85rem", fontWeight: 700, display: "block", marginBottom: "0.5rem", color: "var(--text-primary)" }}>
+                📐 Proporción de Recorte:
               </label>
-              <input 
-                type="range" 
-                min="1" 
-                max="3" 
-                step="0.1" 
-                value={zoom} 
-                onChange={(e) => setZoom(parseFloat(e.target.value))} 
-                style={{ width: "100%", accentColor: "var(--gold-primary)", cursor: "pointer" }}
-              />
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  type="button"
+                  onClick={() => { setAspectRatio("1:1"); setImgPos({ x: 0, y: 0 }); }}
+                  className={aspectRatio === "1:1" ? "btn-gold" : "btn-outline-gold"}
+                  style={{
+                    flex: 1,
+                    padding: "0.5rem",
+                    borderRadius: "8px",
+                    fontSize: "0.82rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "6px"
+                  }}
+                >
+                  <i className="fa-solid fa-square"></i> Cuadrada (1:1)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setAspectRatio("4:3"); setImgPos({ x: 0, y: 0 }); }}
+                  className={aspectRatio === "4:3" ? "btn-gold" : "btn-outline-gold"}
+                  style={{
+                    flex: 1,
+                    padding: "0.5rem",
+                    borderRadius: "8px",
+                    fontSize: "0.82rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "6px"
+                  }}
+                >
+                  <i className="fa-solid fa-image"></i> Rectangular (4:3)
+                </button>
+              </div>
             </div>
 
             {/* Controles de Eliminación de Fondo */}
