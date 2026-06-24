@@ -120,9 +120,13 @@ export default function BrandProfilePage({ params }) {
       if (!canvas) return;
       const ctx = canvas.getContext("2d");
       
-      // Use high-resolution canvas internally for crisp quality (800px width)
-      const canvasW = 800;
-      const canvasH = aspectRatio === "1:1" ? 800 : 600;
+      // Use high-resolution canvas internally to match Cloudinary max limit (1200px width)
+      const canvasW = 1200;
+      const canvasH = aspectRatio === "1:1" ? 1200 : 900;
+      
+      // Enable high-quality image smoothing for sharp downscaling of camera photos
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
       
       // Clear the canvas
       ctx.clearRect(0, 0, canvasW, canvasH);
@@ -145,7 +149,7 @@ export default function BrandProfilePage({ params }) {
       const drawH = baseH * scale;
       
       // Drag coordinates are stored in visual screen pixels (300px width base).
-      // Scale them up to the canvas coordinate space (800px width base).
+      // Scale them up to the canvas coordinate space (1200px width base).
       const scaleFactor = canvasW / 300;
       const offsetX = imgPos.x * scaleFactor;
       const offsetY = imgPos.y * scaleFactor;
@@ -849,8 +853,8 @@ export default function BrandProfilePage({ params }) {
             <div style={{ position: "relative", width: "300px", height: aspectRatio === "1:1" ? "300px" : "225px", maxWidth: "100%", margin: "0 auto 1.2rem auto", overflow: "hidden" }}>
               <canvas 
                 id="editor-canvas"
-                width={800}
-                height={aspectRatio === "1:1" ? 800 : 600}
+                width={1200}
+                height={aspectRatio === "1:1" ? 1200 : 900}
                 style={{
                   width: "100%",
                   height: "auto",
