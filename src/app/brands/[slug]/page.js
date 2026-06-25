@@ -95,6 +95,14 @@ export default function BrandProfilePage({ params }) {
   const [removeBg, setRemoveBg] = useState(false);
   const [tolerance, setTolerance] = useState(30);
 
+  // States and refs for the manual eraser tool
+  const [editorTool, setEditorTool] = useState("move"); // "move" o "erase"
+  const [brushSize, setBrushSize] = useState(30); // 10 a 100
+  const [maskUpdateTrigger, setMaskUpdateTrigger] = useState(0);
+  const maskCanvasRef = useRef(null);
+  const isDrawingMaskRef = useRef(false);
+  const lastImgCoordsRef = useRef(null);
+
   // Lock background scroll when any modal is open
   useEffect(() => {
     const isModalOpen = prodFormOpen || editorOpen || showFairs || showCollabs;
@@ -123,6 +131,16 @@ export default function BrandProfilePage({ params }) {
       // Use high-resolution canvas internally to match Cloudinary max limit (1200px width)
       const canvasW = 1200;
       const canvasH = aspectRatio === "1:1" ? 1200 : 900;
+      
+      // Initialize the manual eraser mask canvas to match the original image dimensions
+      if (!maskCanvasRef.current && img.width > 0) {
+        const mCanvas = document.createElement("canvas");
+        mCanvas.width = img.width;
+        mCanvas.height = img.height;
+        const mCtx = mCanvas.getContext("2d");
+        mCtx.clearRect(0, 0, img.width, img.height); // Start fully transparent
+        maskCanvasRef.current = mCanvas;
+      }
       
       // Enable high-quality image smoothing for sharp downscaling of camera photos
       ctx.imageSmoothingEnabled = true;
@@ -260,9 +278,142 @@ export default function BrandProfilePage({ params }) {
         }
         ctx.putImageData(imgData, 0, 0);
       }
+      
+      // Apply the manual eraser mask if it exists (cuts out transparency over the image)
+      if (maskCanvasRef.current) {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.drawImage(maskCanvasRef.current, x, y, drawW, drawH);
+        ctx.globalCompositeOperation = 'source-over';
+      }
     };
     img.src = editorSource;
-  }, [editorOpen, editorSource, aspectRatio, scale, imgPos, removeBg, tolerance]);
+  }, [editorOpen, editorSource, aspectRatio, scale, imgPos, removeBg, tolerance, maskUpdateTrigger]);
+
+  // Helper to get relative canvas coordinates (handles mouse and touch)
+  const getCanvasCoords = (e, rect) => {
+    if (e.touches && e.touches.length > 0) {
+      return {
+        x: e.touches[0].clientX - rect.left,
+        y: e.touches[0].clientY - rect.top
+      };
+    }
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  };
+
+  // Helper to map canvas coordinates to original image coordinates
+  const mapToImageCoords = (cx, cy, img) => {
+    const canvasW = 1200;
+    const canvasH = aspectRatio === "1:1" ? 1200 : 900;
+    
+    const imgRatio = img.width / img.height;
+    const canvasRatio = canvasW / canvasH;
+    
+    let baseW, baseH;
+    if (imgRatio > canvasRatio) {
+      baseH = canvasH;
+      baseW = canvasH * imgRatio;
+    } else {
+      baseW = canvasW;
+      baseH = canvasW / imgRatio;
+    }
+    
+    const drawW = baseW * scale;
+    const drawH = baseH * scale;
+    
+    const scaleFactor = canvasW / 300;
+    const offsetX = imgPos.x * scaleFactor;
+    const offsetY = imgPos.y * scaleFactor;
+    
+    const x = (canvasW - drawW) / 2 + offsetX;
+    const y = (canvasH - drawH) / 2 + offsetY;
+    
+    const ix = ((cx * scaleFactor - x) / drawW) * img.width;
+    const iy = ((cy * scaleFactor - y) / drawH) * img.height;
+    
+    return { x: ix, y: iy, drawW, imgWidth: img.width };
+  };
+
+  // Eraser drawing handlers
+  const handleStartDraw = (e) => {
+    if (editorTool !== "erase" || !editorSource) return;
+    const canvas = document.getElementById("editor-canvas");
+    if (!canvas || !maskCanvasRef.current) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const { x: cx, y: cy } = getCanvasCoords(e, rect);
+    
+    const img = new Image();
+    img.onload = () => {
+      const { x: ix, y: iy, drawW, imgWidth } = mapToImageCoords(cx, cy, img);
+      
+      isDrawingMaskRef.current = true;
+      lastImgCoordsRef.current = { x: ix, y: iy };
+      
+      const maskCtx = maskCanvasRef.current.getContext("2d");
+      maskCtx.fillStyle = "#000000";
+      maskCtx.strokeStyle = "#000000";
+      maskCtx.lineCap = "round";
+      maskCtx.lineJoin = "round";
+      
+      const scaleFactor = 1200 / 300;
+      const imgBrushSize = (brushSize * scaleFactor / drawW) * imgWidth;
+      
+      maskCtx.beginPath();
+      maskCtx.arc(ix, iy, imgBrushSize / 2, 0, Math.PI * 2);
+      maskCtx.fill();
+      
+      setMaskUpdateTrigger(prev => prev + 1);
+    };
+    img.src = editorSource;
+  };
+
+  const handleMoveDraw = (e) => {
+    if (editorTool !== "erase" || !isDrawingMaskRef.current || !lastImgCoordsRef.current || !editorSource) return;
+    const canvas = document.getElementById("editor-canvas");
+    if (!canvas || !maskCanvasRef.current) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const { x: cx, y: cy } = getCanvasCoords(e, rect);
+    
+    const img = new Image();
+    img.onload = () => {
+      const { x: ix, y: iy, drawW, imgWidth } = mapToImageCoords(cx, cy, img);
+      
+      const maskCtx = maskCanvasRef.current.getContext("2d");
+      maskCtx.fillStyle = "#000000";
+      maskCtx.strokeStyle = "#000000";
+      maskCtx.lineCap = "round";
+      maskCtx.lineJoin = "round";
+      
+      const scaleFactor = 1200 / 300;
+      const imgBrushSize = (brushSize * scaleFactor / drawW) * imgWidth;
+      maskCtx.lineWidth = imgBrushSize;
+      
+      maskCtx.beginPath();
+      maskCtx.moveTo(lastImgCoordsRef.current.x, lastImgCoordsRef.current.y);
+      maskCtx.lineTo(ix, iy);
+      maskCtx.stroke();
+      
+      lastImgCoordsRef.current = { x: ix, y: iy };
+      setMaskUpdateTrigger(prev => prev + 1);
+    };
+    img.src = editorSource;
+  };
+
+  const handleEndDraw = () => {
+    isDrawingMaskRef.current = false;
+    lastImgCoordsRef.current = null;
+  };
+
+  const handleResetEraser = () => {
+    if (!maskCanvasRef.current) return;
+    const maskCtx = maskCanvasRef.current.getContext("2d");
+    maskCtx.clearRect(0, 0, maskCanvasRef.current.width, maskCanvasRef.current.height);
+    setMaskUpdateTrigger(prev => prev + 1);
+  };
 
   const handleSaveEditor = async () => {
     const canvas = document.getElementById("editor-canvas");
@@ -852,6 +1003,11 @@ export default function BrandProfilePage({ params }) {
                         setScale(1);
                         setImgPos({ x: 0, y: 0 });
                         setRemoveBg(false);
+                        setEditorTool("move");
+                        setBrushSize(30);
+                        if (maskCanvasRef.current) {
+                          maskCanvasRef.current = null;
+                        }
                         setEditorOpen(true);
                       };
                       reader.readAsDataURL(file);
@@ -917,40 +1073,152 @@ export default function BrandProfilePage({ params }) {
                   border: "2px solid var(--gold-primary)",
                   borderRadius: "8px",
                   background: "repeating-conic-gradient(#f0f0f0 0% 25%, #ffffff 0% 50%) 50% / 20px 20px",
-                  cursor: isDragging ? "grabbing" : "grab",
+                  cursor: isDragging ? "grabbing" : (editorTool === "erase" ? "crosshair" : "grab"),
                   display: "block",
                   touchAction: "none"
                 }}
                 onMouseDown={(e) => {
                   e.preventDefault();
-                  setIsDragging(true);
-                  setDragStart({ x: e.clientX - imgPos.x, y: e.clientY - imgPos.y });
+                  if (editorTool === "move") {
+                    setIsDragging(true);
+                    setDragStart({ x: e.clientX - imgPos.x, y: e.clientY - imgPos.y });
+                  } else {
+                    handleStartDraw(e);
+                  }
                 }}
                 onMouseMove={(e) => {
-                  if (!isDragging) return;
-                  setImgPos({
-                    x: e.clientX - dragStart.x,
-                    y: e.clientY - dragStart.y
-                  });
+                  if (editorTool === "move") {
+                    if (!isDragging) return;
+                    setImgPos({
+                      x: e.clientX - dragStart.x,
+                      y: e.clientY - dragStart.y
+                    });
+                  } else {
+                    handleMoveDraw(e);
+                  }
                 }}
-                onMouseUp={() => setIsDragging(false)}
-                onMouseLeave={() => setIsDragging(false)}
+                onMouseUp={() => {
+                  if (editorTool === "move") {
+                    setIsDragging(false);
+                  } else {
+                    handleEndDraw();
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (editorTool === "move") {
+                    setIsDragging(false);
+                  } else {
+                    handleEndDraw();
+                  }
+                }}
                 onTouchStart={(e) => {
-                  const touch = e.touches[0];
-                  setIsDragging(true);
-                  setDragStart({ x: touch.clientX - imgPos.x, y: touch.clientY - imgPos.y });
+                  if (editorTool === "move") {
+                    const touch = e.touches[0];
+                    setIsDragging(true);
+                    setDragStart({ x: touch.clientX - imgPos.x, y: touch.clientY - imgPos.y });
+                  } else {
+                    handleStartDraw(e);
+                  }
                 }}
                 onTouchMove={(e) => {
-                  if (!isDragging) return;
-                  const touch = e.touches[0];
-                  setImgPos({
-                    x: touch.clientX - dragStart.x,
-                    y: touch.clientY - dragStart.y
-                  });
+                  if (editorTool === "move") {
+                    if (!isDragging) return;
+                    const touch = e.touches[0];
+                    setImgPos({
+                      x: touch.clientX - dragStart.x,
+                      y: touch.clientY - dragStart.y
+                    });
+                  } else {
+                    handleMoveDraw(e);
+                  }
                 }}
-                onTouchEnd={() => setIsDragging(false)}
+                onTouchEnd={() => {
+                  if (editorTool === "move") {
+                    setIsDragging(false);
+                  } else {
+                    handleEndDraw();
+                  }
+                }}
               />
             </div>
+
+            {/* Selector de Herramienta de Edición */}
+            <div className="form-group" style={{ marginBottom: "1.2rem", textAlign: "left" }}>
+              <label style={{ fontSize: "0.85rem", fontWeight: 700, display: "block", marginBottom: "0.5rem", color: "var(--text-primary)" }}>
+                🛠️ Modo de Edición:
+              </label>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button
+                  type="button"
+                  onClick={() => setEditorTool("move")}
+                  className={editorTool === "move" ? "btn-gold" : "btn-outline-gold"}
+                  style={{
+                    flex: 1,
+                    padding: "0.5rem",
+                    borderRadius: "8px",
+                    fontSize: "0.82rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "6px"
+                  }}
+                >
+                  <i className="fa-solid fa-up-down-left-right"></i> Mover / Escalar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditorTool("erase")}
+                  className={editorTool === "erase" ? "btn-gold" : "btn-outline-gold"}
+                  style={{
+                    flex: 1,
+                    padding: "0.5rem",
+                    borderRadius: "8px",
+                    fontSize: "0.82rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "6px"
+                  }}
+                >
+                  <i className="fa-solid fa-eraser"></i> Borrador Manual
+                </button>
+              </div>
+            </div>
+
+            {/* Controles de Borrador Manual */}
+            {editorTool === "erase" && (
+              <div className="fade-in" style={{ marginBottom: "1.2rem", background: "var(--bg-input)", padding: "1rem", borderRadius: "8px", border: "1px solid var(--border-color)", textAlign: "left" }}>
+                <label style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary)" }}>
+                  <span>Tamaño del Borrador:</span>
+                  <span style={{ color: "var(--gold-primary)", fontWeight: 800 }}>{brushSize}px</span>
+                </label>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "6px" }}>
+                  <input
+                    type="range"
+                    min="10"
+                    max="100"
+                    value={brushSize}
+                    onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                    style={{ flex: 1, accentColor: "var(--gold-primary)", cursor: "pointer" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleResetEraser}
+                    className="btn-outline-gold"
+                    style={{ padding: "4px 10px", fontSize: "0.75rem", borderRadius: "6px", fontWeight: 700, whiteSpace: "nowrap" }}
+                  >
+                    Restablecer
+                  </button>
+                </div>
+                <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", display: "block", marginTop: "6px" }}>
+                  Tip: Pasa el dedo o el cursor sobre la imagen para borrar manualmente las partes que desees quitar.
+                </span>
+              </div>
+            )}
 
             {/* Opciones de Medida / Proporción de Recorte */}
             <div className="form-group" style={{ marginBottom: "1.2rem", textAlign: "left" }}>
