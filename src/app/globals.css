@@ -50,7 +50,7 @@ body {
 /* On mobile, add bottom padding to main so content doesn't hide behind tab bar */
 @media (max-width: 768px) {
   body {
-    padding-bottom: var(--tab-bar-height);
+    padding-bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -658,7 +658,10 @@ header {
 
   .grid-catalog p {
     font-size: 0.76rem !important;
+    display: -webkit-box;
     -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .grid-catalog .btn-outline-gold {
@@ -1132,7 +1135,8 @@ header {
   }
 
   .modal-panel {
-    max-width: 100%;
+    width: 100% !important;
+    max-width: 100% !important;
     border-radius: 20px 20px 0 0;
     max-height: 93vh;
     overflow-y: auto;
@@ -1435,6 +1439,7 @@ header {
 
 @media (max-width: 480px) {
   .image-editor-panel {
+    width: 100% !important;
     max-width: 100% !important;
     border-radius: 24px 24px 0 0 !important;
     border-left: none !important;
@@ -1443,3 +1448,78 @@ header {
     padding: 1.5rem 1.2rem !important;
   }
 }
+
+/* ── ACCOUNT POPOVER RESPONSIVE ────────────────────────── */
+.account-popover {
+  position: absolute;
+  right: 0;
+  top: 115%;
+  width: 290px;
+  padding: 1.2rem;
+  z-index: 1000;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+  border: 1.5px solid var(--gold-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  background: #FFFFFF;
+  border-radius: 12px;
+  text-align: left;
+}
+
+@media (max-width: 480px) {
+  .account-popover {
+    position: fixed;
+    top: auto;
+    bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px));
+    left: 0;
+    right: 0;
+    width: 100vw !important;
+    max-width: 100% !important;
+    border-radius: 20px 20px 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-top: 1.5px solid var(--gold-primary);
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.08);
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+}
+
+/* ── RESET PASSWORD CARD RESPONSIVE ────────────────────── */
+.reset-password-card {
+  width: 90% !important;
+  max-width: 460px !important;
+  margin: 4rem auto !important;
+  padding: 2.5rem 2rem !important;
+}
+
+@media (max-width: 480px) {
+  .reset-password-card {
+    margin: 2rem auto !important;
+    padding: 1.8rem 1.2rem !important;
+    width: 95% !important;
+  }
+}
+
+/* ── ADMIN TABLE SCROLL MIN-WIDTH ──────────────────────── */
+@media (max-width: 600px) {
+  .admin-table-wrapper table {
+    min-width: 580px;
+  }
+}
+
+/* ── MOBILE DETAILS POLISH ─────────────────────────────── */
+@media (max-width: 640px) {
+  .product-image-box {
+    padding: 0.8rem !important;
+    border-radius: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-dropdown {
+    max-height: 320px !important;
+  }
+}
+

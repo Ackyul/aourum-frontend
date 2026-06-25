@@ -63,7 +63,7 @@ function ResetPasswordContent() {
           boxShadow: "0 12px 32px rgba(212,175,55,0.1)", 
           textAlign: "center" 
         }} 
-        className="fade-in"
+        className="reset-password-card fade-in"
       >
         <div 
           style={{ 
@@ -109,7 +109,7 @@ function ResetPasswordContent() {
         border: "1px solid var(--border-color)", 
         boxShadow: "0 8px 24px rgba(0,0,0,0.02)" 
       }} 
-      className="fade-in"
+      className="reset-password-card fade-in"
     >
       <div style={{ textAlign: "center", marginBottom: "2rem" }}>
         <div 

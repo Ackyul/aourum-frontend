@@ -518,25 +518,7 @@ function AppLayoutShell({ children }) {
 
               {/* Popover dropdown */}
               {mounted && accountDropdownOpen && (
-                <div 
-                  className="glass-panel fade-in"
-                  style={{
-                    position: "absolute",
-                    right: 0,
-                    top: "115%",
-                    width: "290px",
-                    padding: "1.2rem",
-                    zIndex: 1000,
-                    boxShadow: "0 12px 32px rgba(0,0,0,0.08)",
-                    border: "1.5px solid var(--gold-primary)",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "0.8rem",
-                    background: "#FFFFFF",
-                    borderRadius: "12px",
-                    textAlign: "left"
-                  }}
-                >
+                <div className="glass-panel account-popover fade-in">
                   {!activePersonId && (
                     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                       <div style={{ textAlign: "center", paddingBottom: "0.6rem", borderBottom: "1px solid var(--border-color)" }}>
