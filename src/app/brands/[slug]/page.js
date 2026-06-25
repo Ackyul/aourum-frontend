@@ -42,6 +42,7 @@ export default function BrandProfilePage({ params }) {
     handleProductSubmit,
     handleDeleteProduct,
     uploadImage,
+    removeBgAi,
     fairs,
     appFairId,
     setAppFairId,
@@ -92,8 +93,7 @@ export default function BrandProfilePage({ params }) {
   const [imgPos, setImgPos] = useState({ x: 0, y: 0 });
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const [removeBg, setRemoveBg] = useState(false);
-  const [tolerance, setTolerance] = useState(30);
+  const [processingAiBg, setProcessingAiBg] = useState(false);
 
   // States and refs for the manual eraser tool
   const [editorTool, setEditorTool] = useState("move"); // "move" o "erase"
@@ -413,6 +413,28 @@ export default function BrandProfilePage({ params }) {
     const maskCtx = maskCanvasRef.current.getContext("2d");
     maskCtx.clearRect(0, 0, maskCanvasRef.current.width, maskCanvasRef.current.height);
     setMaskUpdateTrigger(prev => prev + 1);
+  };
+
+  const handleRemoveBgAi = async () => {
+    if (!editorSource || processingAiBg) return;
+    setProcessingAiBg(true);
+    try {
+      const transparentImage = await removeBgAi(editorSource);
+      if (transparentImage) {
+        setEditorSource(transparentImage);
+        // Clear the manual eraser mask as they have a fresh new AI background removal
+        if (maskCanvasRef.current) {
+          const maskCtx = maskCanvasRef.current.getContext("2d");
+          maskCtx.clearRect(0, 0, maskCanvasRef.current.width, maskCanvasRef.current.height);
+        }
+        setMaskUpdateTrigger(prev => prev + 1);
+        alert("¡Fondo eliminado con éxito por la IA!");
+      }
+    } catch (err) {
+      console.error("Error al procesar la imagen con la IA:", err);
+    } finally {
+      setProcessingAiBg(false);
+    }
   };
 
   const handleSaveEditor = async () => {
@@ -1002,7 +1024,6 @@ export default function BrandProfilePage({ params }) {
                         setAspectRatio("1:1");
                         setScale(1);
                         setImgPos({ x: 0, y: 0 });
-                        setRemoveBg(false);
                         setEditorTool("move");
                         setBrushSize(30);
                         if (maskCanvasRef.current) {
@@ -1331,37 +1352,44 @@ export default function BrandProfilePage({ params }) {
               </span>
             </div>
 
-            {/* Controles de Eliminación de Fondo */}
+            {/* AI Background Removal Section */}
             <div style={{ background: "var(--bg-input)", padding: "1rem", borderRadius: "8px", marginBottom: "1.5rem", textAlign: "left", border: "1px solid var(--border-color)" }}>
-              <label style={{ display: "flex", alignItems: "center", gap: "10px", fontWeight: 700, fontSize: "0.88rem", cursor: "pointer" }}>
-                <input 
-                  type="checkbox" 
-                  checked={removeBg} 
-                  onChange={(e) => setRemoveBg(e.target.checked)} 
-                  style={{ accentColor: "var(--gold-primary)", width: "16px", height: "16px" }}
-                />
-                <span>🪄 Remover Fondo (Inteligente)</span>
-              </label>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                <span style={{ fontWeight: 700, fontSize: "0.88rem", color: "var(--text-primary)" }}>🪄 Quitar Fondo con IA</span>
+                <span style={{ fontSize: "0.72rem", padding: "2px 6px", borderRadius: "4px", background: "var(--gold-primary)", color: "#FFFFFF", fontWeight: "bold" }}>Local & Gratis</span>
+              </div>
+              <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "0 0 0.8rem 0", lineHeight: 1.4 }}>
+                Aísla tu joya o producto del fondo automáticamente y sin imperfecciones con nuestra Inteligencia Artificial local.
+              </p>
               
-              {removeBg && (
-                <div className="fade-in" style={{ marginTop: "0.8rem" }}>
-                  <label style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", color: "var(--text-muted)" }}>
-                    <span>Tolerancia de color:</span>
-                    <span>{tolerance}</span>
-                  </label>
-                  <input 
-                    type="range" 
-                    min="5" 
-                    max="100" 
-                    value={tolerance} 
-                    onChange={(e) => setTolerance(parseInt(e.target.value))} 
-                    style={{ width: "100%", accentColor: "var(--gold-primary)", cursor: "pointer", marginTop: "4px" }}
-                  />
-                  <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", display: "block", marginTop: "4px" }}>
-                    Tip: Ajusta la tolerancia para eliminar el fondo. Los bordes se suavizan automáticamente y el centro del producto está protegido.
-                  </span>
-                </div>
-              )}
+              <button
+                type="button"
+                onClick={handleRemoveBgAi}
+                disabled={processingAiBg || !editorSource}
+                className="btn-gold"
+                style={{
+                  width: "100%",
+                  padding: "0.65rem",
+                  borderRadius: "8px",
+                  fontSize: "0.85rem",
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  minHeight: "44px"
+                }}
+              >
+                {processingAiBg ? (
+                  <>
+                    <i className="fa-solid fa-circle-notch fa-spin"></i> Procesando con IA...
+                  </>
+                ) : (
+                  <>
+                    <i className="fa-solid fa-wand-magic-sparkles"></i> Eliminar Fondo con IA
+                  </>
+                )}
+              </button>
             </div>
 
             <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>

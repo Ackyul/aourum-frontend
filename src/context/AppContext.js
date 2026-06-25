@@ -297,6 +297,26 @@ export function AppContextProvider({ children }) {
     }
   };
 
+  // AI background removal helper
+  const removeBgAi = async (imageBase64) => {
+    try {
+      const res = await fetch(`${API_URL}/api/remove-bg-ai`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ image: imageBase64 }),
+      });
+      if (!res.ok) throw new Error("Error en la remoción de fondo con IA");
+      const data = await res.json();
+      return data.image; // Returns the base64 transparent image
+    } catch (err) {
+      console.error("Error calling remove-bg-ai API:", err);
+      triggerNotification(false, "No se pudo quitar el fondo con IA. Intenta de nuevo.");
+      return null;
+    }
+  };
+
   // Submit handlers
   const handleProductSubmit = async (e, brandId) => {
     if (e) e.preventDefault();
@@ -956,6 +976,7 @@ export function AppContextProvider({ children }) {
         appFairId, setAppFairId,
         fetchData,
         uploadImage,
+        removeBgAi,
         handleProductSubmit,
         handleDeleteProduct,
         handleDeleteBand,
