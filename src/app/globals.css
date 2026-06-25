@@ -1,5 +1,5 @@
 /* AOURUM Premium Editorial Design System */
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Tenor+Sans&display=swap');
 
 :root {
   --gold-primary: #D4AF37;
@@ -18,7 +18,7 @@
   --text-gold: #B8901D;
   
   --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  --font-display: 'Syne', sans-serif;
+  --font-display: 'Tenor Sans', sans-serif;
   --font-body: 'Space Grotesk', sans-serif;
 
   --header-height: 64px;
