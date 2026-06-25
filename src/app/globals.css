@@ -79,15 +79,15 @@ body {
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-body);
+  font-family: var(--font-display); /* Syne for headers */
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.01em;
 }
 
 .brand-logo {
-  font-family: var(--font-display);
-  font-weight: 800;
+  font-family: var(--font-display); /* Syne for brand logo */
+  font-weight: 600; /* Syne SemiBold 600 */
   letter-spacing: 0.15em;
   color: var(--text-primary);
 }
