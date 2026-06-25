@@ -1251,3 +1251,22 @@ header {
     font-size: 0.78rem !important;
   }
 }
+
+/* ── IMAGE EDITOR MODAL RESPONSIVE PANEL ────────────────── */
+.image-editor-panel {
+  max-width: 500px !important;
+  text-align: center;
+  border: 1.5px solid var(--gold-primary) !important;
+  background: #FFFFFF !important;
+}
+
+@media (max-width: 480px) {
+  .image-editor-panel {
+    max-width: 100% !important;
+    border-radius: 24px 24px 0 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    padding: 1.5rem 1.2rem !important;
+  }
+}

@@ -1043,7 +1043,7 @@ export default function BrandProfilePage({ params }) {
       {editorOpen && (
         <div className="modal-overlay" style={{ zIndex: 1200 }}>
           <div className="modal-backdrop" onClick={() => setEditorOpen(false)}></div>
-          <div className="modal-panel fade-in" style={{ maxWidth: "500px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", textAlign: "center" }}>
+          <div className="modal-panel image-editor-panel fade-in">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
               <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0 }}>
                 ✨ Editor de Imagen
@@ -1112,6 +1112,7 @@ export default function BrandProfilePage({ params }) {
                   }
                 }}
                 onTouchStart={(e) => {
+                  e.preventDefault();
                   if (editorTool === "move") {
                     const touch = e.touches[0];
                     setIsDragging(true);
@@ -1121,6 +1122,7 @@ export default function BrandProfilePage({ params }) {
                   }
                 }}
                 onTouchMove={(e) => {
+                  e.preventDefault();
                   if (editorTool === "move") {
                     if (!isDragging) return;
                     const touch = e.touches[0];
@@ -1281,8 +1283,8 @@ export default function BrandProfilePage({ params }) {
                     background: "var(--bg-input)",
                     border: "1px solid var(--border-color)",
                     borderRadius: "6px",
-                    width: "32px",
-                    height: "32px",
+                    width: "38px",
+                    height: "38px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -1310,8 +1312,8 @@ export default function BrandProfilePage({ params }) {
                     background: "var(--bg-input)",
                     border: "1px solid var(--border-color)",
                     borderRadius: "6px",
-                    width: "32px",
-                    height: "32px",
+                    width: "38px",
+                    height: "38px",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -1367,7 +1369,7 @@ export default function BrandProfilePage({ params }) {
                 type="button" 
                 onClick={() => setEditorOpen(false)} 
                 className="btn-outline-gold"
-                style={{ padding: "0.5rem 1.2rem", borderRadius: "6px", fontSize: "0.85rem" }}
+                style={{ padding: "0.65rem 1.4rem", borderRadius: "8px", fontSize: "0.88rem", fontWeight: 600 }}
               >
                 Cancelar
               </button>
@@ -1375,7 +1377,7 @@ export default function BrandProfilePage({ params }) {
                 type="button" 
                 onClick={handleSaveEditor} 
                 className="btn-gold" 
-                style={{ padding: "0.5rem 1.4rem", borderRadius: "6px", fontSize: "0.85rem", fontWeight: 700 }}
+                style={{ padding: "0.65rem 1.8rem", borderRadius: "8px", fontSize: "0.88rem", fontWeight: 700 }}
               >
                 Guardar
               </button>
