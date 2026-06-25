@@ -1106,83 +1106,7 @@ export default function BrandProfilePage({ params }) {
               />
             </div>
 
-            {/* Selector de Herramienta de Edición */}
-            <div className="form-group" style={{ marginBottom: "1.2rem", textAlign: "left" }}>
-              <label style={{ fontSize: "0.85rem", fontWeight: 700, display: "block", marginBottom: "0.5rem", color: "var(--text-primary)" }}>
-                🛠️ Modo de Edición:
-              </label>
-              <div style={{ display: "flex", gap: "10px" }}>
-                <button
-                  type="button"
-                  onClick={() => setEditorTool("move")}
-                  className={editorTool === "move" ? "btn-gold" : "btn-outline-gold"}
-                  style={{
-                    flex: 1,
-                    padding: "0.5rem",
-                    borderRadius: "8px",
-                    fontSize: "0.82rem",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "6px"
-                  }}
-                >
-                  <i className="fa-solid fa-up-down-left-right"></i> Mover / Escalar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditorTool("erase")}
-                  className={editorTool === "erase" ? "btn-gold" : "btn-outline-gold"}
-                  style={{
-                    flex: 1,
-                    padding: "0.5rem",
-                    borderRadius: "8px",
-                    fontSize: "0.82rem",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "6px"
-                  }}
-                >
-                  <i className="fa-solid fa-eraser"></i> Borrador Manual
-                </button>
-              </div>
-            </div>
 
-            {/* Controles de Borrador Manual */}
-            {editorTool === "erase" && (
-              <div className="fade-in" style={{ marginBottom: "1.2rem", background: "var(--bg-input)", padding: "1rem", borderRadius: "8px", border: "1px solid var(--border-color)", textAlign: "left" }}>
-                <label style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary)" }}>
-                  <span>Tamaño del Borrador:</span>
-                  <span style={{ color: "var(--gold-primary)", fontWeight: 800 }}>{brushSize}px</span>
-                </label>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "6px" }}>
-                  <input
-                    type="range"
-                    min="10"
-                    max="100"
-                    value={brushSize}
-                    onChange={(e) => setBrushSize(parseInt(e.target.value))}
-                    style={{ flex: 1, accentColor: "var(--gold-primary)", cursor: "pointer" }}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleResetEraser}
-                    className="btn-outline-gold"
-                    style={{ padding: "4px 10px", fontSize: "0.75rem", borderRadius: "6px", fontWeight: 700, whiteSpace: "nowrap" }}
-                  >
-                    Restablecer
-                  </button>
-                </div>
-                <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", display: "block", marginTop: "6px" }}>
-                  Tip: Pasa el dedo o el cursor sobre la imagen para borrar manualmente las partes que desees quitar.
-                </span>
-              </div>
-            )}
 
             {/* Opciones de Medida / Proporción de Recorte */}
             <div className="form-group" style={{ marginBottom: "1.2rem", textAlign: "left" }}>
@@ -1293,45 +1217,7 @@ export default function BrandProfilePage({ params }) {
               </span>
             </div>
 
-            {/* AI Background Removal Section */}
-            <div style={{ background: "var(--bg-input)", padding: "1rem", borderRadius: "8px", marginBottom: "1.5rem", textAlign: "left", border: "1px solid var(--border-color)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-                <span style={{ fontWeight: 700, fontSize: "0.88rem", color: "var(--text-primary)" }}>🪄 Quitar Fondo con IA</span>
-                <span style={{ fontSize: "0.72rem", padding: "2px 6px", borderRadius: "4px", background: "var(--gold-primary)", color: "#FFFFFF", fontWeight: "bold" }}>Local & Gratis</span>
-              </div>
-              <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "0 0 0.8rem 0", lineHeight: 1.4 }}>
-                Aísla tu joya o producto del fondo automáticamente y sin imperfecciones con nuestra Inteligencia Artificial local.
-              </p>
-              
-              <button
-                type="button"
-                onClick={handleRemoveBgAi}
-                disabled={processingAiBg || !editorSource}
-                className="btn-gold"
-                style={{
-                  width: "100%",
-                  padding: "0.65rem",
-                  borderRadius: "8px",
-                  fontSize: "0.85rem",
-                  fontWeight: 700,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px",
-                  minHeight: "44px"
-                }}
-              >
-                {processingAiBg ? (
-                  <>
-                    <i className="fa-solid fa-circle-notch fa-spin"></i> Procesando con IA...
-                  </>
-                ) : (
-                  <>
-                    <i className="fa-solid fa-wand-magic-sparkles"></i> Eliminar Fondo con IA
-                  </>
-                )}
-              </button>
-            </div>
+
 
             <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
               <button 
