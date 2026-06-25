@@ -889,6 +889,19 @@ export default function BrandProfilePage({ params }) {
                   <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block", marginTop: "-3px", marginBottom: "5px" }}>
                     Proporción recomendada: Cuadrada (1:1, ej. 800x800 px) o 4:3
                   </span>
+                  <div style={{ marginTop: "2px", marginBottom: "8px", display: "flex", alignItems: "center", gap: "4px" }}>
+                    <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px" }}>
+                      💡 Recomendamos para quitar fondo usar esta herramienta: 
+                      <a 
+                        href="https://www.photoroom.com/es/tools/background-remover" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        style={{ color: "var(--text-gold)", fontWeight: 700, textDecoration: "underline" }}
+                      >
+                        Photoroom
+                      </a>
+                    </span>
+                  </div>
                   <label
                     htmlFor="prod-img-upload"
                     style={{

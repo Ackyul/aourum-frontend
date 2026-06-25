@@ -81,7 +81,7 @@ function AppLayoutShell({ children }) {
     activeOrganizerId, setActiveOrganizerId,
     activeBandId, setActiveBandId,
     activePersonId, setActivePersonId,
-    brands, organizers, bands, people,
+    products, brands, organizers, bands, people,
     searchTerm, setSearchTerm,
     getCurrentBrand, getCurrentOrganizer, getCurrentBand, getCurrentPerson,
     forgotPassword,
@@ -94,6 +94,20 @@ function AppLayoutShell({ children }) {
   }, []);
 
   const [activeEditTab, setActiveEditTab] = useState("basic");
+
+  const [searchUsers, setSearchUsers] = useState(false);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const searchContainerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setShowSearchDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (editProfileOpen) {
@@ -220,20 +234,200 @@ function AppLayoutShell({ children }) {
             </div>
             <div className="hide-on-mobile">
               <h1 className="brand-logo" style={{ fontSize: "1.25rem", margin: 0 }}>AOURUM</h1>
-              <span style={{ display: "block", fontSize: "0.58rem", color: "var(--text-muted)", letterSpacing: "0.1rem", textTransform: "uppercase", fontWeight: 600 }}>Mercado Virtual</span>
             </div>
             <span className="show-on-mobile" style={{ fontFamily: "'Cinzel', serif", fontWeight: 800, fontSize: "1.1rem", color: "var(--text-primary)", letterSpacing: "0.05em" }}>AOURUM</span>
           </Link>
 
           {/* Search bar */}
-          <div className="header-search">
+          <div className="header-search" ref={searchContainerRef}>
             <i className="fa-solid fa-magnifying-glass search-icon"></i>
             <input 
               type="text"
               placeholder="Buscar..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setShowSearchDropdown(true);
+              }}
+              onFocus={() => setShowSearchDropdown(true)}
             />
+            
+            {/* Search Dropdown */}
+            {showSearchDropdown && searchTerm.trim() !== "" && (
+              <div className="search-dropdown">
+                <div className="search-dropdown-header">
+                  <span style={{ color: "var(--text-muted)", fontSize: "0.75rem", fontWeight: 600 }}>BÚSQUEDA GLOBAL</span>
+                  <label className="search-dropdown-toggle-label">
+                    <input 
+                      type="checkbox" 
+                      className="search-dropdown-toggle-input"
+                      checked={searchUsers}
+                      onChange={(e) => setSearchUsers(e.target.checked)}
+                    />
+                    <span>Buscar usuarios</span>
+                  </label>
+                </div>
+                
+                <div style={{ maxHeight: "360px", overflowY: "auto" }}>
+                  {searchUsers ? (
+                    // MODE: Search Users
+                    <>
+                      {(() => {
+                        const query = searchTerm.toLowerCase().trim();
+                        const matchingUsers = people.filter(p => 
+                          (p.name && p.name.toLowerCase().includes(query)) ||
+                          (p.lastName && p.lastName.toLowerCase().includes(query)) ||
+                          (p.username && p.username.toLowerCase().includes(query))
+                        );
+                        
+                        if (matchingUsers.length === 0) {
+                          return (
+                            <div className="search-dropdown-no-results">
+                              <i className="fa-solid fa-user-slash" style={{ fontSize: "1.5rem", color: "var(--text-muted)", marginBottom: "6px" }}></i>
+                              <span>No se encontraron perfiles de usuario.</span>
+                            </div>
+                          );
+                        }
+                        
+                        return (
+                          <div className="search-dropdown-section">
+                            <div className="search-dropdown-section-title">Usuarios y Perfiles</div>
+                            {matchingUsers.map(person => (
+                              <div 
+                                key={person.id}
+                                className="search-dropdown-item"
+                                onClick={() => {
+                                  setSearchTerm("");
+                                  setShowSearchDropdown(false);
+                                  router.push(`/people/${person.username || person.id}`);
+                                }}
+                              >
+                                <img 
+                                  src={person.logo || "/dummy.png"} 
+                                  alt={person.name} 
+                                  className="search-dropdown-item-avatar"
+                                  onError={(e) => { e.target.src = "/dummy.png"; }}
+                                />
+                                <div className="search-dropdown-item-info">
+                                  <div className="search-dropdown-item-name">{person.name} {person.lastName || ""}</div>
+                                  <div className="search-dropdown-item-sub">@{person.username || `user_${person.id}`}</div>
+                                </div>
+                                <i className="fa-solid fa-chevron-right" style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.2)", marginLeft: "auto" }}></i>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
+                    </>
+                  ) : (
+                    // MODE: Search Products & Brands
+                    <>
+                      {(() => {
+                        const query = searchTerm.toLowerCase().trim();
+                        
+                        // 1. Filter Products (limit to 5)
+                        const matchingProducts = products.filter(prod => 
+                          (prod.name && prod.name.toLowerCase().includes(query)) ||
+                          (prod.description && prod.description.toLowerCase().includes(query))
+                        );
+                        const limitedProducts = matchingProducts.slice(0, 5);
+                        
+                        // 2. Filter Brands with similar names
+                        const matchingBrands = brands.filter(brand => 
+                          brand.name && brand.name.toLowerCase().includes(query)
+                        );
+                        
+                        if (limitedProducts.length === 0 && matchingBrands.length === 0) {
+                          return (
+                            <div className="search-dropdown-no-results">
+                              <i className="fa-solid fa-store-slash" style={{ fontSize: "1.5rem", color: "var(--text-muted)", marginBottom: "6px" }}></i>
+                              <span>No se encontraron productos ni marcas.</span>
+                            </div>
+                          );
+                        }
+                        
+                        return (
+                          <>
+                            {/* Products Section */}
+                            {limitedProducts.length > 0 && (
+                              <div className="search-dropdown-section">
+                                <div className="search-dropdown-section-title">Productos ({matchingProducts.length})</div>
+                                {limitedProducts.map(prod => (
+                                  <div 
+                                    key={prod.id}
+                                    className="search-dropdown-item"
+                                    onClick={() => {
+                                      setSearchTerm("");
+                                      setShowSearchDropdown(false);
+                                      router.push(`/products/${prod.slug || prod.id}`);
+                                    }}
+                                  >
+                                    <img 
+                                      src={prod.image || "/dummy.png"} 
+                                      alt={prod.name} 
+                                      className="search-dropdown-item-img"
+                                      onError={(e) => { e.target.src = "/dummy.png"; }}
+                                    />
+                                    <div className="search-dropdown-item-info">
+                                      <div className="search-dropdown-item-name">{prod.name}</div>
+                                      <div className="search-dropdown-item-sub">
+                                        Por {brands.find(b => b.id === prod.brandId)?.name || "Marca Local"}
+                                      </div>
+                                    </div>
+                                    <div className="search-dropdown-item-price">
+                                      {prod.priceAourum ? (
+                                        <>
+                                          <span>S/ {prod.priceAourum.toLocaleString("es-PE")}</span>
+                                          <span className="search-dropdown-item-price-original">
+                                            S/ {prod.price.toLocaleString("es-PE")}
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <span>S/ {prod.price.toLocaleString("es-PE")}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            
+                            {/* Brands Section (similar names) */}
+                            {matchingBrands.length > 0 && (
+                              <div className="search-dropdown-section">
+                                <div className="search-dropdown-section-title">Marcas Similares</div>
+                                {matchingBrands.map(brand => (
+                                  <div 
+                                    key={brand.id}
+                                    className="search-dropdown-item"
+                                    onClick={() => {
+                                      setSearchTerm("");
+                                      setShowSearchDropdown(false);
+                                      router.push(`/brands/${brand.slug || brand.id}`);
+                                    }}
+                                  >
+                                    <img 
+                                      src={brand.logo || "/dummy.png"} 
+                                      alt={brand.name} 
+                                      className="search-dropdown-item-avatar"
+                                      onError={(e) => { e.target.src = "/dummy.png"; }}
+                                    />
+                                    <div className="search-dropdown-item-info">
+                                      <div className="search-dropdown-item-name">{brand.name}</div>
+                                      <div className="search-dropdown-item-sub">{brand.category || "Marca Local"}</div>
+                                    </div>
+                                    <i className="fa-solid fa-chevron-right" style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.2)", marginLeft: "auto" }}></i>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Nav links (desktop only) + account button */}
@@ -586,42 +780,57 @@ function AppLayoutShell({ children }) {
 
               <div className="form-group">
                 <label>Foto de Portada / Logotipo de Perfil</label>
-                <label
-                  htmlFor="profile-logo-upload"
-                  style={{
-                    display: "flex", alignItems: "center", gap: "12px",
-                    border: "2px dashed var(--border-color)", borderRadius: "8px",
-                    padding: "0.8rem", cursor: "pointer", transition: "var(--transition-smooth)",
-                    background: "var(--bg-input)"
-                  }}
-                >
-                  {regLogoPreview ? (
-                    <img src={regLogoPreview} alt="preview" style={{ width: "48px", height: "48px", objectFit: "cover", borderRadius: "50%", border: "1.5px solid var(--border-color)" }} />
-                  ) : (
-                    <div style={{ width: "48px", height: "48px", background: "rgba(212,175,55,0.1)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <i className="fa-solid fa-camera" style={{ color: "var(--gold-primary)", fontSize: "1.1rem" }}></i>
-                    </div>
-                  )}
-                  <div>
-                    <span style={{ fontSize: "0.82rem", fontWeight: 700, display: "block" }}>
-                      {regLogoPreview ? "Imagen lista ✓" : "Haz clic para subir foto o logo"}
-                    </span>
-                    <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>Formatos JPG, PNG, WEBP — máx 8 MB</span>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", border: "1px dashed var(--border-color)", padding: "1.5rem", borderRadius: "8px", alignItems: "center", background: "#FFFFFF" }}>
+                  <div style={{ display: "flex", gap: "1rem", alignItems: "center", justifyContent: "center", cursor: "pointer", width: "100%" }}>
+                    <label
+                      htmlFor="profile-logo-upload"
+                      style={{
+                        display: "flex", alignItems: "center", gap: "12px",
+                        cursor: "pointer", transition: "var(--transition-smooth)"
+                      }}
+                    >
+                      {regLogoPreview ? (
+                        <img src={regLogoPreview} alt="preview" style={{ width: "48px", height: "48px", objectFit: "cover", borderRadius: "50%", border: "1.5px solid var(--border-color)" }} />
+                      ) : (
+                        <div style={{ width: "48px", height: "48px", background: "rgba(212,175,55,0.1)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <i className="fa-solid fa-camera" style={{ color: "var(--gold-primary)", fontSize: "1.1rem" }}></i>
+                        </div>
+                      )}
+                      <div>
+                        <span style={{ fontSize: "0.82rem", fontWeight: 700, display: "block" }}>
+                          {regLogoPreview ? "Imagen lista ✓" : "Haz clic para subir foto o logo"}
+                        </span>
+                        <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>Formatos JPG, PNG, WEBP — máx 8 MB</span>
+                      </div>
+                    </label>
+                    <input 
+                      id="profile-logo-upload" 
+                      type="file" 
+                      accept="image/*" 
+                      style={{ display: "none" }} 
+                      onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        setRegLogoPreview(URL.createObjectURL(file));
+                        const url = await uploadImage(file, setUploadingReg);
+                        if (url) setRegLogo(url);
+                      }}
+                    />
                   </div>
-                </label>
-                <input 
-                  id="profile-logo-upload" 
-                  type="file" 
-                  accept="image/*" 
-                  style={{ display: "none" }} 
-                  onChange={async (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    setRegLogoPreview(URL.createObjectURL(file));
-                    const url = await uploadImage(file, setUploadingReg);
-                    if (url) setRegLogo(url);
-                  }}
-                />
+                  <div style={{ marginTop: "4px", display: "flex", alignItems: "center", gap: "6px", justifyContent: "center" }}>
+                    <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px" }}>
+                      💡 Recomendamos para quitar fondo usar esta herramienta: 
+                      <a 
+                        href="https://www.photoroom.com/es/tools/background-remover" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        style={{ color: "var(--text-gold)", fontWeight: 700, textDecoration: "underline" }}
+                      >
+                        Photoroom
+                      </a>
+                    </span>
+                  </div>
+                </div>
               </div>
 
               <div className="form-group">
@@ -938,6 +1147,19 @@ function AppLayoutShell({ children }) {
                           <i className="fa-solid fa-upload" style={{ marginRight: 6 }}></i> {uploadingEdit ? "Subiendo..." : "Cambiar imagen"}
                         </label>
                         <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "6px" }}>JPG, PNG o WEBP — máx 8 MB</p>
+                        <div style={{ marginTop: "6px", display: "flex", alignItems: "center", gap: "4px" }}>
+                          <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
+                            💡 Recomendamos para quitar fondo usar esta herramienta: 
+                            <a 
+                              href="https://www.photoroom.com/es/tools/background-remover" 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              style={{ color: "var(--text-gold)", fontWeight: 700, textDecoration: "underline", marginLeft: "4px" }}
+                            >
+                              Photoroom
+                            </a>
+                          </span>
+                        </div>
                       </div>
                     </div>
                     <input 
