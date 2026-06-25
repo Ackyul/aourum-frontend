@@ -177,108 +177,6 @@ export default function BrandProfilePage({ params }) {
       
       ctx.drawImage(img, x, y, drawW, drawH);
       
-      if (removeBg) {
-        const imgData = ctx.getImageData(0, 0, canvasW, canvasH);
-        const data = imgData.data;
-        
-        const getPixel = (pixelData, px, py) => {
-          const idx = (py * canvasW + px) * 4;
-          return { r: pixelData[idx], g: pixelData[idx+1], b: pixelData[idx+2] };
-        };
-
-        // 1. Clustered border sampling: sample along the perimeter to build a robust background color model
-        const zones = [
-          { r: 0, g: 0, b: 0, count: 0 }, // Top-Left
-          { r: 0, g: 0, b: 0, count: 0 }, // Top-Right
-          { r: 0, g: 0, b: 0, count: 0 }, // Bottom-Left
-          { r: 0, g: 0, b: 0, count: 0 }  // Bottom-Right
-        ];
-        
-        const sampleStep = 20; // Sample every 20 pixels along borders
-        
-        const addSample = (px, py) => {
-          const p = getPixel(data, px, py);
-          if (!p) return;
-          const isRight = px > canvasW / 2;
-          const isBottom = py > canvasH / 2;
-          const zoneIdx = (isBottom ? 2 : 0) + (isRight ? 1 : 0);
-          
-          zones[zoneIdx].r += p.r;
-          zones[zoneIdx].g += p.g;
-          zones[zoneIdx].b += p.b;
-          zones[zoneIdx].count++;
-        };
-        
-        // Sample perimeter
-        for (let px = 0; px < canvasW; px += sampleStep) {
-          addSample(px, 0);
-          addSample(px, canvasH - 1);
-        }
-        for (let py = sampleStep; py < canvasH - sampleStep; py += sampleStep) {
-          addSample(0, py);
-          addSample(canvasW - 1, py);
-        }
-        
-        // Calculate average background color for the 4 zones
-        const bgColors = [];
-        zones.forEach(z => {
-          if (z.count > 0) {
-            bgColors.push({
-              r: Math.round(z.r / z.count),
-              g: Math.round(z.g / z.count),
-              b: Math.round(z.b / z.count)
-            });
-          }
-        });
-
-        const centerX = canvasW / 2;
-        const centerY = canvasH / 2;
-        const maxRadiusSq = centerX * centerX + centerY * centerY;
-        const feather = 12; // Width of the soft edge transition zone
-        
-        for (let py = 0; py < canvasH; py++) {
-          for (let px = 0; px < canvasW; px++) {
-            const idx = (py * canvasW + px) * 4;
-            const r = data[idx];
-            const g = data[idx+1];
-            const b = data[idx+2];
-            
-            // Find minimum squared perceptual color distance to any background zone
-            let minSqDist = Infinity;
-            for (let k = 0; k < bgColors.length; k++) {
-              const bg = bgColors[k];
-              const rDiff = r - bg.r;
-              const gDiff = g - bg.g;
-              const bDiff = b - bg.b;
-              // Human eye weighted color distance squared
-              const sqD = 0.299 * rDiff * rDiff + 0.587 * gDiff * gDiff + 0.114 * bDiff * bDiff;
-              if (sqD < minSqDist) {
-                minSqDist = sqD;
-              }
-            }
-            
-            const minDist = Math.sqrt(minSqDist);
-            
-            // 2. Radial Protection: protect the centered product from accidental erasure.
-            // Tolerance is lower in the center (40%) and scales up quadratically to the borders (100%).
-            const dx = px - centerX;
-            const dy = py - centerY;
-            const sqDistFromCenter = (dx * dx + dy * dy) / maxRadiusSq;
-            const localTolerance = tolerance * (0.4 + 0.6 * sqDistFromCenter);
-            
-            // 3. Feathering (Soft anti-aliased edges instead of harsh pixelated cutoffs)
-            if (minDist < localTolerance - feather) {
-              data[idx+3] = 0; // Fully transparent background
-            } else if (minDist < localTolerance + feather) {
-              const ratio = (minDist - (localTolerance - feather)) / (2 * feather);
-              data[idx+3] = Math.round(ratio * 255);
-            }
-            // Else: leave fully opaque
-          }
-        }
-        ctx.putImageData(imgData, 0, 0);
-      }
-      
       // Apply the manual eraser mask if it exists (cuts out transparency over the image)
       if (maskCanvasRef.current) {
         ctx.globalCompositeOperation = 'destination-out';
@@ -287,7 +185,7 @@ export default function BrandProfilePage({ params }) {
       }
     };
     img.src = editorSource;
-  }, [editorOpen, editorSource, aspectRatio, scale, imgPos, removeBg, tolerance, maskUpdateTrigger]);
+  }, [editorOpen, editorSource, aspectRatio, scale, imgPos, maskUpdateTrigger]);
 
   // Helper to get relative canvas coordinates (handles mouse and touch)
   const getCanvasCoords = (e, rect) => {
