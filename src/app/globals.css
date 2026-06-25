@@ -1,5 +1,5 @@
 /* AOURUM Premium Editorial Design System */
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Tenor+Sans&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400&family=Tenor+Sans&display=swap');
 
 :root {
   --gold-primary: #D4AF37;
@@ -79,15 +79,15 @@ body {
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display); /* Syne for headers */
+  font-family: var(--font-display); /* Tenor Sans for headers */
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.01em;
 }
 
 .brand-logo {
-  font-family: var(--font-display); /* Syne for brand logo */
-  font-weight: 600; /* Syne SemiBold 600 */
+  font-family: 'Syne', sans-serif; /* Syne for brand name logo */
+  font-weight: 400; /* Syne Regular 400 */
   letter-spacing: 0.15em;
   color: var(--text-primary);
 }
