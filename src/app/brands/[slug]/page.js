@@ -84,6 +84,7 @@ export default function BrandProfilePage({ params }) {
   const [personSearchQuery, setPersonSearchQuery] = useState("");
   const [showPersonDropdown, setShowPersonDropdown] = useState(false);
   const [selectedPersonId, setSelectedPersonId] = useState("");
+  const [adminCatalogOpen, setAdminCatalogOpen] = useState(false);
 
   // States for the interactive image editor
   const [editorOpen, setEditorOpen] = useState(false);
@@ -105,7 +106,7 @@ export default function BrandProfilePage({ params }) {
 
   // Lock background scroll when any modal is open
   useEffect(() => {
-    const isModalOpen = prodFormOpen || editorOpen || showFairs || showCollabs;
+    const isModalOpen = prodFormOpen || editorOpen || showFairs || showCollabs || adminCatalogOpen;
     if (isModalOpen) {
       document.documentElement.style.overflow = "hidden";
       document.body.style.overflow = "hidden";
@@ -545,6 +546,23 @@ export default function BrandProfilePage({ params }) {
                    </button>
                  )}
                  {canEditProfile && (
+                   <>
+                   <button
+                    onClick={() => setProdFormOpen(true)}
+                    className="btn-gold"
+                    style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                  >
+                    <i className="fa-solid fa-plus"></i> Añadir Item
+                  </button>
+                  {brandProducts.length > 0 && (
+                    <button
+                      onClick={() => setAdminCatalogOpen(true)}
+                      className="btn-outline-gold"
+                      style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                    >
+                      <i className="fa-solid fa-list-check"></i> Administrar Catálogo
+                    </button>
+                  )}
                    <button
                      onClick={handleEditClick}
                      className="btn-outline-gold"
@@ -552,6 +570,7 @@ export default function BrandProfilePage({ params }) {
                    >
                      <i className="fa-solid fa-gear"></i> Editar Perfil
                    </button>
+                   </>
                  )}
                </div>
              )}
@@ -664,77 +683,7 @@ export default function BrandProfilePage({ params }) {
 
           {/* Formulario de creación/edición de producto en Ventana Superpuesta (Modal) se trasladó al final del archivo */}
 
-          {/* Modal del Editor de Imagen se trasladó al final del archivo */}
-
-          {/* Tabla de administración del catálogo si es dueño */}
-          {isOwner && brandProducts.length > 0 && (
-            <div className="glass-panel" style={{ padding: "1.5rem", marginTop: "1.5rem", marginBottom: "1.5rem" }}>
-              <h3 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "1rem" }}><i className="fa-solid fa-list-check" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i>Administrar Items en Catálogo</h3>
-              <div className="admin-table-wrapper" style={{ overflowX: "auto" }}>
-
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem" }}>
-                  <thead>
-                    <tr style={{ borderBottom: "1px solid var(--border-color)", textAlign: "left", color: "var(--text-muted)", fontSize: "0.78rem", textTransform: "uppercase" }}>
-                      <th style={{ padding: "0.8rem 0" }}>Foto</th>
-                      <th>Nombre</th>
-                      <th>Tipo</th>
-                      <th>Precio</th>
-                      <th>Stock</th>
-                      <th style={{ textAlign: "right" }}>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {brandProducts.map((prod) => (
-                      <tr key={prod.id} style={{ borderBottom: "1px solid rgba(0,0,0,0.04)" }}>
-                        <td style={{ padding: "0.6rem 0" }}>
-                          <img src={prod.image} alt={prod.name} style={{ width: "42px", height: "42px", objectFit: "cover", borderRadius: "6px", border: "1px solid var(--border-color)" }} />
-                        </td>
-                        <td style={{ fontWeight: 700 }}>{prod.name}</td>
-                        <td>
-                          <span style={{ fontSize: "0.72rem", padding: "3px 6px", borderRadius: "4px", color: "#FFFFFF", fontWeight: "bold", background: prod.type === "service" ? "#2563eb" : "#d97706" }}>
-                            {prod.type === "service" ? "Servicio" : "Producto"}
-                          </span>
-                        </td>
-                        <td style={{ fontWeight: "bold" }}>
-                          {prod.priceAourum ? (
-                            <div>
-                              <span style={{ color: "var(--text-gold)" }}>S/ {prod.priceAourum.toLocaleString("es-PE")}</span>
-                              <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textDecoration: "line-through", marginLeft: "6px" }}>
-                                S/ {prod.price.toLocaleString("es-PE")}
-                              </span>
-                            </div>
-                          ) : (
-                            <span>S/ {prod.price.toLocaleString("es-PE")}</span>
-                          )}
-                        </td>
-                        <td>{prod.type === "service" ? "Por Agenda" : (prod.stock == null ? "Ilimitado / Opcional" : prod.stock)}</td>
-                        <td style={{ textAlign: "right" }}>
-                          <button 
-                            onClick={() => {
-                              setEditingProdId(prod.id); 
-                              setProdName(prod.name); setProdDescription(prod.description); setProdPrice(prod.price);
-                              setProdPriceAourum(prod.priceAourum == null ? "" : prod.priceAourum);
-                              setProdStock(prod.stock == null ? "" : prod.stock); setProdCategory(prod.category); setProdType(prod.type);
-                              setProdImage(prod.image); setProdImagePreview(prod.image); setProdFormOpen(true);
-                            }}
-                            style={{ background: "transparent", border: "none", color: "var(--gold-dark)", cursor: "pointer", marginRight: "1rem", fontWeight: 700 }}
-                          >
-                            Editar
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteProduct(prod.id)}
-                            style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", fontWeight: 700 }}
-                          >
-                            Eliminar
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+          {/* El panel de administración de catálogo ahora se renderiza como una ventana modal sobrepuesta al final del archivo */}
 
           {brandProducts.length === 0 ? (
             <div style={{ textAlign: "center", padding: "3rem 0", color: "var(--text-muted)" }}>
@@ -833,7 +782,7 @@ export default function BrandProfilePage({ params }) {
       {/* ── VENTANAS SUPERPUESTAS (MODALS) RENDERIZADAS A NIVEL DE RAÍZ DEL COMPONENTE ── */}
       {/* 1. Formulario de creación/edición de producto en Ventana Superpuesta (Modal) */}
       {isOwner && prodFormOpen && (
-        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+        <div className="modal-overlay" style={{ zIndex: 1200 }}>
           <div className="modal-backdrop" onClick={() => { setProdFormOpen(false); setEditingProdId(null); }}></div>
           <div className="modal-panel fade-in" style={{ maxWidth: "750px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
@@ -1024,7 +973,7 @@ export default function BrandProfilePage({ params }) {
 
       {/* 2. Modal del Editor de Imagen (Recorte y Eliminación de Fondo) */}
       {editorOpen && (
-        <div className="modal-overlay" style={{ zIndex: 1200 }}>
+        <div className="modal-overlay" style={{ zIndex: 1300 }}>
           <div className="modal-backdrop" onClick={() => setEditorOpen(false)}></div>
           <div className="modal-panel image-editor-panel fade-in">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
@@ -1534,6 +1483,100 @@ export default function BrandProfilePage({ params }) {
                   );
                 })()}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. Modal de administración del catálogo (tabla) */}
+      {isOwner && adminCatalogOpen && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+          <div className="modal-backdrop" onClick={() => setAdminCatalogOpen(false)}></div>
+          <div className="modal-panel fade-in" style={{ maxWidth: "850px", width: "95%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+              <h3 style={{ fontSize: "1.20rem", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+                <i className="fa-solid fa-list-check" style={{ color: "var(--gold-primary)" }}></i>
+                Administrar Items en Catálogo
+              </h3>
+              <button 
+                onClick={() => setAdminCatalogOpen(false)} 
+                style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
+              >
+                &times;
+              </button>
+            </div>
+            
+            <div className="admin-table-wrapper" style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.88rem" }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid var(--border-color)", textAlign: "left", color: "var(--text-muted)", fontSize: "0.78rem", textTransform: "uppercase" }}>
+                    <th style={{ padding: "0.8rem 0" }}>Foto</th>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Precio</th>
+                    <th>Stock</th>
+                    <th style={{ textAlign: "right" }}>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {brandProducts.map((prod) => (
+                    <tr key={prod.id} style={{ borderBottom: "1px solid rgba(0,0,0,0.04)" }}>
+                      <td style={{ padding: "0.6rem 0" }}>
+                        <img src={prod.image} alt={prod.name} style={{ width: "42px", height: "42px", objectFit: "cover", borderRadius: "6px", border: "1px solid var(--border-color)" }} />
+                      </td>
+                      <td style={{ fontWeight: 700 }}>{prod.name}</td>
+                      <td>
+                        <span style={{ fontSize: "0.72rem", padding: "3px 6px", borderRadius: "4px", color: "#FFFFFF", fontWeight: "bold", background: prod.type === "service" ? "#2563eb" : "#d97706" }}>
+                          {prod.type === "service" ? "Servicio" : "Producto"}
+                        </span>
+                      </td>
+                      <td style={{ fontWeight: "bold" }}>
+                        {prod.priceAourum ? (
+                          <div>
+                            <span style={{ color: "var(--text-gold)" }}>S/ {prod.priceAourum.toLocaleString("es-PE")}</span>
+                            <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textDecoration: "line-through", marginLeft: "6px" }}>
+                              S/ {prod.price.toLocaleString("es-PE")}
+                            </span>
+                          </div>
+                        ) : (
+                          <span>S/ {prod.price.toLocaleString("es-PE")}</span>
+                        )}
+                      </td>
+                      <td>{prod.type === "service" ? "Por Agenda" : (prod.stock == null ? "Ilimitado / Opcional" : prod.stock)}</td>
+                      <td style={{ textAlign: "right" }}>
+                        <button 
+                          onClick={() => {
+                            setEditingProdId(prod.id); 
+                            setProdName(prod.name); setProdDescription(prod.description); setProdPrice(prod.price);
+                            setProdPriceAourum(prod.priceAourum == null ? "" : prod.priceAourum);
+                            setProdStock(prod.stock == null ? "" : prod.stock); setProdCategory(prod.category); setProdType(prod.type);
+                            setProdImage(prod.image); setProdImagePreview(prod.image); setProdFormOpen(true);
+                          }}
+                          style={{ background: "transparent", border: "none", color: "var(--gold-dark)", cursor: "pointer", marginRight: "1rem", fontWeight: 700 }}
+                        >
+                          Editar
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteProduct(prod.id)}
+                          style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", fontWeight: 700 }}
+                        >
+                          Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1.5rem" }}>
+              <button 
+                onClick={() => setAdminCatalogOpen(false)} 
+                className="btn-gold" 
+                style={{ padding: "0.5rem 1.4rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700 }}
+              >
+                Cerrar
+              </button>
             </div>
           </div>
         </div>
