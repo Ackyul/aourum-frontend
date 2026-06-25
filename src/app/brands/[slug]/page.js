@@ -819,6 +819,14 @@ export default function BrandProfilePage({ params }) {
               </div>
             </>
           )}
+
+          {/* Info del Dueño al final del perfil */}
+          {brand.owner && (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", marginTop: "2rem", padding: "1rem 0 0", borderTop: "1px solid var(--border-color)", fontSize: "0.85rem", color: "var(--text-muted)" }}>
+              <i className="fa-solid fa-user-tag" style={{ color: "var(--gold-primary)" }}></i>
+              <span>Esta marca es gestionada por su dueño(a): <strong>{brand.owner}</strong></span>
+            </div>
+          )}
         </div>
       </div>
 

@@ -59,11 +59,6 @@ export default function BrandsPage() {
                       <h3 style={{ fontSize: "1.15rem", fontWeight: 800 }}>{brand.name}</h3>
                       <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", flex: 1, lineHeight: 1.45 }}>{parseDescription(brand.description).text}</p>
                       
-                      <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.6rem" }}>
-                        <i className="fa-solid fa-user-tag" style={{ color: "var(--gold-primary)" }}></i>
-                        <span>Dueño: <strong>{brand.owner}</strong></span>
-                      </div>
-
                       <button className="btn-outline-gold" style={{ width: "100%", padding: "0.55rem 0", fontSize: "0.82rem", borderRadius: "6px" }}>
                         Ver Galería & Perfil
                       </button>
