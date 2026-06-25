@@ -918,16 +918,59 @@ export default function BrandProfilePage({ params }) {
                       if (!file) return;
                       const reader = new FileReader();
                       reader.onload = () => {
-                        setEditorSource(reader.result);
-                        setAspectRatio("1:1");
-                        setScale(1);
-                        setImgPos({ x: 0, y: 0 });
-                        setEditorTool("move");
-                        setBrushSize(30);
-                        if (maskCanvasRef.current) {
-                          maskCanvasRef.current = null;
-                        }
-                        setEditorOpen(true);
+                        const img = new Image();
+                        img.onload = () => {
+                          const maxDim = 1200;
+                          if (img.width <= maxDim && img.height <= maxDim) {
+                            setEditorSource(reader.result);
+                            setAspectRatio("1:1");
+                            setScale(1);
+                            setImgPos({ x: 0, y: 0 });
+                            setEditorTool("move");
+                            setBrushSize(30);
+                            if (maskCanvasRef.current) {
+                              maskCanvasRef.current = null;
+                            }
+                            setEditorOpen(true);
+                            return;
+                          }
+                          
+                          const canvas = document.createElement("canvas");
+                          let w = img.width;
+                          let h = img.height;
+                          
+                          if (w > h) {
+                            if (w > maxDim) {
+                              h = Math.round((h * maxDim) / w);
+                              w = maxDim;
+                            }
+                          } else {
+                            if (h > maxDim) {
+                              w = Math.round((w * maxDim) / h);
+                              h = maxDim;
+                            }
+                          }
+                          
+                          canvas.width = w;
+                          canvas.height = h;
+                          
+                          const ctx = canvas.getContext("2d");
+                          ctx.imageSmoothingEnabled = true;
+                          ctx.imageSmoothingQuality = "high";
+                          ctx.drawImage(img, 0, 0, w, h);
+                          
+                          setEditorSource(canvas.toDataURL("image/jpeg", 0.9));
+                          setAspectRatio("1:1");
+                          setScale(1);
+                          setImgPos({ x: 0, y: 0 });
+                          setEditorTool("move");
+                          setBrushSize(30);
+                          if (maskCanvasRef.current) {
+                            maskCanvasRef.current = null;
+                          }
+                          setEditorOpen(true);
+                        };
+                        img.src = reader.result;
                       };
                       reader.readAsDataURL(file);
                     }}
