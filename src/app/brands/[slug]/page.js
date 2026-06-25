@@ -168,39 +168,94 @@ export default function BrandProfilePage({ params }) {
           return { r: pixelData[idx], g: pixelData[idx+1], b: pixelData[idx+2] };
         };
 
-        // Average colors of the four corners to detect the background color
-        const corners = [
-          getPixel(data, 0, 0),
-          getPixel(data, canvasW - 1, 0),
-          getPixel(data, 0, canvasH - 1),
-          getPixel(data, canvasW - 1, canvasH - 1)
+        // 1. Clustered border sampling: sample along the perimeter to build a robust background color model
+        const zones = [
+          { r: 0, g: 0, b: 0, count: 0 }, // Top-Left
+          { r: 0, g: 0, b: 0, count: 0 }, // Top-Right
+          { r: 0, g: 0, b: 0, count: 0 }, // Bottom-Left
+          { r: 0, g: 0, b: 0, count: 0 }  // Bottom-Right
         ];
         
-        let rBg = 0, gBg = 0, bBg = 0;
-        corners.forEach(c => {
-          if (c) {
-            rBg += c.r;
-            gBg += c.g;
-            bBg += c.b;
+        const sampleStep = 20; // Sample every 20 pixels along borders
+        
+        const addSample = (px, py) => {
+          const p = getPixel(data, px, py);
+          if (!p) return;
+          const isRight = px > canvasW / 2;
+          const isBottom = py > canvasH / 2;
+          const zoneIdx = (isBottom ? 2 : 0) + (isRight ? 1 : 0);
+          
+          zones[zoneIdx].r += p.r;
+          zones[zoneIdx].g += p.g;
+          zones[zoneIdx].b += p.b;
+          zones[zoneIdx].count++;
+        };
+        
+        // Sample perimeter
+        for (let px = 0; px < canvasW; px += sampleStep) {
+          addSample(px, 0);
+          addSample(px, canvasH - 1);
+        }
+        for (let py = sampleStep; py < canvasH - sampleStep; py += sampleStep) {
+          addSample(0, py);
+          addSample(canvasW - 1, py);
+        }
+        
+        // Calculate average background color for the 4 zones
+        const bgColors = [];
+        zones.forEach(z => {
+          if (z.count > 0) {
+            bgColors.push({
+              r: Math.round(z.r / z.count),
+              g: Math.round(z.g / z.count),
+              b: Math.round(z.b / z.count)
+            });
           }
         });
-        rBg /= 4;
-        gBg /= 4;
-        bBg /= 4;
+
+        const centerX = canvasW / 2;
+        const centerY = canvasH / 2;
+        const maxRadiusSq = centerX * centerX + centerY * centerY;
+        const feather = 12; // Width of the soft edge transition zone
         
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i+1];
-          const b = data[i+2];
-          
-          const dist = Math.sqrt(
-            Math.pow(r - rBg, 2) +
-            Math.pow(g - gBg, 2) +
-            Math.pow(b - bBg, 2)
-          );
-          
-          if (dist < tolerance) {
-            data[i+3] = 0; // Set transparency (alpha = 0)
+        for (let py = 0; py < canvasH; py++) {
+          for (let px = 0; px < canvasW; px++) {
+            const idx = (py * canvasW + px) * 4;
+            const r = data[idx];
+            const g = data[idx+1];
+            const b = data[idx+2];
+            
+            // Find minimum squared perceptual color distance to any background zone
+            let minSqDist = Infinity;
+            for (let k = 0; k < bgColors.length; k++) {
+              const bg = bgColors[k];
+              const rDiff = r - bg.r;
+              const gDiff = g - bg.g;
+              const bDiff = b - bg.b;
+              // Human eye weighted color distance squared
+              const sqD = 0.299 * rDiff * rDiff + 0.587 * gDiff * gDiff + 0.114 * bDiff * bDiff;
+              if (sqD < minSqDist) {
+                minSqDist = sqD;
+              }
+            }
+            
+            const minDist = Math.sqrt(minSqDist);
+            
+            // 2. Radial Protection: protect the centered product from accidental erasure.
+            // Tolerance is lower in the center (40%) and scales up quadratically to the borders (100%).
+            const dx = px - centerX;
+            const dy = py - centerY;
+            const sqDistFromCenter = (dx * dx + dy * dy) / maxRadiusSq;
+            const localTolerance = tolerance * (0.4 + 0.6 * sqDistFromCenter);
+            
+            // 3. Feathering (Soft anti-aliased edges instead of harsh pixelated cutoffs)
+            if (minDist < localTolerance - feather) {
+              data[idx+3] = 0; // Fully transparent background
+            } else if (minDist < localTolerance + feather) {
+              const ratio = (minDist - (localTolerance - feather)) / (2 * feather);
+              data[idx+3] = Math.round(ratio * 255);
+            }
+            // Else: leave fully opaque
           }
         }
         ctx.putImageData(imgData, 0, 0);
@@ -1033,7 +1088,7 @@ export default function BrandProfilePage({ params }) {
                     style={{ width: "100%", accentColor: "var(--gold-primary)", cursor: "pointer", marginTop: "4px" }}
                   />
                   <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", display: "block", marginTop: "4px" }}>
-                    Tip: Ajusta la tolerancia para quitar tonos similares al color detectado en las esquinas de la foto.
+                    Tip: Ajusta la tolerancia para eliminar el fondo. Los bordes se suavizan automáticamente y el centro del producto está protegido.
                   </span>
                 </div>
               )}
