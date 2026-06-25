@@ -1,5 +1,5 @@
 /* AOURUM Premium Editorial Design System */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap');
 
 :root {
   --gold-primary: #D4AF37;
@@ -18,8 +18,8 @@
   --text-gold: #B8901D;
   
   --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  --font-display: 'Cinzel', serif;
-  --font-body: 'Outfit', sans-serif;
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'Space Grotesk', sans-serif;
 
   --header-height: 64px;
   --tab-bar-height: 64px;
@@ -41,6 +41,7 @@ body {
   background-color: var(--bg-dark);
   color: var(--text-primary);
   font-family: var(--font-body);
+  font-weight: 300; /* Space Grotesk Light 300 by default */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
