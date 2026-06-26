@@ -920,7 +920,7 @@ export default function BrandProfilePage({ params }) {
                           ctx.imageSmoothingQuality = "high";
                           ctx.drawImage(img, 0, 0, w, h);
                           
-                          setEditorSource(canvas.toDataURL("image/jpeg", 0.9));
+                          setEditorSource(canvas.toDataURL("image/png"));
                           setAspectRatio("1:1");
                           setScale(1);
                           setImgPos({ x: 0, y: 0 });
