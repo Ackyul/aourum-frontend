@@ -532,6 +532,15 @@ export default function BrandProfilePage({ params }) {
                  >
                    <i className="fa-solid fa-plus"></i> Añadir Item
                  </button>
+                 {brandProducts.length > 0 && (
+                   <button
+                     onClick={() => setAdminCatalogOpen(true)}
+                     className="btn-outline-gold"
+                     style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                   >
+                     <i className="fa-solid fa-list-check"></i> Administrar Catálogo
+                   </button>
+                 )}
                  {userRole === 'creador_original' && (
                    <button
                      onClick={async () => {
@@ -546,23 +555,6 @@ export default function BrandProfilePage({ params }) {
                    </button>
                  )}
                  {canEditProfile && (
-                   <>
-                   <button
-                    onClick={() => setProdFormOpen(true)}
-                    className="btn-gold"
-                    style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
-                  >
-                    <i className="fa-solid fa-plus"></i> Añadir Item
-                  </button>
-                  {brandProducts.length > 0 && (
-                    <button
-                      onClick={() => setAdminCatalogOpen(true)}
-                      className="btn-outline-gold"
-                      style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
-                    >
-                      <i className="fa-solid fa-list-check"></i> Administrar Catálogo
-                    </button>
-                  )}
                    <button
                      onClick={handleEditClick}
                      className="btn-outline-gold"
@@ -570,7 +562,6 @@ export default function BrandProfilePage({ params }) {
                    >
                      <i className="fa-solid fa-gear"></i> Editar Perfil
                    </button>
-                   </>
                  )}
                </div>
              )}

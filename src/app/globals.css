@@ -1523,3 +1523,14 @@ header {
   }
 }
 
+/* ── PREVENT ZOOM ON FOCUS ON MOBILE (iOS/Safari) ────────── */
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea,
+  .form-control,
+  .header-search input {
+    font-size: 16px !important;
+  }
+}
+
