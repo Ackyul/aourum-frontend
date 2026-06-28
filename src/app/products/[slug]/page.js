@@ -252,7 +252,7 @@ export default function ProductDetailPage({ params }) {
                 style={{ overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column" }}
                 onClick={() => router.push(`/products/${rp.slug || rp.id}`)}
               >
-                <div className="card-img-container" style={{ height: "200px", position: "relative" }}>
+                <div className="card-img-container" style={{ position: "relative" }}>
                   <img src={rp.image} alt={rp.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} className="card-img-hover" />
                   <span style={{
                     position: "absolute", top: "10px", left: "10px",

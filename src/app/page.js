@@ -3,7 +3,7 @@
 import { useApp } from "../context/AppContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function Home() {
   const {
@@ -17,9 +17,64 @@ export default function Home() {
   } = useApp();
 
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(12);
   const router = useRouter();
+  
+  // Ref map to handle horizontal scroll for multiple carousels
+  const trackRefs = useRef({});
+  const getTrackRef = (id) => {
+    if (!trackRefs.current[id]) {
+      trackRefs.current[id] = { current: null };
+    }
+    return trackRefs.current[id];
+  };
 
-  // Filter products based on global search & collapsible filters
+  // Scroll action for Desktop navigation arrows
+  const scrollTrack = (id, direction) => {
+    const track = trackRefs.current[id]?.current;
+    if (track) {
+      const scrollAmount = track.clientWidth * 0.75;
+      track.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth"
+      });
+    }
+  };
+
+  // Reset pagination when search or filters change
+  useEffect(() => {
+    setVisibleCount(12);
+  }, [searchTerm, filterType, filterCategory]);
+
+  // Prevent background scroll when sidebar filters are open
+  useEffect(() => {
+    if (filtersOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [filtersOpen]);
+
+  // Helper to handle "Ver todo" on a category or section
+  const handleViewAll = (categoryName) => {
+    const exactCategory = products.find(p => p.category?.toLowerCase() === categoryName.toLowerCase())?.category;
+    if (exactCategory) {
+      setFilterCategory(exactCategory);
+    } else {
+      const matchedCategory = products.find(p => p.category?.toLowerCase().includes(categoryName.toLowerCase()))?.category;
+      if (matchedCategory) {
+        setFilterCategory(matchedCategory);
+      } else {
+        setFilterCategory("all");
+      }
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Filter products based on global search & sidebar filters
   const filteredProducts = products.filter((prod) => {
     const matchesSearch = prod.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           prod.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -28,6 +83,172 @@ export default function Home() {
     const matchesCategory = filterCategory === "all" || prod.category === filterCategory;
     return matchesSearch && matchesType && matchesCategory;
   });
+
+  const hasActiveFilters = searchTerm !== "" || filterType !== "all" || filterCategory !== "all";
+  const allCategories = [...new Set(products.map(p => p.category).filter(Boolean))];
+
+  // Thematic sections specifications
+  const themeSpecs = [
+    {
+      id: "joyeria",
+      title: "Novedades en Joyería",
+      subtitle: "Diseños únicos, brillo local e identidad cultural",
+      keywords: ["joyeria", "joyería", "anillo", "collar", "pulsera", "arete", "esmeralda", "plata", "oro"],
+      fallbackCategory: "Joyería"
+    },
+    {
+      id: "ropa",
+      title: "Tendencias en Ropa",
+      subtitle: "Prendas con historia y estilo contemporáneo",
+      keywords: ["ropa", "vestimenta", "prenda", "moda", "polo", "casaca", "pantalon", "pantalón", "falda", "vestido", "abrigo"],
+      fallbackCategory: "Ropa"
+    },
+    {
+      id: "accesorios",
+      title: "Accesorios Destacados",
+      subtitle: "El complemento perfecto para tu día a día",
+      keywords: ["accesorio", "accesorios", "cartera", "bolso", "sombrero", "lentes", "correa", "billetera"],
+      fallbackCategory: "Accesorios"
+    }
+  ];
+
+  const getThemedProducts = (spec) => {
+    return products.filter(p => {
+      const categoryMatch = p.category && (
+        spec.keywords.some(kw => p.category.toLowerCase().includes(kw)) ||
+        p.category.toLowerCase() === spec.fallbackCategory.toLowerCase()
+      );
+      const nameMatch = p.name && spec.keywords.some(kw => p.name.toLowerCase().includes(kw));
+      return categoryMatch || nameMatch;
+    });
+  };
+
+  // Determine categories not represented by themed sections
+  const representedCategories = new Set();
+  themeSpecs.forEach(spec => {
+    getThemedProducts(spec).forEach(p => {
+      if (p.category) representedCategories.add(p.category.toLowerCase());
+    });
+  });
+
+  const remainingCategories = allCategories.filter(
+    (cat) => !representedCategories.has(cat.toLowerCase())
+  );
+
+  // Sub-component for product card
+  function ProductCard({ prod }) {
+    return (
+      <div 
+        className="glass-panel" 
+        style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer", height: "100%" }}
+        onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
+      >
+        <div className="card-img-container" style={{ position: "relative" }}>
+          <img src={prod.image} alt={prod.name} className="card-img-hover" />
+          <span style={{
+            position: "absolute", top: "12px", left: "12px",
+            background: prod.type === "service" ? "#2563eb" : "#d97706",
+            color: "#FFFFFF", padding: "0.25rem 0.55rem", borderRadius: "6px",
+            fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase",
+            boxShadow: "0 4px 8px rgba(0,0,0,0.15)",
+            zIndex: 2
+          }}>
+            {prod.type === "service" ? "📅 Servicio" : "🛍️ Producto"}
+          </span>
+        </div>
+        <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          <span style={{ fontSize: "0.75rem", color: "var(--text-gold)", letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>{prod.category}</span>
+          <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: "var(--text-primary)" }}>{prod.name}</h3>
+          
+          <div 
+            style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}
+            onClick={(e) => {
+              e.stopPropagation();
+              const brand = brands.find((b) => b.id === prod.brandId);
+              router.push(`/brands/${brand?.slug || prod.brandId}`);
+            }}
+          >
+            <span>Por:</span>
+            <strong style={{ color: "var(--text-primary)", cursor: "pointer", textDecoration: "underline" }}>{getBrandName(prod.brandId)}</strong>
+          </div>
+          
+          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", textOverflow: "ellipsis", flex: 1, lineHeight: 1.45 }}>{prod.description}</p>
+          
+          {/* Price and Stock / Agenda */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--border-color)", paddingTop: "0.8rem", marginTop: "0.4rem" }}>
+            <div>
+              <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "2px" }}>Precio</div>
+              {prod.priceAourum ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                  <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", textDecoration: "line-through" }}>
+                    S/ {prod.price.toLocaleString("es-PE")}
+                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-gold)" }}>
+                      S/ {prod.priceAourum.toLocaleString("es-PE")}
+                    </span>
+                    <span style={{ fontSize: "0.62rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "4px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                      Aourum
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-primary)" }}>
+                  S/ {prod.price.toLocaleString("es-PE")}
+                </span>
+              )}
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "2px" }}>Disponibilidad</div>
+              <span style={{ fontSize: "0.78rem", fontWeight: 700, color: prod.type === "service" ? "#2563eb" : prod.stock == null ? "var(--text-primary)" : prod.stock > 0 ? "var(--text-primary)" : "#ef4444" }}>
+                {prod.type === "service" ? "Por Agenda" : prod.stock == null ? "Disponible" : prod.stock > 0 ? `Stock: ${prod.stock}` : "Agotado"}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Render horizontal carousel block
+  const renderCarousel = (id, title, subtitle, sectionProducts, categoryValue) => {
+    if (sectionProducts.length === 0) return null;
+    const trackRef = getTrackRef(id);
+
+    return (
+      <div key={id} className="carousel-container fade-in">
+        <div className="carousel-header">
+          <div className="carousel-title-group">
+            <h2 className="carousel-title">{title}</h2>
+            {subtitle && <p className="carousel-subtitle">{subtitle}</p>}
+          </div>
+          <div className="carousel-actions">
+            <button className="carousel-view-all" onClick={() => handleViewAll(categoryValue || title)}>
+              Ver todo <i className="fa-solid fa-arrow-right" style={{ fontSize: "0.8rem" }}></i>
+            </button>
+            <div className="carousel-arrows">
+              <button className="carousel-arrow-btn" onClick={() => scrollTrack(id, "left")} aria-label="Anterior">
+                <i className="fa-solid fa-chevron-left"></i>
+              </button>
+              <button className="carousel-arrow-btn" onClick={() => scrollTrack(id, "right")} aria-label="Siguiente">
+                <i className="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="carousel-track-wrapper">
+          <div className="carousel-track" ref={trackRef}>
+            {sectionProducts.map((prod) => (
+              <div key={prod.id} className="carousel-item">
+                <ProductCard prod={prod} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="container" style={{ paddingBottom: "3rem" }}>
@@ -39,15 +260,16 @@ export default function Home() {
       ) : (
         <div className="fade-in">
           
-
           {/* Header area of catalogue */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2.0rem", flexWrap: "wrap", gap: "1rem" }}>
             <div>
-              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", marginTop: "2px" }}>Marcas Locales</h2>
+              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", marginTop: "2px" }}>
+                {hasActiveFilters ? "Resultados de búsqueda" : "Marcas Locales"}
+              </h2>
             </div>
             
             <button 
-              onClick={() => setFiltersOpen(!filtersOpen)}
+              onClick={() => setFiltersOpen(true)}
               className="btn-outline-gold"
               style={{
                 borderRadius: "20px",
@@ -57,149 +279,220 @@ export default function Home() {
                 alignItems: "center",
                 gap: "8px",
                 cursor: "pointer",
-                background: filtersOpen ? "rgba(214,175,55,0.06)" : "transparent"
+                background: "transparent"
               }}
             >
               <i className="fa-solid fa-sliders"></i>
-              {filtersOpen ? "Ocultar Filtros" : "Mostrar Filtros"}
+              Mostrar Filtros
               {(filterType !== "all" || filterCategory !== "all") && (
                 <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--gold-primary)" }}></span>
               )}
             </button>
           </div>
 
-          {/* Collapsible Filter Panel */}
-          {filtersOpen && (
-            <div 
-              className="glass-panel fade-in" 
-              style={{ 
-                padding: "1.5rem", 
-                marginBottom: "2rem", 
-                display: "grid", 
-                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", 
-                gap: "2rem", 
-                border: "1.5px solid var(--gold-primary)" 
-              }}
-            >
-              <div>
-                <h3 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.8rem", color: "var(--text-gold)", fontWeight: 700 }}>
-                  <i className="fa-solid fa-sliders" style={{ marginRight: 6 }}></i>Filtrar por Tipo
-                </h3>
-                <div style={{ display: "flex", gap: "1.2rem", flexWrap: "wrap" }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.88rem", cursor: "pointer", fontWeight: 500 }}>
-                    <input type="radio" name="filterType" checked={filterType === "all"} onChange={() => setFilterType("all")} style={{ accentColor: "var(--gold-primary)" }} /> Todos
-                  </label>
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.88rem", cursor: "pointer", fontWeight: 500 }}>
-                    <input type="radio" name="filterType" checked={filterType === "product"} onChange={() => setFilterType("product")} style={{ accentColor: "var(--gold-primary)" }} /> Productos
-                  </label>
-                  <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.88rem", cursor: "pointer", fontWeight: 500 }}>
-                    <input type="radio" name="filterType" checked={filterType === "service"} onChange={() => setFilterType("service")} style={{ accentColor: "var(--gold-primary)" }} /> Servicios
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <h3 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.6rem", color: "var(--text-gold)", fontWeight: 700 }}>
-                  <i className="fa-solid fa-tags" style={{ marginRight: 6 }}></i>Filtrar por Categoría
-                </h3>
-                <select 
-                  className="form-control" 
-                  style={{ width: "100%", maxWidth: "320px" }}
-                  value={filterCategory} 
-                  onChange={(e) => setFilterCategory(e.target.value)}
+          {/* Catalog items display logic */}
+          {hasActiveFilters ? (
+            // Grid view for filtered results
+            filteredProducts.length === 0 ? (
+              <div style={{ padding: "5rem", textAlign: "center", background: "#FFFFFF", borderRadius: "12px", border: "1px solid var(--border-color)" }}>
+                <i className="fa-solid fa-store-slash" style={{ fontSize: "3rem", color: "var(--border-color)", marginBottom: "1rem" }}></i>
+                <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>No se encontraron items con los filtros aplicados. Intenta buscando otro término o reseteando los filtros.</p>
+                <button 
+                  className="btn-outline-gold" 
+                  style={{ marginTop: "1.5rem", borderRadius: "20px", padding: "0.4rem 1.2rem", fontSize: "0.85rem" }}
+                  onClick={() => {
+                    setFilterType("all");
+                    setFilterCategory("all");
+                  }}
                 >
-                  <option value="all">Todas las categorías</option>
-                  {[...new Set(products.map(p => p.category))].map(cat => (
-                    <option key={cat} value={cat}>{cat}</option>
+                  Limpiar Filtros
+                </button>
+              </div>
+            ) : (
+              <div>
+                <div className="grid-catalog">
+                  {filteredProducts.slice(0, visibleCount).map((prod) => (
+                    <ProductCard key={prod.id} prod={prod} />
                   ))}
-                </select>
-              </div>
-            </div>
-          )}
-
-          {/* Catalog items grid */}
-          {filteredProducts.length === 0 ? (
-            <div style={{ padding: "5rem", textAlign: "center", background: "#FFFFFF", borderRadius: "12px", border: "1px solid var(--border-color)" }}>
-              <i className="fa-solid fa-store-slash" style={{ fontSize: "3rem", color: "var(--border-color)", marginBottom: "1rem" }}></i>
-              <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>No se encontraron items. Intenta buscando otro término.</p>
-            </div>
-          ) : (
-            <div className="grid-catalog">
-              {filteredProducts.map((prod) => (
-                <div 
-                  key={prod.id} 
-                  className="glass-panel" 
-                  style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer" }}
-                  onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
-                >
-                  <div className="card-img-container" style={{ height: "220px", width: "100%", position: "relative" }}>
-                    <img src={prod.image} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} className="card-img-hover" />
-                    <span style={{
-                      position: "absolute", top: "12px", left: "12px",
-                      background: prod.type === "service" ? "#2563eb" : "#d97706",
-                      color: "#FFFFFF", padding: "0.25rem 0.55rem", borderRadius: "6px",
-                      fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase",
-                      boxShadow: "0 4px 8px rgba(0,0,0,0.15)"
-                    }}>
-                      {prod.type === "service" ? "📅 Servicio" : "🛍️ Producto"}
-                    </span>
-                  </div>
-                  <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                    <span style={{ fontSize: "0.75rem", color: "var(--text-gold)", letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>{prod.category}</span>
-                    <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: "var(--text-primary)" }}>{prod.name}</h3>
-                    <div 
-                      style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const brand = brands.find((b) => b.id === prod.brandId);
-                        router.push(`/brands/${brand?.slug || prod.brandId}`);
+                </div>
+                
+                {filteredProducts.length > visibleCount && (
+                  <div style={{ display: "flex", justifyContent: "center", marginTop: "3rem" }}>
+                    <button 
+                      onClick={() => setVisibleCount((prev) => prev + 12)}
+                      className="btn-outline-gold"
+                      style={{
+                        borderRadius: "30px",
+                        padding: "0.75rem 2rem",
+                        fontSize: "0.9rem",
+                        fontWeight: 700,
+                        boxShadow: "0 4px 12px rgba(214,175,55,0.08)",
+                        cursor: "pointer"
                       }}
                     >
-                      <span>Por:</span>
-                      <strong style={{ color: "var(--text-primary)", cursor: "pointer", textDecoration: "underline" }}>{getBrandName(prod.brandId)}</strong>
-                    </div>
-                    
-                    <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", textOverflow: "ellipsis", flex: 1, lineHeight: 1.45 }}>{prod.description}</p>
-                    
-                    {/* Price and Stock / Agenda */}
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--border-color)", paddingTop: "0.8rem", marginTop: "0.4rem" }}>
-                      <div>
-                        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "2px" }}>Precio</div>
-                        {prod.priceAourum ? (
-                          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", textDecoration: "line-through" }}>
-                              S/ {prod.price.toLocaleString("es-PE")}
-                            </span>
-                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                              <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-gold)" }}>
-                                S/ {prod.priceAourum.toLocaleString("es-PE")}
-                              </span>
-                              <span style={{ fontSize: "0.62rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "4px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.03em" }}>
-                                Aourum
-                              </span>
-                            </div>
-                          </div>
-                        ) : (
-                          <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-primary)" }}>
-                            S/ {prod.price.toLocaleString("es-PE")}
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ textAlign: "right" }}>
-                        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "2px" }}>Disponibilidad</div>
-                        <span style={{ fontSize: "0.78rem", fontWeight: 700, color: prod.type === "service" ? "#2563eb" : prod.stock == null ? "var(--text-primary)" : prod.stock > 0 ? "var(--text-primary)" : "#ef4444" }}>
-                          {prod.type === "service" ? "Por Agenda" : prod.stock == null ? "Disponible" : prod.stock > 0 ? `Stock: ${prod.stock}` : "Agotado"}
-                        </span>
-                      </div>
-                    </div>
+                      <i className="fa-solid fa-arrow-rotate-right" style={{ marginRight: "8px" }}></i>
+                      Ver más productos
+                    </button>
                   </div>
+                )}
+              </div>
+            )
+          ) : (
+            // Categorized Carousels (Default Homepage View)
+            <div>
+              {/* 1. Render themed sections */}
+              {themeSpecs.map(spec => 
+                renderCarousel(
+                  spec.id, 
+                  spec.title, 
+                  spec.subtitle, 
+                  getThemedProducts(spec), 
+                  spec.fallbackCategory
+                )
+              )}
+
+              {/* 2. Render other categories dynamically */}
+              {remainingCategories.map(cat => 
+                renderCarousel(
+                  cat.toLowerCase().replace(/[^a-z0-9]/g, ""),
+                  cat,
+                  `Explora nuestra selección de ${cat.toLowerCase()}`,
+                  products.filter(p => p.category === cat),
+                  cat
+                )
+              )}
+
+              {/* 3. General Catalogue Grid ("Otros Productos") */}
+              <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "3rem", marginTop: "1rem" }}>
+                <h2 className="carousel-title" style={{ marginBottom: "1.5rem", paddingLeft: "0.2rem" }}>Vitrina de Productos</h2>
+                <div className="grid-catalog">
+                  {products.slice(0, visibleCount).map((prod) => (
+                    <ProductCard key={prod.id} prod={prod} />
+                  ))}
                 </div>
-              ))}
+
+                {products.length > visibleCount && (
+                  <div style={{ display: "flex", justifyContent: "center", marginTop: "3rem" }}>
+                    <button 
+                      onClick={() => setVisibleCount((prev) => prev + 12)}
+                      className="btn-outline-gold"
+                      style={{
+                        borderRadius: "30px",
+                        padding: "0.75rem 2rem",
+                        fontSize: "0.9rem",
+                        fontWeight: 700,
+                        boxShadow: "0 4px 12px rgba(214,175,55,0.08)",
+                        cursor: "pointer"
+                      }}
+                    >
+                      <i className="fa-solid fa-arrow-rotate-right" style={{ marginRight: "8px" }}></i>
+                      Ver más productos
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
+
+          {/* Sliding Left Sidebar for Filters */}
+          <div className={`sidebar-backdrop ${filtersOpen ? "open" : ""}`} onClick={() => setFiltersOpen(false)} />
+          <div className={`sidebar-panel ${filtersOpen ? "open" : ""}`}>
+            <div className="sidebar-header">
+              <h3>Filtros Avanzados</h3>
+              <button className="sidebar-close-btn" onClick={() => setFiltersOpen(false)} aria-label="Cerrar filtros">
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <div className="sidebar-body">
+              {/* Filter by Type */}
+              <div>
+                <h4 className="sidebar-section-title">
+                  <i className="fa-solid fa-sliders"></i> Tipo de Oferta
+                </h4>
+                <div className="filter-group">
+                  <label className={`filter-option-label ${filterType === "all" ? "active" : ""}`}>
+                    <input 
+                      type="radio" 
+                      name="filterType" 
+                      className="filter-input-radio"
+                      checked={filterType === "all"} 
+                      onChange={() => setFilterType("all")} 
+                    />
+                    Todos
+                  </label>
+                  <label className={`filter-option-label ${filterType === "product" ? "active" : ""}`}>
+                    <input 
+                      type="radio" 
+                      name="filterType" 
+                      className="filter-input-radio"
+                      checked={filterType === "product"} 
+                      onChange={() => setFilterType("product")} 
+                    />
+                    🛍️ Productos
+                  </label>
+                  <label className={`filter-option-label ${filterType === "service" ? "active" : ""}`}>
+                    <input 
+                      type="radio" 
+                      name="filterType" 
+                      className="filter-input-radio"
+                      checked={filterType === "service"} 
+                      onChange={() => setFilterType("service")} 
+                    />
+                    📅 Servicios
+                  </label>
+                </div>
+              </div>
+
+              {/* Filter by Category */}
+              <div>
+                <h4 className="sidebar-section-title">
+                  <i className="fa-solid fa-tags"></i> Categorías
+                </h4>
+                <div className="filter-group">
+                  <label className={`filter-option-label ${filterCategory === "all" ? "active" : ""}`}>
+                    <input 
+                      type="radio" 
+                      name="filterCategory" 
+                      className="filter-input-radio"
+                      checked={filterCategory === "all"} 
+                      onChange={() => setFilterCategory("all")} 
+                    />
+                    Todas las categorías
+                  </label>
+                  {allCategories.map(cat => (
+                    <label key={cat} className={`filter-option-label ${filterCategory === cat ? "active" : ""}`}>
+                      <input 
+                        type="radio" 
+                        name="filterCategory" 
+                        className="filter-input-radio"
+                        checked={filterCategory === cat} 
+                        onChange={() => setFilterCategory(cat)} 
+                      />
+                      {cat}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+            
+            <div className="sidebar-footer">
+              <button 
+                className="btn-outline-gold" 
+                style={{ width: "100%", padding: "0.75rem", borderRadius: "8px", cursor: "pointer", fontWeight: 700 }}
+                onClick={() => {
+                  setFilterType("all");
+                  setFilterCategory("all");
+                  setFiltersOpen(false);
+                }}
+              >
+                Limpiar Filtros
+              </button>
+            </div>
+          </div>
 
         </div>
       )}
     </div>
   );
 }
+
