@@ -73,7 +73,6 @@ const getItemViews = (name, id) => {
 };
 
 const getProductViews = (p) => p.views || p.viewCount || getItemViews(p.name, p.id);
-const getBrandViews = (b) => b.views || b.viewCount || getItemViews(b.name, b.id);
 
 export default function Home() {
   const {
@@ -187,22 +186,7 @@ export default function Home() {
     return result;
   };
 
-  const getFeaturedBrands = () => {
-    if (!brands || brands.length === 0) return [];
-    const heap = new MaxHeap((a, b) => getBrandViews(a) - getBrandViews(b));
-    brands.forEach(b => heap.insert(b));
-    
-    const result = [];
-    const targetSize = Math.min(6, brands.length);
-    for (let i = 0; i < targetSize; i++) {
-      const b = heap.extractMax();
-      if (b) result.push(b);
-    }
-    return result;
-  };
-
   const featuredProducts = getFeaturedProducts();
-  const featuredBrands = getFeaturedBrands();
 
   // Thematic sections specifications
   const themeSpecs = [
@@ -347,82 +331,7 @@ export default function Home() {
     );
   }
 
-  // Sub-component for brand card in featured sections
-  function BrandCard({ brand }) {
-    const rubro = brand.rubro_especifico || brand.rubro_general || brand.category || "Marca Local";
-    const views = getBrandViews(brand);
 
-    return (
-      <div 
-        className="glass-panel" 
-        style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer", height: "100%" }}
-        onClick={() => router.push(`/brands/${brand.slug || brand.id}`)}
-      >
-        <div className="card-img-container" style={{ position: "relative", background: "var(--bg-input)" }}>
-          <img src={brand.logo} alt={brand.name} className="card-img-hover" />
-          <span style={{
-            position: "absolute", top: "12px", left: "12px",
-            background: "var(--gold-gradient)",
-            color: "#1C1C1E", padding: "0.3rem 0.6rem", borderRadius: "6px",
-            fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase",
-            boxShadow: "0 4px 8px rgba(212,175,55,0.25)",
-            zIndex: 2
-          }}>
-            ⭐ Destacada
-          </span>
-        </div>
-        <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-          <span style={{ fontSize: "0.75rem", color: "var(--text-gold)", letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
-            {rubro}
-          </span>
-          <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--text-primary)" }}>{brand.name}</h3>
-          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", flex: 1, lineHeight: 1.45 }}>
-            {parseDescription(brand.description).text}
-          </p>
-          <button className="btn-outline-gold" style={{ width: "100%", padding: "0.55rem 0", fontSize: "0.82rem", borderRadius: "6px", marginTop: "0.4rem", cursor: "pointer", fontWeight: 700 }}>
-            Ver Galería y Perfil
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Render horizontal carousel block for brands
-  const renderBrandsCarousel = (id, title, subtitle, list) => {
-    if (list.length === 0) return null;
-    const trackRef = getTrackRef(id);
-
-    return (
-      <div key={id} className="carousel-container fade-in">
-        <div className="carousel-header">
-          <div className="carousel-title-group">
-            <h2 className="carousel-title">{title}</h2>
-            {subtitle && <p className="carousel-subtitle">{subtitle}</p>}
-          </div>
-          <div className="carousel-actions">
-            <div className="carousel-arrows">
-              <button className="carousel-arrow-btn" onClick={() => scrollTrack(id, "left")} aria-label="Anterior">
-                <i className="fa-solid fa-chevron-left"></i>
-              </button>
-              <button className="carousel-arrow-btn" onClick={() => scrollTrack(id, "right")} aria-label="Siguiente">
-                <i className="fa-solid fa-chevron-right"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="carousel-track-wrapper">
-          <div className="carousel-track" ref={trackRef}>
-            {list.map((brand) => (
-              <div key={brand.id} className="carousel-item">
-                <BrandCard brand={brand} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   // Render horizontal carousel block for products
   const renderCarousel = (id, title, subtitle, sectionProducts, categoryValue) => {
@@ -555,13 +464,7 @@ export default function Home() {
           ) : (
             // Categorized Carousels (Default Homepage View)
             <div>
-              {/* Featured Sections (MaxHeap Sorted) */}
-              {renderBrandsCarousel(
-                "marcas-destacadas",
-                "Marcas Destacadas",
-                "Los creadores y productores locales más visitados de la comunidad",
-                featuredBrands
-              )}
+
 
               {renderCarousel(
                 "productos-destacados",

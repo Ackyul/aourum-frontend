@@ -206,6 +206,23 @@ export default function BrandsPage() {
   const sortedBrands = getSortedBrands();
   const hasActiveFilters = searchTerm !== "" || filterCategory !== "all" || sortBy !== "popular";
 
+  // Get featured brands sorted internally using MaxHeap
+  const getFeaturedBrands = () => {
+    if (!brands || brands.length === 0) return [];
+    const heap = new MaxHeap((a, b) => getBrandViews(a) - getBrandViews(b));
+    brands.forEach(b => heap.insert(b));
+    
+    const result = [];
+    const targetSize = Math.min(6, brands.length);
+    for (let i = 0; i < targetSize; i++) {
+      const b = heap.extractMax();
+      if (b) result.push(b);
+    }
+    return result;
+  };
+
+  const featuredBrands = getFeaturedBrands();
+
   // Themed sections specifications for Brands
   const themeSpecs = [
     {
@@ -288,7 +305,7 @@ export default function BrandsPage() {
           <div className="carousel-track" ref={trackRef}>
             {sortedList.map((brand) => (
               <div key={brand.id} className="carousel-item">
-                <BrandCard brand={brand} />
+                <BrandCard brand={brand} isFeatured={id === "marcas-destacadas"} />
               </div>
             ))}
           </div>
@@ -298,7 +315,7 @@ export default function BrandsPage() {
   };
 
   // Brand card sub-component
-  function BrandCard({ brand }) {
+  function BrandCard({ brand, isFeatured }) {
     const rubro = brand.rubro_especifico || brand.rubro_general || brand.category || "Marca Local";
     const descText = parseDescription(brand.description).text;
 
@@ -310,6 +327,18 @@ export default function BrandsPage() {
       >
         <div className="card-img-container" style={{ position: "relative" }}>
           <img src={brand.logo} alt={brand.name} className="card-img-hover" />
+          {isFeatured && (
+            <span style={{
+              position: "absolute", top: "12px", left: "12px",
+              background: "var(--gold-gradient)",
+              color: "#1C1C1E", padding: "0.3rem 0.6rem", borderRadius: "6px",
+              fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase",
+              boxShadow: "0 4px 8px rgba(212,175,55,0.25)",
+              zIndex: 2
+            }}>
+              ⭐ Destacada
+            </span>
+          )}
         </div>
         <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           <span style={{ fontSize: "0.75rem", color: "var(--text-gold)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>
@@ -417,6 +446,15 @@ export default function BrandsPage() {
             ) : (
               // Categorized Carousels view (Default layout like Homepage)
               <div>
+                {/* 0. Marcas Destacadas (Popularity ranking using MaxHeap) */}
+                {renderBrandsCarouselBlock(
+                  "marcas-destacadas",
+                  "Marcas Destacadas",
+                  "Los creadores y productores locales más visitados de la comunidad",
+                  featuredBrands,
+                  "all"
+                )}
+
                 {/* 1. Render themed sections */}
                 {themeSpecs.map(spec => 
                   renderBrandsCarouselBlock(
