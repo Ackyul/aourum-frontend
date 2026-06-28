@@ -83,7 +83,8 @@ export default function Home() {
     getBrandName,
     filterType, setFilterType,
     filterCategory, setFilterCategory,
-    searchTerm
+    searchTerm,
+    parseDescription
   } = useApp();
 
   const [filtersOpen, setFiltersOpen] = useState(false);
