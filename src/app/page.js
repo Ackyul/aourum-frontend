@@ -365,7 +365,7 @@ export default function Home() {
           </span>
           <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--text-primary)" }}>{brand.name}</h3>
           <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", flex: 1, lineHeight: 1.45 }}>
-            {brand.description}
+            {parseDescription(brand.description).text}
           </p>
           <button className="btn-outline-gold" style={{ width: "100%", padding: "0.55rem 0", fontSize: "0.82rem", borderRadius: "6px", marginTop: "0.4rem", cursor: "pointer", fontWeight: 700 }}>
             Ver Galería y Perfil
