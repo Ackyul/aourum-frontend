@@ -278,7 +278,7 @@ export default function Home() {
           </span>
         </div>
         <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-          <span style={{ fontSize: "0.75rem", color: "var(--text-gold)", letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
+          <span style={{ fontSize: "0.72rem", color: "var(--text-gold)", letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
             {prod.category}
           </span>
           <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: "var(--text-primary)" }}>{prod.name}</h3>
@@ -294,39 +294,50 @@ export default function Home() {
           >
             <span>Por:</span>
             <strong style={{ color: "var(--text-primary)", cursor: "pointer", textDecoration: "underline" }}>{getBrandName(prod.brandId)}</strong>
-            <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontStyle: "italic" }}>({brandRubro})</span>
           </div>
           
-          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", textOverflow: "ellipsis", flex: 1, lineHeight: 1.45 }}>{prod.description}</p>
-          
           {/* Price and Stock / Agenda */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--border-color)", paddingTop: "0.8rem", marginTop: "0.4rem" }}>
+          <div style={{ 
+            display: "flex", 
+            justifyContent: "space-between", 
+            alignItems: "center", 
+            borderTop: "1px solid var(--border-color)", 
+            paddingTop: "0.8rem", 
+            marginTop: "auto" 
+          }}>
             <div>
-              <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "2px" }}>Precio</div>
               {prod.priceAourum ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                  <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", textDecoration: "line-through" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textDecoration: "line-through" }}>
                     S/ {prod.price.toLocaleString("es-PE")}
                   </span>
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-gold)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-gold)" }}>
                       S/ {prod.priceAourum.toLocaleString("es-PE")}
                     </span>
-                    <span style={{ fontSize: "0.62rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "2px 6px", borderRadius: "4px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.03em", boxShadow: "0 2px 4px rgba(212,175,55,0.15)" }}>
+                    <span style={{ fontSize: "0.55rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "bold", textTransform: "uppercase" }}>
                       Aourum
                     </span>
                   </div>
                 </div>
               ) : (
-                <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-primary)" }}>
+                <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-primary)" }}>
                   S/ {prod.price.toLocaleString("es-PE")}
                 </span>
               )}
             </div>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "2px" }}>Disponibilidad</div>
-              <span style={{ fontSize: "0.78rem", fontWeight: 700, color: prod.type === "service" ? "#2563eb" : prod.stock == null ? "var(--text-primary)" : prod.stock > 0 ? "var(--text-primary)" : "#ef4444" }}>
-                {prod.type === "service" ? "Por Agenda" : prod.stock == null ? "Disponible" : prod.stock > 0 ? `Stock: ${prod.stock}` : "Agotado"}
+            <div>
+              <span style={{
+                fontSize: "0.7rem",
+                fontWeight: 700,
+                padding: "2px 8px",
+                borderRadius: "12px",
+                textTransform: "uppercase",
+                letterSpacing: "0.03em",
+                background: prod.type === "service" ? "#dbeafe" : (prod.stock == null || prod.stock > 0) ? "#dcfce7" : "#fee2e2",
+                color: prod.type === "service" ? "#1e40af" : (prod.stock == null || prod.stock > 0) ? "#15803d" : "#b91c1c"
+              }}>
+                {prod.type === "service" ? "Agenda" : (prod.stock == null || prod.stock > 0) ? "Stock" : "Agotado"}
               </span>
             </div>
           </div>
