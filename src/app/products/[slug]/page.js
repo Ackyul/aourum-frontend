@@ -256,41 +256,60 @@ export default function ProductDetailPage({ params }) {
                   <img src={rp.image} alt={rp.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} className="card-img-hover" />
                   <span style={{
                     position: "absolute", top: "10px", left: "10px",
-                    background: rp.type === "service" ? "#2563eb" : "#d97706",
-                    color: "#FFFFFF", padding: "0.2rem 0.5rem", borderRadius: "5px",
+                    background: rp.type === "service" ? "#1e3a8a" : "#78350f",
+                    color: rp.type === "service" ? "#dbeafe" : "#fef3c7", 
+                    padding: "0.3rem 0.6rem", borderRadius: "6px",
                     fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase"
                   }}>
-                    {rp.type === "service" ? "Servicio" : "Producto"}
+                    {rp.type === "service" ? "📅 Servicio" : "🛍️ Producto"}
                   </span>
                 </div>
                 <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                   <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {rp.name}
                   </h4>
-                  <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", flex: 1, lineHeight: 1.45 }}>
-                    {rp.description}
-                  </p>
                   
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid rgba(0,0,0,0.04)", paddingTop: "0.6rem", marginTop: "0.4rem" }}>
+                  <div style={{ 
+                    display: "flex", 
+                    justifyContent: "space-between", 
+                    alignItems: "center", 
+                    borderTop: "1px solid var(--border-color)", 
+                    paddingTop: "0.8rem", 
+                    marginTop: "auto" 
+                  }}>
                     <div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "2px" }}>Precio</div>
                       {rp.priceAourum ? (
                         <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-                          <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", textDecoration: "line-through" }}>
+                          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textDecoration: "line-through" }}>
                             S/ {rp.price.toLocaleString("es-PE")}
                           </span>
-                          <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-gold)" }}>
-                            S/ {rp.priceAourum.toLocaleString("es-PE")}
-                          </span>
+                          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                            <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-gold)" }}>
+                              S/ {rp.priceAourum.toLocaleString("es-PE")}
+                            </span>
+                            <span style={{ fontSize: "0.55rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "bold", textTransform: "uppercase" }}>
+                              Aourum
+                            </span>
+                          </div>
                         </div>
                       ) : (
-                        <span style={{ fontSize: "1.1rem", fontWeight: 800 }}>S/ {rp.price.toLocaleString("es-PE")}</span>
+                        <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-primary)" }}>
+                          S/ {rp.price.toLocaleString("es-PE")}
+                        </span>
                       )}
                     </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "2px" }}>Tipo</div>
-                      <span style={{ fontSize: "0.78rem", color: rp.type === "service" ? "#2563eb" : "var(--gold-dark)", fontWeight: 700 }}>
-                        {rp.type === "service" ? "Servicio" : "Producto"}
+                    <div>
+                      <span style={{
+                        fontSize: "0.7rem",
+                        fontWeight: 700,
+                        padding: "2px 8px",
+                        borderRadius: "12px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.03em",
+                        background: rp.type === "service" ? "#dbeafe" : (rp.stock == null || rp.stock > 0) ? "#dcfce7" : "#fee2e2",
+                        color: rp.type === "service" ? "#1e40af" : (rp.stock == null || rp.stock > 0) ? "#15803d" : "#b91c1c"
+                      }}>
+                        {rp.type === "service" ? "Agenda" : (rp.stock == null || rp.stock > 0) ? "Stock" : "Agotado"}
                       </span>
                     </div>
                   </div>
