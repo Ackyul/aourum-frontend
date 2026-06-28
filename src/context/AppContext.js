@@ -167,6 +167,13 @@ export function AppContextProvider({ children }) {
   const [editOrganizerIds, setEditOrganizerIds] = useState([]);
   const [editBandIds, setEditBandIds] = useState([]);
 
+  // Social network customization options
+  const [editBanner, setEditBanner] = useState("");
+  const [editBannerPreview, setEditBannerPreview] = useState("");
+  const [editThemeColor, setEditThemeColor] = useState("");
+  const [editTagline, setEditTagline] = useState("");
+  const [editInterests, setEditInterests] = useState("");
+
   // 2. Product/Service creation & editing
   const [prodFormOpen, setProdFormOpen] = useState(false);
   const [editingProdId, setEditingProdId] = useState(null);
@@ -691,7 +698,11 @@ export function AppContextProvider({ children }) {
       has_local: effectiveType === "brand" ? editHasLocal : false,
       local_address: effectiveType === "brand" ? editLocalAddress : "",
       local_lat: effectiveType === "brand" ? editLocalLat : -16.39889,
-      local_lng: effectiveType === "brand" ? editLocalLng : -71.53694
+      local_lng: effectiveType === "brand" ? editLocalLng : -71.53694,
+      banner: editBanner,
+      theme_color: editThemeColor,
+      tagline: editTagline,
+      interests: editInterests
     });
 
     if (effectiveType === "brand") {
@@ -950,6 +961,11 @@ export function AppContextProvider({ children }) {
         editOrganizerIds, setEditOrganizerIds,
         editBandIds, setEditBandIds,
         uploadingEdit, setUploadingEdit,
+        editBanner, setEditBanner,
+        editBannerPreview, setEditBannerPreview,
+        editThemeColor, setEditThemeColor,
+        editTagline, setEditTagline,
+        editInterests, setEditInterests,
         prodFormOpen, setProdFormOpen,
         editingProdId, setEditingProdId,
         prodName, setProdName,

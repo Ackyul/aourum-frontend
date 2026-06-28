@@ -5,6 +5,76 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 
+// MaxHeap implementation for ranking
+class MaxHeap {
+  constructor(compareFn) {
+    this.heap = [];
+    this.compare = compareFn || ((a, b) => a - b);
+  }
+
+  size() {
+    return this.heap.length;
+  }
+
+  peek() {
+    return this.heap[0];
+  }
+
+  insert(val) {
+    this.heap.push(val);
+    this.up(this.heap.length - 1);
+  }
+
+  extractMax() {
+    if (this.heap.length === 0) return null;
+    const max = this.heap[0];
+    const end = this.heap.pop();
+    if (this.heap.length > 0) {
+      this.heap[0] = end;
+      this.down(0);
+    }
+    return max;
+  }
+
+  up(i) {
+    while (i > 0) {
+      const p = Math.floor((i - 1) / 2);
+      if (this.compare(this.heap[i], this.heap[p]) <= 0) break;
+      [this.heap[i], this.heap[p]] = [this.heap[p], this.heap[i]];
+      i = p;
+    }
+  }
+
+  down(i) {
+    const len = this.heap.length;
+    while (2 * i + 1 < len) {
+      let left = 2 * i + 1;
+      let right = 2 * i + 2;
+      let best = left;
+      if (right < len && this.compare(this.heap[right], this.heap[left]) > 0) {
+        best = right;
+      }
+      if (this.compare(this.heap[i], this.heap[best]) >= 0) break;
+      [this.heap[i], this.heap[best]] = [this.heap[best], this.heap[i]];
+      i = best;
+    }
+  }
+}
+
+// Stable deterministic views generator based on hash of name + id
+const getItemViews = (name, id) => {
+  if (!name) return 0;
+  let hash = 0;
+  const str = name + (id || 0);
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash % 980) + 120; // 120 to 1100 views
+};
+
+const getProductViews = (p) => p.views || p.viewCount || getItemViews(p.name, p.id);
+const getBrandViews = (b) => b.views || b.viewCount || getItemViews(b.name, b.id);
+
 export default function Home() {
   const {
     products,
@@ -87,6 +157,38 @@ export default function Home() {
   const hasActiveFilters = searchTerm !== "" || filterType !== "all" || filterCategory !== "all";
   const allCategories = [...new Set(products.map(p => p.category).filter(Boolean))];
 
+  // Extraction of featured entities using MaxHeap
+  const getFeaturedProducts = () => {
+    if (!products || products.length === 0) return [];
+    const heap = new MaxHeap((a, b) => getProductViews(a) - getProductViews(b));
+    products.forEach(p => heap.insert(p));
+    
+    const result = [];
+    const targetSize = Math.min(8, products.length);
+    for (let i = 0; i < targetSize; i++) {
+      const p = heap.extractMax();
+      if (p) result.push(p);
+    }
+    return result;
+  };
+
+  const getFeaturedBrands = () => {
+    if (!brands || brands.length === 0) return [];
+    const heap = new MaxHeap((a, b) => getBrandViews(a) - getBrandViews(b));
+    brands.forEach(b => heap.insert(b));
+    
+    const result = [];
+    const targetSize = Math.min(6, brands.length);
+    for (let i = 0; i < targetSize; i++) {
+      const b = heap.extractMax();
+      if (b) result.push(b);
+    }
+    return result;
+  };
+
+  const featuredProducts = getFeaturedProducts();
+  const featuredBrands = getFeaturedBrands();
+
   // Thematic sections specifications
   const themeSpecs = [
     {
@@ -137,6 +239,10 @@ export default function Home() {
 
   // Sub-component for product card
   function ProductCard({ prod }) {
+    const brand = brands.find((b) => b.id === prod.brandId);
+    const brandRubro = brand ? (brand.rubro_especifico || brand.rubro_general || brand.category) : "Marca Local";
+    const views = getProductViews(prod);
+
     return (
       <div 
         className="glass-panel" 
@@ -147,29 +253,44 @@ export default function Home() {
           <img src={prod.image} alt={prod.name} className="card-img-hover" />
           <span style={{
             position: "absolute", top: "12px", left: "12px",
-            background: prod.type === "service" ? "#2563eb" : "#d97706",
-            color: "#FFFFFF", padding: "0.25rem 0.55rem", borderRadius: "6px",
+            background: prod.type === "service" ? "#1e3a8a" : "#78350f",
+            color: prod.type === "service" ? "#dbeafe" : "#fef3c7", 
+            padding: "0.3rem 0.6rem", borderRadius: "6px",
             fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase",
             boxShadow: "0 4px 8px rgba(0,0,0,0.15)",
             zIndex: 2
           }}>
             {prod.type === "service" ? "📅 Servicio" : "🛍️ Producto"}
           </span>
+          <span style={{
+            position: "absolute", bottom: "12px", right: "12px",
+            background: "rgba(28, 28, 30, 0.75)",
+            backdropFilter: "blur(4px)",
+            color: "#EAE6DF", padding: "0.25rem 0.5rem", borderRadius: "4px",
+            fontSize: "0.68rem", fontWeight: 500,
+            zIndex: 2, display: "flex", alignItems: "center", gap: "4px"
+          }}>
+            <i className="fa-regular fa-eye" style={{ fontSize: "0.72rem" }}></i> {views}
+          </span>
         </div>
         <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-          <span style={{ fontSize: "0.75rem", color: "var(--text-gold)", letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>{prod.category}</span>
+          <span style={{ fontSize: "0.75rem", color: "var(--text-gold)", letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
+            {prod.category}
+          </span>
           <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: "var(--text-primary)" }}>{prod.name}</h3>
           
           <div 
             style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}
             onClick={(e) => {
               e.stopPropagation();
-              const brand = brands.find((b) => b.id === prod.brandId);
-              router.push(`/brands/${brand?.slug || prod.brandId}`);
+              if (brand) {
+                router.push(`/brands/${brand.slug || brand.id}`);
+              }
             }}
           >
             <span>Por:</span>
             <strong style={{ color: "var(--text-primary)", cursor: "pointer", textDecoration: "underline" }}>{getBrandName(prod.brandId)}</strong>
+            <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontStyle: "italic" }}>({brandRubro})</span>
           </div>
           
           <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", textOverflow: "ellipsis", flex: 1, lineHeight: 1.45 }}>{prod.description}</p>
@@ -187,7 +308,7 @@ export default function Home() {
                     <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--text-gold)" }}>
                       S/ {prod.priceAourum.toLocaleString("es-PE")}
                     </span>
-                    <span style={{ fontSize: "0.62rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "4px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                    <span style={{ fontSize: "0.62rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "2px 6px", borderRadius: "4px", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.03em", boxShadow: "0 2px 4px rgba(212,175,55,0.15)" }}>
                       Aourum
                     </span>
                   </div>
@@ -210,7 +331,94 @@ export default function Home() {
     );
   }
 
-  // Render horizontal carousel block
+  // Sub-component for brand card in featured sections
+  function BrandCard({ brand }) {
+    const rubro = brand.rubro_especifico || brand.rubro_general || brand.category || "Marca Local";
+    const views = getBrandViews(brand);
+
+    return (
+      <div 
+        className="glass-panel" 
+        style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer", height: "100%" }}
+        onClick={() => router.push(`/brands/${brand.slug || brand.id}`)}
+      >
+        <div className="card-img-container" style={{ position: "relative", background: "var(--bg-input)" }}>
+          <img src={brand.logo} alt={brand.name} className="card-img-hover" />
+          <span style={{
+            position: "absolute", top: "12px", left: "12px",
+            background: "var(--gold-gradient)",
+            color: "#1C1C1E", padding: "0.3rem 0.6rem", borderRadius: "6px",
+            fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase",
+            boxShadow: "0 4px 8px rgba(212,175,55,0.25)",
+            zIndex: 2
+          }}>
+            ⭐ Destacada
+          </span>
+          <span style={{
+            position: "absolute", bottom: "12px", right: "12px",
+            background: "rgba(28, 28, 30, 0.75)",
+            backdropFilter: "blur(4px)",
+            color: "#EAE6DF", padding: "0.25rem 0.5rem", borderRadius: "4px",
+            fontSize: "0.68rem", fontWeight: 500,
+            zIndex: 2, display: "flex", alignItems: "center", gap: "4px"
+          }}>
+            <i className="fa-regular fa-eye" style={{ fontSize: "0.72rem" }}></i> {views}
+          </span>
+        </div>
+        <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          <span style={{ fontSize: "0.75rem", color: "var(--text-gold)", letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
+            {rubro}
+          </span>
+          <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--text-primary)" }}>{brand.name}</h3>
+          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", flex: 1, lineHeight: 1.45 }}>
+            {brand.description}
+          </p>
+          <button className="btn-outline-gold" style={{ width: "100%", padding: "0.55rem 0", fontSize: "0.82rem", borderRadius: "6px", marginTop: "0.4rem", cursor: "pointer", fontWeight: 700 }}>
+            Ver Galería y Perfil
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Render horizontal carousel block for brands
+  const renderBrandsCarousel = (id, title, subtitle, list) => {
+    if (list.length === 0) return null;
+    const trackRef = getTrackRef(id);
+
+    return (
+      <div key={id} className="carousel-container fade-in">
+        <div className="carousel-header">
+          <div className="carousel-title-group">
+            <h2 className="carousel-title">{title}</h2>
+            {subtitle && <p className="carousel-subtitle">{subtitle}</p>}
+          </div>
+          <div className="carousel-actions">
+            <div className="carousel-arrows">
+              <button className="carousel-arrow-btn" onClick={() => scrollTrack(id, "left")} aria-label="Anterior">
+                <i className="fa-solid fa-chevron-left"></i>
+              </button>
+              <button className="carousel-arrow-btn" onClick={() => scrollTrack(id, "right")} aria-label="Siguiente">
+                <i className="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="carousel-track-wrapper">
+          <div className="carousel-track" ref={trackRef}>
+            {list.map((brand) => (
+              <div key={brand.id} className="carousel-item">
+                <BrandCard brand={brand} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Render horizontal carousel block for products
   const renderCarousel = (id, title, subtitle, sectionProducts, categoryValue) => {
     if (sectionProducts.length === 0) return null;
     const trackRef = getTrackRef(id);
@@ -340,6 +548,22 @@ export default function Home() {
           ) : (
             // Categorized Carousels (Default Homepage View)
             <div>
+              {/* Featured Sections (MaxHeap Sorted) */}
+              {renderBrandsCarousel(
+                "marcas-destacadas",
+                "Marcas Destacadas",
+                "Los creadores y productores locales más visitados de la comunidad",
+                featuredBrands
+              )}
+
+              {renderCarousel(
+                "productos-destacados",
+                "Productos Destacados",
+                "Los artículos más vistos y preferidos de la vitrina cultural",
+                featuredProducts,
+                "all"
+              )}
+
               {/* 1. Render themed sections */}
               {themeSpecs.map(spec => 
                 renderCarousel(
@@ -495,4 +719,5 @@ export default function Home() {
     </div>
   );
 }
+
 

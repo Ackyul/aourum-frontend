@@ -72,6 +72,11 @@ export default function BrandProfilePage({ params }) {
     setEditLocalAddress,
     setEditLocalLat,
     setEditLocalLng,
+    setEditBanner,
+    setEditBannerPreview,
+    setEditThemeColor,
+    setEditTagline,
+    setEditInterests,
     parseDescription,
     handleDeleteBrand
   } = useApp();
@@ -485,8 +490,19 @@ export default function BrandProfilePage({ params }) {
     setEditLocalAddress(parsed.local_address || "");
     setEditLocalLat(parsed.local_lat !== undefined ? Number(parsed.local_lat) : -16.39889);
     setEditLocalLng(parsed.local_lng !== undefined ? Number(parsed.local_lng) : -71.53694);
+    setEditBanner(parsed.banner || "");
+    setEditBannerPreview(parsed.banner || "");
+    setEditThemeColor(parsed.theme_color || "");
+    setEditTagline(parsed.tagline || "");
+    setEditInterests(parsed.interests || "");
     setEditProfileOpen(true);
   };
+
+  const parsed = parseDescription(brand.description);
+  const themeColor = parsed.theme_color || "var(--gold-primary)";
+  const bannerStyle = parsed.banner 
+    ? { backgroundImage: `url(${parsed.banner})`, backgroundSize: "cover", backgroundPosition: "center", height: "200px" } 
+    : { background: "var(--gold-gradient)" };
 
   return (
     <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
@@ -496,7 +512,7 @@ export default function BrandProfilePage({ params }) {
           <i className="fa-solid fa-share-nodes"></i>
         </button>
         
-        <div className="profile-header-banner">
+        <div className="profile-header-banner" style={bannerStyle}>
           <div className="profile-avatar-wrapper">
             <img src={brand.logo} alt={brand.name} />
           </div>
@@ -505,8 +521,15 @@ export default function BrandProfilePage({ params }) {
         <div className="profile-body">
           <div className="profile-info-row">
             <div>
-              <span style={{ fontSize: "0.8rem", color: "var(--text-gold)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.08em" }}>{brand.category}</span>
-              <h2 style={{ fontSize: "1.8rem", fontWeight: 800, marginTop: "0.2rem", letterSpacing: "-0.015em" }}>{brand.name}</h2>
+              <span style={{ fontSize: "0.8rem", color: themeColor, textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.08em", background: `${themeColor}12`, padding: "4px 10px", borderRadius: "20px", border: `1px solid ${themeColor}25` }}>
+                {brand.rubro_especifico || brand.rubro_general || brand.category}
+              </span>
+              <h2 style={{ fontSize: "1.8rem", fontWeight: 800, marginTop: "0.8rem", letterSpacing: "-0.015em" }}>{brand.name}</h2>
+              {parsed.tagline && (
+                <p style={{ fontSize: "1.0rem", color: "var(--text-muted)", fontStyle: "italic", marginTop: "0.4rem", marginBottom: "0.4rem" }}>
+                  "{parsed.tagline}"
+                </p>
+              )}
               {brand.collaborators && brand.collaborators.length > 1 && (
                 <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginTop: "0.3rem" }}>
                   <i className="fa-solid fa-user-tag" style={{ marginRight: 6 }}></i>
@@ -568,8 +591,18 @@ export default function BrandProfilePage({ params }) {
           </div>
 
           <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", marginTop: "1.2rem", lineHeight: 1.65 }}>
-            {parseDescription(brand.description).text}
+            {parsed.text}
           </p>
+
+          {parsed.interests && (
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "1.2rem", paddingTop: "1.0rem", borderTop: "1px dashed var(--border-color)", marginBottom: "1.5rem" }}>
+              {parsed.interests.split(",").map((tag, idx) => (
+                <span key={idx} style={{ fontSize: "0.75rem", background: "var(--bg-input)", border: "1px solid var(--border-color)", padding: "4px 10px", borderRadius: "20px", color: "var(--text-primary)", fontWeight: 500 }}>
+                  🏷️ {tag.trim()}
+                </span>
+              ))}
+            </div>
+          )}
 
           {(() => {
             const parsed = parseDescription(brand.description);

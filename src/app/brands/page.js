@@ -51,11 +51,13 @@ export default function BrandsPage() {
                     style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer" }}
                     onClick={() => router.push(`/brands/${brand.slug || brand.id}`)}
                   >
-                    <div className="card-img-container" style={{ height: "230px", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-input)" }}>
-                      <img src={brand.logo} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} className="card-img-hover" />
+                    <div className="card-img-container" style={{ position: "relative" }}>
+                      <img src={brand.logo} alt={brand.name} className="card-img-hover" />
                     </div>
                     <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                      <span style={{ fontSize: "0.75rem", color: "var(--text-gold)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>{brand.category}</span>
+                      <span style={{ fontSize: "0.75rem", color: "var(--text-gold)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        {brand.rubro_especifico || brand.rubro_general || brand.category || "Marca Local"}
+                      </span>
                       <h3 style={{ fontSize: "1.15rem", fontWeight: 800 }}>{brand.name}</h3>
                       <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", flex: 1, lineHeight: 1.45 }}>{parseDescription(brand.description).text}</p>
                       

@@ -74,6 +74,11 @@ function AppLayoutShell({ children }) {
     uploadingEdit, setUploadingEdit,
     uploadingReg, setUploadingReg,
     uploadImage,
+    editBanner, setEditBanner,
+    editBannerPreview, setEditBannerPreview,
+    editThemeColor, setEditThemeColor,
+    editTagline, setEditTagline,
+    editInterests, setEditInterests,
     handleAccountRegistration,
     handleEditProfileSubmit,
     triggerNotification,
@@ -1083,6 +1088,25 @@ function AppLayoutShell({ children }) {
                 >
                   🌐 Conexiones
                 </button>
+                <button 
+                  type="button" 
+                  onClick={() => setActiveEditTab("design")} 
+                  style={{
+                    background: activeEditTab === "design" ? "var(--gold-gradient)" : "transparent",
+                    color: activeEditTab === "design" ? "#1C1C1E" : "var(--text-muted)",
+                    border: "1px solid " + (activeEditTab === "design" ? "var(--gold-primary)" : "transparent"),
+                    padding: "0.45rem 1rem",
+                    borderRadius: "20px",
+                    fontSize: "0.82rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    transition: "var(--transition-smooth)",
+                    boxShadow: activeEditTab === "design" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
+                  }}
+                >
+                  🎨 Diseño / Portada
+                </button>
                 {editProfileType === "brand" && (
                   <button 
                     type="button" 
@@ -1259,13 +1283,19 @@ function AppLayoutShell({ children }) {
                       required
                     >
                       <option value="">-- Selecciona un Rubro --</option>
-                      <option value="Comida">Comida / Gastronomía</option>
-                      <option value="Snacks">Snacks / Alimentos Deshidratados</option>
-                      <option value="Joyería">Joyería / Orfebrería</option>
-                      <option value="Moda y Accesorios">Moda y Accesorios</option>
-                      <option value="Arte y Diseño">Arte y Diseño</option>
-                      <option value="Hogar y Decoración">Hogar y Decoración</option>
-                      <option value="Salud y Belleza">Salud y Belleza</option>
+                      <option value="Comida / Gastronomía">Comida / Gastronomía</option>
+                      <option value="Snacks / Alimentos Deshidratados">Snacks / Alimentos Deshidratados</option>
+                      <option value="Bebidas Artesanales / Café / Licores">Bebidas Artesanales / Café / Licores</option>
+                      <option value="Joyería / Orfebrería">Joyería / Orfebrería</option>
+                      <option value="Moda y Accesorios">Moda y Accesorios / Vestimenta</option>
+                      <option value="Calzado y Artículos de Cuero">Calzado y Artículos de Cuero / Marroquinería</option>
+                      <option value="Arte y Diseño">Arte / Ilustración / Diseño</option>
+                      <option value="Hogar y Decoración">Hogar / Decoración / Velas Aromáticas</option>
+                      <option value="Salud y Belleza">Salud / Belleza / Cosmética Natural</option>
+                      <option value="Editorial y Papelería">Editorial / Libros / Papelería</option>
+                      <option value="Plantas y Jardinería">Plantas / Viveros / Jardinería</option>
+                      <option value="Juguetes y Entretenimiento">Juguetes / Juegos de Mesa</option>
+                      <option value="Servicios Culturales">Servicios Culturales / Talleres</option>
                       <option value="Otro">Otro Rubro</option>
                     </select>
                   </div>
@@ -1348,10 +1378,124 @@ function AppLayoutShell({ children }) {
 
                   {editProfileType === "band" && (
                     <div className="form-group" style={{ marginTop: "12px" }}>
-                      <label><i className="fa-brands fa-spotify" style={{ marginRight: 6, color: "#1db954" }}></i>Link de Música (Spotify / YouTube)</label>
-                      <input type="url" className="form-control" value={editMediaLink} onChange={(e) => setEditMediaLink(e.target.value)} placeholder="https://open.spotify.com/artist/..." />
+                       <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem" }}><i className="fa-brands fa-spotify" style={{ color: "#1db954" }}></i>Link de Música (Spotify / YouTube)</label>
+                       <input type="url" className="form-control" value={editMediaLink} onChange={(e) => setEditMediaLink(e.target.value)} placeholder="https://open.spotify.com/artist/..." style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }} />
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Tab: Personalización / Diseño */}
+              {activeEditTab === "design" && (
+                <div className="fade-in">
+                  {/* Tagline / Frase */}
+                  <div className="form-group">
+                    <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Frase de Perfil (Tagline)</label>
+                    <input 
+                      type="text" 
+                      className="form-control"
+                      value={editTagline}
+                      onChange={(e) => setEditTagline(e.target.value)}
+                      placeholder="Una frase corta que te represente o describa tu marca"
+                      style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                    />
+                  </div>
+
+                  {/* Banner / Foto de Portada */}
+                  <div className="form-group">
+                    <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Foto de Portada / Banner</label>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                      {editBannerPreview ? (
+                        <div style={{ width: "100%", height: "120px", position: "relative", borderRadius: "8px", overflow: "hidden", border: "1px solid var(--border-color)" }}>
+                          <img src={editBannerPreview} alt="Preview Banner" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          <button 
+                            type="button"
+                            onClick={() => { setEditBanner(""); setEditBannerPreview(""); }}
+                            style={{ position: "absolute", top: "5px", right: "5px", background: "rgba(239,68,68,0.9)", color: "#fff", border: "none", borderRadius: "50%", width: "24px", height: "24px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", fontWeight: "bold" }}
+                            title="Eliminar Portada"
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      ) : (
+                        <div style={{ width: "100%", height: "100px", border: "2px dashed var(--border-color)", borderRadius: "8px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "var(--bg-input)" }}>
+                          <i className="fa-regular fa-image" style={{ fontSize: "1.8rem", color: "var(--text-muted)", marginBottom: "6px" }}></i>
+                          <span style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>Sube una foto de portada</span>
+                        </div>
+                      )}
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            setEditBannerPreview(URL.createObjectURL(file));
+                            const url = await uploadImage(file, setUploadingEdit);
+                            if (url) {
+                              setEditBanner(url);
+                              setEditBannerPreview(url);
+                            }
+                          }
+                        }}
+                        style={{ fontSize: "0.82rem" }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Accent Color / Tema */}
+                  <div className="form-group">
+                    <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Color de Acento (Tema)</label>
+                    <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "5px", alignItems: "center" }}>
+                      {[
+                        { name: "Dorado", color: "#D4AF37" },
+                        { name: "Esmeralda", color: "#0f766e" },
+                        { name: "Zafiro", color: "#1e3a8a" },
+                        { name: "Rubí", color: "#be123c" },
+                        { name: "Amatista", color: "#6d28d9" },
+                        { name: "Negro Obsidiana", color: "#1c1c1e" }
+                      ].map((theme) => (
+                        <button
+                          key={theme.color}
+                          type="button"
+                          onClick={() => setEditThemeColor(theme.color)}
+                          style={{
+                            width: "32px",
+                            height: "32px",
+                            borderRadius: "50%",
+                            background: theme.color,
+                            border: editThemeColor === theme.color ? "3px solid var(--text-gold)" : "2px solid #FFFFFF",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                            cursor: "pointer",
+                            transition: "transform 0.2s"
+                          }}
+                          title={theme.name}
+                        />
+                      ))}
+                      {editThemeColor && (
+                        <button 
+                          type="button" 
+                          className="btn-outline-gold" 
+                          style={{ padding: "4px 10px", fontSize: "0.72rem", borderRadius: "20px", fontWeight: 700 }}
+                          onClick={() => setEditThemeColor("")}
+                        >
+                          Restablecer
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Interests / Tags */}
+                  <div className="form-group">
+                    <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Intereses / Habilidades (separados por comas)</label>
+                    <input 
+                      type="text" 
+                      className="form-control"
+                      value={editInterests}
+                      onChange={(e) => setEditInterests(e.target.value)}
+                      placeholder="Ej: Arte, Orfebrería, Música, Sostenibilidad, Diseño"
+                      style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                    />
+                  </div>
                 </div>
               )}
 

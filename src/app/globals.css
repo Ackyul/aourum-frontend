@@ -850,9 +850,10 @@ header {
 @media (max-width: 640px) {
   .carousel-track {
     gap: 0.8rem;
+    padding: 0.5rem 1rem;
   }
   .carousel-item {
-    flex: 0 0 160px; /* Two items visible at a time on mobile */
+    flex: 0 0 220px; /* Wider cards on mobile to show full details beautifully */
   }
 }
 
@@ -971,30 +972,36 @@ header {
 .filter-option-label {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 0.9rem;
+  gap: 12px;
+  font-size: 0.88rem;
   cursor: pointer;
   font-weight: 500;
-  padding: 0.6rem 0.8rem;
+  padding: 0.75rem 1rem;
   border-radius: 8px;
+  border: 1.5px solid var(--border-color);
+  background: #FFFFFF;
   transition: var(--transition-smooth);
-  border: 1px solid transparent;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.01);
 }
 
 .filter-option-label:hover {
-  background: var(--bg-input);
+  border-color: var(--gold-primary);
+  background: rgba(214, 175, 55, 0.02);
 }
 
 .filter-option-label.active {
-  background: rgba(214,175,55,0.06);
-  border-color: rgba(214,175,55,0.2);
+  background: rgba(214, 175, 55, 0.05);
+  border-color: var(--gold-primary);
   color: var(--text-gold);
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.08);
 }
 
 .filter-input-radio {
   accent-color: var(--gold-primary);
   width: 16px;
   height: 16px;
+  margin: 0;
 }
 
 
