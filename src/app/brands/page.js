@@ -377,7 +377,7 @@ export default function BrandsPage() {
               
               <button 
                 onClick={() => setFiltersOpen(true)}
-                className="btn-outline-gold"
+                className="btn-outline-gold desktop-filter-btn"
                 style={{
                   borderRadius: "20px",
                   padding: "0.45rem 1.2rem",
@@ -621,19 +621,17 @@ export default function BrandsPage() {
           </div>
 
           {/* Floating Filter Button */}
-          {showFloatingBtn && (
-            <button 
-              onClick={() => setFiltersOpen(true)} 
-              className="floating-filter-btn fade-in"
-              aria-label="Abrir filtros de marcas"
-            >
-              <i className="fa-solid fa-sliders"></i>
-              <span>Filtros</span>
-              {(filterCategory !== "all" || sortBy !== "popular") && (
-                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#1C1C1E" }}></span>
-              )}
-            </button>
-          )}
+          <button 
+            onClick={() => setFiltersOpen(true)} 
+            className={`floating-filter-btn fade-in ${showFloatingBtn ? "visible" : ""}`}
+            aria-label="Abrir filtros de marcas"
+          >
+            <i className="fa-solid fa-sliders"></i>
+            <span>Filtros</span>
+            {(filterCategory !== "all" || sortBy !== "popular") && (
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#1C1C1E" }}></span>
+            )}
+          </button>
         </>
       )}
     </div>
