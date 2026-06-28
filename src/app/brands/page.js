@@ -90,6 +90,20 @@ export default function BrandsPage() {
   const [sortBy, setSortBy] = useState("popular");
   const [visibleCount, setVisibleCount] = useState(12);
 
+  // Scroll listener for floating filter button
+  const [showFloatingBtn, setShowFloatingBtn] = useState(false);
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 250) {
+        setShowFloatingBtn(true);
+      } else {
+        setShowFloatingBtn(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   // Reset pagination on search, category or sort changes
   useEffect(() => {
     setVisibleCount(12);
@@ -368,6 +382,22 @@ export default function BrandsPage() {
               </button>
             </div>
           </div>
+
+          {/* Floating Filter Button */}
+          {showFloatingBtn && (
+            <button 
+              onClick={() => setFiltersOpen(true)} 
+              className="floating-filter-btn fade-in"
+              aria-label="Abrir filtros de marcas"
+            >
+              <i className="fa-solid fa-sliders"></i>
+              <span>Filtros</span>
+              {(filterCategory !== "all" || sortBy !== "popular") && (
+                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#1C1C1E" }}></span>
+              )}
+            </button>
+          )}
+
         </>
       )}
     </div>

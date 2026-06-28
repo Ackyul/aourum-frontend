@@ -89,6 +89,20 @@ export default function Home() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(12);
   const router = useRouter();
+
+  // Scroll listener for floating filter button
+  const [showFloatingBtn, setShowFloatingBtn] = useState(false);
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 250) {
+        setShowFloatingBtn(true);
+      } else {
+        setShowFloatingBtn(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
   
   // Ref map to handle horizontal scroll for multiple carousels
   const trackRefs = useRef({});
@@ -696,6 +710,22 @@ export default function Home() {
               </button>
             </div>
           </div>
+
+          {/* Floating Filter Button */}
+          {showFloatingBtn && (
+            <button 
+              onClick={() => setFiltersOpen(true)} 
+              className="floating-filter-btn fade-in"
+              aria-label="Abrir filtros"
+            >
+              <i className="fa-solid fa-sliders"></i>
+              <span>Filtros</span>
+              {(filterType !== "all" || filterCategory !== "all") && (
+                <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#1C1C1E" }}></span>
+              )}
+            </button>
+          )}
+
       </>
       )}
     </div>

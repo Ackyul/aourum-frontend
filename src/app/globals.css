@@ -861,6 +861,39 @@ header {
   }
 }
 
+/* Floating action button for filters */
+.floating-filter-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--gold-gradient);
+  border: 1px solid var(--gold-primary);
+  color: #1C1C1E;
+  padding: 0.75rem 1.4rem;
+  border-radius: 30px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.35);
+  transition: var(--transition-smooth);
+}
+.floating-filter-btn:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 12px 30px rgba(212, 175, 55, 0.45);
+}
+@media (max-width: 768px) {
+  .floating-filter-btn {
+    bottom: 85px; /* Stay clear of mobile bottom tab bar (64px) */
+    right: 20px;
+    padding: 0.65rem 1.2rem;
+    font-size: 0.8rem;
+  }
+}
+
 /* ── SIDEBAR FILTERS ──────────────────────────────────────── */
 .sidebar-backdrop {
   position: fixed;
