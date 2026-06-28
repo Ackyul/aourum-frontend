@@ -843,6 +843,8 @@ header {
 
 .carousel-item {
   flex: 0 0 280px;
+  width: 280px;
+  max-width: 280px;
   scroll-snap-align: start;
   transition: var(--transition-smooth);
 }
@@ -853,7 +855,9 @@ header {
     padding: 0.5rem 1rem;
   }
   .carousel-item {
-    flex: 0 0 220px; /* Wider cards on mobile to show full details beautifully */
+    flex: 0 0 220px;
+    width: 220px;
+    max-width: 220px;
   }
 }
 

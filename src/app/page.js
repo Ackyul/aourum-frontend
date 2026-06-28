@@ -262,16 +262,6 @@ export default function Home() {
           }}>
             {prod.type === "service" ? "📅 Servicio" : "🛍️ Producto"}
           </span>
-          <span style={{
-            position: "absolute", bottom: "12px", right: "12px",
-            background: "rgba(28, 28, 30, 0.75)",
-            backdropFilter: "blur(4px)",
-            color: "#EAE6DF", padding: "0.25rem 0.5rem", borderRadius: "4px",
-            fontSize: "0.68rem", fontWeight: 500,
-            zIndex: 2, display: "flex", alignItems: "center", gap: "4px"
-          }}>
-            <i className="fa-regular fa-eye" style={{ fontSize: "0.72rem" }}></i> {views}
-          </span>
         </div>
         <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           <span style={{ fontSize: "0.75rem", color: "var(--text-gold)", letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
@@ -353,16 +343,6 @@ export default function Home() {
             zIndex: 2
           }}>
             ⭐ Destacada
-          </span>
-          <span style={{
-            position: "absolute", bottom: "12px", right: "12px",
-            background: "rgba(28, 28, 30, 0.75)",
-            backdropFilter: "blur(4px)",
-            color: "#EAE6DF", padding: "0.25rem 0.5rem", borderRadius: "4px",
-            fontSize: "0.68rem", fontWeight: 500,
-            zIndex: 2, display: "flex", alignItems: "center", gap: "4px"
-          }}>
-            <i className="fa-regular fa-eye" style={{ fontSize: "0.72rem" }}></i> {views}
           </span>
         </div>
         <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
@@ -617,6 +597,8 @@ export default function Home() {
               </div>
             </div>
           )}
+
+          </div>
 
           {/* Sliding Left Sidebar for Filters */}
           <div className={`sidebar-backdrop ${filtersOpen ? "open" : ""}`} onClick={() => setFiltersOpen(false)} />
