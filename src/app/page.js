@@ -446,7 +446,8 @@ export default function Home() {
           <p style={{ color: "var(--text-muted)", fontWeight: "medium", fontSize: "0.95rem" }}>Cargando la vitrina cultural local...</p>
         </div>
       ) : (
-        <div className="fade-in">
+        <>
+          <div className="fade-in">
           
           {/* Header area of catalogue */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2.0rem", flexWrap: "wrap", gap: "1rem" }}>
@@ -695,8 +696,7 @@ export default function Home() {
               </button>
             </div>
           </div>
-
-        </div>
+      </>
       )}
     </div>
   );
