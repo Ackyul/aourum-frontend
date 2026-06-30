@@ -332,13 +332,17 @@ export function AppContextProvider({ children }) {
       triggerNotification(false, "Completa los campos obligatorios del producto/servicio");
       return;
     }
+    const trimmedCategory = prodCategory.trim();
+    const existingCategory = products.find(p => p.category && p.category.trim().toLowerCase() === trimmedCategory.toLowerCase())?.category;
+    const cleanCategory = existingCategory ? existingCategory.trim() : trimmedCategory;
+
     const payload = {
       name: prodName,
       description: prodDescription,
       price: Number(prodPrice),
       priceAourum: prodPriceAourum === "" || prodPriceAourum == null ? null : Number(prodPriceAourum),
       stock: prodType === "service" ? 99999 : (prodStock === "" || prodStock == null ? null : Number(prodStock)),
-      category: prodCategory,
+      category: cleanCategory,
       brandId: Number(targetBrandId),
       type: prodType,
       image: prodImage || undefined

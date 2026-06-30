@@ -164,12 +164,26 @@ export default function Home() {
                           prod.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           getBrandName(prod.brandId).toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === "all" || prod.type === filterType;
-    const matchesCategory = filterCategory === "all" || prod.category === filterCategory;
+    const matchesCategory = filterCategory === "all" || (prod.category && prod.category.trim().toLowerCase() === filterCategory.trim().toLowerCase());
     return matchesSearch && matchesType && matchesCategory;
   });
 
   const hasActiveFilters = searchTerm !== "" || filterType !== "all" || filterCategory !== "all";
-  const allCategories = [...new Set(products.map(p => p.category).filter(Boolean))];
+  const allCategories = (() => {
+    const seen = new Set();
+    const unique = [];
+    products.forEach(p => {
+      if (p.category) {
+        const trimmed = p.category.trim();
+        const lower = trimmed.toLowerCase();
+        if (!seen.has(lower)) {
+          seen.add(lower);
+          unique.push(trimmed);
+        }
+      }
+    });
+    return unique;
+  })();
 
   // Extraction of featured entities using MaxHeap
   const getFeaturedProducts = () => {
@@ -491,7 +505,7 @@ export default function Home() {
                   cat.toLowerCase().replace(/[^a-z0-9]/g, ""),
                   cat,
                   `Explora nuestra selección de ${cat.toLowerCase()}`,
-                  products.filter(p => p.category === cat),
+                  products.filter(p => p.category && p.category.trim().toLowerCase() === cat.trim().toLowerCase()),
                   cat
                 )
               )}
