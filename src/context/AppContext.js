@@ -1051,7 +1051,11 @@ export function parseDescription(description) {
     local_address: "",
     local_lat: -16.39889,
     local_lng: -71.53694,
-    songs: []
+    songs: [],
+    banner: "",
+    theme_color: "",
+    tagline: "",
+    interests: ""
   };
   if (!description) return defaultVal;
   const trimmed = description.trim();
@@ -1070,7 +1074,11 @@ export function parseDescription(description) {
         local_address: parsed.local_address || "",
         local_lat: parsed.local_lat !== undefined ? Number(parsed.local_lat) : -16.39889,
         local_lng: parsed.local_lng !== undefined ? Number(parsed.local_lng) : -71.53694,
-        songs: parsed.songs || []
+        songs: parsed.songs || [],
+        banner: parsed.banner || "",
+        theme_color: parsed.theme_color || "",
+        tagline: parsed.tagline || "",
+        interests: parsed.interests || ""
       };
     } catch (e) {
       return defaultVal;
