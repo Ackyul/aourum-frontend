@@ -1477,6 +1477,42 @@ function AppLayoutShell({ children }) {
                           title={theme.name}
                         />
                       ))}
+
+                      {/* Selector de Color Personalizado (Rueda/Gradiente) */}
+                      <div style={{ position: "relative", width: "32px", height: "32px" }}>
+                        <input 
+                          type="color"
+                          value={editThemeColor && editThemeColor.startsWith('#') && editThemeColor.length === 7 ? editThemeColor : "#D4AF37"}
+                          onChange={(e) => setEditThemeColor(e.target.value)}
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            opacity: 0,
+                            width: "100%",
+                            height: "100%",
+                            cursor: "pointer"
+                          }}
+                          title="Color Personalizado"
+                        />
+                        <div style={{
+                          width: "100%",
+                          height: "100%",
+                          borderRadius: "50%",
+                          background: !["#D4AF37", "#0f766e", "#1e3a8a", "#be123c", "#6d28d9", "#1c1c1e", ""].includes(editThemeColor) && editThemeColor.startsWith('#')
+                            ? editThemeColor
+                            : "linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff)",
+                          border: !["#D4AF37", "#0f766e", "#1e3a8a", "#be123c", "#6d28d9", "#1c1c1e", ""].includes(editThemeColor) ? "3px solid var(--text-gold)" : "2px solid #FFFFFF",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          pointerEvents: "none"
+                        }}>
+                          <i className="fa-solid fa-eye-dropper" style={{ color: "#fff", fontSize: "0.75rem", textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}></i>
+                        </div>
+                      </div>
+
                       {editThemeColor && (
                         <button 
                           type="button" 
@@ -1487,6 +1523,39 @@ function AppLayoutShell({ children }) {
                           Restablecer
                         </button>
                       )}
+                    </div>
+
+                    {/* Input manual de código HEX */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "12px" }}>
+                      <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 600 }}>HEX:</span>
+                      <input 
+                        type="text"
+                        value={editThemeColor}
+                        onChange={(e) => {
+                          let val = e.target.value;
+                          if (val && !val.startsWith('#') && /^[0-9a-fA-F]+$/.test(val)) {
+                            val = '#' + val;
+                          }
+                          if (val.length <= 7) {
+                            setEditThemeColor(val);
+                          }
+                        }}
+                        placeholder="#D4AF37"
+                        style={{
+                          width: "90px",
+                          padding: "4px 8px",
+                          fontSize: "0.82rem",
+                          borderRadius: "6px",
+                          border: "1px solid var(--border-color)",
+                          background: "var(--bg-input)",
+                          color: "var(--text-primary)",
+                          fontFamily: "monospace",
+                          textAlign: "center"
+                        }}
+                      />
+                      <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
+                        o selecciona un color arriba.
+                      </span>
                     </div>
                   </div>
 

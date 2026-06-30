@@ -149,7 +149,7 @@ export default function PersonProfile({ params }) {
   };
 
   const parsed = parseDescription(person.description);
-  const themeColor = parsed.theme_color || "var(--gold-primary)";
+  const themeColor = (parsed.theme_color && parsed.theme_color.startsWith('#')) ? parsed.theme_color : "#D4AF37";
   const bannerStyle = parsed.banner 
     ? { backgroundImage: `url(${parsed.banner})`, backgroundSize: "cover", backgroundPosition: "center", height: "200px" } 
     : { background: "var(--gold-gradient)", opacity: 0.15, height: "130px" };
