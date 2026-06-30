@@ -95,7 +95,10 @@ function AppLayoutShell({ children }) {
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    setMounted(true);
+    // Defers to avoid calling setState synchronously within the effect body
+    Promise.resolve().then(() => {
+      setMounted(true);
+    });
   }, []);
 
   const [activeEditTab, setActiveEditTab] = useState("basic");
@@ -116,7 +119,10 @@ function AppLayoutShell({ children }) {
 
   useEffect(() => {
     if (editProfileOpen) {
-      setActiveEditTab("basic");
+      // Defers to avoid calling setState synchronously within the effect body
+      Promise.resolve().then(() => {
+        setActiveEditTab("basic");
+      });
     }
   }, [editProfileOpen]);
 
@@ -1028,7 +1034,7 @@ function AppLayoutShell({ children }) {
 
             <form onSubmit={handleEditProfileSubmit}>
               {/* Tab bar header */}
-              <div style={{ display: "flex", gap: "6px", borderBottom: "1.5px solid var(--border-color)", paddingBottom: "0.6rem", marginBottom: "1.2rem", overflowX: "auto", scrollbarWidth: "none" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", borderBottom: "1.5px solid var(--border-color)", paddingBottom: "0.6rem", marginBottom: "1.2rem" }}>
                 <button 
                   type="button" 
                   onClick={() => setActiveEditTab("basic")} 

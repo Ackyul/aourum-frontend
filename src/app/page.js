@@ -88,6 +88,16 @@ export default function Home() {
 
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(12);
+  const [prevSearchTerm, setPrevSearchTerm] = useState(searchTerm);
+  const [prevFilterType, setPrevFilterType] = useState(filterType);
+  const [prevFilterCategory, setPrevFilterCategory] = useState(filterCategory);
+
+  if (searchTerm !== prevSearchTerm || filterType !== prevFilterType || filterCategory !== prevFilterCategory) {
+    setPrevSearchTerm(searchTerm);
+    setPrevFilterType(filterType);
+    setPrevFilterCategory(filterCategory);
+    setVisibleCount(12);
+  }
   const router = useRouter();
 
   // Scroll listener for floating filter button
@@ -106,16 +116,10 @@ export default function Home() {
   
   // Ref map to handle horizontal scroll for multiple carousels
   const trackRefs = useRef({});
-  const getTrackRef = (id) => {
-    if (!trackRefs.current[id]) {
-      trackRefs.current[id] = { current: null };
-    }
-    return trackRefs.current[id];
-  };
 
   // Scroll action for Desktop navigation arrows
   const scrollTrack = (id, direction) => {
-    const track = trackRefs.current[id]?.current;
+    const track = trackRefs.current[id];
     if (track) {
       const scrollAmount = track.clientWidth * 0.75;
       track.scrollBy({
@@ -125,10 +129,7 @@ export default function Home() {
     }
   };
 
-  // Reset pagination when search or filters change
-  useEffect(() => {
-    setVisibleCount(12);
-  }, [searchTerm, filterType, filterCategory]);
+
 
   // Prevent background scroll when sidebar filters are open
   useEffect(() => {
@@ -350,7 +351,6 @@ export default function Home() {
   // Render horizontal carousel block for products
   const renderCarousel = (id, title, subtitle, sectionProducts, categoryValue) => {
     if (sectionProducts.length === 0) return null;
-    const trackRef = getTrackRef(id);
 
     return (
       <div key={id} className="carousel-container fade-in">
@@ -375,7 +375,13 @@ export default function Home() {
         </div>
 
         <div className="carousel-track-wrapper">
-          <div className="carousel-track" ref={trackRef}>
+          <div className="carousel-track" ref={el => {
+            if (el) {
+              trackRefs.current[id] = el;
+            } else {
+              delete trackRefs.current[id];
+            }
+          }}>
             {sectionProducts.map((prod) => (
               <div key={prod.id} className="carousel-item">
                 <ProductCard prod={prod} />

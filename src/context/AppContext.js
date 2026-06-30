@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
 
 const AppContext = createContext();
 
@@ -207,7 +207,7 @@ export function AppContextProvider({ children }) {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   // Fetch initial data
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const [resProds, resFairs, resBands, resBrands, resOrgs, resPeople, resInvs] = await Promise.all([
@@ -224,9 +224,12 @@ export function AppContextProvider({ children }) {
       
       if (Array.isArray(resFairs)) {
         setFairs(resFairs);
-        if (resFairs.length > 0 && !activeFairId) {
-          setActiveFairId(resFairs[0].id.toString());
-        }
+        setActiveFairId((curr) => {
+          if (resFairs.length > 0 && !curr) {
+            return resFairs[0].id.toString();
+          }
+          return curr;
+        });
       }
 
       if (Array.isArray(resBands)) setBands(resBands);
@@ -266,11 +269,14 @@ export function AppContextProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_URL]);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    // Run asynchronously to avoid calling setState synchronously within the effect body
+    Promise.resolve().then(() => {
+      fetchData();
+    });
+  }, [fetchData]);
 
   // Float notifications handler
   const triggerNotification = (success, msg) => {

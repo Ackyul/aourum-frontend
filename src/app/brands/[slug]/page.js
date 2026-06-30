@@ -527,7 +527,7 @@ export default function BrandProfilePage({ params }) {
               <h2 style={{ fontSize: "1.8rem", fontWeight: 800, marginTop: "0.8rem", letterSpacing: "-0.015em" }}>{brand.name}</h2>
               {parsed.tagline && (
                 <p style={{ fontSize: "1.0rem", color: "var(--text-muted)", fontStyle: "italic", marginTop: "0.4rem", marginBottom: "0.4rem" }}>
-                  "{parsed.tagline}"
+                  &ldquo;{parsed.tagline}&rdquo;
                 </p>
               )}
               {brand.collaborators && brand.collaborators.length > 1 && (

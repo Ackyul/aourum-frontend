@@ -38,7 +38,18 @@ export default function ProductDetailPage({ params }) {
   const randomBrandProds = useMemo(() => {
     if (!prod) return [];
     const brandProds = products.filter((p) => p.brandId === prod.brandId && p.id !== prod.id);
-    const shuffled = [...brandProds].sort(() => Math.random() - 0.5);
+    
+    // Deterministic pseudo-random shuffle based on product ID to keep it pure
+    let seed = 0;
+    const idStr = String(prod.id || "");
+    for (let i = 0; i < idStr.length; i++) {
+      seed += idStr.charCodeAt(i);
+    }
+    const random = () => {
+      const x = Math.sin(seed++) * 10000;
+      return x - Math.floor(x);
+    };
+    const shuffled = [...brandProds].sort(() => random() - 0.5);
     return shuffled.slice(0, 8);
   }, [prod, products]);
 

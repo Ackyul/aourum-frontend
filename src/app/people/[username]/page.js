@@ -81,7 +81,7 @@ export default function PersonProfile({ params }) {
       <div className="container" style={{ textAlign: "center", padding: "5rem 0" }}>
         <i className="fa-solid fa-user-slash" style={{ fontSize: "3rem", color: "var(--text-muted)", marginBottom: "1rem" }}></i>
         <h2>Perfil no encontrado</h2>
-        <p style={{ color: "var(--text-muted)", marginTop: "0.5rem" }}>El usuario o ID "{usernameParam}" no existe en el sistema.</p>
+        <p style={{ color: "var(--text-muted)", marginTop: "0.5rem" }}>El usuario o ID &ldquo;{usernameParam}&rdquo; no existe en el sistema.</p>
         <button onClick={() => router.push("/")} className="btn-gold" style={{ marginTop: "1.5rem", padding: "0.5rem 1.5rem", borderRadius: "8px" }}>
           Volver a la Vitrina
         </button>
@@ -182,7 +182,7 @@ export default function PersonProfile({ params }) {
                 <h2 className="person-name-heading" style={{ fontSize: "2.2rem", fontWeight: 800, marginTop: person.occupation ? "0.8rem" : "0", letterSpacing: "-0.02em" }}>{person.name} {person.lastName || ""}</h2>
                 {parsed.tagline && (
                   <p style={{ fontSize: "1.0rem", color: "var(--text-muted)", fontStyle: "italic", marginTop: "0.4rem", marginBottom: "0.4rem" }}>
-                    "{parsed.tagline}"
+                    &ldquo;{parsed.tagline}&rdquo;
                   </p>
                 )}
               </div>
