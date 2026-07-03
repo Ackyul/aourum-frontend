@@ -769,6 +769,58 @@ export function AppContextProvider({ children }) {
     }
   };
 
+  const linkFacebookAccount = async (token) => {
+    const userToken = loadToken();
+    if (!userToken) return { success: false, error: "No autenticado" };
+    try {
+      const response = await fetch(`${API_URL}/api/auth/link-facebook`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${userToken}`
+        },
+        body: JSON.stringify({ token })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        triggerNotification(true, "✅ Cuenta de Facebook vinculada correctamente.");
+        fetchData();
+        return { success: true };
+      } else {
+        triggerNotification(false, data.error || "No se pudo vincular la cuenta.");
+        return { success: false, error: data.error };
+      }
+    } catch (err) {
+      triggerNotification(false, "Error de red al vincular Facebook.");
+      return { success: false, error: "Error de red" };
+    }
+  };
+
+  const unlinkFacebookAccount = async () => {
+    const userToken = loadToken();
+    if (!userToken) return { success: false, error: "No autenticado" };
+    try {
+      const response = await fetch(`${API_URL}/api/auth/unlink-facebook`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${userToken}`
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        triggerNotification(true, "✅ Cuenta de Facebook desvinculada.");
+        fetchData();
+        return { success: true };
+      } else {
+        triggerNotification(false, data.error || "No se pudo desvincular.");
+        return { success: false, error: data.error };
+      }
+    } catch (err) {
+      triggerNotification(false, "Error de red al desvincular Facebook.");
+      return { success: false, error: "Error de red" };
+    }
+  };
+
   const changeEmail = async (newEmail, password) => {
     const userToken = loadToken();
     if (!userToken) return { success: false, error: "No autenticado" };
@@ -1153,6 +1205,8 @@ export function AppContextProvider({ children }) {
         handleSocialLogin,
         linkGoogleAccount,
         unlinkGoogleAccount,
+        linkFacebookAccount,
+        unlinkFacebookAccount,
         changeEmail,
         changePassword,
         handleEditProfileSubmit,

@@ -93,6 +93,8 @@ function AppLayoutShell({ children }) {
     handleSocialLogin,
     linkGoogleAccount,
     unlinkGoogleAccount,
+    linkFacebookAccount,
+    unlinkFacebookAccount,
     changeEmail,
     changePassword,
     logout
@@ -158,6 +160,21 @@ function AppLayoutShell({ children }) {
       }, { scope: 'email' });
     } else {
       triggerNotification(false, "El SDK de Facebook aún no se ha cargado. Intenta de nuevo en unos segundos.");
+    }
+  };
+
+  const linkWithFacebook = () => {
+    if (typeof window !== "undefined" && window.FB) {
+      window.FB.login((response) => {
+        if (response.authResponse) {
+          const accessToken = response.authResponse.accessToken;
+          linkFacebookAccount(accessToken);
+        } else {
+          triggerNotification(false, "Cancelaste la vinculación con Facebook.");
+        }
+      }, { scope: 'email' });
+    } else {
+      triggerNotification(false, "El SDK de Facebook no está disponible en este momento.");
     }
   };
 
@@ -1817,11 +1834,11 @@ function AppLayoutShell({ children }) {
                 </div>
               )}
 
-              {/* Tab: Configuración (Exclusivo para personas) */}
               {editProfileType === "person" && activeEditTab === "configuracion" && (() => {
                 const person = getCurrentPerson();
                 const hasPassword = person && person.passwordHash;
                 const isGoogleLinked = person && person.googleId;
+                const isFacebookLinked = person && person.facebookId;
 
                 return (
                   <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
@@ -1956,6 +1973,55 @@ function AppLayoutShell({ children }) {
                           <div style={{ position: "relative" }}>
                             <div id="google-link-btn"></div>
                           </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Sección 4: Métodos de Inicio de Sesión (Facebook) */}
+                    <div style={{ background: "var(--bg-input)", border: "1px solid var(--border-color)", padding: "1.25rem", borderRadius: "10px" }}>
+                      <h4 style={{ margin: "0 0 10px 0", fontSize: "0.95rem", fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                        <i className="fa-brands fa-facebook" style={{ color: "#1877F2" }}></i> Inicio de Sesión con Facebook
+                      </h4>
+                      <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: "0 0 12px 0" }}>
+                        Vincula tu cuenta de Facebook para iniciar sesión rápidamente sin contraseña.
+                      </p>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
+                        <div>
+                          <span style={{ fontSize: "0.82rem", fontWeight: 600 }}>Estado: </span>
+                          <span style={{ fontSize: "0.82rem", fontWeight: 700, color: isFacebookLinked ? "#10b981" : "#ef4444" }}>
+                            {isFacebookLinked ? "✓ Vinculado" : "✗ No vinculado"}
+                          </span>
+                        </div>
+                        {isFacebookLinked ? (
+                          <button
+                            type="button"
+                            className="btn-outline-gold"
+                            style={{ padding: "0.45rem 1rem", fontSize: "0.8rem", borderRadius: "6px", borderColor: "#ef4444", color: "#ef4444" }}
+                            onClick={() => unlinkFacebookAccount()}
+                          >
+                            Desvincular Facebook
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn-outline-gold"
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              padding: "0.45rem 1rem",
+                              fontSize: "0.8rem",
+                              borderRadius: "6px",
+                              background: "#1877F2",
+                              color: "#FFFFFF",
+                              border: "none",
+                              fontWeight: 700,
+                              cursor: "pointer"
+                            }}
+                            onClick={linkWithFacebook}
+                          >
+                            <i className="fa-brands fa-facebook-f"></i> Vincular Facebook
+                          </button>
                         )}
                       </div>
                     </div>
