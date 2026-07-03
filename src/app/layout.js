@@ -86,6 +86,7 @@ function AppLayoutShell({ children }) {
     activeOrganizerId, setActiveOrganizerId,
     activeBandId, setActiveBandId,
     activePersonId, setActivePersonId,
+    activeUsername,
     products, brands, organizers, bands, people,
     searchTerm, setSearchTerm,
     getCurrentBrand, getCurrentOrganizer, getCurrentBand, getCurrentPerson,
@@ -592,7 +593,7 @@ function AppLayoutShell({ children }) {
               ))}
               {mounted && activePersonId && (
                 <Link
-                  href={`/people/${getCurrentPerson()?.username || activePersonId}`}
+                  href={`/people/${getCurrentPerson()?.username || activeUsername || activePersonId}`}
                   style={{
                     background: pathname.startsWith('/people/') ? "var(--gold-gradient)" : "rgba(214,175,55,0.06)",
                     border: "1px solid rgba(214,175,55,0.35)",
@@ -678,7 +679,7 @@ function AppLayoutShell({ children }) {
                       <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
                         <h4 style={{ fontSize: "0.88rem", fontWeight: 700, margin: 0 }}>{getCurrentPerson().name}</h4>
                         {getCurrentPerson().occupation && <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: 0 }}><i className="fa-solid fa-id-badge" style={{ marginRight: 6 }}></i>{getCurrentPerson().occupation}</p>}
-                        <button onClick={() => { router.push(`/people/${getCurrentPerson()?.username || activePersonId}`); setAccountDropdownOpen(false); }} className="btn-gold" style={{ marginTop: "0.5rem", padding: "0.45rem", fontSize: "0.78rem", borderRadius: "6px", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                        <button onClick={() => { router.push(`/people/${getCurrentPerson()?.username || activeUsername || activePersonId}`); setAccountDropdownOpen(false); }} className="btn-gold" style={{ marginTop: "0.5rem", padding: "0.45rem", fontSize: "0.78rem", borderRadius: "6px", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
                           <i className="fa-solid fa-user-circle"></i> Ver Mi Perfil
                         </button>
                       </div>
@@ -714,7 +715,7 @@ function AppLayoutShell({ children }) {
           ))}
           {activePersonId ? (
             <Link
-              href={`/people/${getCurrentPerson()?.username || activePersonId}`}
+              href={`/people/${getCurrentPerson()?.username || activeUsername || activePersonId}`}
               className={`mobile-tab-item${pathname.startsWith('/people/') ? " active" : ""}`}
             >
               <i className="fa-solid fa-circle-user"></i>

@@ -61,6 +61,7 @@ export function AppContextProvider({ children }) {
   const [activeOrganizerId, setActiveOrganizerIdState] = useState(session?.organizerId ?? "");
   const [activeBandId, setActiveBandIdState] = useState(session?.bandId ?? "");
   const [activePersonId, setActivePersonIdState] = useState(session?.personId ?? "");
+  const [activeUsername, setActiveUsernameState] = useState(session?.username ?? "");
   const [activeFairId, setActiveFairId] = useState("");
 
   // Helpers that also persist to localStorage
@@ -89,6 +90,11 @@ export function AppContextProvider({ children }) {
     const current = loadSession() || {};
     saveSession({ ...current, personId: id });
   };
+  const setActiveUsername = (username) => {
+    setActiveUsernameState(username || "");
+    const current = loadSession() || {};
+    saveSession({ ...current, username: username || "" });
+  };
 
   // Logout — clears all session state
   const logout = () => {
@@ -98,6 +104,7 @@ export function AppContextProvider({ children }) {
     setActiveOrganizerIdState("");
     setActiveBandIdState("");
     setActivePersonIdState("");
+    setActiveUsernameState("");
     setActiveFairId("");
   };
 
@@ -260,6 +267,7 @@ export function AppContextProvider({ children }) {
           setActiveOrganizerIdState("");
           setActiveBandIdState("");
           setActivePersonIdState("");
+          setActiveUsernameState("");
         }
       }
 
@@ -555,6 +563,7 @@ export function AppContextProvider({ children }) {
           const stringId = data.person.id.toString();
           triggerNotification(true, `🎉 ¡Bienvenido a AOURUM, ${regName}!`);
           setActivePersonId(stringId);
+          setActiveUsername(data.person.username || "");
           setActiveRole("person");
           setRegName(""); setRegUsername(""); setRegEmail(""); setRegPassword(""); setRegOwner("");
           setRegCategory(""); setRegOccupation(""); setRegDescription("");
@@ -629,6 +638,7 @@ export function AppContextProvider({ children }) {
         saveToken(data.token);
         const stringId = data.person.id.toString();
         setActivePersonId(stringId);
+        setActiveUsername(data.person.username || "");
         setActiveRole("person");
         setLoginEmail("");
         setLoginPassword("");
@@ -700,6 +710,7 @@ export function AppContextProvider({ children }) {
         saveToken(data.token);
         const stringId = data.person.id.toString();
         setActivePersonId(stringId);
+        setActiveUsername(data.person.username || "");
         setActiveRole("person");
         setShowLoginModal(false);
         setShowRegModal(false);
@@ -1104,6 +1115,7 @@ export function AppContextProvider({ children }) {
         activeOrganizerId, setActiveOrganizerId,
         activeBandId, setActiveBandId,
         activePersonId, setActivePersonId,
+        activeUsername, setActiveUsername,
         activeFairId, setActiveFairId,
         searchTerm, setSearchTerm,
         filterType, setFilterType,
