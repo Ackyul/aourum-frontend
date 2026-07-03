@@ -686,6 +686,143 @@ export function AppContextProvider({ children }) {
     }
   };
 
+  const handleSocialLogin = async (provider, token) => {
+    setLoginLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/auth/${provider}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        saveToken(data.token);
+        const stringId = data.person.id.toString();
+        setActivePersonId(stringId);
+        setActiveRole("person");
+        setShowLoginModal(false);
+        setShowRegModal(false);
+        triggerNotification(true, `👋 ¡Bienvenido, ${data.person.name}!`);
+        fetchData();
+        return { success: true };
+      } else {
+        triggerNotification(false, data.error || `Error al iniciar sesión con ${provider}`);
+        return { success: false, error: data.error };
+      }
+    } catch (err) {
+      triggerNotification(false, `Error de red al conectar con ${provider}`);
+      return { success: false, error: "Error de red" };
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const linkGoogleAccount = async (token) => {
+    const userToken = loadToken();
+    if (!userToken) return { success: false, error: "No autenticado" };
+    try {
+      const response = await fetch(`${API_URL}/api/auth/link-google`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${userToken}`
+        },
+        body: JSON.stringify({ token })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        triggerNotification(true, "✅ Cuenta de Google vinculada correctamente.");
+        fetchData();
+        return { success: true };
+      } else {
+        triggerNotification(false, data.error || "No se pudo vincular la cuenta.");
+        return { success: false, error: data.error };
+      }
+    } catch (err) {
+      triggerNotification(false, "Error de red al vincular Google.");
+      return { success: false, error: "Error de red" };
+    }
+  };
+
+  const unlinkGoogleAccount = async () => {
+    const userToken = loadToken();
+    if (!userToken) return { success: false, error: "No autenticado" };
+    try {
+      const response = await fetch(`${API_URL}/api/auth/unlink-google`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${userToken}`
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        triggerNotification(true, "✅ Cuenta de Google desvinculada.");
+        fetchData();
+        return { success: true };
+      } else {
+        triggerNotification(false, data.error || "No se pudo desvincular.");
+        return { success: false, error: data.error };
+      }
+    } catch (err) {
+      triggerNotification(false, "Error de red al desvincular Google.");
+      return { success: false, error: "Error de red" };
+    }
+  };
+
+  const changeEmail = async (newEmail, password) => {
+    const userToken = loadToken();
+    if (!userToken) return { success: false, error: "No autenticado" };
+    try {
+      const response = await fetch(`${API_URL}/api/auth/change-email`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${userToken}`
+        },
+        body: JSON.stringify({ newEmail, password })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        saveToken(data.token); // Guardar nuevo token emitido
+        triggerNotification(true, "✅ Correo electrónico cambiado con éxito.");
+        fetchData();
+        return { success: true };
+      } else {
+        triggerNotification(false, data.error || "No se pudo cambiar el correo.");
+        return { success: false, error: data.error };
+      }
+    } catch (err) {
+      triggerNotification(false, "Error de red al cambiar el correo.");
+      return { success: false, error: "Error de red" };
+    }
+  };
+
+  const changePassword = async (currentPassword, newPassword) => {
+    const userToken = loadToken();
+    if (!userToken) return { success: false, error: "No autenticado" };
+    try {
+      const response = await fetch(`${API_URL}/api/auth/change-password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${userToken}`
+        },
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        triggerNotification(true, "✅ Contraseña actualizada correctamente.");
+        return { success: true };
+      } else {
+        triggerNotification(false, data.error || "No se pudo actualizar la contraseña.");
+        return { success: false, error: data.error };
+      }
+    } catch (err) {
+      triggerNotification(false, "Error de red al cambiar la contraseña.");
+      return { success: false, error: "Error de red" };
+    }
+  };
+
   const handleEditProfileSubmit = async (e, type, targetId) => {
     if (e) e.preventDefault();
     if (!editName) {
@@ -1013,6 +1150,11 @@ export function AppContextProvider({ children }) {
         handleLogin,
         forgotPassword,
         resetPassword,
+        handleSocialLogin,
+        linkGoogleAccount,
+        unlinkGoogleAccount,
+        changeEmail,
+        changePassword,
         handleEditProfileSubmit,
         handleApplyToFair,
         invitations,

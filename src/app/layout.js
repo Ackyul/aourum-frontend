@@ -90,16 +90,101 @@ function AppLayoutShell({ children }) {
     searchTerm, setSearchTerm,
     getCurrentBrand, getCurrentOrganizer, getCurrentBand, getCurrentPerson,
     forgotPassword,
+    handleSocialLogin,
+    linkGoogleAccount,
+    unlinkGoogleAccount,
+    changeEmail,
+    changePassword,
     logout
   } = useApp();
 
   const [mounted, setMounted] = useState(false);
+  
+  // Estados para configuración de seguridad del perfil
+  const [configEmail, setConfigEmail] = useState("");
+  const [configEmailPassword, setConfigEmailPassword] = useState("");
+  const [configCurrentPassword, setConfigCurrentPassword] = useState("");
+  const [configNewPassword, setConfigNewPassword] = useState("");
+  const [configConfirmPassword, setConfigConfirmPassword] = useState("");
+
+  const renderGoogleBtn = (elementId) => {
+    if (typeof window !== "undefined" && window.google) {
+      window.google.accounts.id.initialize({
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "180907106093-gph4qj5jmvv0v3q2lfecc56a1bpgn33t.apps.googleusercontent.com",
+        callback: async (response) => {
+          await handleSocialLogin("google", response.credential);
+        }
+      });
+      const element = document.getElementById(elementId);
+      if (element) {
+        window.google.accounts.id.renderButton(element, {
+          theme: "outline",
+          size: "large",
+          width: element.parentElement ? element.parentElement.offsetWidth : 280
+        });
+      }
+    }
+  };
+
+  const renderGoogleLinkBtn = (elementId) => {
+    if (typeof window !== "undefined" && window.google) {
+      window.google.accounts.id.initialize({
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "180907106093-gph4qj5jmvv0v3q2lfecc56a1bpgn33t.apps.googleusercontent.com",
+        callback: async (response) => {
+          await linkGoogleAccount(response.credential);
+        }
+      });
+      const element = document.getElementById(elementId);
+      if (element) {
+        window.google.accounts.id.renderButton(element, {
+          theme: "outline",
+          size: "large",
+          width: element.parentElement ? element.parentElement.offsetWidth : 280
+        });
+      }
+    }
+  };
+
   useEffect(() => {
     // Defers to avoid calling setState synchronously within the effect body
     Promise.resolve().then(() => {
       setMounted(true);
     });
   }, []);
+
+  useEffect(() => {
+    if (mounted && (showLoginModal || showRegModal)) {
+      const timer = setTimeout(() => {
+        if (showLoginModal) renderGoogleBtn("google-signin-btn-login");
+        if (showRegModal && regType === "person") renderGoogleBtn("google-signin-btn-reg");
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [mounted, showLoginModal, showRegModal, regType]);
+
+  useEffect(() => {
+    if (mounted && editProfileOpen && activeEditTab === "configuracion") {
+      const timer = setTimeout(() => {
+        renderGoogleLinkBtn("google-link-btn");
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [mounted, editProfileOpen, activeEditTab]);
+
+  useEffect(() => {
+    if (editProfileOpen) {
+      Promise.resolve().then(() => {
+        const person = getCurrentPerson();
+        if (person) {
+          setConfigEmail(person.email || "");
+        }
+        setConfigEmailPassword("");
+        setConfigCurrentPassword("");
+        setConfigNewPassword("");
+        setConfigConfirmPassword("");
+      });
+    }
+  }, [editProfileOpen]);
 
   const [activeEditTab, setActiveEditTab] = useState("basic");
 
@@ -838,6 +923,20 @@ function AppLayoutShell({ children }) {
                 ></textarea>
               </div>
 
+              {regType === "person" && (
+                <>
+                  <div style={{ display: "flex", alignItems: "center", margin: "1.25rem 0", gap: "10px" }}>
+                    <div style={{ flex: 1, height: "1px", background: "var(--border-color)" }}></div>
+                    <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 600 }}>O REGÍSTRATE CON</span>
+                    <div style={{ flex: 1, height: "1px", background: "var(--border-color)" }}></div>
+                  </div>
+
+                  <div style={{ display: "flex", justifyContent: "center", width: "100%", minHeight: "44px", marginBottom: "1.2rem" }}>
+                    <div id="google-signin-btn-reg" style={{ width: "100%" }}></div>
+                  </div>
+                </>
+              )}
+
               <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1.2rem" }}>
                 <button type="button" onClick={() => setShowRegModal(false)} className="btn-outline-gold" style={{ padding: "0.45rem 1.2rem", borderRadius: "6px", fontSize: "0.85rem" }}>Cancelar</button>
                 <button type="submit" className="btn-gold" style={{ padding: "0.45rem 1.4rem", borderRadius: "6px", fontSize: "0.85rem", fontWeight: 700 }} disabled={uploadingReg}>
@@ -931,6 +1030,17 @@ function AppLayoutShell({ children }) {
                   : <><i className="fa-solid fa-right-to-bracket"></i> Entrar</>
                 }
               </button>
+
+              {/* O continuar con Google */}
+              <div style={{ display: "flex", alignItems: "center", margin: "1.25rem 0", gap: "10px" }}>
+                <div style={{ flex: 1, height: "1px", background: "var(--border-color)" }}></div>
+                <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 600 }}>O ENTRA CON</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--border-color)" }}></div>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "center", width: "100%", minHeight: "44px" }}>
+                <div id="google-signin-btn-login" style={{ width: "100%" }}></div>
+              </div>
 
               <div style={{ textAlign: "center", marginTop: "1.2rem", paddingTop: "1rem", borderTop: "1px solid var(--border-color)" }}>
                 <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: "0 0 8px 0" }}>¿No tienes cuenta?</p>
@@ -1132,6 +1242,27 @@ function AppLayoutShell({ children }) {
                     }}
                   >
                     📍 Local
+                  </button>
+                )}
+                {editProfileType === "person" && (
+                  <button 
+                    type="button" 
+                    onClick={() => setActiveEditTab("configuracion")} 
+                    style={{
+                      background: activeEditTab === "configuracion" ? "var(--gold-gradient)" : "transparent",
+                      color: activeEditTab === "configuracion" ? "#1C1C1E" : "var(--text-muted)",
+                      border: "1px solid " + (activeEditTab === "configuracion" ? "var(--gold-primary)" : "transparent"),
+                      padding: "0.45rem 1rem",
+                      borderRadius: "20px",
+                      fontSize: "0.82rem",
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                      transition: "var(--transition-smooth)",
+                      boxShadow: activeEditTab === "configuracion" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
+                    }}
+                  >
+                    ⚙️ Configuración
                   </button>
                 )}
               </div>
@@ -1618,6 +1749,153 @@ function AppLayoutShell({ children }) {
                 </div>
               )}
 
+              {/* Tab: Configuración (Exclusivo para personas) */}
+              {editProfileType === "person" && activeEditTab === "configuracion" && (() => {
+                const person = getCurrentPerson();
+                const hasPassword = person && person.passwordHash;
+                const isGoogleLinked = person && person.googleId;
+
+                return (
+                  <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                    
+                    {/* Sección 1: Cambiar Correo Electrónico */}
+                    <div style={{ background: "var(--bg-input)", border: "1px solid var(--border-color)", padding: "1.25rem", borderRadius: "10px" }}>
+                      <h4 style={{ margin: "0 0 10px 0", fontSize: "0.95rem", fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                        <i className="fa-solid fa-envelope" style={{ color: "var(--gold-primary)" }}></i> Correo Electrónico
+                      </h4>
+                      <div className="form-group">
+                        <label style={{ fontSize: "0.78rem" }}>Correo Actual / Nuevo Correo</label>
+                        <input 
+                          type="email" 
+                          className="form-control" 
+                          value={configEmail} 
+                          onChange={(e) => setConfigEmail(e.target.value)} 
+                          placeholder="tu@correo.com"
+                        />
+                      </div>
+                      {hasPassword && (
+                        <div className="form-group" style={{ marginTop: "10px" }}>
+                          <label style={{ fontSize: "0.78rem" }}>Ingresa tu contraseña para confirmar</label>
+                          <input 
+                            type="password" 
+                            className="form-control" 
+                            value={configEmailPassword} 
+                            onChange={(e) => setConfigEmailPassword(e.target.value)} 
+                            placeholder="Contraseña actual"
+                          />
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        className="btn-gold"
+                        style={{ marginTop: "12px", padding: "0.45rem 1rem", fontSize: "0.8rem", borderRadius: "6px", fontWeight: 700 }}
+                        onClick={async () => {
+                          if (!configEmail) return triggerNotification(false, "El correo no puede estar vacío.");
+                          const res = await changeEmail(configEmail, configEmailPassword);
+                          if (res.success) {
+                            setConfigEmailPassword("");
+                          }
+                        }}
+                      >
+                        Actualizar Correo
+                      </button>
+                    </div>
+
+                    {/* Sección 2: Cambiar Contraseña */}
+                    <div style={{ background: "var(--bg-input)", border: "1px solid var(--border-color)", padding: "1.25rem", borderRadius: "10px" }}>
+                      <h4 style={{ margin: "0 0 10px 0", fontSize: "0.95rem", fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                        <i className="fa-solid fa-lock" style={{ color: "var(--gold-primary)" }}></i> Contraseña
+                      </h4>
+                      {hasPassword && (
+                        <div className="form-group">
+                          <label style={{ fontSize: "0.78rem" }}>Contraseña Actual</label>
+                          <input 
+                            type="password" 
+                            className="form-control" 
+                            value={configCurrentPassword} 
+                            onChange={(e) => setConfigCurrentPassword(e.target.value)} 
+                            placeholder="Contraseña actual"
+                          />
+                        </div>
+                      )}
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginTop: "10px" }}>
+                        <div className="form-group" style={{ margin: 0 }}>
+                          <label style={{ fontSize: "0.78rem" }}>Nueva Contraseña</label>
+                          <input 
+                            type="password" 
+                            className="form-control" 
+                            value={configNewPassword} 
+                            onChange={(e) => setConfigNewPassword(e.target.value)} 
+                            placeholder="Mín. 6 caracteres"
+                          />
+                        </div>
+                        <div className="form-group" style={{ margin: 0 }}>
+                          <label style={{ fontSize: "0.78rem" }}>Confirmar Nueva</label>
+                          <input 
+                            type="password" 
+                            className="form-control" 
+                            value={configConfirmPassword} 
+                            onChange={(e) => setConfigConfirmPassword(e.target.value)} 
+                            placeholder="Repite la contraseña"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn-gold"
+                        style={{ marginTop: "12px", padding: "0.45rem 1rem", fontSize: "0.8rem", borderRadius: "6px", fontWeight: 700 }}
+                        onClick={async () => {
+                          if (!configNewPassword) return triggerNotification(false, "Ingresa la nueva contraseña.");
+                          if (configNewPassword.length < 6) return triggerNotification(false, "La nueva contraseña debe tener al menos 6 caracteres.");
+                          if (configNewPassword !== configConfirmPassword) return triggerNotification(false, "Las contraseñas no coinciden.");
+                          const res = await changePassword(configCurrentPassword, configNewPassword);
+                          if (res.success) {
+                            setConfigCurrentPassword("");
+                            setConfigNewPassword("");
+                            setConfigConfirmPassword("");
+                          }
+                        }}
+                      >
+                        {hasPassword ? "Actualizar Contraseña" : "Crear Contraseña"}
+                      </button>
+                    </div>
+
+                    {/* Sección 3: Métodos de Inicio de Sesión (Google) */}
+                    <div style={{ background: "var(--bg-input)", border: "1px solid var(--border-color)", padding: "1.25rem", borderRadius: "10px" }}>
+                      <h4 style={{ margin: "0 0 10px 0", fontSize: "0.95rem", fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                        <i className="fa-brands fa-google" style={{ color: "#4285F4" }}></i> Inicio de Sesión con Google
+                      </h4>
+                      <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: "0 0 12px 0" }}>
+                        Vincula tu cuenta de Google para iniciar sesión rápidamente sin contraseña.
+                      </p>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
+                        <div>
+                          <span style={{ fontSize: "0.82rem", fontWeight: 600 }}>Estado: </span>
+                          <span style={{ fontSize: "0.82rem", fontWeight: 700, color: isGoogleLinked ? "#10b981" : "#ef4444" }}>
+                            {isGoogleLinked ? "✓ Vinculado" : "✗ No vinculado"}
+                          </span>
+                        </div>
+                        {isGoogleLinked ? (
+                          <button
+                            type="button"
+                            className="btn-outline-gold"
+                            style={{ padding: "0.45rem 1rem", fontSize: "0.8rem", borderRadius: "6px", borderColor: "#ef4444", color: "#ef4444" }}
+                            onClick={() => unlinkGoogleAccount()}
+                          >
+                            Desvincular Google
+                          </button>
+                        ) : (
+                          <div style={{ position: "relative" }}>
+                            <div id="google-link-btn"></div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                  </div>
+                );
+              })()}
+
               <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1.2rem", borderTop: "1px solid var(--border-color)", paddingTop: "1rem" }}>
                 <button type="button" onClick={() => setEditProfileOpen(false)} className="btn-outline-gold" style={{ padding: "0.5rem 1.3rem", borderRadius: "8px", fontSize: "0.88rem" }}>Cancelar</button>
                 <button type="submit" className="btn-gold" style={{ padding: "0.5rem 1.6rem", borderRadius: "8px", fontSize: "0.88rem", fontWeight: 700 }} disabled={uploadingEdit}>
@@ -1731,6 +2009,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <Script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossOrigin="" strategy="afterInteractive" />
+        <Script src="https://accounts.google.com/gsi/client" strategy="lazyOnload" />
         <AppContextProvider>
           <AppLayoutShell>{children}</AppLayoutShell>
         </AppContextProvider>
