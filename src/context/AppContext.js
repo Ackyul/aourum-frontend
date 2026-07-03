@@ -38,6 +38,15 @@ function loadToken() {
   return localStorage.getItem(TOKEN_KEY);
 }
 
+// Helper: genera cabeceras con el token JWT para peticiones autenticadas
+function authHeaders(contentType = 'application/json') {
+  const token = loadToken();
+  const headers = {};
+  if (contentType) headers['Content-Type'] = contentType;
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
+}
+
 export function AppContextProvider({ children }) {
   const session = loadSession();
 
@@ -306,6 +315,7 @@ export function AppContextProvider({ children }) {
       formData.append("file", file);
       const res = await fetch(`${API_URL}/api/upload`, {
         method: "POST",
+        headers: authHeaders(null),
         body: formData,
       });
       if (!res.ok) throw new Error("Upload fallido");
@@ -368,13 +378,13 @@ export function AppContextProvider({ children }) {
       if (editingProdId) {
         response = await fetch(`${API_URL}/api/products/${editingProdId}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders(),
           body: JSON.stringify(payload)
         });
       } else {
         response = await fetch(`${API_URL}/api/products`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders(),
           body: JSON.stringify(payload)
         });
       }
@@ -397,7 +407,7 @@ export function AppContextProvider({ children }) {
   const handleDeleteProduct = async (id) => {
     if (!confirm("¿Seguro que deseas eliminar este item del catálogo?")) return;
     try {
-      const response = await fetch(`${API_URL}/api/products/${id}`, { method: "DELETE" });
+      const response = await fetch(`${API_URL}/api/products/${id}`, { method: "DELETE", headers: authHeaders(null) });
       if (response.ok) {
         triggerNotification(true, "Item removido correctamente.");
         fetchData();
@@ -412,7 +422,7 @@ export function AppContextProvider({ children }) {
   const handleDeleteBand = async (id) => {
     if (!confirm("¿Seguro que deseas eliminar esta banda de música?")) return false;
     try {
-      const response = await fetch(`${API_URL}/api/bands/${id}`, { method: "DELETE" });
+      const response = await fetch(`${API_URL}/api/bands/${id}`, { method: "DELETE", headers: authHeaders(null) });
       if (response.ok) {
         triggerNotification(true, "Banda eliminada correctamente.");
         fetchData();
@@ -430,7 +440,7 @@ export function AppContextProvider({ children }) {
   const handleDeleteBrand = async (id) => {
     if (!confirm("¿Seguro que deseas eliminar esta marca y todos sus productos?")) return false;
     try {
-      const response = await fetch(`${API_URL}/api/brands/${id}`, { method: "DELETE" });
+      const response = await fetch(`${API_URL}/api/brands/${id}`, { method: "DELETE", headers: authHeaders(null) });
       if (response.ok) {
         triggerNotification(true, "Marca eliminada correctamente.");
         fetchData();
@@ -448,7 +458,7 @@ export function AppContextProvider({ children }) {
   const handleDeleteOrganizer = async (id) => {
     if (!confirm("¿Seguro que deseas eliminar esta productora y todas sus ferias?")) return false;
     try {
-      const response = await fetch(`${API_URL}/api/organizers/${id}`, { method: "DELETE" });
+      const response = await fetch(`${API_URL}/api/organizers/${id}`, { method: "DELETE", headers: authHeaders(null) });
       if (response.ok) {
         triggerNotification(true, "Productora eliminada correctamente.");
         fetchData();
@@ -479,7 +489,7 @@ export function AppContextProvider({ children }) {
     try {
       const response = await fetch(`${API_URL}/api/fairs`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify(payload)
       });
       if (response.ok) {
@@ -582,7 +592,7 @@ export function AppContextProvider({ children }) {
     try {
       const response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify(payload)
       });
       if (response.ok) {
@@ -950,7 +960,7 @@ export function AppContextProvider({ children }) {
     try {
       const response = await fetch(url, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify(payload)
       });
       if (response.ok) {
@@ -981,7 +991,7 @@ export function AppContextProvider({ children }) {
     try {
       const response = await fetch(`${API_URL}/api/fairs/apply`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify(payload)
       });
       if (response.ok) {
@@ -1001,7 +1011,7 @@ export function AppContextProvider({ children }) {
     try {
       const response = await fetch(`${API_URL}/api/invitations`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({ senderType, senderId, senderName, receiverPersonId, role })
       });
       if (response.ok) {
@@ -1019,7 +1029,7 @@ export function AppContextProvider({ children }) {
     try {
       const response = await fetch(`${API_URL}/api/invitations/${invitationId}/respond`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({ accept })
       });
       if (response.ok) {
@@ -1042,7 +1052,7 @@ export function AppContextProvider({ children }) {
 
       const response = await fetch(`${API_URL}/api/${routeType}/${entityId}/collaborators`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({ personId, role })
       });
       if (response.ok) {
@@ -1065,7 +1075,8 @@ export function AppContextProvider({ children }) {
       if (routeType === "organizer") routeType = "organizers";
 
       const response = await fetch(`${API_URL}/api/${routeType}/${entityId}/collaborators/${personId}`, {
-        method: "DELETE"
+        method: "DELETE",
+        headers: authHeaders(null)
       });
       if (response.ok) {
         triggerNotification(true, "Miembro desvinculado del proyecto.");
