@@ -146,6 +146,21 @@ function AppLayoutShell({ children }) {
     }
   };
 
+  const loginWithFacebook = () => {
+    if (typeof window !== "undefined" && window.FB) {
+      window.FB.login((response) => {
+        if (response.authResponse) {
+          const accessToken = response.authResponse.accessToken;
+          handleSocialLogin("facebook", accessToken);
+        } else {
+          triggerNotification(false, "Cancelaste el inicio de sesión con Facebook.");
+        }
+      }, { scope: 'email' });
+    } else {
+      triggerNotification(false, "El SDK de Facebook aún no se ha cargado. Intenta de nuevo en unos segundos.");
+    }
+  };
+
   useEffect(() => {
     // Defers to avoid calling setState synchronously within the effect body
     Promise.resolve().then(() => {
@@ -930,8 +945,35 @@ function AppLayoutShell({ children }) {
                     <div style={{ flex: 1, height: "1px", background: "var(--border-color)" }}></div>
                   </div>
 
-                  <div style={{ display: "flex", justifyContent: "center", width: "100%", minHeight: "44px", marginBottom: "1.2rem" }}>
-                    <div id="google-signin-btn-reg" style={{ width: "100%" }}></div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%", marginBottom: "1.2rem" }}>
+                    <div style={{ display: "flex", justifyContent: "center", width: "100%", minHeight: "40px" }}>
+                      <div id="google-signin-btn-reg" style={{ width: "100%" }}></div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={loginWithFacebook}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "10px",
+                        width: "100%",
+                        height: "40px",
+                        background: "#1877F2",
+                        color: "#FFFFFF",
+                        border: "none",
+                        borderRadius: "4px",
+                        fontSize: "0.85rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        transition: "var(--transition-smooth)",
+                        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.background = "#166FE5"}
+                      onMouseOut={(e) => e.currentTarget.style.background = "#1877F2"}
+                    >
+                      <i className="fa-brands fa-facebook-f" style={{ fontSize: "0.95rem" }}></i> Continuar con Facebook
+                    </button>
                   </div>
                 </>
               )}
@@ -1037,8 +1079,35 @@ function AppLayoutShell({ children }) {
                 <div style={{ flex: 1, height: "1px", background: "var(--border-color)" }}></div>
               </div>
 
-              <div style={{ display: "flex", justifyContent: "center", width: "100%", minHeight: "44px" }}>
-                <div id="google-signin-btn-login" style={{ width: "100%" }}></div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%" }}>
+                <div style={{ display: "flex", justifyContent: "center", width: "100%", minHeight: "40px" }}>
+                  <div id="google-signin-btn-login" style={{ width: "100%" }}></div>
+                </div>
+                <button
+                  type="button"
+                  onClick={loginWithFacebook}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "10px",
+                    width: "100%",
+                    height: "40px",
+                    background: "#1877F2",
+                    color: "#FFFFFF",
+                    border: "none",
+                    borderRadius: "4px",
+                    fontSize: "0.85rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "var(--transition-smooth)",
+                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = "#166FE5"}
+                  onMouseOut={(e) => e.currentTarget.style.background = "#1877F2"}
+                >
+                  <i className="fa-brands fa-facebook-f" style={{ fontSize: "0.95rem" }}></i> Continuar con Facebook
+                </button>
               </div>
 
               <div style={{ textAlign: "center", marginTop: "1.2rem", paddingTop: "1rem", borderTop: "1px solid var(--border-color)" }}>
@@ -2009,6 +2078,22 @@ export default function RootLayout({ children }) {
       <body>
         <Script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossOrigin="" strategy="afterInteractive" />
         <Script src="https://accounts.google.com/gsi/client" strategy="lazyOnload" />
+        <Script 
+          src="https://connect.facebook.net/es_LA/sdk.js" 
+          strategy="lazyOnload"
+          onLoad={() => {
+            if (typeof window !== "undefined") {
+              window.fbAsyncInit = function() {
+                window.FB.init({
+                  appId: process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || "1214041793393963",
+                  cookie: true,
+                  xfbml: true,
+                  version: 'v18.0'
+                });
+              };
+            }
+          }}
+        />
         <AppContextProvider>
           <AppLayoutShell>{children}</AppLayoutShell>
         </AppContextProvider>
