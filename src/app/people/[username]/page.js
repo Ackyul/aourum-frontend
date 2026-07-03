@@ -44,6 +44,7 @@ export default function PersonProfile({ params }) {
     setEditProfileType,
     setEditProfileId,
     setEditProfileOpen,
+    setActiveEditTab,
     setEditInstagram,
     setEditFacebook,
     setEditTiktok,
@@ -152,6 +153,39 @@ export default function PersonProfile({ params }) {
     setEditInterests(parsed.interests || "");
     setEditProfileType("person");
     setEditProfileId(person.id);
+    setActiveEditTab("basic");
+    setEditProfileOpen(true);
+  };
+
+  const handleConfigClick = () => {
+    const parsed = parseDescription(person.description);
+    setEditName(person.name);
+    setEditLastName(person.lastName || "");
+    setEditUsername(person.username || "");
+    setEditOwner("");
+    setEditCategory("");
+    setEditDescription(parsed.text);
+    setEditLogo(person.logo || "");
+    setEditLogoPreview(person.logo || "");
+    setEditGenre("");
+    setEditMembers("");
+    setEditOccupation(person.occupation || "");
+    setEditMediaLink("");
+    setEditBrandIds(person.brandIds || []);
+    setEditOrganizerIds(person.organizerIds || []);
+    setEditBandIds(person.bandIds || []);
+    setEditInstagram(parsed.instagram);
+    setEditFacebook(parsed.facebook);
+    setEditTiktok(parsed.tiktok);
+    setEditWebsite(parsed.website);
+    setEditBanner(parsed.banner || "");
+    setEditBannerPreview(parsed.banner || "");
+    setEditThemeColor(parsed.theme_color || "");
+    setEditTagline(parsed.tagline || "");
+    setEditInterests(parsed.interests || "");
+    setEditProfileType("person");
+    setEditProfileId(person.id);
+    setActiveEditTab("configuracion");
     setEditProfileOpen(true);
   };
 
@@ -194,13 +228,40 @@ export default function PersonProfile({ params }) {
                 )}
               </div>
               {isOwner && (
-                <button 
-                  onClick={handleEditClick}
-                  className="btn-gold"
-                  style={{ padding: "0.55rem 1.4rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, background: themeColor, borderColor: themeColor }}
-                >
-                  <i className="fa-solid fa-pen"></i> Editar Perfil
-                </button>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                  <button 
+                    onClick={handleEditClick}
+                    className="btn-gold"
+                    style={{ padding: "0.55rem 1.4rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, background: themeColor, borderColor: themeColor }}
+                  >
+                    <i className="fa-solid fa-pen"></i> Editar Perfil
+                  </button>
+                  <button 
+                    onClick={handleConfigClick}
+                    style={{ 
+                      padding: "0.55rem 1.4rem", 
+                      borderRadius: "8px", 
+                      fontSize: "0.85rem", 
+                      fontWeight: 700, 
+                      background: "transparent", 
+                      border: `2px solid ${themeColor}`, 
+                      color: themeColor,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      transition: "all 0.2s ease"
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.background = `${themeColor}15`;
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.background = "transparent";
+                    }}
+                  >
+                    <i className="fa-solid fa-gear"></i> Configuración
+                  </button>
+                </div>
               )}
             </div>
           </div>

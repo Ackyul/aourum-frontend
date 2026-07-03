@@ -136,6 +136,7 @@ export function AppContextProvider({ children }) {
 
   // Profile Customization state
   const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [activeEditTab, setActiveEditTab] = useState("basic");
   const [editProfileType, setEditProfileType] = useState("person");
   const [editProfileId, setEditProfileId] = useState("");
   const [editName, setEditName] = useState("");
@@ -1130,6 +1131,7 @@ export function AppContextProvider({ children }) {
         regLogoPreview, setRegLogoPreview,
         uploadingReg, setUploadingReg,
         editProfileOpen, setEditProfileOpen,
+        activeEditTab, setActiveEditTab,
         editProfileType, setEditProfileType,
         editProfileId, setEditProfileId,
         editName, setEditName,

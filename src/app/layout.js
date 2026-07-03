@@ -97,11 +97,12 @@ function AppLayoutShell({ children }) {
     unlinkFacebookAccount,
     changeEmail,
     changePassword,
-    logout
+    logout,
+    activeEditTab,
+    setActiveEditTab
   } = useApp();
 
   const [mounted, setMounted] = useState(false);
-  const [activeEditTab, setActiveEditTab] = useState("basic");
   
   // Estados para configuración de seguridad del perfil
   const [configEmail, setConfigEmail] = useState("");
@@ -234,7 +235,7 @@ function AppLayoutShell({ children }) {
   }, []);
 
   useEffect(() => {
-    if (editProfileOpen) {
+    if (!editProfileOpen) {
       // Defers to avoid calling setState synchronously within the effect body
       Promise.resolve().then(() => {
         setActiveEditTab("basic");
@@ -1222,41 +1223,30 @@ function AppLayoutShell({ children }) {
           <div className="modal-panel fade-in" style={{ maxWidth: "560px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
               <h3 style={{ fontSize: "1.25rem", fontWeight: 800, display: "flex", alignItems: "center", gap: 10 }}>
-                <i className="fa-solid fa-pen-to-square" style={{ color: "var(--gold-primary)" }}></i> Personalizar Perfil
+                {activeEditTab === "configuracion" ? (
+                  <>
+                    <i className="fa-solid fa-gear" style={{ color: "var(--gold-primary)" }}></i> Configuración
+                  </>
+                ) : (
+                  <>
+                    <i className="fa-solid fa-pen-to-square" style={{ color: "var(--gold-primary)" }}></i> Personalizar Perfil
+                  </>
+                )}
               </h3>
               <button onClick={() => setEditProfileOpen(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>&times;</button>
             </div>
 
             <form onSubmit={handleEditProfileSubmit}>
               {/* Tab bar header */}
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", borderBottom: "1.5px solid var(--border-color)", paddingBottom: "0.6rem", marginBottom: "1.2rem" }}>
-                <button 
-                  type="button" 
-                  onClick={() => setActiveEditTab("basic")} 
-                  style={{
-                    background: activeEditTab === "basic" ? "var(--gold-gradient)" : "transparent",
-                    color: activeEditTab === "basic" ? "#1C1C1E" : "var(--text-muted)",
-                    border: "1px solid " + (activeEditTab === "basic" ? "var(--gold-primary)" : "transparent"),
-                    padding: "0.45rem 1rem",
-                    borderRadius: "20px",
-                    fontSize: "0.82rem",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                    transition: "var(--transition-smooth)",
-                    boxShadow: activeEditTab === "basic" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
-                  }}
-                >
-                  📝 Datos Básicos
-                </button>
-                {editProfileType === "brand" && (
+              {activeEditTab !== "configuracion" && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", borderBottom: "1.5px solid var(--border-color)", paddingBottom: "0.6rem", marginBottom: "1.2rem" }}>
                   <button 
                     type="button" 
-                    onClick={() => setActiveEditTab("rubro")} 
+                    onClick={() => setActiveEditTab("basic")} 
                     style={{
-                      background: activeEditTab === "rubro" ? "var(--gold-gradient)" : "transparent",
-                      color: activeEditTab === "rubro" ? "#1C1C1E" : "var(--text-muted)",
-                      border: "1px solid " + (activeEditTab === "rubro" ? "var(--gold-primary)" : "transparent"),
+                      background: activeEditTab === "basic" ? "var(--gold-gradient)" : "transparent",
+                      color: activeEditTab === "basic" ? "#1C1C1E" : "var(--text-muted)",
+                      border: "1px solid " + (activeEditTab === "basic" ? "var(--gold-primary)" : "transparent"),
                       padding: "0.45rem 1rem",
                       borderRadius: "20px",
                       fontSize: "0.82rem",
@@ -1264,58 +1254,39 @@ function AppLayoutShell({ children }) {
                       cursor: "pointer",
                       whiteSpace: "nowrap",
                       transition: "var(--transition-smooth)",
-                      boxShadow: activeEditTab === "rubro" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
+                      boxShadow: activeEditTab === "basic" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
                     }}
                   >
-                    🏷️ Rubro
+                    📝 Datos Básicos
                   </button>
-                )}
-                <button 
-                  type="button" 
-                  onClick={() => setActiveEditTab("connections")} 
-                  style={{
-                    background: activeEditTab === "connections" ? "var(--gold-gradient)" : "transparent",
-                    color: activeEditTab === "connections" ? "#1C1C1E" : "var(--text-muted)",
-                    border: "1px solid " + (activeEditTab === "connections" ? "var(--gold-primary)" : "transparent"),
-                    padding: "0.45rem 1rem",
-                    borderRadius: "20px",
-                    fontSize: "0.82rem",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                    transition: "var(--transition-smooth)",
-                    boxShadow: activeEditTab === "connections" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
-                  }}
-                >
-                  🌐 Conexiones
-                </button>
-                <button 
-                  type="button" 
-                  onClick={() => setActiveEditTab("design")} 
-                  style={{
-                    background: activeEditTab === "design" ? "var(--gold-gradient)" : "transparent",
-                    color: activeEditTab === "design" ? "#1C1C1E" : "var(--text-muted)",
-                    border: "1px solid " + (activeEditTab === "design" ? "var(--gold-primary)" : "transparent"),
-                    padding: "0.45rem 1rem",
-                    borderRadius: "20px",
-                    fontSize: "0.82rem",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                    transition: "var(--transition-smooth)",
-                    boxShadow: activeEditTab === "design" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
-                  }}
-                >
-                  🎨 Diseño / Portada
-                </button>
-                {editProfileType === "brand" && (
+                  {editProfileType === "brand" && (
+                    <button 
+                      type="button" 
+                      onClick={() => setActiveEditTab("rubro")} 
+                      style={{
+                        background: activeEditTab === "rubro" ? "var(--gold-gradient)" : "transparent",
+                        color: activeEditTab === "rubro" ? "#1C1C1E" : "var(--text-muted)",
+                        border: "1px solid " + (activeEditTab === "rubro" ? "var(--gold-primary)" : "transparent"),
+                        padding: "0.45rem 1rem",
+                        borderRadius: "20px",
+                        fontSize: "0.82rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                        transition: "var(--transition-smooth)",
+                        boxShadow: activeEditTab === "rubro" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
+                      }}
+                    >
+                      🏷️ Rubro
+                    </button>
+                  )}
                   <button 
                     type="button" 
-                    onClick={() => setActiveEditTab("local")} 
+                    onClick={() => setActiveEditTab("connections")} 
                     style={{
-                      background: activeEditTab === "local" ? "var(--gold-gradient)" : "transparent",
-                      color: activeEditTab === "local" ? "#1C1C1E" : "var(--text-muted)",
-                      border: "1px solid " + (activeEditTab === "local" ? "var(--gold-primary)" : "transparent"),
+                      background: activeEditTab === "connections" ? "var(--gold-gradient)" : "transparent",
+                      color: activeEditTab === "connections" ? "#1C1C1E" : "var(--text-muted)",
+                      border: "1px solid " + (activeEditTab === "connections" ? "var(--gold-primary)" : "transparent"),
                       padding: "0.45rem 1rem",
                       borderRadius: "20px",
                       fontSize: "0.82rem",
@@ -1323,20 +1294,18 @@ function AppLayoutShell({ children }) {
                       cursor: "pointer",
                       whiteSpace: "nowrap",
                       transition: "var(--transition-smooth)",
-                      boxShadow: activeEditTab === "local" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
+                      boxShadow: activeEditTab === "connections" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
                     }}
                   >
-                    📍 Local
+                    🌐 Conexiones
                   </button>
-                )}
-                {editProfileType === "person" && (
                   <button 
                     type="button" 
-                    onClick={() => setActiveEditTab("configuracion")} 
+                    onClick={() => setActiveEditTab("design")} 
                     style={{
-                      background: activeEditTab === "configuracion" ? "var(--gold-gradient)" : "transparent",
-                      color: activeEditTab === "configuracion" ? "#1C1C1E" : "var(--text-muted)",
-                      border: "1px solid " + (activeEditTab === "configuracion" ? "var(--gold-primary)" : "transparent"),
+                      background: activeEditTab === "design" ? "var(--gold-gradient)" : "transparent",
+                      color: activeEditTab === "design" ? "#1C1C1E" : "var(--text-muted)",
+                      border: "1px solid " + (activeEditTab === "design" ? "var(--gold-primary)" : "transparent"),
                       padding: "0.45rem 1rem",
                       borderRadius: "20px",
                       fontSize: "0.82rem",
@@ -1344,13 +1313,34 @@ function AppLayoutShell({ children }) {
                       cursor: "pointer",
                       whiteSpace: "nowrap",
                       transition: "var(--transition-smooth)",
-                      boxShadow: activeEditTab === "configuracion" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
+                      boxShadow: activeEditTab === "design" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
                     }}
                   >
-                    ⚙️ Configuración
+                    🎨 Diseño / Portada
                   </button>
-                )}
-              </div>
+                  {editProfileType === "brand" && (
+                    <button 
+                      type="button" 
+                      onClick={() => setActiveEditTab("local")} 
+                      style={{
+                        background: activeEditTab === "local" ? "var(--gold-gradient)" : "transparent",
+                        color: activeEditTab === "local" ? "#1C1C1E" : "var(--text-muted)",
+                        border: "1px solid " + (activeEditTab === "local" ? "var(--gold-primary)" : "transparent"),
+                        padding: "0.45rem 1rem",
+                        borderRadius: "20px",
+                        fontSize: "0.82rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                        transition: "var(--transition-smooth)",
+                        boxShadow: activeEditTab === "local" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
+                      }}
+                    >
+                      📍 Local
+                    </button>
+                  )}
+                </div>
+              )}
 
               {/* Tab: Datos Básicos */}
               {activeEditTab === "basic" && (
@@ -2030,12 +2020,20 @@ function AppLayoutShell({ children }) {
                 );
               })()}
 
-              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1.2rem", borderTop: "1px solid var(--border-color)", paddingTop: "1rem" }}>
-                <button type="button" onClick={() => setEditProfileOpen(false)} className="btn-outline-gold" style={{ padding: "0.5rem 1.3rem", borderRadius: "8px", fontSize: "0.88rem" }}>Cancelar</button>
-                <button type="submit" className="btn-gold" style={{ padding: "0.5rem 1.6rem", borderRadius: "8px", fontSize: "0.88rem", fontWeight: 700 }} disabled={uploadingEdit}>
-                  <i className="fa-solid fa-check"></i> Guardar Cambios
-                </button>
-              </div>
+              {activeEditTab === "configuracion" ? (
+                <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1.2rem", borderTop: "1px solid var(--border-color)", paddingTop: "1rem" }}>
+                  <button type="button" onClick={() => setEditProfileOpen(false)} className="btn-gold" style={{ padding: "0.5rem 1.6rem", borderRadius: "8px", fontSize: "0.88rem", fontWeight: 700 }}>
+                    <i className="fa-solid fa-xmark"></i> Cerrar
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1.2rem", borderTop: "1px solid var(--border-color)", paddingTop: "1rem" }}>
+                  <button type="button" onClick={() => setEditProfileOpen(false)} className="btn-outline-gold" style={{ padding: "0.5rem 1.3rem", borderRadius: "8px", fontSize: "0.88rem" }}>Cancelar</button>
+                  <button type="submit" className="btn-gold" style={{ padding: "0.5rem 1.6rem", borderRadius: "8px", fontSize: "0.88rem", fontWeight: 700 }} disabled={uploadingEdit}>
+                    <i className="fa-solid fa-check"></i> Guardar Cambios
+                  </button>
+                </div>
+              )}
             </form>
           </div>
         </div>
