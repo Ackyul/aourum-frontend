@@ -99,6 +99,7 @@ function AppLayoutShell({ children }) {
   } = useApp();
 
   const [mounted, setMounted] = useState(false);
+  const [activeEditTab, setActiveEditTab] = useState("basic");
   
   // Estados para configuración de seguridad del perfil
   const [configEmail, setConfigEmail] = useState("");
@@ -185,8 +186,6 @@ function AppLayoutShell({ children }) {
       });
     }
   }, [editProfileOpen]);
-
-  const [activeEditTab, setActiveEditTab] = useState("basic");
 
   const [searchUsers, setSearchUsers] = useState(false);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
