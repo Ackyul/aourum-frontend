@@ -897,6 +897,33 @@ export function AppContextProvider({ children }) {
     }
   };
 
+  const deleteAccount = async (password) => {
+    const userToken = loadToken();
+    if (!userToken) return { success: false, error: "No autenticado" };
+    try {
+      const response = await fetch(`${API_URL}/api/auth/delete-account`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${userToken}`
+        },
+        body: JSON.stringify({ password })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        triggerNotification(true, "✅ Tu cuenta ha sido eliminada permanentemente.");
+        logout();
+        return { success: true };
+      } else {
+        triggerNotification(false, data.error || "No se pudo eliminar la cuenta.");
+        return { success: false, error: data.error };
+      }
+    } catch (err) {
+      triggerNotification(false, "Error de red al eliminar la cuenta.");
+      return { success: false, error: "Error de red" };
+    }
+  };
+
   const handleEditProfileSubmit = async (e, type, targetId) => {
     if (e) e.preventDefault();
     if (!editName) {
@@ -1234,6 +1261,7 @@ export function AppContextProvider({ children }) {
         unlinkFacebookAccount,
         changeEmail,
         changePassword,
+        deleteAccount,
         handleEditProfileSubmit,
         handleApplyToFair,
         invitations,

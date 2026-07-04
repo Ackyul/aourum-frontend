@@ -98,6 +98,7 @@ function AppLayoutShell({ children }) {
     unlinkFacebookAccount,
     changeEmail,
     changePassword,
+    deleteAccount,
     logout,
     activeEditTab,
     setActiveEditTab
@@ -111,6 +112,11 @@ function AppLayoutShell({ children }) {
   const [configCurrentPassword, setConfigCurrentPassword] = useState("");
   const [configNewPassword, setConfigNewPassword] = useState("");
   const [configConfirmPassword, setConfigConfirmPassword] = useState("");
+
+  // Estados para eliminar cuenta
+  const [configDeletePassword, setConfigDeletePassword] = useState("");
+  const [configDeleteUsernameConfirm, setConfigDeleteUsernameConfirm] = useState("");
+  const [configDeleteChecked, setConfigDeleteChecked] = useState(false);
 
   const renderGoogleBtn = (elementId) => {
     if (typeof window !== "undefined" && window.google) {
@@ -1827,7 +1833,7 @@ function AppLayoutShell({ children }) {
 
               {editProfileType === "person" && activeEditTab === "configuracion" && (() => {
                 const person = getCurrentPerson();
-                const hasPassword = person && person.passwordHash;
+                const hasPassword = person && person.hasPassword;
                 const isGoogleLinked = person && person.googleId;
                 const isFacebookLinked = person && person.facebookId;
 
@@ -2015,6 +2021,99 @@ function AppLayoutShell({ children }) {
                           </button>
                         )}
                       </div>
+                    </div>
+
+                    {/* Sección 5: Zona de Peligro - Eliminar Cuenta */}
+                    <div style={{ background: "rgba(239, 68, 68, 0.03)", border: "1px solid #ef4444", padding: "1.25rem", borderRadius: "10px", marginTop: "10px" }}>
+                      <h4 style={{ margin: "0 0 10px 0", fontSize: "0.95rem", fontWeight: 700, display: "flex", alignItems: "center", gap: 6, color: "#ef4444" }}>
+                        <i className="fa-solid fa-triangle-exclamation"></i> Zona de Peligro: Eliminar Cuenta
+                      </h4>
+                      <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: "0 0 12px 0", lineHeight: "1.4" }}>
+                        Esta acción es <strong>permanente e irreversible</strong>. Al eliminar tu cuenta se borrarán de forma inmediata:
+                      </p>
+                      <ul style={{ margin: "0 0 12px 20px", padding: 0, fontSize: "0.78rem", color: "var(--text-muted)" }}>
+                        <li style={{ marginBottom: "4px" }}>Tu perfil de usuario y toda tu información personal.</li>
+                        <li style={{ marginBottom: "4px" }}>Todas las bandas, marcas y organizaciones de las cuales seas el <strong>creador original</strong> (incluyendo sus productos y solicitudes asociadas).</li>
+                        <li style={{ marginBottom: "4px" }}>Tus invitaciones y colaboraciones vigentes.</li>
+                      </ul>
+                      
+                      {/* Checkbox de Confirmación */}
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", marginBottom: "15px" }}>
+                        <input 
+                          type="checkbox" 
+                          id="confirm-delete-checkbox"
+                          checked={configDeleteChecked} 
+                          onChange={(e) => setConfigDeleteChecked(e.target.checked)} 
+                          style={{ marginTop: "3px", cursor: "pointer" }}
+                        />
+                        <label htmlFor="confirm-delete-checkbox" style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text-muted)", cursor: "pointer", userSelect: "none" }}>
+                          Comprendo las consecuencias y deseo eliminar mi cuenta de forma definitiva.
+                        </label>
+                      </div>
+
+                      {/* Campos según tipo de Auth (Password vs OAuth) */}
+                      {hasPassword ? (
+                        <div className="form-group" style={{ marginBottom: "12px" }}>
+                          <label style={{ fontSize: "0.78rem", fontWeight: 600 }}>Introduce tu contraseña para confirmar</label>
+                          <input 
+                            type="password" 
+                            className="form-control" 
+                            value={configDeletePassword} 
+                            onChange={(e) => setConfigDeletePassword(e.target.value)} 
+                            placeholder="Contraseña actual"
+                            disabled={!configDeleteChecked}
+                          />
+                        </div>
+                      ) : (
+                        <div className="form-group" style={{ marginBottom: "12px" }}>
+                          <label style={{ fontSize: "0.78rem", fontWeight: 600 }}>Escribe tu nombre de usuario (<strong>{person?.username}</strong>) para confirmar</label>
+                          <input 
+                            type="text" 
+                            className="form-control" 
+                            value={configDeleteUsernameConfirm} 
+                            onChange={(e) => setConfigDeleteUsernameConfirm(e.target.value)} 
+                            placeholder="Nombre de usuario"
+                            disabled={!configDeleteChecked}
+                          />
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        style={{
+                          background: "#ef4444",
+                          color: "#FFFFFF",
+                          border: "none",
+                          padding: "0.5rem 1.25rem",
+                          fontSize: "0.8rem",
+                          borderRadius: "6px",
+                          fontWeight: 700,
+                          cursor: configDeleteChecked ? "pointer" : "not-allowed",
+                          opacity: configDeleteChecked ? 1 : 0.5,
+                          transition: "all 0.2s ease"
+                        }}
+                        disabled={!configDeleteChecked}
+                        onClick={async () => {
+                          if (!configDeleteChecked) return;
+
+                          // Validar contraseña
+                          if (hasPassword && !configDeletePassword) {
+                            return triggerNotification(false, "Ingresa tu contraseña para confirmar.");
+                          }
+
+                          // Validar username (OAuth)
+                          if (!hasPassword && configDeleteUsernameConfirm !== person?.username) {
+                            return triggerNotification(false, "El nombre de usuario ingresado no coincide.");
+                          }
+
+                          const res = await deleteAccount(hasPassword ? configDeletePassword : "");
+                          if (res.success) {
+                            setEditProfileOpen(false);
+                          }
+                        }}
+                      >
+                        Eliminar mi cuenta definitivamente
+                      </button>
                     </div>
 
                   </div>
