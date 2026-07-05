@@ -458,7 +458,7 @@ export default function BrandProfilePage({ params }) {
   const canEditProfile = userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor';
   const canInvite = userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor';
 
-  const isOwner = isCollaborator;
+  const isOwner = userRole === 'creador_original';
 
   const copyLink = (e) => {
     e.stopPropagation();
@@ -548,14 +548,16 @@ export default function BrandProfilePage({ params }) {
 
             {isCollaborator && (
                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                 <button
-                   onClick={() => setProdFormOpen(true)}
-                   className="btn-gold"
-                   style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
-                 >
-                   <i className="fa-solid fa-plus"></i> Añadir Item
-                 </button>
-                 {brandProducts.length > 0 && (
+                 {isOwner && (
+                   <button
+                     onClick={() => setProdFormOpen(true)}
+                     className="btn-gold"
+                     style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                   >
+                     <i className="fa-solid fa-plus"></i> Añadir Item
+                   </button>
+                 )}
+                 {isOwner && brandProducts.length > 0 && (
                    <button
                      onClick={() => setAdminCatalogOpen(true)}
                      className="btn-outline-gold"
@@ -805,18 +807,20 @@ export default function BrandProfilePage({ params }) {
               )}
 
               {/* Opción 2: Colaboradores de la Marca */}
-              <div className="glass-panel" style={{ padding: "1.5rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setShowCollabs(true)}>
-                  <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0 }}>
-                    <i className="fa-solid fa-users" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Colaboradores de la Marca
-                  </h3>
-                  <button type="button" className="btn-outline-gold" style={{ padding: "4px 12px", fontSize: "0.75rem", borderRadius: "6px", fontWeight: 700 }}>
-                    Administrar
-                  </button>
-                </div>
+              {isOwner && (
+                <div className="glass-panel" style={{ padding: "1.5rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setShowCollabs(true)}>
+                    <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0 }}>
+                      <i className="fa-solid fa-users" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Colaboradores de la Marca
+                    </h3>
+                    <button type="button" className="btn-outline-gold" style={{ padding: "4px 12px", fontSize: "0.75rem", borderRadius: "6px", fontWeight: 700 }}>
+                      Administrar
+                    </button>
+                  </div>
 
-                {/* Modal de colaboradores se trasladó al final del archivo */}
-              </div>
+                  {/* Modal de colaboradores se trasladó al final del archivo */}
+                </div>
+              )}
             </>
           )}
 
@@ -1348,7 +1352,7 @@ export default function BrandProfilePage({ params }) {
       )}
 
       {/* 4. Modal de colaboradores de la marca */}
-      {showCollabs && (
+      {isOwner && showCollabs && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal-backdrop" onClick={() => setShowCollabs(false)}></div>
           <div className="modal-panel fade-in" style={{ maxWidth: "750px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", maxHeight: "90vh", overflowY: "auto", position: "relative" }}>

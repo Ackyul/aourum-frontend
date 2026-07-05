@@ -120,7 +120,7 @@ export default function BandProfilePage({ params }) {
   const canEditProfile = userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor';
   const canInvite = userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor';
 
-  const isOwner = isCollaborator;
+  const isOwner = userRole === 'creador_original';
 
   const copyLink = (e) => {
     e.stopPropagation();
@@ -607,18 +607,20 @@ export default function BandProfilePage({ params }) {
               )}
 
               {/* Opción 2: Integrantes de la Banda */}
-              <div className="glass-panel" style={{ padding: "1.5rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setShowCollabs(true)}>
-                  <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0 }}>
-                    <i className="fa-solid fa-users" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Integrantes de la Banda
-                  </h3>
-                  <button type="button" className="btn-outline-gold" style={{ padding: "4px 12px", fontSize: "0.75rem", borderRadius: "6px", fontWeight: 700 }}>
-                    Administrar
-                  </button>
-                </div>
+              {isOwner && (
+                <div className="glass-panel" style={{ padding: "1.5rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setShowCollabs(true)}>
+                    <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0 }}>
+                      <i className="fa-solid fa-users" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Integrantes de la Banda
+                    </h3>
+                    <button type="button" className="btn-outline-gold" style={{ padding: "4px 12px", fontSize: "0.75rem", borderRadius: "6px", fontWeight: 700 }}>
+                      Administrar
+                    </button>
+                  </div>
 
-                {/* Modal de integrantes se trasladó al final del archivo */}
-              </div>
+                  {/* Modal de integrantes se trasladó al final del archivo */}
+                </div>
+              )}
             </>
           )}
         </div>
@@ -711,7 +713,7 @@ export default function BandProfilePage({ params }) {
       )}
 
       {/* 2. Modal de integrantes de la banda */}
-      {showCollabs && (
+      {isOwner && showCollabs && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal-backdrop" onClick={() => setShowCollabs(false)}></div>
           <div className="modal-panel fade-in" style={{ maxWidth: "750px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", maxHeight: "90vh", overflowY: "auto", position: "relative" }}>

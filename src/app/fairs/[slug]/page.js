@@ -186,7 +186,7 @@ export default function FairProfilePage({ params }) {
   const isCollaborator = !!userRole;
   const canEditFair = userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor';
   
-  const isOwner = isCollaborator;
+  const isOwner = userRole === 'creador_original';
 
   const copyLink = (e) => {
     e.stopPropagation();
