@@ -382,8 +382,10 @@ export default function PersonProfile({ params }) {
                         </h4>
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "12px" }}>
                           {myOrganizers.map((o) => (
-                            <div 
+                            <Link 
                               key={o.id} 
+                              href={`/organizers/${o.slug || o.id}`}
+                              className="project-card-link"
                               style={{ 
                                 display: "flex", 
                                 alignItems: "center", 
@@ -391,7 +393,9 @@ export default function PersonProfile({ params }) {
                                 background: "rgba(0,0,0,0.02)", 
                                 border: "1px solid var(--border-color)", 
                                 padding: "10px 14px", 
-                                borderRadius: "10px"
+                                borderRadius: "10px",
+                                textDecoration: "none",
+                                transition: "var(--transition-smooth)"
                               }}
                             >
                               <img 
@@ -403,7 +407,7 @@ export default function PersonProfile({ params }) {
                                 <strong style={{ display: "block", fontSize: "0.88rem", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{o.name}</strong>
                                 <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 600 }}>Productora</span>
                               </div>
-                            </div>
+                            </Link>
                           ))}
                         </div>
                       </div>

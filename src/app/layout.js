@@ -73,6 +73,8 @@ function AppLayoutShell({ children }) {
     editBandIds, setEditBandIds,
     uploadingEdit, setUploadingEdit,
     uploadingReg, setUploadingReg,
+    regLoading,
+    editProfileLoading,
     uploadImage,
     editBanner, setEditBanner,
     editBannerPreview, setEditBannerPreview,
@@ -1005,8 +1007,8 @@ function AppLayoutShell({ children }) {
 
               <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1.2rem" }}>
                 <button type="button" onClick={() => setShowRegModal(false)} className="btn-outline-gold" style={{ padding: "0.45rem 1.2rem", borderRadius: "6px", fontSize: "0.85rem" }}>Cancelar</button>
-                <button type="submit" className="btn-gold" style={{ padding: "0.45rem 1.4rem", borderRadius: "6px", fontSize: "0.85rem", fontWeight: 700 }} disabled={uploadingReg}>
-                  {uploadingReg ? "Subiendo..." : (!activeRole ? "🎉 Crear mi Perfil" : "Registrar")}
+                <button type="submit" className="btn-gold" style={{ padding: "0.45rem 1.4rem", borderRadius: "6px", fontSize: "0.85rem", fontWeight: 700 }} disabled={uploadingReg || regLoading}>
+                  {uploadingReg ? "Subiendo..." : regLoading ? "Creando..." : (!activeRole ? "🎉 Crear mi Perfil" : "Registrar")}
                 </button>
               </div>
             </form>
@@ -2129,8 +2131,8 @@ function AppLayoutShell({ children }) {
               ) : (
                 <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1.2rem", borderTop: "1px solid var(--border-color)", paddingTop: "1rem" }}>
                   <button type="button" onClick={() => setEditProfileOpen(false)} className="btn-outline-gold" style={{ padding: "0.5rem 1.3rem", borderRadius: "8px", fontSize: "0.88rem" }}>Cancelar</button>
-                  <button type="submit" className="btn-gold" style={{ padding: "0.5rem 1.6rem", borderRadius: "8px", fontSize: "0.88rem", fontWeight: 700 }} disabled={uploadingEdit}>
-                    <i className="fa-solid fa-check"></i> Guardar Cambios
+                  <button type="submit" className="btn-gold" style={{ padding: "0.5rem 1.6rem", borderRadius: "8px", fontSize: "0.88rem", fontWeight: 700 }} disabled={uploadingEdit || editProfileLoading}>
+                    <i className={editProfileLoading ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-check"}></i> {editProfileLoading ? "Guardando..." : "Guardar Cambios"}
                   </button>
                 </div>
               )}

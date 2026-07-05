@@ -204,6 +204,9 @@ export function AppContextProvider({ children }) {
   const [prodImage, setProdImage] = useState("");
   const [prodImagePreview, setProdImagePreview] = useState("");
   const [uploadingProd, setUploadingProd] = useState(false);
+  const [regLoading, setRegLoading] = useState(false);
+  const [editProfileLoading, setEditProfileLoading] = useState(false);
+  const [productSubmitLoading, setProductSubmitLoading] = useState(false);
 
   // 3. Fair creation (within Organizer Dashboard)
   const [fairFormOpen, setFairFormOpen] = useState(false);
@@ -357,6 +360,7 @@ export function AppContextProvider({ children }) {
       triggerNotification(false, "Completa los campos obligatorios del producto/servicio");
       return;
     }
+    setProductSubmitLoading(true);
     const trimmedCategory = prodCategory.trim();
     const existingCategory = products.find(p => p.category && p.category.trim().toLowerCase() === trimmedCategory.toLowerCase())?.category;
     const cleanCategory = existingCategory ? existingCategory.trim() : trimmedCategory;
@@ -401,6 +405,8 @@ export function AppContextProvider({ children }) {
       }
     } catch (err) {
       triggerNotification(false, "Error de red al intentar conectar con el servidor.");
+    } finally {
+      setProductSubmitLoading(false);
     }
   };
 
@@ -464,7 +470,8 @@ export function AppContextProvider({ children }) {
         fetchData();
         return true;
       } else {
-        triggerNotification(false, "No se pudo eliminar la productora.");
+        const errorData = await response.json().catch(() => ({}));
+        triggerNotification(false, errorData.error || "No se pudo eliminar la productora.");
         return false;
       }
     } catch (err) {
@@ -512,6 +519,7 @@ export function AppContextProvider({ children }) {
       triggerNotification(false, "El nombre de la cuenta es requerido");
       return;
     }
+    setRegLoading(true);
     let url = "";
     let payload = {};
     if (regType === "brand") {
@@ -547,10 +555,12 @@ export function AppContextProvider({ children }) {
       // ── Email + password registration via /api/auth/register ──
       if (!regEmail || !regPassword) {
         triggerNotification(false, "El correo y la contraseña son obligatorios.");
+        setRegLoading(false);
         return;
       }
       if (regPassword.length < 6) {
         triggerNotification(false, "La contraseña debe tener al menos 6 caracteres.");
+        setRegLoading(false);
         return;
       }
       try {
@@ -586,6 +596,8 @@ export function AppContextProvider({ children }) {
         }
       } catch (err) {
         triggerNotification(false, "Error de red al crear cuenta.");
+      } finally {
+        setRegLoading(false);
       }
       return;
     }
@@ -622,10 +634,13 @@ export function AppContextProvider({ children }) {
         setShowRegModal(false);
         fetchData();
       } else {
-        triggerNotification(false, "No se pudo registrar la cuenta. Intente con otro nombre.");
+        const errorData = await response.json().catch(() => ({}));
+        triggerNotification(false, errorData.error || "No se pudo registrar la cuenta. Intente con otro nombre.");
       }
     } catch (err) {
       triggerNotification(false, "Error de red al crear cuenta.");
+    } finally {
+      setRegLoading(false);
     }
   };
 
@@ -930,6 +945,7 @@ export function AppContextProvider({ children }) {
       triggerNotification(false, "El nombre es obligatorio");
       return;
     }
+    setEditProfileLoading(true);
     let url = "";
     let payload = {};
     const effectiveType = type || editProfileType || activeRole;
@@ -999,6 +1015,8 @@ export function AppContextProvider({ children }) {
       }
     } catch (err) {
       triggerNotification(false, "Error de red al intentar actualizar el perfil.");
+    } finally {
+      setEditProfileLoading(false);
     }
   };
 
@@ -1229,6 +1247,9 @@ export function AppContextProvider({ children }) {
         prodImage, setProdImage,
         prodImagePreview, setProdImagePreview,
         uploadingProd, setUploadingProd,
+        regLoading, setRegLoading,
+        editProfileLoading, setEditProfileLoading,
+        productSubmitLoading, setProductSubmitLoading,
         fairFormOpen, setFairFormOpen,
         fairName, setFairName,
         fairLocation, setFairLocation,

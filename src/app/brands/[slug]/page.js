@@ -38,6 +38,7 @@ export default function BrandProfilePage({ params }) {
     prodImagePreview,
     setProdImagePreview,
     uploadingProd,
+    productSubmitLoading,
     setUploadingProd,
     handleProductSubmit,
     handleDeleteProduct,
@@ -1017,8 +1018,8 @@ export default function BrandProfilePage({ params }) {
                 >
                   Cancelar
                 </button>
-                <button type="submit" className="btn-gold" style={{ padding: "0.45rem 1.2rem", borderRadius: "6px", fontSize: "0.85rem" }} disabled={uploadingProd}>
-                  {uploadingProd ? "Subiendo..." : editingProdId ? "Actualizar Item" : "Publicar Item"}
+                <button type="submit" className="btn-gold" style={{ padding: "0.45rem 1.2rem", borderRadius: "6px", fontSize: "0.85rem" }} disabled={uploadingProd || productSubmitLoading}>
+                  {uploadingProd ? "Subiendo..." : productSubmitLoading ? "Guardando..." : editingProdId ? "Actualizar Item" : "Publicar Item"}
                 </button>
               </div>
             </form>
