@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import { use, useState, useEffect, useRef } from "react";
 import { useApp } from "../../../context/AppContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -57,6 +57,14 @@ export default function OrganizerProfilePage({ params }) {
   const router = useRouter();
   const [showFairModal, setShowFairModal] = useState(false);
   const [isCreatingFair, setIsCreatingFair] = useState(false);
+  const [localStartDate, setLocalStartDate] = useState("");
+  const [localEndDate, setLocalEndDate] = useState("");
+
+  // Sincroniza la fecha del contexto con el rango local
+  useEffect(() => {
+    const combined = localEndDate ? `${localStartDate} al ${localEndDate}` : localStartDate;
+    setFairDate(combined);
+  }, [localStartDate, localEndDate, setFairDate]);
 
   // Lock background scroll when modal is open
   useEffect(() => {
@@ -72,6 +80,67 @@ export default function OrganizerProfilePage({ params }) {
       document.body.style.overflow = "";
     };
   }, [showFairModal]);
+
+  const createMapContainerRef = useRef(null);
+  const createLeafletMapRef = useRef(null);
+  const createMarkerRef = useRef(null);
+
+  useEffect(() => {
+    if (!showFairModal || !createMapContainerRef.current) return;
+    if (createLeafletMapRef.current) return;
+
+    const initCreateMap = () => {
+      if (!createMapContainerRef.current || typeof window === "undefined" || !window.L) return;
+
+      const L = window.L;
+      delete L.Icon.Default.prototype._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      });
+
+      // Default to Arequipa center
+      const initialLat = fairLat || -16.39889;
+      const initialLng = fairLng || -71.53694;
+
+      const cMap = L.map(createMapContainerRef.current, { zoomControl: false }).setView([initialLat, initialLng], 14);
+      createLeafletMapRef.current = cMap;
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; OpenStreetMap',
+        maxZoom: 19,
+      }).addTo(cMap);
+
+      const marker = L.marker([initialLat, initialLng], { draggable: true }).addTo(cMap);
+      createMarkerRef.current = marker;
+
+      marker.on("dragend", () => {
+        const position = marker.getLatLng();
+        setFairLat(position.lat);
+        setFairLng(position.lng);
+      });
+
+      cMap.on("click", (e) => {
+        const { lat, lng } = e.latlng;
+        marker.setLatLng([lat, lng]);
+        setFairLat(lat);
+        setFairLng(lng);
+      });
+
+      L.control.zoom({ position: "bottomright" }).addTo(cMap);
+    };
+
+    const timer = setTimeout(initCreateMap, 300);
+    return () => {
+      clearTimeout(timer);
+      if (createLeafletMapRef.current) {
+        createLeafletMapRef.current.remove();
+        createLeafletMapRef.current = null;
+        createMarkerRef.current = null;
+      }
+    };
+  }, [showFairModal, fairLat, fairLng, setFairLat, setFairLng]);
 
   const isNumeric = /^\d+$/.test(slug);
   const organizer = organizers.find((o) => {
@@ -170,6 +239,8 @@ export default function OrganizerProfilePage({ params }) {
     try {
       await handleFairSubmit(e, organizer.id);
       setShowFairModal(false);
+      setLocalStartDate("");
+      setLocalEndDate("");
     } catch (err) {
       triggerNotification(false, "Ocurrió un error al crear la feria.");
     } finally {
@@ -391,27 +462,48 @@ export default function OrganizerProfilePage({ params }) {
                 />
               </div>
 
-              <div className="grid-2-to-1">
+              {/* Mapa de Coordenadas de Leaflet */}
+              <div style={{ marginBottom: "1.2rem" }}>
+                <label style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--text-primary)", display: "block", marginBottom: "0.5rem" }}>
+                  📍 Marcar ubicación en el mapa (Arrastra el marcador o haz clic)
+                </label>
+                <div ref={createMapContainerRef} style={{ height: "180px", width: "100%", borderRadius: "8px", border: "1px solid var(--border-color)", zIndex: 1 }}></div>
+                <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "4px", display: "block" }}>
+                  Coordenadas fijadas: Lat: {fairLat ? Number(fairLat).toFixed(5) : "-16.39889"}, Lng: {fairLng ? Number(fairLng).toFixed(5) : "-71.53694"}
+                </span>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                 <div className="form-group">
                   <label>Fecha de Inicio *</label>
                   <input 
                     type="date" 
                     className="form-control" 
-                    value={fairDate} 
-                    onChange={(e) => setFairDate(e.target.value)} 
+                    value={localStartDate} 
+                    onChange={(e) => setLocalStartDate(e.target.value)} 
                     required 
                   />
                 </div>
                 <div className="form-group">
-                  <label>Horarios (Opcional)</label>
+                  <label>Fecha de Final (Opcional)</label>
                   <input 
-                    type="text" 
+                    type="date" 
                     className="form-control" 
-                    placeholder="Ej: 10:00 AM - 10:00 PM" 
-                    value={fairTime} 
-                    onChange={(e) => setFairTime(e.target.value)} 
+                    value={localEndDate} 
+                    onChange={(e) => setLocalEndDate(e.target.value)} 
                   />
                 </div>
+              </div>
+
+              <div className="form-group">
+                <label>Horarios (Opcional)</label>
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  placeholder="Ej: 10:00 AM - 10:00 PM" 
+                  value={fairTime} 
+                  onChange={(e) => setFairTime(e.target.value)} 
+                />
               </div>
 
               {/* Subida de Imagen de Banner */}

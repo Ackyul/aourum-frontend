@@ -480,6 +480,25 @@ export function AppContextProvider({ children }) {
     }
   };
 
+  const handleDeleteFair = async (id) => {
+    if (!confirm("¿Seguro que deseas eliminar esta feria? Esta acción borrará todas sus relaciones y postulaciones asociadas.")) return false;
+    try {
+      const response = await fetch(`${API_URL}/api/fairs/${id}`, { method: "DELETE", headers: authHeaders(null) });
+      if (response.ok) {
+        triggerNotification(true, "🎪 Feria eliminada correctamente.");
+        fetchData();
+        return true;
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        triggerNotification(false, errorData.error || "No se pudo eliminar la feria.");
+        return false;
+      }
+    } catch (err) {
+      triggerNotification(false, "Error de red al intentar eliminar la feria.");
+      return false;
+    }
+  };
+
   const handleFairSubmit = async (e, organizerId) => {
     if (e) e.preventDefault();
     const targetOrganizerId = organizerId || activeOrganizerId;
@@ -1264,12 +1283,14 @@ export function AppContextProvider({ children }) {
         appFairId, setAppFairId,
         fetchData,
         uploadImage,
+        authHeaders,
         removeBgAi,
         handleProductSubmit,
         handleDeleteProduct,
         handleDeleteBand,
         handleDeleteBrand,
         handleDeleteOrganizer,
+        handleDeleteFair,
         handleFairSubmit,
         handleAccountRegistration,
         handleLogin,

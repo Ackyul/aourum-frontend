@@ -101,7 +101,7 @@ export default function BandProfilePage({ params }) {
       .map(f => {
         let parsedDate = null;
         if (f.date) {
-          const yyyymmdd = f.date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+          const yyyymmdd = f.date.match(/(\d{4})-(\d{2})-(\d{2})/);
           if (yyyymmdd) {
             parsedDate = new Date(Number(yyyymmdd[1]), Number(yyyymmdd[2]) - 1, Number(yyyymmdd[3]));
           } else {

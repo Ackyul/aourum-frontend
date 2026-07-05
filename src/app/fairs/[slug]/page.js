@@ -21,7 +21,9 @@ export default function FairProfilePage({ params }) {
     activePersonId,
     uploadImage,
     fetchData,
-    triggerNotification
+    triggerNotification,
+    handleDeleteFair,
+    authHeaders
   } = useApp();
 
   const router = useRouter();
@@ -33,6 +35,11 @@ export default function FairProfilePage({ params }) {
   const [editFairName, setEditFairName] = useState("");
   const [editFairLocation, setEditFairLocation] = useState("");
   const [editFairDate, setEditFairDate] = useState("");
+  const [editStartDate, setEditStartDate] = useState("");
+  const [editEndDate, setEditEndDate] = useState("");
+  const [editFairSlug, setEditFairSlug] = useState("");
+
+
   const [editFairTime, setEditFairTime] = useState("");
   const [editFairDescription, setEditFairDescription] = useState("");
   const [editFairBanner, setEditFairBanner] = useState("");
@@ -61,6 +68,26 @@ export default function FairProfilePage({ params }) {
       router.replace(`/fairs/${fair.slug}`);
     }
   }, [fair, isNumeric]);
+
+  // Inicializa las fechas locales al abrir el formulario de edición
+  useEffect(() => {
+    if (editFairOpen && fair && fair.date) {
+      if (fair.date.includes(" al ")) {
+        const parts = fair.date.split(" al ");
+        setEditStartDate(parts[0]);
+        setEditEndDate(parts[1]);
+      } else {
+        setEditStartDate(fair.date);
+        setEditEndDate("");
+      }
+    }
+  }, [editFairOpen, fair]);
+
+  // Sincroniza la fecha combinada para enviarla al backend
+  useEffect(() => {
+    const combined = editEndDate ? `${editStartDate} al ${editEndDate}` : editStartDate;
+    setEditFairDate(combined);
+  }, [editStartDate, editEndDate]);
 
   // Initialize Profile Leaflet Map
   useEffect(() => {
@@ -206,7 +233,15 @@ export default function FairProfilePage({ params }) {
     setEditFairBannerPreview(fair.banner || "");
     setEditFairLat(fair.lat || -16.39889);
     setEditFairLng(fair.lng || -71.53694);
+    setEditFairSlug(fair.slug || "");
     setEditFairOpen(true);
+  };
+
+  const handleDeleteClick = async () => {
+    const success = await handleDeleteFair(fair.id);
+    if (success) {
+      router.replace("/");
+    }
   };
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -227,22 +262,28 @@ export default function FairProfilePage({ params }) {
       description: editFairDescription,
       lat: editFairLat,
       lng: editFairLng,
-      organizerId: fair.organizerId
+      organizerId: fair.organizerId,
+      slug: editFairSlug
     };
 
     try {
       const response = await fetch(`${API_URL}/api/fairs/${fair.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify(payload)
       });
 
       if (response.ok) {
+        const updatedFair = await response.json();
         triggerNotification(true, "🎪 ¡Feria actualizada correctamente!");
         setEditFairOpen(false);
         fetchData();
+        if (updatedFair.slug && updatedFair.slug !== slug) {
+          router.replace(`/fairs/${updatedFair.slug}`);
+        }
       } else {
-        triggerNotification(false, "No se pudo actualizar la feria.");
+        const errorData = await response.json().catch(() => ({}));
+        triggerNotification(false, errorData.error || "No se pudo actualizar la feria.");
       }
     } catch (err) {
       triggerNotification(false, "Error de red al intentar conectar.");
@@ -255,14 +296,15 @@ export default function FairProfilePage({ params }) {
     try {
       const response = await fetch(`${API_URL}/api/fairs/${fair.id}/respond`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({ type, entityId: Number(entityId), accept })
       });
       if (response.ok) {
         triggerNotification(true, accept ? "✨ ¡Postulación aprobada!" : "Postulación rechazada.");
         fetchData();
       } else {
-        triggerNotification(false, "No se pudo procesar la postulación.");
+        const errorData = await response.json().catch(() => ({}));
+        triggerNotification(false, errorData.error || "No se pudo procesar la postulación.");
       }
     } catch (err) {
       triggerNotification(false, "Error de red al procesar postulación.");
@@ -313,15 +355,26 @@ export default function FairProfilePage({ params }) {
               </div>
             </div>
 
-            {canEditFair && (
-              <button
-                onClick={handleEditClick}
-                className="btn-outline-gold"
-                style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
-              >
-                <i className="fa-solid fa-gear"></i> Editar Feria
-              </button>
-            )}
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {canEditFair && (
+                <button
+                  onClick={handleEditClick}
+                  className="btn-outline-gold"
+                  style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                >
+                  <i className="fa-solid fa-gear"></i> Editar Feria
+                </button>
+              )}
+              {isOwner && (
+                <button
+                  onClick={handleDeleteClick}
+                  className="btn-outline-gold"
+                  style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px", color: "#ef4444", borderColor: "#ef4444" }}
+                >
+                  <i className="fa-solid fa-trash"></i> Eliminar Feria
+                </button>
+              )}
+            </div>
           </div>
 
           <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", lineHeight: 1.65, marginBottom: "1.5rem" }}>{fair.description}</p>
@@ -338,26 +391,43 @@ export default function FairProfilePage({ params }) {
                 🎪 Editar Información del Evento
               </h3>
               <form onSubmit={handleEditFairSubmit}>
-                <div className="grid-2-to-1">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                   <div className="form-group">
                     <label>Nombre del Evento *</label>
                     <input type="text" className="form-control" value={editFairName} onChange={(e) => setEditFairName(e.target.value)} required />
                   </div>
                   <div className="form-group">
-                    <label>Dirección del Evento *</label>
-                    <input type="text" className="form-control" value={editFairLocation} onChange={(e) => setEditFairLocation(e.target.value)} required />
+                    <label>Identificador de URL (Slug) *</label>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      value={editFairSlug} 
+                      onChange={(e) => setEditFairSlug(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))} 
+                      required 
+                      placeholder="Ej: rock-food-fest"
+                    />
                   </div>
                 </div>
 
-                <div className="grid-2-to-1">
+                <div className="form-group">
+                  <label>Dirección del Evento *</label>
+                  <input type="text" className="form-control" value={editFairLocation} onChange={(e) => setEditFairLocation(e.target.value)} required />
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                   <div className="form-group">
-                    <label>Fecha *</label>
-                    <input type="text" className="form-control" placeholder="Ej: Sábado 15 de Octubre" value={editFairDate} onChange={(e) => setEditFairDate(e.target.value)} required />
+                    <label>Fecha de Inicio *</label>
+                    <input type="date" className="form-control" value={editStartDate} onChange={(e) => setEditStartDate(e.target.value)} required />
                   </div>
                   <div className="form-group">
-                    <label>Horario</label>
-                    <input type="text" className="form-control" placeholder="Ej: 10:00 - 20:00" value={editFairTime} onChange={(e) => setEditFairTime(e.target.value)} />
+                    <label>Fecha de Final (Opcional)</label>
+                    <input type="date" className="form-control" value={editEndDate} onChange={(e) => setEditEndDate(e.target.value)} />
                   </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Horario (Opcional)</label>
+                  <input type="text" className="form-control" placeholder="Ej: 10:00 - 20:00" value={editFairTime} onChange={(e) => setEditFairTime(e.target.value)} />
                 </div>
 
                 <div className="form-group">
@@ -432,7 +502,29 @@ export default function FairProfilePage({ params }) {
 
           {/* Ubicación del mapa principal */}
           <div style={{ marginBottom: "2.2rem" }}>
-            <h3 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "0.8rem", color: "var(--text-gold)" }}><i className="fa-solid fa-map"></i> Ubicación del Evento</h3>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem", flexWrap: "wrap", gap: "10px" }}>
+              <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0, color: "var(--text-gold)" }}>
+                <i className="fa-solid fa-map"></i> Ubicación del Evento
+              </h3>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${fair.lat || -16.39889},${fair.lng || -71.53694}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-outline-gold"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "5px 12px",
+                  borderRadius: "20px",
+                  fontSize: "0.78rem",
+                  fontWeight: 700,
+                  textDecoration: "none"
+                }}
+              >
+                <i className="fa-solid fa-map-location-dot"></i> Abrir en Google Maps
+              </a>
+            </div>
             <div ref={profileMapContainerRef} style={{ height: "240px", width: "100%", borderRadius: "10px", border: "1px solid var(--border-color)", zIndex: 1, boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}></div>
           </div>
 
