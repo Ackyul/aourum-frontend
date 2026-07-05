@@ -303,7 +303,7 @@ export default function FairProfilePage({ params }) {
                         return (
                           <Link href={`/people/${p.username || p.id}`} key={p.id} style={{ display: "inline-flex", alignItems: "center", gap: "6px", textDecoration: "none", color: "var(--text-primary)", fontSize: "0.8rem" }}>
                             <img src={p.logo} alt={p.name} style={{ width: "20px", height: "20px", borderRadius: "50%", objectFit: "cover" }} />
-                            <span>{p.name} <span style={{ color: "var(--text-muted)", fontSize: "0.72rem", textTransform: "uppercase", fontWeight: "bold" }}>({c.role})</span></span>
+                            <span>{p.name}</span>
                           </Link>
                         );
                       })}

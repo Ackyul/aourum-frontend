@@ -94,6 +94,77 @@ export default function BandProfilePage({ params }) {
     return fairs.filter(f => f.name.toLowerCase().includes(fairSearchQuery.toLowerCase()));
   }, [fairs, fairSearchQuery]);
 
+  // ── LOGICA DE PRESENTACION DE FERIAS Y REPERTORIO ──
+  const parsedFairs = useMemo(() => {
+    return fairs
+      .filter(f => f.acceptedBands && f.acceptedBands.map(Number).includes(Number(band.id)))
+      .map(f => {
+        let parsedDate = null;
+        if (f.date) {
+          const yyyymmdd = f.date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+          if (yyyymmdd) {
+            parsedDate = new Date(Number(yyyymmdd[1]), Number(yyyymmdd[2]) - 1, Number(yyyymmdd[3]));
+          } else {
+            const parsedTs = Date.parse(f.date);
+            if (!isNaN(parsedTs)) {
+              parsedDate = new Date(parsedTs);
+            } else {
+              try {
+                const normalized = f.date.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                const months = {
+                  enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5,
+                  julio: 6, agosto: 7, septiembre: 8, setiembre: 8, octubre: 9,
+                  noviembre: 10, diciembre: 11
+                };
+                let monthIndex = null;
+                for (const [name, index] of Object.entries(months)) {
+                  if (normalized.includes(name)) {
+                    monthIndex = index;
+                    break;
+                  }
+                }
+                if (monthIndex !== null) {
+                  const numbers = normalized.match(/\d+/g);
+                  if (numbers) {
+                    let year = new Date().getFullYear();
+                    let day = null;
+                    for (const numStr of numbers) {
+                      const val = Number(numStr);
+                      if (val >= 2000 && val <= 2100) {
+                        year = val;
+                      } else if (val >= 1 && val <= 31) {
+                        day = val;
+                      }
+                    }
+                    if (day !== null) {
+                      parsedDate = new Date(year, monthIndex, day);
+                    }
+                  }
+                }
+              } catch (e) {}
+            }
+          }
+        }
+        return { ...f, parsedDate };
+      });
+  }, [fairs, band.id]);
+
+  const sortedUpcomingFairs = useMemo(() => {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    return parsedFairs
+      .filter(f => f.parsedDate !== null && f.parsedDate >= today)
+      .sort((a, b) => a.parsedDate - b.parsedDate);
+  }, [parsedFairs]);
+
+  const nearestFairInNextWeek = useMemo(() => {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const oneWeekLater = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    oneWeekLater.setHours(23,59,59,999);
+    return sortedUpcomingFairs.find(f => f.parsedDate >= today && f.parsedDate <= oneWeekLater);
+  }, [sortedUpcomingFairs]);
+
   if (loading) {
     return (
       <div style={{ textAlign: "center", padding: "6rem 0" }}>
@@ -311,43 +382,6 @@ export default function BandProfilePage({ params }) {
                 <i className="fa-solid fa-users"></i>
                 <span>{totalMembers} Integrantes en Escenario</span>
               </p>
-              
-              {band.collaborators && band.collaborators.length > 0 && (
-                <div style={{ marginTop: "0.8rem", display: "flex", flexDirection: "column", gap: "6px" }}>
-                  <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-gold)", textTransform: "uppercase", letterSpacing: "0.05em", display: "block" }}>
-                    Integrantes registrados:
-                  </span>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "4px" }}>
-                    {band.collaborators.map((c) => {
-                      const p = people.find(person => person.id === c.personId);
-                      if (!p) return null;
-                      return (
-                        <Link 
-                          key={p.id}
-                          href={`/people/${p.username || p.id}`}
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "8px",
-                            textDecoration: "none",
-                            width: "fit-content",
-                            padding: "2px 0"
-                          }}
-                        >
-                          <img 
-                            src={p.logo || "https://placehold.co/24x24/d4af37/1C1C1E?text=P"} 
-                            alt={p.name} 
-                            style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} 
-                          />
-                          <span style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.88rem", textDecoration: "underline" }}>
-                            {p.name}
-                          </span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
 
              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
@@ -452,72 +486,65 @@ export default function BandProfilePage({ params }) {
 
           <hr style={{ border: 0, borderTop: "1px solid var(--border-color)", margin: "2.2rem 0" }} />
 
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem", flexWrap: "wrap", gap: "1rem" }}>
-            <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0 }}>
-              <i className="fa-solid fa-calendar-check" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i>
-              Conciertos & Fechas Agendadas
-            </h3>
-          </div>
-
-          {/* Formulario para añadir Gig si es Owner */}
-          {isOwner && (
-            <form onSubmit={handleAddGigSubmit} className="gig-form">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Ej: 15 Oct 2026 - Arequipa Rock Fest (Estadio Melgar)"
-                value={newGig}
-                onChange={(e) => setNewGig(e.target.value)}
-                required
-                disabled={isUpdatingGigs}
-              />
-              <button type="submit" className="btn-gold" style={{ borderRadius: "8px" }} disabled={isUpdatingGigs || !newGig.trim()}>
-                {isUpdatingGigs ? "Agregando..." : "+ Agregar Fecha"}
-              </button>
-            </form>
-          )}
-
-
-          {band.gigs && band.gigs.length > 0 ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
-              {band.gigs.map((gig, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    background: "var(--bg-input)",
-                    padding: "0.9rem",
-                    borderRadius: "8px",
-                    border: "1px solid var(--border-color)",
-                    fontWeight: 500,
-                    fontSize: "0.9rem"
-                  }}
-                >
-                  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                    <i className="fa-solid fa-guitar" style={{ color: "var(--gold-primary)" }}></i>
-                    <span>{gig}</span>
-                  </div>
-                  {isOwner && (
-                    <button
-                      onClick={() => handleDeleteGig(idx)}
-                      style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", fontWeight: 700 }}
-                      disabled={isUpdatingGigs}
-                      title="Eliminar Fecha"
-                    >
-                      <i className="fa-solid fa-trash"></i>
-                    </button>
+          {/* Caso 2: Cuadro morado llamativo para show en 1 semana */}
+          {nearestFairInNextWeek && (
+            <div style={{
+              background: "linear-gradient(135deg, rgba(88, 28, 135, 0.9) 0%, rgba(107, 33, 168, 0.9) 100%)",
+              border: "2px solid #a855f7",
+              borderRadius: "16px",
+              padding: "1.8rem",
+              marginBottom: "2.2rem",
+              boxShadow: "0 10px 25px -5px rgba(168, 85, 247, 0.4)",
+              color: "#FFFFFF",
+              position: "relative",
+              overflow: "hidden"
+            }} className="fade-in">
+              <i className="fa-solid fa-star" style={{ position: "absolute", right: "-10px", bottom: "-20px", fontSize: "7rem", color: "rgba(255, 255, 255, 0.05)", transform: "rotate(15deg)", pointerEvents: "none" }}></i>
+              
+              <div style={{ position: "relative", zIndex: 2 }}>
+                <span style={{
+                  background: "#a855f7",
+                  color: "#FFFFFF",
+                  fontSize: "0.75rem",
+                  fontWeight: 800,
+                  textTransform: "uppercase",
+                  padding: "4px 10px",
+                  borderRadius: "20px",
+                  display: "inline-block",
+                  marginBottom: "0.8rem",
+                  letterSpacing: "0.08em",
+                  boxShadow: "0 2px 8px rgba(168, 85, 247, 0.5)"
+                }}>
+                  ⚡ ¡Próximo Show esta semana!
+                </span>
+                <h3 style={{ fontSize: "1.4rem", fontWeight: 800, margin: 0, color: "#FFFFFF" }}>
+                  La banda se presenta en la feria: <span style={{ color: "#e9d5ff" }}>{nearestFairInNextWeek.name}</span>
+                </h3>
+                <p style={{ margin: "0.5rem 0 0", fontSize: "1.05rem", color: "rgba(255,255,255,0.9)" }}>
+                  Horario: <strong>{nearestFairInNextWeek.time}</strong>
+                </p>
+                
+                <div style={{ display: "flex", gap: "16px", marginTop: "1.2rem", fontSize: "0.85rem", flexWrap: "wrap", borderTop: "1px solid rgba(255,255,255,0.15)", paddingTop: "1rem" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <i className="fa-solid fa-calendar-day"></i> {nearestFairInNextWeek.date}
+                  </span>
+                  {nearestFairInNextWeek.location && (
+                    <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <i className="fa-solid fa-location-dot"></i> {nearestFairInNextWeek.location}
+                    </span>
                   )}
                 </div>
-              ))}
+                
+                <div style={{ marginTop: "1.2rem" }}>
+                  <Link href={`/fairs/${nearestFairInNextWeek.slug || nearestFairInNextWeek.id}`} className="btn-gold" style={{ textDecoration: "none", borderRadius: "8px", display: "inline-flex", alignItems: "center", gap: "6px", background: "#FFFFFF", color: "#6b21a8", border: "none", padding: "0.5rem 1.2rem", fontWeight: 700 }}>
+                    Ver Detalles de la Feria <i className="fa-solid fa-arrow-right"></i>
+                  </Link>
+                </div>
+              </div>
             </div>
-          ) : (
-            <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>Próximamente se anunciarán las fechas para esta banda.</p>
           )}
 
-          <hr style={{ border: 0, borderTop: "1px solid var(--border-color)", margin: "2.2rem 0" }} />
-
+          {/* Sección 1: Repertorio de Canciones */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem", flexWrap: "wrap", gap: "1rem" }}>
             <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0 }}>
               <i className="fa-solid fa-music" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i>
@@ -585,6 +612,99 @@ export default function BandProfilePage({ params }) {
             );
           })()}
 
+          <hr style={{ border: 0, borderTop: "1px solid var(--border-color)", margin: "2.2rem 0" }} />
+
+          {/* Sección 2: Conciertos & Fechas Agendadas */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem", flexWrap: "wrap", gap: "1rem" }}>
+            <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0 }}>
+              <i className="fa-solid fa-calendar-check" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i>
+              Conciertos & Fechas Agendadas
+            </h3>
+          </div>
+
+          {/* Formulario para añadir Gig si es Owner */}
+          {isOwner && (
+            <form onSubmit={handleAddGigSubmit} className="gig-form" style={{ marginBottom: "1.5rem" }}>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Ej: 15 Oct 2026 - Arequipa Rock Fest (Estadio Melgar)"
+                value={newGig}
+                onChange={(e) => setNewGig(e.target.value)}
+                required
+                disabled={isUpdatingGigs}
+              />
+              <button type="submit" className="btn-gold" style={{ borderRadius: "8px" }} disabled={isUpdatingGigs || !newGig.trim()}>
+                {isUpdatingGigs ? "Agregando..." : "+ Agregar Fecha"}
+              </button>
+            </form>
+          )}
+
+          {((sortedUpcomingFairs.length > 0) || (band.gigs && band.gigs.length > 0)) ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
+              {/* Presentaciones en ferias confirmadas */}
+              {sortedUpcomingFairs.map(f => (
+                <div
+                  key={`fair-${f.id}`}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    background: "var(--bg-input)",
+                    padding: "0.9rem",
+                    borderRadius: "8px",
+                    border: "1px solid var(--border-color)",
+                    fontWeight: 500,
+                    fontSize: "0.9rem"
+                  }}
+                >
+                  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                    <i className="fa-solid fa-calendar-day" style={{ color: "var(--gold-primary)" }}></i>
+                    <span><strong>{f.date}</strong> - Presentación en feria <strong>{f.name}</strong> a las {f.time} ({f.location || "Arequipa"})</span>
+                  </div>
+                  <Link href={`/fairs/${f.slug || f.id}`} className="btn-outline-gold" style={{ padding: "4px 10px", fontSize: "0.75rem", borderRadius: "6px", textDecoration: "none", fontWeight: 700 }}>
+                    Ver Feria
+                  </Link>
+                </div>
+              ))}
+
+              {/* Fechas manuales */}
+              {band.gigs && band.gigs.map((gig, idx) => (
+                <div
+                  key={`gig-${idx}`}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    background: "var(--bg-input)",
+                    padding: "0.9rem",
+                    borderRadius: "8px",
+                    border: "1px solid var(--border-color)",
+                    fontWeight: 500,
+                    fontSize: "0.9rem"
+                  }}
+                >
+                  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                    <i className="fa-solid fa-guitar" style={{ color: "var(--gold-primary)" }}></i>
+                    <span>{gig}</span>
+                  </div>
+                  {isOwner && (
+                    <button
+                      onClick={() => handleDeleteGig(idx)}
+                      style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", fontWeight: 700 }}
+                      disabled={isUpdatingGigs}
+                      title="Eliminar Fecha"
+                    >
+                      <i className="fa-solid fa-trash"></i>
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>Próximamente se anunciarán las fechas para esta banda.</p>
+          )}
+
           {/* Opciones Desplegables de Administración y Colaboración */}
           {isCollaborator && (
             <>
@@ -622,6 +742,49 @@ export default function BandProfilePage({ params }) {
                 </div>
               )}
             </>
+          )}
+
+          {/* Integrantes Registrados al final */}
+          {band.collaborators && band.collaborators.length > 0 && (
+            <div style={{ marginTop: "2.2rem", paddingTop: "1.5rem", borderTop: "1px solid var(--border-color)" }}>
+              <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text-gold)", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: "0.8rem" }}>
+                Integrantes registrados:
+              </span>
+              <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginTop: "4px" }}>
+                {band.collaborators.map((c) => {
+                  const p = people.find(person => person.id === c.personId);
+                  if (!p) return null;
+                  return (
+                    <Link 
+                      key={p.id}
+                      href={`/people/${p.username || p.id}`}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        textDecoration: "none",
+                        padding: "6px 12px",
+                        background: "var(--bg-input)",
+                        borderRadius: "20px",
+                        border: "1px solid var(--border-color)",
+                        transition: "all 0.2s"
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--gold-primary)"}
+                      onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border-color)"}
+                    >
+                      <img 
+                        src={p.logo || "https://placehold.co/24x24/d4af37/1C1C1E?text=P"} 
+                        alt={p.name} 
+                        style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} 
+                      />
+                      <span style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: "0.85rem" }}>
+                        {p.name}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           )}
         </div>
       </div>

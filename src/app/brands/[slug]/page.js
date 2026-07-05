@@ -538,7 +538,7 @@ export default function BrandProfilePage({ params }) {
                     const person = people.find(p => p.id === c.personId);
                     return person ? (
                       <Link key={person.id} href={`/people/${person.username || person.id}`} style={{ marginRight: "10px", color: "var(--gold-dark)", textDecoration: "underline" }}>
-                        {person.name} ({c.role})
+                        {person.name}
                       </Link>
                     ) : null;
                   })}
