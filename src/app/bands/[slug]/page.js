@@ -73,21 +73,30 @@ export default function BandProfilePage({ params }) {
   }, [showFairs, showCollabs]);
 
   const isNumeric = /^\d+$/.test(slug);
+  const [bandId, setBandId] = useState(null);
+
   const band = bands.find((b) => {
+    if (bandId) return b.id === bandId;
     if (isNumeric) {
       return b.id === Number(slug) || b.slug === slug;
     }
     return b.slug === slug;
   });
 
+  useEffect(() => {
+    if (band && !bandId) {
+      setBandId(band.id);
+    }
+  }, [band, bandId]);
+
   const totalMembers = band?.collaborators ? band.collaborators.length : 1;
 
-  // Redirect from numeric ID to slug-based URL
+  // Redirect from numeric ID or changed slug to current slug-based URL
   useEffect(() => {
-    if (band && band.slug && isNumeric) {
+    if (band && band.slug && (isNumeric || band.slug !== slug)) {
       router.replace(`/bands/${band.slug}`);
     }
-  }, [band, isNumeric, router]);
+  }, [band, isNumeric, slug, router]);
 
   const filteredFairs = useMemo(() => {
     if (!fairSearchQuery.trim()) return fairs;
@@ -96,6 +105,7 @@ export default function BandProfilePage({ params }) {
 
   // ── LOGICA DE PRESENTACION DE FERIAS Y REPERTORIO ──
   const parsedFairs = useMemo(() => {
+    if (!band) return [];
     return fairs
       .filter(f => f.acceptedBands && f.acceptedBands.map(Number).includes(Number(band.id)))
       .map(f => {
@@ -147,7 +157,7 @@ export default function BandProfilePage({ params }) {
         }
         return { ...f, parsedDate };
       });
-  }, [fairs, band.id]);
+  }, [fairs, band?.id]);
 
   const sortedUpcomingFairs = useMemo(() => {
     const today = new Date();

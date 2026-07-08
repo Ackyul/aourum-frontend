@@ -143,19 +143,28 @@ export default function OrganizerProfilePage({ params }) {
   }, [showFairModal, fairLat, fairLng, setFairLat, setFairLng]);
 
   const isNumeric = /^\d+$/.test(slug);
+  const [organizerId, setOrganizerId] = useState(null);
+
   const organizer = organizers.find((o) => {
+    if (organizerId) return o.id === organizerId;
     if (isNumeric) {
       return o.id === Number(slug) || o.slug === slug;
     }
     return o.slug === slug;
   });
 
-  // Redirect from numeric ID to slug-based URL
   useEffect(() => {
-    if (organizer && organizer.slug && isNumeric) {
+    if (organizer && !organizerId) {
+      setOrganizerId(organizer.id);
+    }
+  }, [organizer, organizerId]);
+
+  // Redirect from numeric ID or changed slug to current slug-based URL
+  useEffect(() => {
+    if (organizer && organizer.slug && (isNumeric || organizer.slug !== slug)) {
       router.replace(`/organizers/${organizer.slug}`);
     }
-  }, [organizer, isNumeric, router]);
+  }, [organizer, isNumeric, slug, router]);
 
   if (loading) {
     return (

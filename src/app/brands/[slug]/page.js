@@ -369,12 +369,21 @@ export default function BrandProfilePage({ params }) {
   const brandLeafletMapRef = useRef(null);
 
   const isNumeric = /^\d+$/.test(slug);
+  const [brandId, setBrandId] = useState(null);
+
   const brand = brands.find((b) => {
+    if (brandId) return b.id === brandId;
     if (isNumeric) {
       return b.id === Number(slug) || b.slug === slug;
     }
     return b.slug === slug;
   });
+
+  useEffect(() => {
+    if (brand && !brandId) {
+      setBrandId(brand.id);
+    }
+  }, [brand, brandId]);
 
   useEffect(() => {
     if (!brand || typeof window === "undefined") return;
@@ -420,12 +429,12 @@ export default function BrandProfilePage({ params }) {
     };
   }, [brand]);
 
-  // Redirect from numeric ID to slug-based URL
+  // Redirect from numeric ID or changed slug to current slug-based URL
   useEffect(() => {
-    if (brand && brand.slug && isNumeric) {
+    if (brand && brand.slug && (isNumeric || brand.slug !== slug)) {
       router.replace(`/brands/${brand.slug}`);
     }
-  }, [brand, isNumeric, router]);
+  }, [brand, isNumeric, slug, router]);
 
   const filteredFairs = useMemo(() => {
     if (!fairSearchQuery.trim()) return fairs;

@@ -55,19 +55,28 @@ export default function FairProfilePage({ params }) {
   const editMarkerRef = useRef(null);
 
   const isNumeric = /^\d+$/.test(slug);
+  const [fairId, setFairId] = useState(null);
+
   const fair = fairs.find((f) => {
+    if (fairId) return f.id === fairId;
     if (isNumeric) {
       return f.id === Number(slug) || f.slug === slug;
     }
     return f.slug === slug;
   });
 
-  // Redirect from numeric ID to slug-based URL
   useEffect(() => {
-    if (fair && fair.slug && isNumeric) {
+    if (fair && !fairId) {
+      setFairId(fair.id);
+    }
+  }, [fair, fairId]);
+
+  // Redirect from numeric ID or changed slug to current slug-based URL
+  useEffect(() => {
+    if (fair && fair.slug && (isNumeric || fair.slug !== slug)) {
       router.replace(`/fairs/${fair.slug}`);
     }
-  }, [fair, isNumeric]);
+  }, [fair, isNumeric, slug, router]);
 
   // Inicializa las fechas locales al abrir el formulario de edición
   useEffect(() => {

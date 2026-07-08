@@ -62,12 +62,28 @@ export default function PersonProfile({ params }) {
 
   const router = useRouter();
 
+  const [personId, setPersonId] = useState(null);
+
   const person = people.find((p) => {
+    if (personId) return p.id === personId;
     if (p.username && p.username.toLowerCase() === usernameParam.toLowerCase()) {
       return true;
     }
     return p.id.toString() === usernameParam;
   });
+
+  useEffect(() => {
+    if (person && !personId) {
+      setPersonId(person.id);
+    }
+  }, [person, personId]);
+
+  // Redirect if username changes
+  useEffect(() => {
+    if (person && person.username && person.username.toLowerCase() !== usernameParam.toLowerCase()) {
+      router.replace(`/people/${person.username}`);
+    }
+  }, [person, usernameParam, router]);
 
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
 
