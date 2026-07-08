@@ -125,7 +125,7 @@ export default function BrandProfilePage({ params }) {
       document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     };
-  }, [prodFormOpen, editorOpen, showFairs, showCollabs]);
+  }, [prodFormOpen, editorOpen, showFairs, showCollabs, adminCatalogOpen]);
 
   // Redraw canvas on aspect ratio/scale changes, drag, background removal toggle, and tolerance changes
   useEffect(() => {

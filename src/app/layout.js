@@ -330,17 +330,48 @@ function AppLayoutShell({ children }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Lock background scroll when any layout-level modal is open
+  // Lock background scroll when any layout-level modal is open, or any other overlay exists on the page
   useEffect(() => {
-    const isModalOpen = showRegModal || showLoginModal || editProfileOpen || showForgotModal;
-    if (isModalOpen) {
-      document.documentElement.style.overflow = "hidden";
-      document.body.style.overflow = "hidden";
-    } else {
-      document.documentElement.style.overflow = "";
-      document.body.style.overflow = "";
-    }
+    if (typeof window === "undefined") return;
+
+    const checkAndLockScroll = () => {
+      // Check for any modal overlay or open sidebar backdrop on the page
+      const hasOverlay = document.querySelector(".modal-overlay") !== null ||
+                         document.querySelector(".sidebar-backdrop.open") !== null;
+      
+      const isLayoutModalOpen = showRegModal || showLoginModal || editProfileOpen || showForgotModal;
+
+      const shouldLock = hasOverlay || isLayoutModalOpen;
+
+      const currentHtmlOverflow = document.documentElement.style.overflow;
+      const currentBodyOverflow = document.body.style.overflow;
+
+      if (shouldLock) {
+        if (currentHtmlOverflow !== "hidden") document.documentElement.style.overflow = "hidden";
+        if (currentBodyOverflow !== "hidden") document.body.style.overflow = "hidden";
+      } else {
+        if (currentHtmlOverflow !== "") document.documentElement.style.overflow = "";
+        if (currentBodyOverflow !== "") document.body.style.overflow = "";
+      }
+    };
+
+    // Run initially
+    checkAndLockScroll();
+
+    // Create a MutationObserver to watch for additions or removals of modal-overlay elements
+    const observer = new MutationObserver(() => {
+      checkAndLockScroll();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class"]
+    });
+
     return () => {
+      observer.disconnect();
       document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     };
