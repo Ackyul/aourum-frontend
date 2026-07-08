@@ -329,131 +329,137 @@ export default function PersonProfile({ params }) {
                   </div>
                 );
               })()}
-              
-              {(myBrands.length > 0 || myOrganizers.length > 0 || myBands.length > 0) && (
-                <div className="glass-panel" style={{ padding: "1.5rem" }}>
-                  <h3 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "1.2rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
-                    <i className="fa-solid fa-folder-open" style={{ color: themeColor }}></i> Mis Cuentas vinculadas
-                  </h3>
-                  
-                  <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-                    {myBrands.length > 0 && (
-                      <div>
-                        <h4 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)", fontWeight: 700, marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: 6 }}>
-                          <i className="fa-solid fa-store" style={{ color: themeColor }}></i> Marcas
-                        </h4>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "12px" }}>
-                          {myBrands.map((b) => (
-                            <Link 
-                              key={b.id} 
-                              href={`/brands/${b.slug || b.id}`}
-                              className="project-card-link"
-                              style={{ 
-                                display: "flex", 
-                                alignItems: "center", 
-                                gap: "12px", 
-                                background: "rgba(0,0,0,0.02)", 
-                                border: "1px solid var(--border-color)", 
-                                padding: "10px 14px", 
-                                borderRadius: "10px", 
-                                textDecoration: "none",
-                                transition: "var(--transition-smooth)"
-                              }}
-                            >
-                              <img 
-                                src={b.logo || "https://placehold.co/40x40/d4af37/1C1C1E?text=M"} 
-                                alt={b.name} 
-                                style={{ width: "36px", height: "36px", borderRadius: "8px", objectFit: "cover" }} 
-                              />
-                              <div style={{ overflow: "hidden" }}>
-                                <strong style={{ display: "block", fontSize: "0.88rem", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{b.name}</strong>
-                                <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 600 }}>{b.category || "Marca"}</span>
-                              </div>
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+            </div>
+          )}
 
-                    {myOrganizers.length > 0 && (
-                      <div>
-                        <h4 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)", fontWeight: 700, marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: 6 }}>
-                          <i className="fa-solid fa-calendar-days" style={{ color: themeColor }}></i> Productoras
-                        </h4>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "12px" }}>
-                          {myOrganizers.map((o) => (
-                            <Link 
-                              key={o.id} 
-                              href={`/organizers/${o.slug || o.id}`}
-                              className="project-card-link"
-                              style={{ 
-                                display: "flex", 
-                                alignItems: "center", 
-                                gap: "12px", 
-                                background: "rgba(0,0,0,0.02)", 
-                                border: "1px solid var(--border-color)", 
-                                padding: "10px 14px", 
-                                borderRadius: "10px",
-                                textDecoration: "none",
-                                transition: "var(--transition-smooth)"
-                              }}
-                            >
-                              <img 
-                                src={o.logo || "https://placehold.co/40x40/d4af37/1C1C1E?text=P"} 
-                                alt={o.name} 
-                                style={{ width: "36px", height: "36px", borderRadius: "8px", objectFit: "cover" }} 
-                              />
-                              <div style={{ overflow: "hidden" }}>
-                                <strong style={{ display: "block", fontSize: "0.88rem", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{o.name}</strong>
-                                <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 600 }}>Productora</span>
-                              </div>
-                            </Link>
-                          ))}
-                        </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "2rem", marginBottom: "2.5rem" }}>
+            {(myBrands.length > 0 || myOrganizers.length > 0 || myBands.length > 0) && (
+              <div className="glass-panel" style={{ padding: "1.5rem" }}>
+                <h3 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "1.2rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
+                  <i className="fa-solid fa-folder-open" style={{ color: themeColor }}></i> {isOwner ? "Mis Cuentas vinculadas" : "Proyectos vinculados"}
+                </h3>
+                
+                <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                  {myBrands.length > 0 && (
+                    <div>
+                      <h4 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)", fontWeight: 700, marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: 6 }}>
+                        <i className="fa-solid fa-store" style={{ color: themeColor }}></i> Marcas
+                      </h4>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "12px" }}>
+                        {myBrands.map((b) => (
+                          <Link 
+                            key={b.id} 
+                            href={`/brands/${b.slug || b.id}`}
+                            className="project-card-link"
+                            style={{ 
+                              display: "flex", 
+                              alignItems: "center", 
+                              gap: "12px", 
+                              background: "rgba(0,0,0,0.02)", 
+                              border: "1px solid var(--border-color)", 
+                              padding: "10px 14px", 
+                              borderRadius: "10px", 
+                              textDecoration: "none",
+                              transition: "var(--transition-smooth)"
+                            }}
+                          >
+                            <img 
+                              src={b.logo || "https://placehold.co/40x40/d4af37/1C1C1E?text=M"} 
+                              alt={b.name} 
+                              style={{ width: "36px", height: "36px", borderRadius: "8px", objectFit: "cover" }} 
+                            />
+                            <div style={{ overflow: "hidden" }}>
+                              <strong style={{ display: "block", fontSize: "0.88rem", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{b.name}</strong>
+                              <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 600 }}>{b.category || "Marca"}</span>
+                            </div>
+                          </Link>
+                        ))}
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                    {myBands.length > 0 && (
-                      <div>
-                        <h4 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)", fontWeight: 700, marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: 6 }}>
-                          <i className="fa-solid fa-guitar" style={{ color: themeColor }}></i> Bandas
-                        </h4>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "12px" }}>
-                          {myBands.map((b) => (
-                            <Link 
-                              key={b.id} 
-                              href={`/bands/${b.slug || b.id}`}
-                              className="project-card-link"
-                              style={{ 
-                                display: "flex", 
-                                alignItems: "center", 
-                                gap: "12px", 
-                                background: "rgba(0,0,0,0.02)", 
-                                border: "1px solid var(--border-color)", 
-                                padding: "10px 14px", 
-                                borderRadius: "10px", 
-                                textDecoration: "none",
-                                transition: "var(--transition-smooth)"
-                              }}
-                            >
-                              <img 
-                                src={b.image || "https://placehold.co/40x40/d4af37/1C1C1E?text=B"} 
-                                alt={b.name} 
-                                style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover" }} 
-                              />
-                              <div style={{ overflow: "hidden" }}>
-                                <strong style={{ display: "block", fontSize: "0.88rem", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{b.name}</strong>
-                                <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 600 }}>{b.genre || "Banda"}</span>
-                              </div>
-                            </Link>
-                          ))}
-                        </div>
+                  {myOrganizers.length > 0 && (
+                    <div>
+                      <h4 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)", fontWeight: 700, marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: 6 }}>
+                        <i className="fa-solid fa-calendar-days" style={{ color: themeColor }}></i> Productoras
+                      </h4>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "12px" }}>
+                        {myOrganizers.map((o) => (
+                          <Link 
+                            key={o.id} 
+                            href={`/organizers/${o.slug || o.id}`}
+                            className="project-card-link"
+                            style={{ 
+                              display: "flex", 
+                              alignItems: "center", 
+                              gap: "12px", 
+                              background: "rgba(0,0,0,0.02)", 
+                              border: "1px solid var(--border-color)", 
+                              padding: "10px 14px", 
+                              borderRadius: "10px",
+                              textDecoration: "none",
+                              transition: "var(--transition-smooth)"
+                            }}
+                          >
+                            <img 
+                              src={o.logo || "https://placehold.co/40x40/d4af37/1C1C1E?text=P"} 
+                              alt={o.name} 
+                              style={{ width: "36px", height: "36px", borderRadius: "8px", objectFit: "cover" }} 
+                            />
+                            <div style={{ overflow: "hidden" }}>
+                              <strong style={{ display: "block", fontSize: "0.88rem", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{o.name}</strong>
+                              <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 600 }}>Productora</span>
+                            </div>
+                          </Link>
+                        ))}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
+
+                  {myBands.length > 0 && (
+                    <div>
+                      <h4 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)", fontWeight: 700, marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: 6 }}>
+                        <i className="fa-solid fa-guitar" style={{ color: themeColor }}></i> Bandas
+                      </h4>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "12px" }}>
+                        {myBands.map((b) => (
+                          <Link 
+                            key={b.id} 
+                            href={`/bands/${b.slug || b.id}`}
+                            className="project-card-link"
+                            style={{ 
+                              display: "flex", 
+                              alignItems: "center", 
+                              gap: "12px", 
+                              background: "rgba(0,0,0,0.02)", 
+                              border: "1px solid var(--border-color)", 
+                              padding: "10px 14px", 
+                              borderRadius: "10px", 
+                              textDecoration: "none",
+                              transition: "var(--transition-smooth)"
+                            }}
+                          >
+                            <img 
+                              src={b.image || "https://placehold.co/40x40/d4af37/1C1C1E?text=B"} 
+                              alt={b.name} 
+                              style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover" }} 
+                            />
+                            <div style={{ overflow: "hidden" }}>
+                              <strong style={{ display: "block", fontSize: "0.88rem", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{b.name}</strong>
+                              <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 600 }}>{b.genre || "Banda"}</span>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+            )}
+          </div>
 
+          {isOwner && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "2rem", marginBottom: "2.5rem" }}>
               <div className="glass-panel" style={{ padding: "1.5rem" }}>
                 <div onClick={() => setCreateProjectOpen(!createProjectOpen)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
                   <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
