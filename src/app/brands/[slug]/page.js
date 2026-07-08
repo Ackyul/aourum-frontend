@@ -432,6 +432,16 @@ export default function BrandProfilePage({ params }) {
     return fairs.filter(f => f.name.toLowerCase().includes(fairSearchQuery.toLowerCase()));
   }, [fairs, fairSearchQuery]);
 
+  const brandProducts = brand ? products.filter((p) => p.brandId === brand.id) : [];
+
+  const filteredAdminProducts = useMemo(() => {
+    if (!adminSearchQuery.trim()) return brandProducts;
+    return brandProducts.filter((p) => 
+      p.name.toLowerCase().includes(adminSearchQuery.toLowerCase()) ||
+      (p.category && p.category.toLowerCase().includes(adminSearchQuery.toLowerCase()))
+    );
+  }, [brandProducts, adminSearchQuery]);
+
   if (loading) {
     return (
       <div style={{ textAlign: "center", padding: "6rem 0" }}>
@@ -449,16 +459,6 @@ export default function BrandProfilePage({ params }) {
       </div>
     );
   }
-
-  const brandProducts = products.filter((p) => p.brandId === brand.id);
-
-  const filteredAdminProducts = useMemo(() => {
-    if (!adminSearchQuery.trim()) return brandProducts;
-    return brandProducts.filter((p) => 
-      p.name.toLowerCase().includes(adminSearchQuery.toLowerCase()) ||
-      (p.category && p.category.toLowerCase().includes(adminSearchQuery.toLowerCase()))
-    );
-  }, [brandProducts, adminSearchQuery]);
 
   // Check collaborator role of the logged-in persona
   const currentPerson = people.find((p) => p.id === Number(activePersonId));
