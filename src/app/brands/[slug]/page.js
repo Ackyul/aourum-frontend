@@ -91,6 +91,7 @@ export default function BrandProfilePage({ params }) {
   const [showPersonDropdown, setShowPersonDropdown] = useState(false);
   const [selectedPersonId, setSelectedPersonId] = useState("");
   const [adminCatalogOpen, setAdminCatalogOpen] = useState(false);
+  const [adminSearchQuery, setAdminSearchQuery] = useState("");
 
   // States for the interactive image editor
   const [editorOpen, setEditorOpen] = useState(false);
@@ -450,6 +451,14 @@ export default function BrandProfilePage({ params }) {
   }
 
   const brandProducts = products.filter((p) => p.brandId === brand.id);
+
+  const filteredAdminProducts = useMemo(() => {
+    if (!adminSearchQuery.trim()) return brandProducts;
+    return brandProducts.filter((p) => 
+      p.name.toLowerCase().includes(adminSearchQuery.toLowerCase()) ||
+      (p.category && p.category.toLowerCase().includes(adminSearchQuery.toLowerCase()))
+    );
+  }, [brandProducts, adminSearchQuery]);
 
   // Check collaborator role of the logged-in persona
   const currentPerson = people.find((p) => p.id === Number(activePersonId));
@@ -1547,7 +1556,7 @@ export default function BrandProfilePage({ params }) {
       {/* 5. Modal de administración del catálogo (tabla) */}
       {isOwner && adminCatalogOpen && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
-          <div className="modal-backdrop" onClick={() => setAdminCatalogOpen(false)}></div>
+          <div className="modal-backdrop" onClick={() => { setAdminCatalogOpen(false); setAdminSearchQuery(""); }}></div>
           <div className="modal-panel fade-in" style={{ maxWidth: "850px", width: "95%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
               <h3 style={{ fontSize: "1.20rem", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1555,11 +1564,32 @@ export default function BrandProfilePage({ params }) {
                 Administrar Items en Catálogo
               </h3>
               <button 
-                onClick={() => setAdminCatalogOpen(false)} 
+                onClick={() => { setAdminCatalogOpen(false); setAdminSearchQuery(""); }} 
                 style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
               >
                 &times;
               </button>
+            </div>
+            
+            {/* Buscador de items */}
+            <div style={{ marginBottom: "1.5rem", position: "relative" }}>
+              <input 
+                type="text" 
+                className="form-control" 
+                placeholder="🔍 Buscar por nombre o categoría..." 
+                value={adminSearchQuery}
+                onChange={(e) => setAdminSearchQuery(e.target.value)}
+                style={{ padding: "0.6rem 1rem", fontSize: "0.88rem", borderRadius: "8px", border: "1px solid var(--border-color)", width: "100%" }}
+              />
+              {adminSearchQuery && (
+                <button 
+                  type="button" 
+                  onClick={() => setAdminSearchQuery("")}
+                  style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
+                >
+                  &times;
+                </button>
+              )}
             </div>
             
             <div className="admin-table-wrapper" style={{ overflowX: "auto" }}>
@@ -1575,7 +1605,7 @@ export default function BrandProfilePage({ params }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {brandProducts.map((prod) => (
+                  {filteredAdminProducts.map((prod) => (
                     <tr key={prod.id} style={{ borderBottom: "1px solid rgba(0,0,0,0.04)" }}>
                       <td style={{ padding: "0.6rem 0" }}>
                         <img src={prod.image} alt={prod.name} style={{ width: "42px", height: "42px", objectFit: "cover", borderRadius: "6px", border: "1px solid var(--border-color)" }} />
@@ -1627,7 +1657,7 @@ export default function BrandProfilePage({ params }) {
             
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1.5rem" }}>
               <button 
-                onClick={() => setAdminCatalogOpen(false)} 
+                onClick={() => { setAdminCatalogOpen(false); setAdminSearchQuery(""); }} 
                 className="btn-gold" 
                 style={{ padding: "0.5rem 1.4rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700 }}
               >
