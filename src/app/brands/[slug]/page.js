@@ -762,15 +762,6 @@ export default function BrandProfilePage({ params }) {
                 <div key={prod.id} className="glass-panel product-card" style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer" }} onClick={() => router.push(`/products/${prod.slug || prod.id}`)}>
                   <div className="card-img-container" style={{ position: "relative" }}>
                     <img src={prod.image} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} className="card-img-hover" />
-                    <span style={{
-                      position: "absolute", top: "10px", left: "10px",
-                      background: prod.type === "service" ? "#1e3a8a" : "#78350f",
-                      color: prod.type === "service" ? "#dbeafe" : "#fef3c7", 
-                      padding: "0.3rem 0.6rem", borderRadius: "6px",
-                      fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase"
-                    }}>
-                      {prod.type === "service" ? "📅 Servicio" : "🛍️ Producto"}
-                    </span>
                   </div>
                   <div style={{ padding: "1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                     <h4 style={{ fontSize: "1.0rem", fontWeight: 800, color: "var(--text-primary)" }}>{prod.name}</h4>
@@ -804,14 +795,23 @@ export default function BrandProfilePage({ params }) {
                           </span>
                         )}
                       </div>
-                      <div>
-                        <span style={{
-                          fontSize: "0.7rem",
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+                        <span className="card-type-label" style={{
+                          fontSize: "0.65rem",
                           fontWeight: 700,
-                          padding: "2px 8px",
-                          borderRadius: "12px",
                           textTransform: "uppercase",
-                          letterSpacing: "0.03em",
+                          color: prod.type === "service" ? "#1e3a8a" : "#78350f",
+                          letterSpacing: "0.03em"
+                        }}>
+                          {prod.type === "service" ? "Servicio" : "Producto"}
+                        </span>
+                        <span className="card-stock-label" style={{
+                          fontSize: "0.65rem",
+                          fontWeight: 700,
+                          padding: "2px 6px",
+                          borderRadius: "8px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.02em",
                           background: prod.type === "service" ? "#dbeafe" : (prod.stock == null || prod.stock > 0) ? "#dcfce7" : "#fee2e2",
                           color: prod.type === "service" ? "#1e40af" : (prod.stock == null || prod.stock > 0) ? "#15803d" : "#b91c1c"
                         }}>

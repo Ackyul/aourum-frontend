@@ -758,8 +758,13 @@ header {
     display: none !important; /* Hide Category */
   }
 
-  .product-card > div:last-child > div:last-child > div:nth-child(2) {
-    display: none !important; /* Hide Stock/Agenda Badge */
+  .product-card .card-stock-label {
+    display: none !important; /* Hide Stock/Agenda Badge on mobile */
+  }
+
+  .product-card .card-type-label {
+    display: inline-block !important; /* Make sure type label is visible on mobile */
+    font-size: 0.58rem !important;
   }
 
   .product-card > div:last-child > div:last-child span[style*="line-through"] {
@@ -768,14 +773,6 @@ header {
 
   .product-card > div:last-child > div:last-child span[style*="var(--gold-gradient)"] {
     display: none !important; /* Hide Aourum gold label */
-  }
-
-  .product-card .card-img-container span[style*="position: absolute"] {
-    top: 8px !important; /* Reposition and scale down image badge */
-    left: 8px !important;
-    padding: 0.2rem 0.4rem !important;
-    font-size: 0.55rem !important;
-    border-radius: 4px !important;
   }
 }
 

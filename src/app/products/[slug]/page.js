@@ -280,15 +280,6 @@ export default function ProductDetailPage({ params }) {
               >
                 <div className="card-img-container" style={{ position: "relative" }}>
                   <img src={rp.image} alt={rp.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} className="card-img-hover" />
-                  <span style={{
-                    position: "absolute", top: "10px", left: "10px",
-                    background: rp.type === "service" ? "#1e3a8a" : "#78350f",
-                    color: rp.type === "service" ? "#dbeafe" : "#fef3c7", 
-                    padding: "0.3rem 0.6rem", borderRadius: "6px",
-                    fontSize: "0.68rem", fontWeight: 700, textTransform: "uppercase"
-                  }}>
-                    {rp.type === "service" ? "📅 Servicio" : "🛍️ Producto"}
-                  </span>
                 </div>
                 <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                   <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -324,20 +315,29 @@ export default function ProductDetailPage({ params }) {
                         </span>
                       )}
                     </div>
-                    <div>
-                      <span style={{
-                        fontSize: "0.7rem",
-                        fontWeight: 700,
-                        padding: "2px 8px",
-                        borderRadius: "12px",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.03em",
-                        background: rp.type === "service" ? "#dbeafe" : (rp.stock == null || rp.stock > 0) ? "#dcfce7" : "#fee2e2",
-                        color: rp.type === "service" ? "#1e40af" : (rp.stock == null || rp.stock > 0) ? "#15803d" : "#b91c1c"
-                      }}>
-                        {rp.type === "service" ? "Agenda" : (rp.stock == null || rp.stock > 0) ? "Stock" : "Agotado"}
-                      </span>
-                    </div>
+                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+                       <span className="card-type-label" style={{
+                         fontSize: "0.65rem",
+                         fontWeight: 700,
+                         textTransform: "uppercase",
+                         color: rp.type === "service" ? "#1e3a8a" : "#78350f",
+                         letterSpacing: "0.03em"
+                       }}>
+                         {rp.type === "service" ? "Servicio" : "Producto"}
+                       </span>
+                       <span className="card-stock-label" style={{
+                         fontSize: "0.65rem",
+                         fontWeight: 700,
+                         padding: "2px 6px",
+                         borderRadius: "8px",
+                         textTransform: "uppercase",
+                         letterSpacing: "0.02em",
+                         background: rp.type === "service" ? "#dbeafe" : (rp.stock == null || rp.stock > 0) ? "#dcfce7" : "#fee2e2",
+                         color: rp.type === "service" ? "#1e40af" : (rp.stock == null || rp.stock > 0) ? "#15803d" : "#b91c1c"
+                       }}>
+                         {rp.type === "service" ? "Agenda" : (rp.stock == null || rp.stock > 0) ? "Stock" : "Agotado"}
+                       </span>
+                     </div>
                   </div>
                 </div>
               </div>
