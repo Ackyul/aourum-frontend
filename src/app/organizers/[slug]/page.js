@@ -28,6 +28,8 @@ export default function OrganizerProfilePage({ params }) {
     loadFairs();
     loadPeople();
   }, [loadFairs, loadPeople]);
+
+  const {
     // Fair creation inputs
     fairName, setFairName,
     fairLocation, setFairLocation,
