@@ -932,9 +932,9 @@ header {
     padding: 0.5rem 1rem;
   }
   .carousel-item {
-    flex: 0 0 calc((100% - 2 * 0.8rem) / 2.08);
-    width: calc((100% - 2 * 0.8rem) / 2.08);
-    max-width: calc((100% - 2 * 0.8rem) / 2.08);
+    flex: 0 0 calc((100% - 0.8rem) / 2);
+    width: calc((100% - 0.8rem) / 2);
+    max-width: calc((100% - 0.8rem) / 2);
   }
 }
 
