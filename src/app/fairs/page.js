@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useApp } from "../../context/AppContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -9,8 +10,13 @@ export default function FairsPage() {
     fairs,
     loading,
     getOrganizerName,
-    searchTerm
+    searchTerm,
+    loadFairs
   } = useApp();
+
+  useEffect(() => {
+    loadFairs();
+  }, [loadFairs]);
 
   const router = useRouter();
 

@@ -23,10 +23,21 @@ export default function FairProfilePage({ params }) {
     fetchData,
     triggerNotification,
     handleDeleteFair,
-    authHeaders
+    authHeaders,
+    loadFairs,
+    loadBrands,
+    loadBands,
+    loadPeople
   } = useApp();
 
   const router = useRouter();
+
+  useEffect(() => {
+    loadFairs();
+    loadBrands();
+    loadBands();
+    loadPeople();
+  }, [loadFairs, loadBrands, loadBands, loadPeople]);
   const profileMapContainerRef = useRef(null);
   const profileLeafletMapRef = useRef(null);
 

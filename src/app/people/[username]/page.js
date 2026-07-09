@@ -57,10 +57,23 @@ export default function PersonProfile({ params }) {
     parseDescription,
     brands,
     organizers,
-    bands
+    bands,
+    loadPeople,
+    loadInvitations,
+    loadBrands,
+    loadFairs,
+    loadBands
   } = useApp();
 
   const router = useRouter();
+
+  useEffect(() => {
+    loadPeople();
+    loadInvitations();
+    loadBrands();
+    loadFairs();
+    loadBands();
+  }, [loadPeople, loadInvitations, loadBrands, loadFairs, loadBands]);
 
   const [personId, setPersonId] = useState(null);
 

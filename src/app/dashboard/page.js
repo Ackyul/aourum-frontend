@@ -5,8 +5,12 @@ import { useApp } from "../../context/AppContext";
 import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
-  const { activePersonId, people, loading } = useApp();
+  const { activePersonId, people, loading, loadPeople } = useApp();
   const router = useRouter();
+
+  useEffect(() => {
+    loadPeople();
+  }, [loadPeople]);
 
   useEffect(() => {
     if (loading) return;

@@ -79,10 +79,23 @@ export default function BrandProfilePage({ params }) {
     setEditTagline,
     setEditInterests,
     parseDescription,
-    handleDeleteBrand
+    handleDeleteBrand,
+    loadBrands,
+    loadProducts,
+    loadPeople,
+    loadFairs,
+    loadInvitations
   } = useApp();
 
   const router = useRouter();
+
+  useEffect(() => {
+    loadBrands();
+    loadProducts();
+    loadPeople();
+    loadFairs();
+    loadInvitations();
+  }, [loadBrands, loadProducts, loadPeople, loadFairs, loadInvitations]);
   const [showFairs, setShowFairs] = useState(false);
   const [showCollabs, setShowCollabs] = useState(false);
   const [fairSearchQuery, setFairSearchQuery] = useState("");

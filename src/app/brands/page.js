@@ -79,8 +79,13 @@ export default function BrandsPage() {
     brands,
     loading,
     searchTerm,
-    parseDescription
+    parseDescription,
+    loadBrands
   } = useApp();
+
+  useEffect(() => {
+    loadBrands();
+  }, [loadBrands]);
 
   const router = useRouter();
   

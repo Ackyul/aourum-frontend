@@ -79,8 +79,13 @@ export default function BandsPage() {
     bands,
     loading,
     searchTerm,
-    parseDescription
+    parseDescription,
+    loadBands
   } = useApp();
+
+  useEffect(() => {
+    loadBands();
+  }, [loadBands]);
 
   const router = useRouter();
 

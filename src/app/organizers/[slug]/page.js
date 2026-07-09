@@ -20,6 +20,14 @@ export default function OrganizerProfilePage({ params }) {
     triggerNotification,
     parseDescription,
     handleDeleteOrganizer,
+    loadFairs,
+    loadPeople
+  } = useApp();
+
+  useEffect(() => {
+    loadFairs();
+    loadPeople();
+  }, [loadFairs, loadPeople]);
     // Fair creation inputs
     fairName, setFairName,
     fairLocation, setFairLocation,

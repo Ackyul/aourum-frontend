@@ -83,8 +83,15 @@ export default function Home() {
     filterType, setFilterType,
     filterCategory, setFilterCategory,
     searchTerm,
-    parseDescription
+    parseDescription,
+    loadProducts,
+    loadBrands
   } = useApp();
+
+  useEffect(() => {
+    loadProducts();
+    loadBrands();
+  }, [loadProducts, loadBrands]);
 
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [visibleCount, setVisibleCount] = useState(12);

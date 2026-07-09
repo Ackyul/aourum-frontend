@@ -226,22 +226,27 @@ export function AppContextProvider({ children }) {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-  // Fetch initial data
-  const fetchData = useCallback(async () => {
+  const loadProducts = useCallback(async (force = false) => {
+    if (products.length > 0 && !force) return;
     setLoading(true);
     try {
-      const [resProds, resFairs, resBands, resBrands, resOrgs, resPeople, resInvs] = await Promise.all([
-        fetch(`${API_URL}/api/products`).then((r) => r.json()),
-        fetch(`${API_URL}/api/fairs`).then((r) => r.json()),
-        fetch(`${API_URL}/api/bands`).then((r) => r.json()),
-        fetch(`${API_URL}/api/brands`).then((r) => r.json()),
-        fetch(`${API_URL}/api/organizers`).then((r) => r.json()),
-        fetch(`${API_URL}/api/people`).then((r) => r.json()),
-        fetch(`${API_URL}/api/invitations`).then((r) => r.json()),
-      ]);
+      const res = await fetch(`${API_URL}/api/products`).then((r) => r.json());
+      if (Array.isArray(res)) setProducts(res);
+    } catch (err) {
+      console.error("Error loading products:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [API_URL, products.length]);
 
-      if (Array.isArray(resProds)) setProducts(resProds);
-      
+  const loadFairs = useCallback(async (force = false) => {
+    if (fairs.length > 0 && !force) return;
+    setLoading(true);
+    try {
+      const [resFairs, resOrgs] = await Promise.all([
+        fetch(`${API_URL}/api/fairs`).then((r) => r.json()),
+        fetch(`${API_URL}/api/organizers`).then((r) => r.json())
+      ]);
       if (Array.isArray(resFairs)) {
         setFairs(resFairs);
         setActiveFairId((curr) => {
@@ -251,53 +256,129 @@ export function AppContextProvider({ children }) {
           return curr;
         });
       }
-
-      if (Array.isArray(resBands)) setBands(resBands);
-      if (Array.isArray(resBrands)) setBrands(resBrands);
-      if (Array.isArray(resOrgs)) setOrganizers(resOrgs);
-      if (Array.isArray(resPeople)) setPeople(resPeople);
-      if (Array.isArray(resInvs)) setInvitations(resInvs);
-
-      // ── Session validation: if saved IDs don't exist anymore, auto-logout ──
-      const currentSession = loadSession();
-      if (currentSession?.role) {
-        let valid = false;
-        if (currentSession.role === "person" && Array.isArray(resPeople)) {
-          valid = resPeople.some(p => p.id === Number(currentSession.personId));
-        } else if (currentSession.role === "brand" && Array.isArray(resBrands)) {
-          valid = resBrands.some(b => b.id === Number(currentSession.brandId));
-        } else if (currentSession.role === "fair" && Array.isArray(resOrgs)) {
-          valid = resOrgs.some(o => o.id === Number(currentSession.organizerId));
-        } else if (currentSession.role === "band" && Array.isArray(resBands)) {
-          valid = resBands.some(b => b.id === Number(currentSession.bandId));
-        }
-        if (!valid) {
-          // Entity no longer in DB — clear stale session silently
-          clearSession();
-          setActiveRoleState(null);
-          setActiveBrandIdState("");
-          setActiveOrganizerIdState("");
-          setActiveBandIdState("");
-          setActivePersonIdState("");
-          setActiveUsernameState("");
+      if (Array.isArray(resOrgs)) {
+        setOrganizers(resOrgs);
+        // Validar sesión si el rol es "fair"
+        const currentSession = loadSession();
+        if (currentSession?.role === "fair" && currentSession.organizerId) {
+          const valid = resOrgs.some(o => o.id === Number(currentSession.organizerId));
+          if (!valid) logout();
         }
       }
-
-      setErrorMsg("");
     } catch (err) {
-      console.error("Error loading data:", err);
-      setErrorMsg(`No se pudo conectar con el servidor backend en ${API_URL}. Asegúrate de que esté corriendo.`);
+      console.error("Error loading fairs/organizers:", err);
     } finally {
       setLoading(false);
     }
-  }, [API_URL]);
+  }, [API_URL, fairs.length]);
+
+  const loadBands = useCallback(async (force = false) => {
+    if (bands.length > 0 && !force) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/bands`).then((r) => r.json());
+      if (Array.isArray(res)) {
+        setBands(res);
+        // Validar sesión si el rol es "band"
+        const currentSession = loadSession();
+        if (currentSession?.role === "band" && currentSession.bandId) {
+          const valid = res.some(b => b.id === Number(currentSession.bandId));
+          if (!valid) logout();
+        }
+      }
+    } catch (err) {
+      console.error("Error loading bands:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [API_URL, bands.length]);
+
+  const loadBrands = useCallback(async (force = false) => {
+    if (brands.length > 0 && !force) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/brands`).then((r) => r.json());
+      if (Array.isArray(res)) {
+        setBrands(res);
+        // Validar sesión si el rol es "brand"
+        const currentSession = loadSession();
+        if (currentSession?.role === "brand" && currentSession.brandId) {
+          const valid = res.some(b => b.id === Number(currentSession.brandId));
+          if (!valid) logout();
+        }
+      }
+    } catch (err) {
+      console.error("Error loading brands:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [API_URL, brands.length]);
+
+  const loadPeople = useCallback(async (force = false) => {
+    if (people.length > 0 && !force) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/people`).then((r) => r.json());
+      if (Array.isArray(res)) {
+        setPeople(res);
+        // Validar sesión si el rol es "person"
+        const currentSession = loadSession();
+        if (currentSession?.role === "person" && currentSession.personId) {
+          const valid = res.some(p => p.id === Number(currentSession.personId));
+          if (!valid) logout();
+        }
+      }
+    } catch (err) {
+      console.error("Error loading people:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [API_URL, people.length]);
+
+  const loadInvitations = useCallback(async (force = false) => {
+    if (invitations.length > 0 && !force) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/invitations`).then((r) => r.json());
+      if (Array.isArray(res)) setInvitations(res);
+    } catch (err) {
+      console.error("Error loading invitations:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [API_URL, invitations.length]);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      await Promise.all([
+        loadProducts(true),
+        loadFairs(true),
+        loadBands(true),
+        loadBrands(true),
+        loadPeople(true),
+        loadInvitations(true),
+      ]);
+    } catch (err) {
+      console.error("Error in fetchData:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [loadProducts, loadFairs, loadBands, loadBrands, loadPeople, loadInvitations]);
 
   useEffect(() => {
-    // Run asynchronously to avoid calling setState synchronously within the effect body
     Promise.resolve().then(() => {
-      fetchData();
+      const currentSession = loadSession();
+      if (currentSession?.role) {
+        if (currentSession.role === "person") loadPeople();
+        else if (currentSession.role === "brand") loadBrands();
+        else if (currentSession.role === "fair") loadFairs();
+        else if (currentSession.role === "band") loadBands();
+      } else {
+        setLoading(false);
+      }
     });
-  }, [fetchData]);
+  }, [loadPeople, loadBrands, loadFairs, loadBands]);
 
   // Float notifications handler
   const triggerNotification = (success, msg) => {
@@ -1282,6 +1363,12 @@ export function AppContextProvider({ children }) {
         uploadingFair, setUploadingFair,
         appFairId, setAppFairId,
         fetchData,
+        loadProducts,
+        loadFairs,
+        loadBands,
+        loadBrands,
+        loadPeople,
+        loadInvitations,
         uploadImage,
         authHeaders,
         removeBgAi,

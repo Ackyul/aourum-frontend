@@ -40,10 +40,21 @@ export default function BandProfilePage({ params }) {
     setEditTiktok,
     setEditWebsite,
     parseDescription,
-    handleDeleteBand
+    handleDeleteBand,
+    loadBands,
+    loadPeople,
+    loadFairs,
+    loadInvitations
   } = useApp();
 
   const router = useRouter();
+
+  useEffect(() => {
+    loadBands();
+    loadPeople();
+    loadFairs();
+    loadInvitations();
+  }, [loadBands, loadPeople, loadFairs, loadInvitations]);
   const [newGig, setNewGig] = useState("");
   const [isUpdatingGigs, setIsUpdatingGigs] = useState(false);
   const [newSong, setNewSong] = useState("");

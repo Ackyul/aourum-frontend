@@ -12,10 +12,17 @@ export default function ProductDetailPage({ params }) {
     products,
     brands,
     loading,
-    parseDescription
+    parseDescription,
+    loadProducts,
+    loadBrands
   } = useApp();
 
   const router = useRouter();
+
+  useEffect(() => {
+    loadProducts();
+    loadBrands();
+  }, [loadProducts, loadBrands]);
 
   const prod = useMemo(() => {
     if (!products.length) return null;
