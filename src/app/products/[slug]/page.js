@@ -266,7 +266,7 @@ export default function ProductDetailPage({ params }) {
             {randomBrandProds.map((rp) => (
               <div 
                 key={rp.id}
-                className="glass-panel"
+                className="glass-panel product-card"
                 style={{ overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column" }}
                 onClick={() => router.push(`/products/${rp.slug || rp.id}`)}
               >

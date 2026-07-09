@@ -266,7 +266,7 @@ export default function Home() {
 
     return (
       <div 
-        className="glass-panel" 
+        className="glass-panel product-card" 
         style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer", height: "100%" }}
         onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
       >

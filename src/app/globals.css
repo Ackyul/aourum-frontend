@@ -752,6 +752,31 @@ header {
     padding-top: 0.5rem !important;
     margin-top: 0.25rem !important;
   }
+
+  /* Product Card mobile simplified layout to reduce information overload */
+  .product-card > div:last-child > span:first-child {
+    display: none !important; /* Hide Category */
+  }
+
+  .product-card > div:last-child > div:last-child > div:nth-child(2) {
+    display: none !important; /* Hide Stock/Agenda Badge */
+  }
+
+  .product-card > div:last-child > div:last-child span[style*="line-through"] {
+    display: none !important; /* Hide Strikethrough original price */
+  }
+
+  .product-card > div:last-child > div:last-child span[style*="var(--gold-gradient)"] {
+    display: none !important; /* Hide Aourum gold label */
+  }
+
+  .product-card .card-img-container span[style*="position: absolute"] {
+    top: 8px !important; /* Reposition and scale down image badge */
+    left: 8px !important;
+    padding: 0.2rem 0.4rem !important;
+    font-size: 0.55rem !important;
+    border-radius: 4px !important;
+  }
 }
 
 /* ── HORIZONTAL CAROUSEL ─────────────────────────────────── */
@@ -910,9 +935,9 @@ header {
     padding: 0.5rem 1rem;
   }
   .carousel-item {
-    flex: 0 0 calc((100% - 2 * 0.8rem) / 2.15);
-    width: calc((100% - 2 * 0.8rem) / 2.15);
-    max-width: calc((100% - 2 * 0.8rem) / 2.15);
+    flex: 0 0 calc((100% - 2 * 0.8rem) / 2.08);
+    width: calc((100% - 2 * 0.8rem) / 2.08);
+    max-width: calc((100% - 2 * 0.8rem) / 2.08);
   }
 }
 

@@ -751,7 +751,7 @@ export default function BrandProfilePage({ params }) {
           ) : (
             <div className="grid-catalog">
               {brandProducts.map((prod) => (
-                <div key={prod.id} className="glass-panel" style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer" }} onClick={() => router.push(`/products/${prod.slug || prod.id}`)}>
+                <div key={prod.id} className="glass-panel product-card" style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer" }} onClick={() => router.push(`/products/${prod.slug || prod.id}`)}>
                   <div className="card-img-container" style={{ position: "relative" }}>
                     <img src={prod.image} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} className="card-img-hover" />
                     <span style={{
