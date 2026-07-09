@@ -270,8 +270,8 @@ export default function BandsPage() {
         style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer", height: "100%" }}
         onClick={() => router.push(`/bands/${band.slug || band.id}`)}
       >
-        <div className="card-img-container" style={{ position: "relative", height: "230px", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-input)" }}>
-          <img src={band.image} alt={band.name} className="card-img-hover" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <div className="card-img-container" style={{ position: "relative" }}>
+          <img src={band.image} alt={band.name} className="card-img-hover" />
           {isFeatured && (
             <span style={{
               position: "absolute", top: "12px", left: "12px",
