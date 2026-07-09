@@ -2204,7 +2204,6 @@ export default function RootLayout({ children }) {
       <head>
         <title>Aourum | Mercado Cultural y Comercial de Arequipa</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-        <meta name="google-site-verification" content="googlea671984f4696598d" />
         <meta name="description" content="Aourum es el mercado cultural y comercial de Arequipa. Conecta con marcas locales, diseñadores, ferias independientes y las mejores bandas de música en la nueva era del comercio." />
         <meta name="keywords" content="aourum, aourum arequipa, mercado arequipa, ferias arequipa, marcas locales arequipa, bandas arequipa, comprar arequipa, comercio cultural, diseño independiente, arte arequipa" />
         <meta name="author" content="Aourum" />
