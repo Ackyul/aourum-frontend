@@ -384,6 +384,14 @@ export default function BandProfilePage({ params }) {
 
   return (
     <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
+      <head>
+        <title>{`${band.name} | Aourum`}</title>
+        <meta name="description" content={band.description ? band.description.substring(0, 160) : `Conoce el perfil, integrantes y canciones de ${band.name} en Aourum, el mercado cultural de Arequipa.`} />
+        <meta property="og:title" content={`${band.name} | Aourum`} />
+        <meta property="og:description" content={band.description ? band.description.substring(0, 160) : `Conoce a ${band.name} en Aourum.`} />
+        <meta property="og:image" content={band.image || "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80"} />
+        <link rel="canonical" href={`https://aourum.com/bands/${band.slug || band.id}`} />
+      </head>
       <div className="glass-panel" style={{ position: "relative", overflow: "hidden", borderRadius: "16px" }}>
         <button onClick={() => router.push("/bands")} className="profile-close-btn" style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>&times;</button>
         <button onClick={copyLink} className="profile-share-btn" style={{ position: "absolute", top: "15px", right: "60px", zIndex: 10 }} title="Copiar enlace de la banda">

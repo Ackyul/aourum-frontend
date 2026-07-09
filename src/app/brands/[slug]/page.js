@@ -538,6 +538,14 @@ export default function BrandProfilePage({ params }) {
 
   return (
     <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
+      <head>
+        <title>{`${brand.name} | Aourum`}</title>
+        <meta name="description" content={brand.description ? brand.description.substring(0, 160) : `Explora el catálogo y perfil de ${brand.name} en Aourum, el mercado cultural de Arequipa.`} />
+        <meta property="og:title" content={`${brand.name} | Aourum`} />
+        <meta property="og:description" content={brand.description ? brand.description.substring(0, 160) : `Explora ${brand.name} en Aourum.`} />
+        <meta property="og:image" content={brand.logo || "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80"} />
+        <link rel="canonical" href={`https://aourum.com/brands/${brand.slug || brand.id}`} />
+      </head>
       <div className="glass-panel" style={{ position: "relative", overflow: "hidden", borderRadius: "16px" }}>
         <button onClick={() => router.push("/brands")} className="profile-close-btn" style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>&times;</button>
         <button onClick={copyLink} className="profile-share-btn" style={{ position: "absolute", top: "15px", right: "60px", zIndex: 10 }} title="Copiar enlace de perfil">

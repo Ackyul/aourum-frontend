@@ -85,6 +85,14 @@ export default function ProductDetailPage({ params }) {
 
   return (
     <div className="product-details-container">
+      <head>
+        <title>{`${prod.name} | Aourum`}</title>
+        <meta name="description" content={prod.description ? prod.description.substring(0, 160) : `Compra ${prod.name} en Aourum, el mercado cultural de Arequipa.`} />
+        <meta property="og:title" content={`${prod.name} | Aourum`} />
+        <meta property="og:description" content={prod.description ? prod.description.substring(0, 160) : `Compra ${prod.name} en Aourum.`} />
+        <meta property="og:image" content={prod.image || "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80"} />
+        <link rel="canonical" href={`https://aourum.com/products/${prod.slug || prod.id}`} />
+      </head>
       
       <div style={{ marginBottom: "2rem" }}>
         <button 

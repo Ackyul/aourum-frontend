@@ -333,6 +333,14 @@ export default function FairProfilePage({ params }) {
 
   return (
     <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
+      <head>
+        <title>{`${fair.name} | Aourum`}</title>
+        <meta name="description" content={fair.description ? fair.description.substring(0, 160) : `Asiste al evento ${fair.name} en Aourum, el mercado cultural de Arequipa.`} />
+        <meta property="og:title" content={`${fair.name} | Aourum`} />
+        <meta property="og:description" content={fair.description ? fair.description.substring(0, 160) : `Asiste a ${fair.name} en Aourum.`} />
+        <meta property="og:image" content={fair.banner || "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80"} />
+        <link rel="canonical" href={`https://aourum.com/fairs/${fair.slug || fair.id}`} />
+      </head>
       <div className="glass-panel" style={{ position: "relative", overflow: "hidden", borderRadius: "16px" }}>
         <button onClick={() => router.push("/fairs")} className="profile-close-btn" style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>&times;</button>
         <button onClick={copyLink} className="profile-share-btn" style={{ position: "absolute", top: "15px", right: "60px", zIndex: 10 }} title="Copiar enlace del evento">
