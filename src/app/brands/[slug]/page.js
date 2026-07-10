@@ -4,6 +4,18 @@ import { use, useState, useMemo, useEffect, useRef } from "react";
 import { useApp } from "../../../context/AppContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+// Stable deterministic views generator based on hash of name + id
+const getItemViews = (name, id) => {
+  if (!name) return 0;
+  let hash = 0;
+  const str = name + (id || 0);
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash % 980) + 120; // 120 to 1100 views
+};
+
+const getProductViews = (p) => p.views || p.viewCount || getItemViews(p.name, p.id);
 
 export default function BrandProfilePage({ params }) {
   const unwrappedParams = use(params);
@@ -467,6 +479,158 @@ export default function BrandProfilePage({ params }) {
     );
   }, [brandProducts, adminSearchQuery]);
 
+  const trackRefs = useRef({});
+  const [visibleCount, setVisibleCount] = useState(12);
+
+  const scrollTrack = (id, direction) => {
+    const track = trackRefs.current[id];
+    if (track) {
+      const scrollAmount = track.clientWidth * 0.75;
+      track.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth"
+      });
+    }
+  };
+
+  const featuredBrandProducts = useMemo(() => {
+    if (!brandProducts.length) return [];
+    return [...brandProducts]
+      .sort((a, b) => getProductViews(b) - getProductViews(a))
+      .slice(0, 8);
+  }, [brandProducts]);
+
+  const brandCategories = useMemo(() => {
+    const seen = new Set();
+    const unique = [];
+    brandProducts.forEach(p => {
+      if (p.category) {
+        const trimmed = p.category.trim();
+        const lower = trimmed.toLowerCase();
+        if (!seen.has(lower)) {
+          seen.add(lower);
+          unique.push(trimmed);
+        }
+      }
+    });
+    return unique;
+  }, [brandProducts]);
+
+  function BrandProductCard({ prod }) {
+    return (
+      <div 
+        className="glass-panel product-card" 
+        style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer", height: "100%" }}
+        onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
+      >
+        <div className="card-img-container" style={{ position: "relative" }}>
+          <img src={prod.image} alt={prod.name} className="card-img-hover" />
+        </div>
+        <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          <span style={{ fontSize: "0.72rem", color: "var(--text-gold)", letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
+            {prod.category}
+          </span>
+          <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: "var(--text-primary)" }}>{prod.name}</h3>
+          
+          <div style={{ 
+            display: "flex", 
+            justifyContent: "space-between", 
+            alignItems: "center", 
+            borderTop: "1px solid var(--border-color)", 
+            paddingTop: "0.8rem", 
+            marginTop: "auto" 
+          }}>
+            <div>
+              {prod.priceAourum ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textDecoration: "line-through" }}>
+                    S/ {prod.price.toLocaleString("es-PE")}
+                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-gold)" }}>
+                      S/ {prod.priceAourum.toLocaleString("es-PE")}
+                    </span>
+                    <span style={{ fontSize: "0.55rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "bold", textTransform: "uppercase" }}>
+                      Aourum
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-primary)" }}>
+                  S/ {prod.price.toLocaleString("es-PE")}
+                </span>
+              )}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+              <span className="card-type-label" style={{
+                fontSize: "0.65rem",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                color: prod.type === "service" ? "#1e3a8a" : "#78350f",
+                letterSpacing: "0.03em"
+              }}>
+                {prod.type === "service" ? "Servicio" : "Producto"}
+              </span>
+              <span className="card-stock-label" style={{
+                fontSize: "0.65rem",
+                fontWeight: 700,
+                padding: "2px 6px",
+                borderRadius: "8px",
+                textTransform: "uppercase",
+                letterSpacing: "0.02em",
+                background: prod.type === "service" ? "#dbeafe" : (prod.stock == null || prod.stock > 0) ? "#dcfce7" : "#fee2e2",
+                color: prod.type === "service" ? "#1e40af" : (prod.stock == null || prod.stock > 0) ? "#15803d" : "#b91c1c"
+              }}>
+                {prod.type === "service" ? "Agenda" : (prod.stock == null || prod.stock > 0) ? "Stock" : "Agotado"}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const renderCarousel = (id, title, subtitle, sectionProducts) => {
+    if (sectionProducts.length === 0) return null;
+
+    return (
+      <div key={id} className="carousel-container fade-in" style={{ marginBottom: "2.5rem" }}>
+        <div className="carousel-header" style={{ marginBottom: "1.0rem" }}>
+          <div className="carousel-title-group">
+            <h3 className="carousel-title" style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0 }}>{title}</h3>
+            {subtitle && <p className="carousel-subtitle" style={{ fontSize: "0.85rem", color: "var(--text-muted)", margin: "4px 0 0 0" }}>{subtitle}</p>}
+          </div>
+          <div className="carousel-actions">
+            <div className="carousel-arrows">
+              <button className="carousel-arrow-btn" onClick={() => scrollTrack(id, "left")} aria-label="Anterior">
+                <i className="fa-solid fa-chevron-left"></i>
+              </button>
+              <button className="carousel-arrow-btn" onClick={() => scrollTrack(id, "right")} aria-label="Siguiente">
+                <i className="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="carousel-track-wrapper">
+          <div className="carousel-track" ref={el => {
+            if (el) {
+              trackRefs.current[id] = el;
+            } else {
+              delete trackRefs.current[id];
+            }
+          }}>
+            {sectionProducts.map((prod) => (
+              <div key={prod.id} className="carousel-item">
+                <BrandProductCard prod={prod} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div style={{ textAlign: "center", padding: "6rem 0" }}>
@@ -540,7 +704,7 @@ export default function BrandProfilePage({ params }) {
     : { background: "var(--gold-gradient)" };
 
   return (
-    <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
+    <div className="container" style={{ maxWidth: "1200px", padding: "0 1rem", paddingBottom: "3rem" }}>
       <head>
         <title>{`${brand.name} | Aourum`}</title>
         <meta name="description" content={brand.description ? brand.description.substring(0, 160) : `Explora el catálogo y perfil de ${brand.name} en Aourum, el mercado cultural de Arequipa.`} />
@@ -549,12 +713,27 @@ export default function BrandProfilePage({ params }) {
         <meta property="og:image" content={brand.logo || "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80"} />
         <link rel="canonical" href={`https://aourum.com/brands/${brand.slug || brand.id}`} />
       </head>
-      <div className="glass-panel" style={{ position: "relative", overflow: "hidden", borderRadius: "16px" }}>
-        <button onClick={() => router.push("/brands")} className="profile-close-btn" style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>&times;</button>
-        <button onClick={copyLink} className="profile-share-btn" style={{ position: "absolute", top: "15px", right: "60px", zIndex: 10 }} title="Copiar enlace de perfil">
-          <i className="fa-solid fa-share-nodes"></i>
+
+      {/* Botones de Navegación Superior */}
+      <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <button 
+          onClick={() => router.push("/brands")} 
+          className="btn-outline-gold" 
+          style={{ padding: "0.5rem 1.2rem", fontSize: "0.85rem", borderRadius: "8px", border: "1.5px solid var(--gold-primary)", cursor: "pointer", transition: "var(--transition-smooth)", display: "flex", alignItems: "center", gap: "6px", background: "transparent" }}
+        >
+          <i className="fa-solid fa-arrow-left"></i> Volver a Marcas
         </button>
-        
+        <button 
+          onClick={copyLink} 
+          className="btn-outline-gold" 
+          style={{ padding: "0.5rem 1.2rem", fontSize: "0.85rem", borderRadius: "8px", border: "1.5px solid var(--gold-primary)", cursor: "pointer", transition: "var(--transition-smooth)", display: "flex", alignItems: "center", gap: "6px", background: "transparent" }} 
+          title="Copiar enlace de perfil"
+        >
+          <i className="fa-solid fa-share-nodes"></i> Compartir Perfil
+        </button>
+      </div>
+
+      <div className="glass-panel" style={{ position: "relative", overflow: "hidden", borderRadius: "16px", marginBottom: "2.5rem" }}>
         <div className="profile-header-banner" style={bannerStyle}>
           <div className="profile-avatar-wrapper">
             <img src={brand.logo} alt={brand.name} />
@@ -757,92 +936,6 @@ export default function BrandProfilePage({ params }) {
             );
           })()}
 
-          <hr style={{ border: 0, borderTop: "1px solid var(--border-color)", margin: "2.2rem 0" }} />
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
-            <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0 }}>
-              <i className="fa-solid fa-store" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i>
-              Catálogo de la Marca
-            </h3>
-          </div>
-
-          {/* Formulario de creación/edición de producto en Ventana Superpuesta (Modal) se trasladó al final del archivo */}
-
-          {/* El panel de administración de catálogo ahora se renderiza como una ventana modal sobrepuesta al final del archivo */}
-
-          {brandProducts.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "3rem 0", color: "var(--text-muted)" }}>
-              <i className="fa-solid fa-box-open" style={{ fontSize: "2.5rem", opacity: 0.3, marginBottom: "1rem", display: "block" }}></i>
-              <p style={{ fontSize: "0.9rem" }}>Esta marca aún no ha publicado items en su catálogo virtual.</p>
-            </div>
-          ) : (
-            <div className="grid-catalog">
-              {brandProducts.map((prod) => (
-                <div key={prod.id} className="glass-panel product-card" style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer" }} onClick={() => router.push(`/products/${prod.slug || prod.id}`)}>
-                  <div className="card-img-container" style={{ position: "relative" }}>
-                    <img src={prod.image} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} className="card-img-hover" />
-                  </div>
-                  <div style={{ padding: "1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                    <h4 style={{ fontSize: "1.0rem", fontWeight: 800, color: "var(--text-primary)" }}>{prod.name}</h4>
-                    
-                    <div style={{ 
-                      display: "flex", 
-                      justifyContent: "space-between", 
-                      alignItems: "center", 
-                      borderTop: "1px solid var(--border-color)", 
-                      paddingTop: "0.8rem", 
-                      marginTop: "auto" 
-                    }}>
-                      <div>
-                        {prod.priceAourum ? (
-                          <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-                            <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textDecoration: "line-through" }}>
-                              S/ {prod.price.toLocaleString("es-PE")}
-                            </span>
-                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                              <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-gold)" }}>
-                                S/ {prod.priceAourum.toLocaleString("es-PE")}
-                              </span>
-                              <span style={{ fontSize: "0.55rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "bold", textTransform: "uppercase" }}>
-                                Aourum
-                              </span>
-                            </div>
-                          </div>
-                        ) : (
-                          <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-primary)" }}>
-                            S/ {prod.price.toLocaleString("es-PE")}
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
-                        <span className="card-type-label" style={{
-                          fontSize: "0.65rem",
-                          fontWeight: 700,
-                          textTransform: "uppercase",
-                          color: prod.type === "service" ? "#1e3a8a" : "#78350f",
-                          letterSpacing: "0.03em"
-                        }}>
-                          {prod.type === "service" ? "Servicio" : "Producto"}
-                        </span>
-                        <span className="card-stock-label" style={{
-                          fontSize: "0.65rem",
-                          fontWeight: 700,
-                          padding: "2px 6px",
-                          borderRadius: "8px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.02em",
-                          background: prod.type === "service" ? "#dbeafe" : (prod.stock == null || prod.stock > 0) ? "#dcfce7" : "#fee2e2",
-                          color: prod.type === "service" ? "#1e40af" : (prod.stock == null || prod.stock > 0) ? "#15803d" : "#b91c1c"
-                        }}>
-                          {prod.type === "service" ? "Agenda" : (prod.stock == null || prod.stock > 0) ? "Stock" : "Agotado"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* Opciones Desplegables de Administración y Colaboración */}
           {isCollaborator && (
             <>
@@ -859,8 +952,6 @@ export default function BrandProfilePage({ params }) {
                       Postular
                     </button>
                   </div>
-
-                  {/* Modal de postulación a ferias se trasladó al final del archivo */}
                 </div>
               )}
 
@@ -875,8 +966,6 @@ export default function BrandProfilePage({ params }) {
                       Administrar
                     </button>
                   </div>
-
-                  {/* Modal de colaboradores se trasladó al final del archivo */}
                 </div>
               )}
             </>
@@ -891,6 +980,72 @@ export default function BrandProfilePage({ params }) {
           )}
         </div>
       </div>
+
+      {/* ── SECCIÓN DE CATÁLOGO ESTILO DESCUBRE ── */}
+      {brandProducts.length === 0 ? (
+        <div className="glass-panel" style={{ textAlign: "center", padding: "4rem 0", color: "var(--text-muted)", borderRadius: "16px", marginTop: "2rem" }}>
+          <i className="fa-solid fa-box-open" style={{ fontSize: "2.5rem", opacity: 0.3, marginBottom: "1rem", display: "block" }}></i>
+          <p style={{ fontSize: "0.9rem" }}>Esta marca aún no ha publicado items en su catálogo virtual.</p>
+        </div>
+      ) : (
+        <div style={{ marginTop: "3rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+            <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", margin: 0 }}>
+              Catálogo de la Marca
+            </h2>
+          </div>
+
+          {/* 1. Carrusel de Productos Destacados de la Marca */}
+          {renderCarousel(
+            "productos-destacados-marca",
+            "Productos Destacados",
+            `Los artículos más populares y recomendados de ${brand.name}`,
+            featuredBrandProducts
+          )}
+
+          {/* 2. Carruseles por Categoría de la Marca */}
+          {brandCategories.map((cat) => (
+            renderCarousel(
+              `cat-${cat.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
+              cat,
+              `Explora nuestra variedad en ${cat.toLowerCase()}`,
+              brandProducts.filter(p => p.category && p.category.trim().toLowerCase() === cat.trim().toLowerCase())
+            )
+          ))}
+
+          {/* 3. Grilla General de Todos los Productos */}
+          <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "3rem", marginTop: "2rem" }}>
+            <h2 style={{ fontSize: "1.5rem", fontWeight: 800, marginBottom: "1.5rem" }}>
+              Vitrina de Productos
+            </h2>
+            <div className="grid-catalog">
+              {brandProducts.slice(0, visibleCount).map((prod) => (
+                <BrandProductCard key={prod.id} prod={prod} />
+              ))}
+            </div>
+
+            {brandProducts.length > visibleCount && (
+              <div style={{ display: "flex", justifyContent: "center", marginTop: "3rem" }}>
+                <button 
+                  onClick={() => setVisibleCount((prev) => prev + 12)}
+                  className="btn-outline-gold"
+                  style={{
+                    borderRadius: "30px",
+                    padding: "0.75rem 2rem",
+                    fontSize: "0.9rem",
+                    fontWeight: 700,
+                    boxShadow: "0 4px 12px rgba(214,175,55,0.08)",
+                    cursor: "pointer"
+                  }}
+                >
+                  <i className="fa-solid fa-arrow-rotate-right" style={{ marginRight: "8px" }}></i>
+                  Ver más productos
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── VENTANAS SUPERPUESTAS (MODALS) RENDERIZADAS A NIVEL DE RAÍZ DEL COMPONENTE ── */}
       {/* 1. Formulario de creación/edición de producto en Ventana Superpuesta (Modal) */}
