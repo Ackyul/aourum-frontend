@@ -14,7 +14,10 @@ export default function ProductDetailPage({ params }) {
     loading,
     parseDescription,
     loadProducts,
-    loadBrands
+    loadBrands,
+    activeRole,
+    setShowLoginModal,
+    triggerNotification
   } = useApp();
 
   const router = useRouter();
@@ -223,15 +226,28 @@ export default function ProductDetailPage({ params }) {
           
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {brand?.whatsappNumber ? (
-              <a 
-                href={whatsappLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-gold"
-                style={{ width: "100%", textDecoration: "none", fontSize: "0.95rem" }}
-              >
-                <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.2rem" }}></i> Coordinar Adquisición vía WhatsApp
-              </a>
+              activeRole ? (
+                <a 
+                  href={whatsappLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-gold"
+                  style={{ width: "100%", textDecoration: "none", fontSize: "0.95rem" }}
+                >
+                  <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.2rem" }}></i> Coordinar Adquisición vía WhatsApp
+                </a>
+              ) : (
+                <button 
+                  onClick={() => {
+                    triggerNotification(false, "Debes iniciar sesión para coordinar la adquisición.");
+                    setShowLoginModal(true);
+                  }}
+                  className="btn-gold"
+                  style={{ width: "100%", fontSize: "0.95rem", cursor: "pointer" }}
+                >
+                  <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.2rem" }}></i> Coordinar Adquisición vía WhatsApp
+                </button>
+              )
             ) : (
               <div style={{ background: "rgba(212,175,55,0.06)", border: "1px dashed rgba(212,175,55,0.4)", borderRadius: "10px", padding: "1rem", textAlign: "center" }}>
                 <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: "0 0 6px 0" }}>
@@ -368,13 +384,29 @@ export default function ProductDetailPage({ params }) {
                 <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: 6 }}>
                   <i className="fa-brands fa-whatsapp" style={{ color: "#25d366", fontSize: "1rem" }}></i>
                   <strong>WhatsApp:</strong>
-                  <span 
-                    style={{ cursor: "pointer", color: "#25d366", fontWeight: 700, textDecoration: "underline" }}
-                    onClick={() => { navigator.clipboard?.writeText(brand.whatsappNumber); }}
-                    title="Haz clic para copiar"
-                  >
-                    +{brand.whatsappNumber}
-                  </span>
+                  {activeRole ? (
+                    <span 
+                      style={{ cursor: "pointer", color: "#25d366", fontWeight: 700, textDecoration: "underline" }}
+                      onClick={() => { 
+                        navigator.clipboard?.writeText(brand.whatsappNumber); 
+                        triggerNotification(true, "Número de WhatsApp copiado al portapapeles.");
+                      }}
+                      title="Haz clic para copiar"
+                    >
+                      +{brand.whatsappNumber}
+                    </span>
+                  ) : (
+                    <span 
+                      style={{ cursor: "pointer", color: "var(--text-muted)", textDecoration: "underline" }}
+                      onClick={() => {
+                        triggerNotification(false, "Debes iniciar sesión para ver el número de contacto.");
+                        setShowLoginModal(true);
+                      }}
+                      title="Inicia sesión para ver número"
+                    >
+                      Iniciar sesión para ver número
+                    </span>
+                  )}
                 </p>
               )}
               <p style={{ fontSize: "0.88rem", color: "var(--text-primary)", lineHeight: 1.55, marginBottom: "1.2rem" }}>

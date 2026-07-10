@@ -84,7 +84,10 @@ export default function BrandProfilePage({ params }) {
     loadProducts,
     loadPeople,
     loadFairs,
-    loadInvitations
+    loadInvitations,
+    activeRole,
+    setShowLoginModal,
+    triggerNotification
   } = useApp();
 
   const router = useRouter();
@@ -653,17 +656,32 @@ export default function BrandProfilePage({ params }) {
             return (
               <div style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "1rem", flexWrap: "wrap" }}>
                 {brand.whatsappNumber && (
-                  <a 
-                    href={`https://api.whatsapp.com/send?phone=${brand.whatsappNumber.replace(/[^0-9]/g, "")}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    style={{ color: "#25d366", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
-                    title="WhatsApp"
-                  >
-                    <i className="fa-brands fa-whatsapp"></i>
-                  </a>
+                  activeRole ? (
+                    <a 
+                      href={`https://api.whatsapp.com/send?phone=${brand.whatsappNumber.replace(/[^0-9]/g, "")}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      style={{ color: "#25d366", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
+                      onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
+                      onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
+                      title="WhatsApp"
+                    >
+                      <i className="fa-brands fa-whatsapp"></i>
+                    </a>
+                  ) : (
+                    <button 
+                      onClick={() => {
+                        triggerNotification(false, "Debes iniciar sesión para contactar vía WhatsApp.");
+                        setShowLoginModal(true);
+                      }}
+                      style={{ background: "none", border: "none", padding: 0, color: "#25d366", fontSize: "1.4rem", display: "flex", alignItems: "center", transition: "transform 0.2s", cursor: "pointer" }}
+                      onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
+                      onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
+                      title="WhatsApp (Requiere inicio de sesión)"
+                    >
+                      <i className="fa-brands fa-whatsapp"></i>
+                    </button>
+                  )
                 )}
                 {parsed.instagram && (
                   <a 
