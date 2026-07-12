@@ -385,10 +385,10 @@ export default function BandProfilePage({ params }) {
   return (
     <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
       <head>
-        <title>{`${band.name} | Aourum`}</title>
-        <meta name="description" content={band.description ? band.description.substring(0, 160) : `Conoce el perfil, integrantes y canciones de ${band.name} en Aourum, el mercado cultural de Arequipa.`} />
-        <meta property="og:title" content={`${band.name} | Aourum`} />
-        <meta property="og:description" content={band.description ? band.description.substring(0, 160) : `Conoce a ${band.name} en Aourum.`} />
+        <title>{`${band.name} | AOURUM`}</title>
+        <meta name="description" content={band.description ? band.description.substring(0, 160) : `Conoce el perfil, integrantes y canciones de ${band.name} en AOURUM, el nodo central del talento local.`} />
+        <meta property="og:title" content={`${band.name} | AOURUM`} />
+        <meta property="og:description" content={band.description ? band.description.substring(0, 160) : `Conoce a ${band.name} en AOURUM.`} />
         <meta property="og:image" content={band.image || "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80"} />
         <link rel="canonical" href={`https://aourum.com/bands/${band.slug || band.id}`} />
       </head>

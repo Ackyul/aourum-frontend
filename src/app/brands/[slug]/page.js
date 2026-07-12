@@ -706,10 +706,10 @@ export default function BrandProfilePage({ params }) {
   return (
     <div className="container" style={{ maxWidth: "1200px", padding: "0 1rem", paddingBottom: "3rem" }}>
       <head>
-        <title>{`${brand.name} | Aourum`}</title>
-        <meta name="description" content={brand.description ? brand.description.substring(0, 160) : `Explora el catálogo y perfil de ${brand.name} en Aourum, el mercado cultural de Arequipa.`} />
-        <meta property="og:title" content={`${brand.name} | Aourum`} />
-        <meta property="og:description" content={brand.description ? brand.description.substring(0, 160) : `Explora ${brand.name} en Aourum.`} />
+        <title>{`${brand.name} | AOURUM`}</title>
+        <meta name="description" content={brand.description ? brand.description.substring(0, 160) : `Explora el catálogo y perfil de ${brand.name} en AOURUM, el nodo central del talento local.`} />
+        <meta property="og:title" content={`${brand.name} | AOURUM`} />
+        <meta property="og:description" content={brand.description ? brand.description.substring(0, 160) : `Explora ${brand.name} en AOURUM.`} />
         <meta property="og:image" content={brand.logo || "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80"} />
         <link rel="canonical" href={`https://aourum.com/brands/${brand.slug || brand.id}`} />
       </head>

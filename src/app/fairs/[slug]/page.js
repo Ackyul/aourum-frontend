@@ -334,10 +334,10 @@ export default function FairProfilePage({ params }) {
   return (
     <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
       <head>
-        <title>{`${fair.name} | Aourum`}</title>
-        <meta name="description" content={fair.description ? fair.description.substring(0, 160) : `Asiste al evento ${fair.name} en Aourum, el mercado cultural de Arequipa.`} />
-        <meta property="og:title" content={`${fair.name} | Aourum`} />
-        <meta property="og:description" content={fair.description ? fair.description.substring(0, 160) : `Asiste a ${fair.name} en Aourum.`} />
+        <title>{`${fair.name} | AOURUM`}</title>
+        <meta name="description" content={fair.description ? fair.description.substring(0, 160) : `Asiste al evento ${fair.name} en AOURUM, el nodo central del talento local.`} />
+        <meta property="og:title" content={`${fair.name} | AOURUM`} />
+        <meta property="og:description" content={fair.description ? fair.description.substring(0, 160) : `Asiste a ${fair.name} en AOURUM.`} />
         <meta property="og:image" content={fair.banner || "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80"} />
         <link rel="canonical" href={`https://aourum.com/fairs/${fair.slug || fair.id}`} />
       </head>

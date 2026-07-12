@@ -694,7 +694,7 @@ function AppLayoutShell({ children }) {
                           <span style={{ color: "#1C1C1E", fontWeight: 900, fontSize: "1.3rem", fontFamily: "serif" }}>A</span>
                         </div>
                         <h3 style={{ fontSize: "1rem", fontWeight: 800, margin: "0 0 3px 0" }}>¡Bienvenido a AOURUM!</h3>
-                        <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: 0 }}>El mercado cultural de Arequipa</p>
+                        <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: 0 }}>El nodo central del talento local</p>
                       </div>
                       <div>
                         <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", margin: "0 0 6px 0" }}>¿Primera vez aquí?</p>
@@ -2156,22 +2156,7 @@ function AppLayoutShell({ children }) {
               {activeEditTab === "configuracion" ? (
                 <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1.2rem", borderTop: "1px solid var(--border-color)", paddingTop: "1rem" }}>
                   <button type="button" onClick={() => setEditProfileOpen(false)} className="btn-gold" style={{ padding: "0.5rem 1.6rem", borderRadius: "8px", fontSize: "0.88rem", fontWeight: 700 }}>
-                    <i className="fa-solid fa-xmark"></i> Cerrar
-                  </button>
-                </div>
-              ) : (
-                <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1.2rem", borderTop: "1px solid var(--border-color)", paddingTop: "1rem" }}>
-                  <button type="button" onClick={() => setEditProfileOpen(false)} className="btn-outline-gold" style={{ padding: "0.5rem 1.3rem", borderRadius: "8px", fontSize: "0.88rem" }}>Cancelar</button>
-                  <button type="submit" className="btn-gold" style={{ padding: "0.5rem 1.6rem", borderRadius: "8px", fontSize: "0.88rem", fontWeight: 700 }} disabled={uploadingEdit || editProfileLoading}>
-                    <i className={editProfileLoading ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-check"}></i> {editProfileLoading ? "Guardando..." : "Guardar Cambios"}
-                  </button>
-                </div>
-              )}
-            </form>
-          </div>
-        </div>
-      )}
-
+          
       {/* ── FLOATING NOTIFICATION BANNER ───────────────────────────────────── */}
       {(errorMsg || successMsg) && (
         <div
@@ -2202,9 +2187,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es" className={inter.variable}>
       <head>
-        <title>Aourum | Mercado Cultural y Comercial de Arequipa</title>
+        <title>AOURUM | El nodo central del talento local</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-        <meta name="description" content="Aourum es el mercado cultural y comercial de Arequipa. Conecta con marcas locales, diseñadores, ferias independientes y las mejores bandas de música en la nueva era del comercio." />
+        <meta name="description" content="AOURUM es el nodo central del talento local. Conecta con marcas locales, diseñadores, ferias independientes y las mejores bandas de música en la nueva era del comercio." />
         <meta name="keywords" content="aourum, aourum arequipa, mercado arequipa, ferias arequipa, marcas locales arequipa, bandas arequipa, comprar arequipa, comercio cultural, diseño independiente, arte arequipa" />
         <meta name="author" content="Aourum" />
         <meta name="robots" content="index, follow" />
@@ -2213,15 +2198,15 @@ export default function RootLayout({ children }) {
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://aourum.com/" />
-        <meta property="og:title" content="Aourum | Mercado Cultural y Comercial de Arequipa" />
-        <meta property="og:description" content="Aourum es el mercado cultural y comercial de Arequipa. Conecta con marcas locales, diseñadores, ferias independientes y las mejores bandas de música." />
+        <meta property="og:title" content="AOURUM | El nodo central del talento local" />
+        <meta property="og:description" content="AOURUM es el nodo central del talento local. Conecta con marcas locales, diseñadores, ferias independientes y las mejores bandas de música." />
         <meta property="og:image" content="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80" />
 
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content="https://aourum.com/" />
-        <meta property="twitter:title" content="Aourum | Mercado Cultural y Comercial de Arequipa" />
-        <meta property="twitter:description" content="Aourum es el mercado cultural y comercial de Arequipa. Conecta con marcas locales, diseñadores, ferias independientes y las mejores bandas de música." />
+        <meta property="twitter:title" content="AOURUM | El nodo central del talento local" />
+        <meta property="twitter:description" content="AOURUM es el nodo central del talento local. Conecta con marcas locales, diseñadores, ferias independientes y las mejores bandas de música." />
         <meta property="twitter:image" content="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80" />
 
         {/* JSON-LD Structured Data for Google Rich Snippets */}
@@ -2237,7 +2222,7 @@ export default function RootLayout({ children }) {
                   "name": "Aourum",
                   "url": "https://aourum.com/",
                   "logo": "https://aourum.com/favicon.ico",
-                  "description": "Mercado cultural y comercial de Arequipa que reúne marcas de diseño, arte, ferias y bandas locales.",
+                  "description": "El nodo central del talento local que reúne marcas de diseño, arte, ferias y bandas locales.",
                   "sameAs": [
                     "https://www.instagram.com/aourum",
                     "https://www.facebook.com/aourum"
@@ -2248,7 +2233,7 @@ export default function RootLayout({ children }) {
                   "@id": "https://aourum.com/#website",
                   "url": "https://aourum.com/",
                   "name": "Aourum",
-                  "description": "Mercado Cultural y Comercial de Arequipa",
+                  "description": "El nodo central del talento local",
                   "publisher": {
                     "@id": "https://aourum.com/#organization"
                   },
