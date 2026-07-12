@@ -2156,6 +2156,21 @@ function AppLayoutShell({ children }) {
               {activeEditTab === "configuracion" ? (
                 <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1.2rem", borderTop: "1px solid var(--border-color)", paddingTop: "1rem" }}>
                   <button type="button" onClick={() => setEditProfileOpen(false)} className="btn-gold" style={{ padding: "0.5rem 1.6rem", borderRadius: "8px", fontSize: "0.88rem", fontWeight: 700 }}>
+                    <i className="fa-solid fa-xmark"></i> Cerrar
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1.2rem", borderTop: "1px solid var(--border-color)", paddingTop: "1rem" }}>
+                  <button type="button" onClick={() => setEditProfileOpen(false)} className="btn-outline-gold" style={{ padding: "0.5rem 1.3rem", borderRadius: "8px", fontSize: "0.88rem" }}>Cancelar</button>
+                  <button type="submit" className="btn-gold" style={{ padding: "0.5rem 1.6rem", borderRadius: "8px", fontSize: "0.88rem", fontWeight: 700 }} disabled={uploadingEdit || editProfileLoading}>
+                    <i className={editProfileLoading ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-check"}></i> {editProfileLoading ? "Guardando..." : "Guardar Cambios"}
+                  </button>
+                </div>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
           
       {/* ── FLOATING NOTIFICATION BANNER ───────────────────────────────────── */}
       {(errorMsg || successMsg) && (

@@ -3,7 +3,7 @@
 import { useApp } from "../context/AppContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 
 // MaxHeap implementation for ranking
 class MaxHeap {
@@ -74,6 +74,56 @@ const getItemViews = (name, id) => {
 
 const getProductViews = (p) => p.views || p.viewCount || getItemViews(p.name, p.id);
 
+// Helper to interleave products of different brands to guarantee representation and bypass entry order
+const interleaveProducts = (productList) => {
+  if (!productList || productList.length === 0) return [];
+
+  // Group by brand
+  const productsByBrand = {};
+  productList.forEach(p => {
+    const bId = p.brandId;
+    if (!productsByBrand[bId]) {
+      productsByBrand[bId] = [];
+    }
+    productsByBrand[bId].push(p);
+  });
+
+  // Shuffle helper using Fisher-Yates algorithm
+  const shuffle = (array) => {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  };
+
+  // Shuffle the brands list and also shuffle products within each brand
+  const shuffledBrands = shuffle(Object.keys(productsByBrand));
+  const shuffledProductsByBrand = {};
+  shuffledBrands.forEach(bId => {
+    shuffledProductsByBrand[bId] = shuffle(productsByBrand[bId]);
+  });
+
+  // Interleave in round-robin fashion
+  const orderedProducts = [];
+  let hasMore = true;
+  let index = 0;
+  while (hasMore) {
+    hasMore = false;
+    shuffledBrands.forEach(bId => {
+      const brandProds = shuffledProductsByBrand[bId];
+      if (index < brandProds.length) {
+        orderedProducts.push(brandProds[index]);
+        hasMore = true;
+      }
+    });
+    index++;
+  }
+
+  return orderedProducts;
+};
+
 export default function Home() {
   const {
     products,
@@ -94,7 +144,7 @@ export default function Home() {
   }, [loadProducts, loadBrands]);
 
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(12);
+  const [visibleCount, setVisibleCount] = useState(15);
   const [prevSearchTerm, setPrevSearchTerm] = useState(searchTerm);
   const [prevFilterType, setPrevFilterType] = useState(filterType);
   const [prevFilterCategory, setPrevFilterCategory] = useState(filterCategory);
@@ -103,7 +153,7 @@ export default function Home() {
     setPrevSearchTerm(searchTerm);
     setPrevFilterType(filterType);
     setPrevFilterCategory(filterCategory);
-    setVisibleCount(12);
+    setVisibleCount(15);
   }
   const router = useRouter();
 
@@ -209,6 +259,14 @@ export default function Home() {
   };
 
   const featuredProducts = getFeaturedProducts();
+
+  const showcaseProducts = useMemo(() => {
+    return interleaveProducts(products);
+  }, [products]);
+
+  const interleavedFilteredProducts = useMemo(() => {
+    return interleaveProducts(filteredProducts);
+  }, [filteredProducts]);
 
   // Thematic sections specifications
   const themeSpecs = [
@@ -460,15 +518,15 @@ export default function Home() {
             ) : (
               <div>
                 <div className="grid-catalog">
-                  {filteredProducts.slice(0, visibleCount).map((prod) => (
+                  {interleavedFilteredProducts.slice(0, visibleCount).map((prod) => (
                     <ProductCard key={prod.id} prod={prod} />
                   ))}
                 </div>
                 
-                {filteredProducts.length > visibleCount && (
+                {interleavedFilteredProducts.length > visibleCount && (
                   <div style={{ display: "flex", justifyContent: "center", marginTop: "3rem" }}>
                     <button 
-                      onClick={() => setVisibleCount((prev) => prev + 12)}
+                      onClick={() => setVisibleCount((prev) => prev + 15)}
                       className="btn-outline-gold"
                       style={{
                         borderRadius: "30px",
@@ -525,15 +583,15 @@ export default function Home() {
               <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "3rem", marginTop: "1rem" }}>
                 <h2 className="carousel-title" style={{ marginBottom: "1.5rem", paddingLeft: "0.2rem" }}>Vitrina de Productos</h2>
                 <div className="grid-catalog">
-                  {products.slice(0, visibleCount).map((prod) => (
+                  {showcaseProducts.slice(0, visibleCount).map((prod) => (
                     <ProductCard key={prod.id} prod={prod} />
                   ))}
                 </div>
 
-                {products.length > visibleCount && (
+                {showcaseProducts.length > visibleCount && (
                   <div style={{ display: "flex", justifyContent: "center", marginTop: "3rem" }}>
                     <button 
-                      onClick={() => setVisibleCount((prev) => prev + 12)}
+                      onClick={() => setVisibleCount((prev) => prev + 15)}
                       className="btn-outline-gold"
                       style={{
                         borderRadius: "30px",
