@@ -120,6 +120,30 @@ export default function BrandProfilePage({ params }) {
   const [selectedPersonId, setSelectedPersonId] = useState("");
   const [adminCatalogOpen, setAdminCatalogOpen] = useState(false);
   const [adminSearchQuery, setAdminSearchQuery] = useState("");
+  const [categorySuggestionsOpen, setCategorySuggestionsOpen] = useState(false);
+
+  const allCategories = useMemo(() => {
+    const seen = new Set();
+    const unique = [];
+    products.forEach((p) => {
+      if (p.category) {
+        const trimmed = p.category.trim();
+        const lower = trimmed.toLowerCase();
+        if (!seen.has(lower)) {
+          seen.add(lower);
+          unique.push(trimmed);
+        }
+      }
+    });
+    return unique;
+  }, [products]);
+
+  const filteredCategoryOptions = useMemo(() => {
+    if (!prodCategory) return allCategories;
+    return allCategories.filter(cat => 
+      cat.toLowerCase().includes(prodCategory.toLowerCase())
+    );
+  }, [allCategories, prodCategory]);
 
   // States for the interactive image editor
   const [editorOpen, setEditorOpen] = useState(false);
@@ -1070,9 +1094,67 @@ export default function BrandProfilePage({ params }) {
                   <label>Nombre del Item *</label>
                   <input type="text" className="form-control" placeholder="Ej: Anillo de Plata 950" value={prodName} onChange={(e) => setProdName(e.target.value)} required />
                 </div>
-                <div className="form-group">
+                <div className="form-group" style={{ position: "relative" }}>
                   <label>Categoría / Rubro *</label>
-                  <input type="text" className="form-control" placeholder="Ej: Joyería, Bienestar" value={prodCategory} onChange={(e) => setProdCategory(e.target.value)} required />
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    placeholder="Ej: Joyería, Bienestar" 
+                    value={prodCategory} 
+                    onChange={(e) => {
+                      setProdCategory(e.target.value);
+                      setCategorySuggestionsOpen(true);
+                    }}
+                    onFocus={() => setCategorySuggestionsOpen(true)}
+                    onBlur={() => {
+                      setTimeout(() => setCategorySuggestionsOpen(false), 200);
+                    }}
+                    required 
+                    autoComplete="off"
+                  />
+                  {categorySuggestionsOpen && filteredCategoryOptions.length > 0 && (
+                    <div 
+                      className="glass-panel" 
+                      style={{
+                        position: "absolute",
+                        top: "100%",
+                        left: 0,
+                        right: 0,
+                        zIndex: 10,
+                        maxHeight: "160px",
+                        overflowY: "auto",
+                        marginTop: "4px",
+                        padding: "4px",
+                        borderRadius: "8px",
+                        boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                        border: "1px solid var(--border-color)",
+                        background: "#FFFFFF"
+                      }}
+                    >
+                      {filteredCategoryOptions.map((cat, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            setProdCategory(cat);
+                            setCategorySuggestionsOpen(false);
+                          }}
+                          style={{
+                            padding: "8px 12px",
+                            cursor: "pointer",
+                            borderRadius: "6px",
+                            fontSize: "0.85rem",
+                            transition: "background 0.2s",
+                            color: "var(--text-primary)",
+                            textAlign: "left"
+                          }}
+                          onMouseEnter={(e) => e.target.style.background = "var(--gold-light-opacity, rgba(214,175,55,0.08))"}
+                          onMouseLeave={(e) => e.target.style.background = "transparent"}
+                        >
+                          {cat}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
