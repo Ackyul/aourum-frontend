@@ -275,7 +275,7 @@ export default function OrganizerProfilePage({ params }) {
 
   return (
     <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
-      <div className="glass-panel" style={{ position: "relative", overflow: "hidden", borderRadius: "16px" }}>
+      <div style={{ position: "relative" }}>
         <button onClick={() => router.push("/")} className="profile-close-btn" style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>&times;</button>
         <button onClick={copyLink} className="profile-share-btn" style={{ position: "absolute", top: "15px", right: "60px", zIndex: 10 }} title="Copiar enlace de perfil">
           <i className="fa-solid fa-share-nodes"></i>
