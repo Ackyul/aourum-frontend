@@ -52,14 +52,13 @@ export default function FairsPage() {
                 {filteredFairs.map((fair) => (
                   <div 
                     key={fair.id} 
-                    className="glass-panel" 
-                    style={{ overflow: "hidden", cursor: "pointer" }}
+                    className="glass-panel fair-horizontal-card" 
                     onClick={() => router.push(`/fairs/${fair.slug || fair.id}`)}
                   >
-                    <div style={{ height: "100%", minHeight: "220px", position: "relative" }}>
-                      <img src={fair.banner} alt={fair.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <div className="fair-card-image-wrapper">
+                      <img src={fair.banner} alt={fair.name} />
                     </div>
-                    <div style={{ padding: "1.6rem", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "0.8rem" }}>
+                    <div className="fair-card-content">
                       <div>
                         <div style={{ display: "flex", gap: "12px", alignItems: "center", fontSize: "0.82rem", color: "var(--gold-dark)", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.4rem" }}>
                           <span><i className="fa-solid fa-calendar-day"></i> {fair.date}</span>
