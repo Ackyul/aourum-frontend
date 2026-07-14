@@ -42,6 +42,7 @@ export default function FairProfilePage({ params }) {
   const profileLeafletMapRef = useRef(null);
 
   // Edit states
+  const [showInfo, setShowInfo] = useState(false);
   const [editFairOpen, setEditFairOpen] = useState(false);
   const [editFairName, setEditFairName] = useState("");
   const [editFairLocation, setEditFairLocation] = useState("");
@@ -165,7 +166,7 @@ export default function FairProfilePage({ params }) {
         profileLeafletMapRef.current = null;
       }
     };
-  }, [fair]);
+  }, [fair, showInfo]);
 
   // Initialize Edit Leaflet Map when editing is opened
   useEffect(() => {
@@ -420,40 +421,73 @@ export default function FairProfilePage({ params }) {
             </div>
           </div>
 
-          <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", lineHeight: 1.65, marginBottom: "1.5rem" }}>{fair.description}</p>
+          {/* Collapsible: Información de la Feria */}
+          <div className="glass-panel" style={{ marginTop: "1.5rem", marginBottom: "1.5rem", overflow: "hidden", background: "var(--bg-input)" }}>
+            <button 
+              type="button"
+              onClick={() => setShowInfo(!showInfo)} 
+              style={{ 
+                width: "100%", 
+                background: "transparent", 
+                border: "none", 
+                padding: "1rem 1.2rem", 
+                display: "flex", 
+                justifyContent: "space-between", 
+                alignItems: "center", 
+                cursor: "pointer",
+                textAlign: "left"
+              }}
+            >
+              <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "8px" }}>
+                <i className="fa-solid fa-circle-info"></i> Información de la Feria
+              </span>
+              <i className="fa-solid fa-chevron-down" style={{ transform: showInfo ? "rotate(180deg)" : "none", transition: "transform 0.3s", color: "var(--text-gold)" }}></i>
+            </button>
+            
+            {showInfo && (
+              <div style={{ padding: "0 1.2rem 1.5rem 1.2rem", borderTop: "1px solid var(--border-color)", background: "#FFFFFF" }}>
+                {fair.description && (
+                  <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", lineHeight: 1.65, marginTop: "1.2rem", marginBottom: "1.2rem" }}>
+                    {fair.description}
+                  </p>
+                )}
+                
+                {fair.location && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.95rem", fontWeight: 600, color: "var(--text-primary)", marginBottom: "1.2rem" }}>
+                    <i className="fa-solid fa-location-dot" style={{ color: "var(--gold-primary)" }}></i>
+                    <span>{fair.location}</span>
+                  </div>
+                )}
 
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.95rem", fontWeight: 600, color: "var(--text-primary)", marginBottom: "1.5rem" }}>
-            <i className="fa-solid fa-location-dot" style={{ color: "var(--gold-primary)" }}></i>
-            <span>{fair.location}</span>
-          </div>
-
-
-          {/* Ubicación del mapa principal */}
-          <div style={{ marginBottom: "2.2rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem", flexWrap: "wrap", gap: "10px" }}>
-              <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0, color: "var(--text-gold)" }}>
-                <i className="fa-solid fa-map"></i> Ubicación del Evento
-              </h3>
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${fair.lat || -16.39889},${fair.lng || -71.53694}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-outline-gold"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "5px 12px",
-                  borderRadius: "20px",
-                  fontSize: "0.78rem",
-                  fontWeight: 700,
-                  textDecoration: "none"
-                }}
-              >
-                <i className="fa-solid fa-map-location-dot"></i> Abrir en Google Maps
-              </a>
-            </div>
-            <div ref={profileMapContainerRef} style={{ height: "240px", width: "100%", borderRadius: "10px", border: "1px solid var(--border-color)", zIndex: 1, boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}></div>
+                {/* Ubicación del mapa principal */}
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem", flexWrap: "wrap", gap: "10px" }}>
+                    <h3 style={{ fontSize: "0.95rem", fontWeight: 800, margin: 0, color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "6px" }}>
+                      <i className="fa-solid fa-map"></i> Ubicación del Evento
+                    </h3>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${fair.lat || -16.39889},${fair.lng || -71.53694}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-outline-gold"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "5px 12px",
+                        borderRadius: "20px",
+                        fontSize: "0.78rem",
+                        fontWeight: 700,
+                        textDecoration: "none"
+                      }}
+                    >
+                      <i className="fa-solid fa-map-location-dot"></i> Abrir en Google Maps
+                    </a>
+                  </div>
+                  <div ref={profileMapContainerRef} style={{ height: "240px", width: "100%", borderRadius: "10px", border: "1px solid var(--border-color)", zIndex: 1, boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}></div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Sección de Postulaciones Pendientes para Organizador */}
