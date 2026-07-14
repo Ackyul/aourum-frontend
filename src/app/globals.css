@@ -1895,6 +1895,21 @@ header {
 }
 
 /* ── ACCOUNT POPOVER RESPONSIVE ────────────────────────── */
+.account-dropdown-wrapper {
+  position: relative;
+}
+
+@media (max-width: 480px) {
+  .account-dropdown-wrapper {
+    position: static;
+  }
+}
+
+@keyframes fadeInSimple {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 .account-popover {
   position: absolute;
   right: 0;
@@ -1927,7 +1942,7 @@ header {
     border-bottom: none;
     border-top: 1.5px solid var(--gold-primary);
     box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.08);
-    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: fadeInSimple 0.25s ease-out forwards;
   }
 }
 

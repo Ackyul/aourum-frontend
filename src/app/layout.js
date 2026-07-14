@@ -656,7 +656,7 @@ function AppLayoutShell({ children }) {
             </div>
 
             {/* Account button (always visible) */}
-            <div style={{ position: "relative" }}>
+            <div className="account-dropdown-wrapper">
               <button 
                 id="account-popover-trigger"
                 onClick={() => setAccountDropdownOpen(!accountDropdownOpen)}
