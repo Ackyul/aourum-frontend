@@ -109,6 +109,21 @@ export default function FairProfilePage({ params }) {
     setEditFairDate(combined);
   }, [editStartDate, editEndDate]);
 
+  // Lock background scroll when modal is open
+  useEffect(() => {
+    if (editFairOpen) {
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+    } else {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
+  }, [editFairOpen]);
+
   // Initialize Profile Leaflet Map
   useEffect(() => {
     if (!fair || !profileMapContainerRef.current) return;
@@ -412,121 +427,6 @@ export default function FairProfilePage({ params }) {
             <span>{fair.location}</span>
           </div>
 
-          {/* Formulario de edición inline */}
-          {canEditFair && editFairOpen && (
-            <div className="glass-panel fade-in" style={{ padding: "1.8rem", marginTop: "1.5rem", marginBottom: "1.5rem", border: "1.5px solid var(--gold-primary)" }}>
-              <h3 style={{ fontSize: "1.15rem", fontWeight: 800, marginBottom: "1.2rem", color: "var(--text-gold)" }}>
-                🎪 Editar Información del Evento
-              </h3>
-              <form onSubmit={handleEditFairSubmit}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                  <div className="form-group">
-                    <label>Nombre del Evento *</label>
-                    <input type="text" className="form-control" value={editFairName} onChange={(e) => setEditFairName(e.target.value)} required />
-                  </div>
-                  <div className="form-group">
-                    <label>Identificador de URL (Slug) *</label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      value={editFairSlug} 
-                      onChange={(e) => setEditFairSlug(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))} 
-                      required 
-                      placeholder="Ej: rock-food-fest"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Dirección del Evento *</label>
-                  <input type="text" className="form-control" value={editFairLocation} onChange={(e) => setEditFairLocation(e.target.value)} required />
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                  <div className="form-group">
-                    <label>Fecha de Inicio *</label>
-                    <input type="date" className="form-control" value={editStartDate} onChange={(e) => setEditStartDate(e.target.value)} required />
-                  </div>
-                  <div className="form-group">
-                    <label>Fecha de Final (Opcional)</label>
-                    <input type="date" className="form-control" value={editEndDate} onChange={(e) => setEditEndDate(e.target.value)} />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Horario (Opcional)</label>
-                  <input type="text" className="form-control" placeholder="Ej: 10:00 - 20:00" value={editFairTime} onChange={(e) => setEditFairTime(e.target.value)} />
-                </div>
-
-                <div className="form-group">
-                  <label>Descripción del Evento</label>
-                  <textarea className="form-control" rows="3" style={{ resize: "none" }} value={editFairDescription} onChange={(e) => setEditFairDescription(e.target.value)} placeholder="Escribe los detalles de la feria, atracciones, etc."></textarea>
-                </div>
-
-                {/* Banner Upload */}
-                <div className="form-group">
-                  <label>Imagen del Banner del Evento</label>
-                  <label
-                    htmlFor="edit-fair-banner-upload"
-                    style={{
-                      display: "flex", alignItems: "center", gap: "12px",
-                      border: "2px dashed var(--border-color)", borderRadius: "8px",
-                      padding: "0.8rem", cursor: "pointer", transition: "var(--transition-smooth)",
-                      background: "var(--bg-input)"
-                    }}
-                  >
-                    {editFairBannerPreview ? (
-                      <img src={editFairBannerPreview} alt="preview" style={{ width: "80px", height: "48px", objectFit: "cover", borderRadius: "6px", border: "1.5px solid var(--border-color)" }} />
-                    ) : (
-                      <div style={{ width: "80px", height: "48px", background: "rgba(212,175,55,0.1)", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <i className="fa-solid fa-camera" style={{ color: "var(--gold-primary)", fontSize: "1.1rem" }}></i>
-                      </div>
-                    )}
-                    <div>
-                      <span style={{ fontSize: "0.82rem", fontWeight: 700, display: "block" }}>
-                        {uploadingBanner ? "Subiendo..." : editFairBannerPreview ? "Banner cargado ✓" : "Haz clic para cambiar banner"}
-                      </span>
-                      <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>Recomendado: Horizontal (800x260)</span>
-                    </div>
-                  </label>
-                  <input
-                    id="edit-fair-banner-upload"
-                    type="file"
-                    accept="image/*"
-                    style={{ display: "none" }}
-                    disabled={uploadingBanner}
-                    onChange={async (e) => {
-                      const file = e.target.files[0];
-                      if (!file) return;
-                      setEditFairBannerPreview(URL.createObjectURL(file));
-                      const url = await uploadImage(file, setUploadingBanner);
-                      if (url) setEditFairBanner(url);
-                    }}
-                  />
-                </div>
-
-                {/* Edit Coordinates Leaflet Map */}
-                <div style={{ marginBottom: "1.5rem" }}>
-                  <label style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--text-primary)", display: "block", marginBottom: "0.5rem" }}>
-                    📍 Ajustar ubicación en el mapa (Arrastra el marcador o haz clic)
-                  </label>
-                  <div ref={editMapContainerRef} style={{ height: "200px", width: "100%", borderRadius: "8px", border: "1px solid var(--border-color)", zIndex: 1 }}></div>
-                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px", display: "block" }}>
-                    Coordenadas actuales: Lat: {editFairLat.toFixed(5)}, Lng: {editFairLng.toFixed(5)}
-                  </span>
-                </div>
-
-                <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-                  <button type="button" onClick={() => setEditFairOpen(false)} className="btn-outline-gold" style={{ padding: "0.45rem 1.2rem", borderRadius: "6px", fontSize: "0.85rem" }}>
-                    Cancelar
-                  </button>
-                  <button type="submit" className="btn-gold" style={{ padding: "0.45rem 1.2rem", borderRadius: "6px", fontSize: "0.85rem" }} disabled={uploadingBanner || isSaving}>
-                    {isSaving ? "Guardando..." : "Guardar Cambios"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
 
           {/* Ubicación del mapa principal */}
           <div style={{ marginBottom: "2.2rem" }}>
@@ -688,6 +588,129 @@ export default function FairProfilePage({ params }) {
           </div>
         </div>
       </div>
+
+      {/* ── MODAL: EDITAR FERIA / EVENTO ── */}
+      {canEditFair && editFairOpen && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+          <div className="modal-backdrop" onClick={() => setEditFairOpen(false)}></div>
+          <div className="modal-panel fade-in" style={{ maxWidth: "550px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+              <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0 }}>
+                🎪 Editar Información del Evento
+              </h3>
+              <button onClick={() => setEditFairOpen(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>&times;</button>
+            </div>
+
+            <form onSubmit={handleEditFairSubmit}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div className="form-group">
+                  <label>Nombre del Evento *</label>
+                  <input type="text" className="form-control" value={editFairName} onChange={(e) => setEditFairName(e.target.value)} required />
+                </div>
+                <div className="form-group">
+                  <label>Identificador de URL (Slug) *</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    value={editFairSlug} 
+                    onChange={(e) => setEditFairSlug(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))} 
+                    required 
+                    placeholder="Ej: rock-food-fest"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Dirección del Evento *</label>
+                <input type="text" className="form-control" value={editFairLocation} onChange={(e) => setEditFairLocation(e.target.value)} required />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div className="form-group">
+                  <label>Fecha de Inicio *</label>
+                  <input type="date" className="form-control" value={editStartDate} onChange={(e) => setEditStartDate(e.target.value)} required />
+                </div>
+                <div className="form-group">
+                  <label>Fecha de Final (Opcional)</label>
+                  <input type="date" className="form-control" value={editEndDate} onChange={(e) => setEditEndDate(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Horario (Opcional)</label>
+                <input type="text" className="form-control" placeholder="Ej: 10:00 - 20:00" value={editFairTime} onChange={(e) => setEditFairTime(e.target.value)} />
+              </div>
+
+              <div className="form-group">
+                <label>Descripción del Evento</label>
+                <textarea className="form-control" rows="3" style={{ resize: "none" }} value={editFairDescription} onChange={(e) => setEditFairDescription(e.target.value)} placeholder="Escribe los detalles de la feria, atracciones, etc."></textarea>
+              </div>
+
+              {/* Banner Upload */}
+              <div className="form-group">
+                <label>Imagen del Banner del Evento</label>
+                <label
+                  htmlFor="edit-fair-banner-upload"
+                  style={{
+                    display: "flex", alignItems: "center", gap: "12px",
+                    border: "2px dashed var(--border-color)", borderRadius: "8px",
+                    padding: "0.8rem", cursor: "pointer", transition: "var(--transition-smooth)",
+                    background: "var(--bg-input)"
+                  }}
+                >
+                  {editFairBannerPreview ? (
+                    <img src={editFairBannerPreview} alt="preview" style={{ width: "80px", height: "48px", objectFit: "cover", borderRadius: "6px", border: "1.5px solid var(--border-color)" }} />
+                  ) : (
+                    <div style={{ width: "80px", height: "48px", background: "rgba(212,175,55,0.1)", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <i className="fa-solid fa-camera" style={{ color: "var(--gold-primary)", fontSize: "1.1rem" }}></i>
+                    </div>
+                  )}
+                  <div>
+                    <span style={{ fontSize: "0.82rem", fontWeight: 700, display: "block" }}>
+                      {uploadingBanner ? "Subiendo..." : editFairBannerPreview ? "Banner cargado ✓" : "Haz clic para cambiar banner"}
+                    </span>
+                    <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>Recomendado: Horizontal (800x260)</span>
+                  </div>
+                </label>
+                <input
+                  id="edit-fair-banner-upload"
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  disabled={uploadingBanner}
+                  onChange={async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    setEditFairBannerPreview(URL.createObjectURL(file));
+                    const url = await uploadImage(file, setUploadingBanner);
+                    if (url) setEditFairBanner(url);
+                  }}
+                />
+              </div>
+
+              {/* Edit Coordinates Leaflet Map */}
+              <div style={{ marginBottom: "1.5rem" }}>
+                <label style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--text-primary)", display: "block", marginBottom: "0.5rem" }}>
+                  📍 Ajustar ubicación en el mapa (Arrastra el marcador o haz clic)
+                </label>
+                <div ref={editMapContainerRef} style={{ height: "200px", width: "100%", borderRadius: "8px", border: "1px solid var(--border-color)", zIndex: 1 }}></div>
+                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px", display: "block" }}>
+                  Coordenadas actuales: Lat: {editFairLat.toFixed(5)}, Lng: {editFairLng.toFixed(5)}
+                </span>
+              </div>
+
+              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                <button type="button" onClick={() => setEditFairOpen(false)} className="btn-outline-gold" style={{ padding: "0.45rem 1.2rem", borderRadius: "6px", fontSize: "0.85rem" }}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn-gold" style={{ padding: "0.45rem 1.2rem", borderRadius: "6px", fontSize: "0.85rem" }} disabled={uploadingBanner || isSaving}>
+                  {isSaving ? "Guardando..." : "Guardar Cambios"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
