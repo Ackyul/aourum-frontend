@@ -489,9 +489,14 @@ export default function BrandProfilePage({ params }) {
   }, [brand, isNumeric, slug, router]);
 
   const filteredFairs = useMemo(() => {
-    if (!fairSearchQuery.trim()) return fairs;
-    return fairs.filter(f => f.name.toLowerCase().includes(fairSearchQuery.toLowerCase()));
-  }, [fairs, fairSearchQuery]);
+    const brandFairs = fairs.filter(f => {
+      const parsed = parseDescription(f.description);
+      const fType = parsed.fair_type || "both";
+      return fType === "both" || fType === "only_brands";
+    });
+    if (!fairSearchQuery.trim()) return brandFairs;
+    return brandFairs.filter(f => f.name.toLowerCase().includes(fairSearchQuery.toLowerCase()));
+  }, [fairs, fairSearchQuery, parseDescription]);
 
   const brandProducts = brand ? products.filter((p) => p.brandId === brand.id) : [];
 

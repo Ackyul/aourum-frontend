@@ -27,7 +27,8 @@ export default function FairProfilePage({ params }) {
     loadFairs,
     loadBrands,
     loadBands,
-    loadPeople
+    loadPeople,
+    parseDescription
   } = useApp();
 
   const router = useRouter();
@@ -43,6 +44,7 @@ export default function FairProfilePage({ params }) {
 
   // Edit states
   const [showInfo, setShowInfo] = useState(false);
+  const [editFairType, setEditFairType] = useState("both");
   const [editFairOpen, setEditFairOpen] = useState(false);
   const [editFairName, setEditFairName] = useState("");
   const [editFairLocation, setEditFairLocation] = useState("");
@@ -264,7 +266,11 @@ export default function FairProfilePage({ params }) {
     setEditFairLocation(fair.location || "");
     setEditFairDate(fair.date || "");
     setEditFairTime(fair.time || "");
-    setEditFairDescription(fair.description || "");
+    
+    const parsed = parseDescription(fair.description);
+    setEditFairDescription(parsed.text || "");
+    setEditFairType(parsed.fair_type || "both");
+
     setEditFairBanner(fair.banner || "");
     setEditFairBannerPreview(fair.banner || "");
     setEditFairLat(fair.lat || -16.39889);
@@ -289,13 +295,19 @@ export default function FairProfilePage({ params }) {
       return;
     }
     setIsSaving(true);
+    
+    const descriptionPayload = JSON.stringify({
+      text: editFairDescription,
+      fair_type: editFairType
+    });
+
     const payload = {
       name: editFairName,
       location: editFairLocation,
       date: editFairDate,
       time: editFairTime,
       banner: editFairBanner,
-      description: editFairDescription,
+      description: descriptionPayload,
       lat: editFairLat,
       lng: editFairLng,
       organizerId: fair.organizerId,
@@ -347,13 +359,17 @@ export default function FairProfilePage({ params }) {
     }
   };
 
+  const parsed = fair ? parseDescription(fair.description) : { text: "", fair_type: "both" };
+  const fairType = parsed.fair_type || "both";
+  const descriptionText = parsed.text || "";
+
   return (
     <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
       <head>
         <title>{`${fair.name} | AOURUM`}</title>
-        <meta name="description" content={fair.description ? fair.description.substring(0, 160) : `Asiste al evento ${fair.name} en AOURUM, el nodo central del talento local.`} />
+        <meta name="description" content={descriptionText ? descriptionText.substring(0, 160) : `Asiste al evento ${fair.name} en AOURUM, el nodo central del talento local.`} />
         <meta property="og:title" content={`${fair.name} | AOURUM`} />
-        <meta property="og:description" content={fair.description ? fair.description.substring(0, 160) : `Asiste a ${fair.name} en AOURUM.`} />
+        <meta property="og:description" content={descriptionText ? descriptionText.substring(0, 160) : `Asiste a ${fair.name} en AOURUM.`} />
         <meta property="og:image" content={fair.banner || "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80"} />
         <link rel="canonical" href={`https://aourum.com/fairs/${fair.slug || fair.id}`} />
       </head>
@@ -420,8 +436,7 @@ export default function FairProfilePage({ params }) {
               )}
             </div>
           </div>
-
-          {/* Collapsible: Información de la Feria */}
+               {/* Collapsible: Información de la Feria */}
           <div className="glass-panel" style={{ marginTop: "1.5rem", marginBottom: "1.5rem", overflow: "hidden", background: "var(--bg-input)" }}>
             <button 
               type="button"
@@ -446,9 +461,9 @@ export default function FairProfilePage({ params }) {
             
             {showInfo && (
               <div style={{ padding: "0 1.2rem 1.5rem 1.2rem", borderTop: "1px solid var(--border-color)", background: "#FFFFFF" }}>
-                {fair.description && (
+                {descriptionText && (
                   <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", lineHeight: 1.65, marginTop: "1.2rem", marginBottom: "1.2rem" }}>
-                    {fair.description}
+                    {descriptionText}
                   </p>
                 )}
                 
@@ -460,7 +475,7 @@ export default function FairProfilePage({ params }) {
                 )}
 
                 {/* Ubicación del mapa principal */}
-                <div>
+                <div style={{ marginBottom: "2rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem", flexWrap: "wrap", gap: "10px" }}>
                     <h3 style={{ fontSize: "0.95rem", fontWeight: 800, margin: 0, color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "6px" }}>
                       <i className="fa-solid fa-map"></i> Ubicación del Evento
@@ -486,6 +501,81 @@ export default function FairProfilePage({ params }) {
                   </div>
                   <div ref={profileMapContainerRef} style={{ height: "240px", width: "100%", borderRadius: "10px", border: "1px solid var(--border-color)", zIndex: 1, boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}></div>
                 </div>
+
+                {/* Marcas y Bandas Participantes inside the Info Collapsible */}
+                <div 
+                  className="fair-participants-grid" 
+                  style={{ 
+                    gridTemplateColumns: (fairType === "both") ? undefined : "1fr",
+                    borderTop: "1px solid var(--border-color)", 
+                    paddingTop: "1.5rem", 
+                    marginTop: "1.5rem" 
+                  }}
+                >
+                  
+                  {/* MARCAS PARTICIPANTES */}
+                  {(fairType === "both" || fairType === "only_brands") && (
+                    <div>
+                      <h3 style={{ fontSize: "1.1rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)" }}><i className="fa-solid fa-store" style={{ color: "var(--gold-primary)", marginRight: 6 }}></i>Marcas Participantes</h3>
+                      {fair.acceptedBrands && fair.acceptedBrands.length > 0 ? (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
+                          {fair.acceptedBrands.map((bId) => {
+                            const b = brands.find((br) => br.id === bId);
+                            if (!b) return null;
+                            return (
+                              <div 
+                                key={bId} 
+                                onClick={() => router.push(`/brands/${b.slug || b.id}`)}
+                                style={{ display: "flex", alignItems: "center", gap: "12px", padding: "0.7rem", background: "var(--bg-input)", borderRadius: "8px", cursor: "pointer" }}
+                                className="glass-panel"
+                              >
+                                <img src={b.logo} alt={b.name} style={{ width: "38px", height: "38px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
+                                <div>
+                                  <strong style={{ fontSize: "0.88rem", color: "var(--text-primary)" }}>{b.name}</strong>
+                                  <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", display: "block" }}>{b.category}</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Aún no hay marcas confirmadas para este evento.</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* BANDAS DE MÚSICA */}
+                  {(fairType === "both" || fairType === "only_bands") && (
+                    <div>
+                      <h3 style={{ fontSize: "1.1rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)" }}><i className="fa-solid fa-music" style={{ color: "var(--gold-primary)", marginRight: 6 }}></i>Lineup de Música</h3>
+                      {fair.acceptedBands && fair.acceptedBands.length > 0 ? (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
+                          {fair.acceptedBands.map((bId) => {
+                            const b = bands.find((br) => br.id === bId);
+                            if (!b) return null;
+                            return (
+                              <div 
+                                key={bId} 
+                                onClick={() => router.push(`/bands/${b.slug || b.id}`)}
+                                style={{ display: "flex", alignItems: "center", gap: "12px", padding: "0.7rem", background: "var(--bg-input)", borderRadius: "8px", cursor: "pointer" }}
+                                className="glass-panel"
+                              >
+                                <img src={b.image} alt={b.name} style={{ width: "38px", height: "38px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
+                                <div>
+                                  <strong style={{ fontSize: "0.88rem", color: "var(--text-primary)" }}>{b.name}</strong>
+                                  <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", display: "block" }}>{b.genre}</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Aún no hay shows musicales confirmados.</p>
+                      )}
+                    </div>
+                  )}
+
+                </div>
               </div>
             )}
           </div>
@@ -497,131 +587,74 @@ export default function FairProfilePage({ params }) {
                 <i className="fa-solid fa-envelope-open-text"></i> Postulaciones Recibidas (Pendientes)
               </h3>
               
-              <div className="postulaciones-grid">
+              <div className="postulaciones-grid" style={{ gridTemplateColumns: (fairType === "both") ? undefined : "1fr" }}>
                 {/* Marcas Pendientes */}
-                <div>
-                  <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.8rem", borderBottom: "1px dashed var(--border-color)", paddingBottom: "4px" }}>
-                    🏪 Marcas ({fair.pendingBrands ? fair.pendingBrands.length : 0})
-                  </h4>
-                  {!fair.pendingBrands || fair.pendingBrands.length === 0 ? (
-                    <p style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>No hay marcas pendientes.</p>
-                  ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                      {fair.pendingBrands.map((bId) => {
-                        const b = brands.find(brand => brand.id === bId);
-                        if (!b) return null;
-                        return (
-                          <div key={bId} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-input)", padding: "0.6rem", borderRadius: "8px" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <img src={b.logo} alt={b.name} style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" }} />
-                              <Link href={`/brands/${b.slug || b.id}`} style={{ fontSize: "0.85rem", fontWeight: 700, textDecoration: "underline", color: "var(--text-primary)" }}>{b.name}</Link>
+                {(fairType === "both" || fairType === "only_brands") && (
+                  <div>
+                    <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.8rem", borderBottom: "1px dashed var(--border-color)", paddingBottom: "4px" }}>
+                      🏪 Marcas ({fair.pendingBrands ? fair.pendingBrands.length : 0})
+                    </h4>
+                    {!fair.pendingBrands || fair.pendingBrands.length === 0 ? (
+                      <p style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>No hay marcas pendientes.</p>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                        {fair.pendingBrands.map((bId) => {
+                          const b = brands.find(brand => brand.id === bId);
+                          if (!b) return null;
+                          return (
+                            <div key={bId} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-input)", padding: "0.6rem", borderRadius: "8px" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <img src={b.logo} alt={b.name} style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" }} />
+                                <Link href={`/brands/${b.slug || b.id}`} style={{ fontSize: "0.85rem", fontWeight: 700, textDecoration: "underline", color: "var(--text-primary)" }}>{b.name}</Link>
+                              </div>
+                              <div style={{ display: "flex", gap: 6 }}>
+                                <button onClick={() => respondToApplication("brand", b.id, true)} className="btn-gold" style={{ padding: "2px 8px", fontSize: "0.75rem", borderRadius: "4px" }} title="Aceptar"><i className="fa-solid fa-check"></i></button>
+                                <button onClick={() => respondToApplication("brand", b.id, false)} className="btn-outline-gold" style={{ padding: "2px 8px", fontSize: "0.75rem", borderRadius: "4px", color: "#ef4444", borderColor: "#ef4444" }} title="Rechazar"><i className="fa-solid fa-xmark"></i></button>
+                              </div>
                             </div>
-                            <div style={{ display: "flex", gap: 6 }}>
-                              <button onClick={() => respondToApplication("brand", b.id, true)} className="btn-gold" style={{ padding: "2px 8px", fontSize: "0.75rem", borderRadius: "4px" }} title="Aceptar"><i className="fa-solid fa-check"></i></button>
-                              <button onClick={() => respondToApplication("brand", b.id, false)} className="btn-outline-gold" style={{ padding: "2px 8px", fontSize: "0.75rem", borderRadius: "4px", color: "#ef4444", borderColor: "#ef4444" }} title="Rechazar"><i className="fa-solid fa-xmark"></i></button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Bandas Pendientes */}
-                <div>
-                  <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.8rem", borderBottom: "1px dashed var(--border-color)", paddingBottom: "4px" }}>
-                    🎸 Bandas ({fair.pendingBands ? fair.pendingBands.length : 0})
-                  </h4>
-                  {!fair.pendingBands || fair.pendingBands.length === 0 ? (
-                    <p style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>No hay bandas pendientes.</p>
-                  ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                      {fair.pendingBands.map((bId) => {
-                        const b = bands.find(band => band.id === bId);
-                        if (!b) return null;
-                        return (
-                          <div key={bId} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-input)", padding: "0.6rem", borderRadius: "8px" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <img src={b.image} alt={b.name} style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" }} />
-                              <Link href={`/bands/${b.slug || b.id}`} style={{ fontSize: "0.85rem", fontWeight: 700, textDecoration: "underline", color: "var(--text-primary)" }}>{b.name}</Link>
+                {(fairType === "both" || fairType === "only_bands") && (
+                  <div>
+                    <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.8rem", borderBottom: "1px dashed var(--border-color)", paddingBottom: "4px" }}>
+                      🎸 Bandas ({fair.pendingBands ? fair.pendingBands.length : 0})
+                    </h4>
+                    {!fair.pendingBands || fair.pendingBands.length === 0 ? (
+                      <p style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>No hay bandas pendientes.</p>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                        {fair.pendingBands.map((bId) => {
+                          const b = bands.find(band => band.id === bId);
+                          if (!b) return null;
+                          return (
+                            <div key={bId} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--bg-input)", padding: "0.6rem", borderRadius: "8px" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <img src={b.image} alt={b.name} style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" }} />
+                                <Link href={`/bands/${b.slug || b.id}`} style={{ fontSize: "0.85rem", fontWeight: 700, textDecoration: "underline", color: "var(--text-primary)" }}>{b.name}</Link>
+                              </div>
+                              <div style={{ display: "flex", gap: 6 }}>
+                                <button onClick={() => respondToApplication("band", b.id, true)} className="btn-gold" style={{ padding: "2px 8px", fontSize: "0.75rem", borderRadius: "4px" }} title="Aceptar"><i className="fa-solid fa-check"></i></button>
+                                <button onClick={() => respondToApplication("band", b.id, false)} className="btn-outline-gold" style={{ padding: "2px 8px", fontSize: "0.75rem", borderRadius: "4px", color: "#ef4444", borderColor: "#ef4444" }} title="Rechazar"><i className="fa-solid fa-xmark"></i></button>
+                              </div>
                             </div>
-                            <div style={{ display: "flex", gap: 6 }}>
-                              <button onClick={() => respondToApplication("band", b.id, true)} className="btn-gold" style={{ padding: "2px 8px", fontSize: "0.75rem", borderRadius: "4px" }} title="Aceptar"><i className="fa-solid fa-check"></i></button>
-                              <button onClick={() => respondToApplication("band", b.id, false)} className="btn-outline-gold" style={{ padding: "2px 8px", fontSize: "0.75rem", borderRadius: "4px", color: "#ef4444", borderColor: "#ef4444" }} title="Rechazar"><i className="fa-solid fa-xmark"></i></button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}
-
-          <div className="fair-participants-grid">
-            
-            {/* MARCAS PARTICIPANTES */}
-            <div>
-              <h3 style={{ fontSize: "1.1rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)" }}><i className="fa-solid fa-store" style={{ color: "var(--gold-primary)", marginRight: 6 }}></i>Marcas Participantes</h3>
-              {fair.acceptedBrands && fair.acceptedBrands.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
-                  {fair.acceptedBrands.map((bId) => {
-                    const b = brands.find((br) => br.id === bId);
-                    if (!b) return null;
-                    return (
-                      <div 
-                        key={bId} 
-                        onClick={() => router.push(`/brands/${b.slug || b.id}`)}
-                        style={{ display: "flex", alignItems: "center", gap: "12px", padding: "0.7rem", background: "var(--bg-input)", borderRadius: "8px", cursor: "pointer" }}
-                        className="glass-panel"
-                      >
-                        <img src={b.logo} alt={b.name} style={{ width: "38px", height: "38px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
-                        <div>
-                          <strong style={{ fontSize: "0.88rem", color: "var(--text-primary)" }}>{b.name}</strong>
-                          <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", display: "block" }}>{b.category}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Aún no hay marcas confirmadas para este evento.</p>
-              )}
-            </div>
-
-            {/* BANDAS DE MÚSICA */}
-            <div>
-              <h3 style={{ fontSize: "1.1rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)" }}><i className="fa-solid fa-music" style={{ color: "var(--gold-primary)", marginRight: 6 }}></i>Lineup de Música</h3>
-              {fair.acceptedBands && fair.acceptedBands.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
-                  {fair.acceptedBands.map((bId) => {
-                    const b = bands.find((br) => br.id === bId);
-                    if (!b) return null;
-                    return (
-                      <div 
-                        key={bId} 
-                        onClick={() => router.push(`/bands/${b.slug || b.id}`)}
-                        style={{ display: "flex", alignItems: "center", gap: "12px", padding: "0.7rem", background: "var(--bg-input)", borderRadius: "8px", cursor: "pointer" }}
-                        className="glass-panel"
-                      >
-                        <img src={b.image} alt={b.name} style={{ width: "38px", height: "38px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
-                        <div>
-                          <strong style={{ fontSize: "0.88rem", color: "var(--text-primary)" }}>{b.name}</strong>
-                          <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", display: "block" }}>{b.genre}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Aún no hay shows musicales confirmados.</p>
-              )}
-            </div>
-
+          
           </div>
         </div>
-      </div>
 
       {/* ── MODAL: EDITAR FERIA / EVENTO ── */}
       {canEditFair && editFairOpen && (
@@ -673,6 +706,20 @@ export default function FairProfilePage({ params }) {
               <div className="form-group">
                 <label>Horario (Opcional)</label>
                 <input type="text" className="form-control" placeholder="Ej: 10:00 - 20:00" value={editFairTime} onChange={(e) => setEditFairTime(e.target.value)} />
+              </div>
+
+              <div className="form-group">
+                <label>Tipo de Participantes Requeridos *</label>
+                <select 
+                  className="form-control" 
+                  value={editFairType} 
+                  onChange={(e) => setEditFairType(e.target.value)}
+                  required
+                >
+                  <option value="both">🎪 Marcas y Bandas de Música</option>
+                  <option value="only_brands">🏪 Solo Marcas Locales</option>
+                  <option value="only_bands">🎸 Solo Bandas de Música</option>
+                </select>
               </div>
 
               <div className="form-group">

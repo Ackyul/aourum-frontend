@@ -110,9 +110,14 @@ export default function BandProfilePage({ params }) {
   }, [band, isNumeric, slug, router]);
 
   const filteredFairs = useMemo(() => {
-    if (!fairSearchQuery.trim()) return fairs;
-    return fairs.filter(f => f.name.toLowerCase().includes(fairSearchQuery.toLowerCase()));
-  }, [fairs, fairSearchQuery]);
+    const bandFairs = fairs.filter(f => {
+      const parsed = parseDescription(f.description);
+      const fType = parsed.fair_type || "both";
+      return fType === "both" || fType === "only_bands";
+    });
+    if (!fairSearchQuery.trim()) return bandFairs;
+    return bandFairs.filter(f => f.name.toLowerCase().includes(fairSearchQuery.toLowerCase()));
+  }, [fairs, fairSearchQuery, parseDescription]);
 
   // ── LOGICA DE PRESENTACION DE FERIAS Y REPERTORIO ──
   const parsedFairs = useMemo(() => {
