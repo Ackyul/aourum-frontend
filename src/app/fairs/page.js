@@ -11,7 +11,8 @@ export default function FairsPage() {
     loading,
     getOrganizerName,
     searchTerm,
-    loadFairs
+    loadFairs,
+    parseDescription
   } = useApp();
 
   useEffect(() => {
@@ -22,8 +23,9 @@ export default function FairsPage() {
 
   // Filter fairs based on global search in the header
   const filteredFairs = fairs.filter((fair) => {
+    const descText = parseDescription(fair.description).text || "";
     const matchesSearch = fair.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          fair.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          descText.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           fair.location.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
@@ -66,7 +68,7 @@ export default function FairsPage() {
                           <span><i className="fa-solid fa-clock"></i> {fair.time}</span>
                         </div>
                         <h3 style={{ fontSize: "1.25rem", fontWeight: 800, marginBottom: "0.5rem" }}>{fair.name}</h3>
-                        <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "0.8rem", lineHeight: 1.45 }}>{fair.description}</p>
+                        <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "0.8rem", lineHeight: 1.45 }}>{parseDescription(fair.description).text}</p>
                         
                         <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.85rem", color: "var(--text-primary)", fontWeight: 500 }}>
                           <i className="fa-solid fa-location-dot" style={{ color: "var(--gold-primary)" }}></i>

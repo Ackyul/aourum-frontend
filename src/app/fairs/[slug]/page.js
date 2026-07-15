@@ -44,7 +44,8 @@ export default function FairProfilePage({ params }) {
 
   // Edit states
   const [showInfo, setShowInfo] = useState(false);
-  const [editFairType, setEditFairType] = useState("both");
+  const [editBrandsAllowed, setEditBrandsAllowed] = useState(true);
+  const [editBandsAllowed, setEditBandsAllowed] = useState(true);
   const [editFairOpen, setEditFairOpen] = useState(false);
   const [editFairName, setEditFairName] = useState("");
   const [editFairLocation, setEditFairLocation] = useState("");
@@ -269,7 +270,9 @@ export default function FairProfilePage({ params }) {
     
     const parsed = parseDescription(fair.description);
     setEditFairDescription(parsed.text || "");
-    setEditFairType(parsed.fair_type || "both");
+    const fType = parsed.fair_type || "both";
+    setEditBrandsAllowed(fType === "both" || fType === "only_brands");
+    setEditBandsAllowed(fType === "both" || fType === "only_bands");
 
     setEditFairBanner(fair.banner || "");
     setEditFairBannerPreview(fair.banner || "");
@@ -296,9 +299,20 @@ export default function FairProfilePage({ params }) {
     }
     setIsSaving(true);
     
+    let finalFairType = "both";
+    if (editBrandsAllowed && !editBandsAllowed) {
+      finalFairType = "only_brands";
+    } else if (!editBrandsAllowed && editBandsAllowed) {
+      finalFairType = "only_bands";
+    } else if (!editBrandsAllowed && !editBandsAllowed) {
+      triggerNotification(false, "Debes seleccionar al menos un tipo de participante (marcas o bandas)");
+      setIsSaving(false);
+      return;
+    }
+
     const descriptionPayload = JSON.stringify({
       text: editFairDescription,
-      fair_type: editFairType
+      fair_type: finalFairType
     });
 
     const payload = {
@@ -708,18 +722,40 @@ export default function FairProfilePage({ params }) {
                 <input type="text" className="form-control" placeholder="Ej: 10:00 - 20:00" value={editFairTime} onChange={(e) => setEditFairTime(e.target.value)} />
               </div>
 
-              <div className="form-group">
-                <label>Tipo de Participantes Requeridos *</label>
-                <select 
-                  className="form-control" 
-                  value={editFairType} 
-                  onChange={(e) => setEditFairType(e.target.value)}
-                  required
-                >
-                  <option value="both">🎪 Marcas y Bandas de Música</option>
-                  <option value="only_brands">🏪 Solo Marcas Locales</option>
-                  <option value="only_bands">🎸 Solo Bandas de Música</option>
-                </select>
+              <div className="form-group" style={{ marginBottom: "1.2rem" }}>
+                <label style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--text-primary)", display: "block", marginBottom: "0.6rem" }}>
+                  Tipo de Participantes Requeridos (Selecciona al menos uno) *
+                </label>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", fontSize: "0.9rem", color: "var(--text-primary)" }}>
+                    <input 
+                      type="checkbox" 
+                      checked={editBrandsAllowed} 
+                      onChange={(e) => setEditBrandsAllowed(e.target.checked)} 
+                      style={{ 
+                        width: "18px", 
+                        height: "18px", 
+                        cursor: "pointer", 
+                        accentColor: "var(--gold-primary)" 
+                      }} 
+                    />
+                    <span>🏪 Marcas y Emprendimientos Locales</span>
+                  </label>
+                  <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", fontSize: "0.9rem", color: "var(--text-primary)" }}>
+                    <input 
+                      type="checkbox" 
+                      checked={editBandsAllowed} 
+                      onChange={(e) => setEditBandsAllowed(e.target.checked)} 
+                      style={{ 
+                        width: "18px", 
+                        height: "18px", 
+                        cursor: "pointer", 
+                        accentColor: "var(--gold-primary)" 
+                      }} 
+                    />
+                    <span>🎸 Bandas y Proyectos de Música (Lineup)</span>
+                  </label>
+                </div>
               </div>
 
               <div className="form-group">
