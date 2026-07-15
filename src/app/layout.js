@@ -377,6 +377,53 @@ function AppLayoutShell({ children }) {
     };
   }, [showRegModal, showLoginModal, editProfileOpen, showForgotModal]);
 
+  const renderAccountDropdownContent = () => {
+    return (
+      <>
+        {!activePersonId && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div style={{ textAlign: "center", paddingBottom: "0.6rem", borderBottom: "1px solid var(--border-color)" }}>
+              <div style={{ width: "44px", height: "44px", background: "var(--gold-gradient)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 0.6rem" }}>
+                <span style={{ color: "#1C1C1E", fontWeight: 900, fontSize: "1.3rem", fontFamily: "serif" }}>A</span>
+              </div>
+              <h3 style={{ fontSize: "1rem", fontWeight: 800, margin: "0 0 3px 0" }}>¡Bienvenido a AOURUM!</h3>
+              <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: 0 }}>El nodo central del talento local</p>
+            </div>
+            <div>
+              <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", margin: "0 0 6px 0" }}>¿Primera vez aquí?</p>
+              <button onClick={() => { setRegType("person"); setShowRegModal(true); setAccountDropdownOpen(false); }} className="btn-gold" style={{ width: "100%", borderRadius: "8px", padding: "0.6rem", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                <i className="fa-solid fa-user-plus"></i> Regístrate
+              </button>
+            </div>
+            <div>
+              <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", margin: "0 0 6px 0" }}>¿Ya tienes cuenta?</p>
+              <button onClick={() => { setShowLoginModal(true); setAccountDropdownOpen(false); }} className="btn-outline-gold" style={{ width: "100%", borderRadius: "8px", padding: "0.6rem", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                <i className="fa-solid fa-right-to-bracket"></i> Iniciar Sesión
+              </button>
+            </div>
+          </div>
+        )}
+        {activePersonId && getCurrentPerson() && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+            <div style={{ borderBottom: "1px solid var(--border-color)", paddingBottom: "0.6rem" }}>
+              <h3 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-gold)", fontWeight: 700, margin: 0 }}><i className="fa-solid fa-user" style={{ marginRight: 6 }}></i>Tu Perfil</h3>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+              <h4 style={{ fontSize: "0.88rem", fontWeight: 700, margin: 0 }}>{getCurrentPerson().name}</h4>
+              {getCurrentPerson().occupation && <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: 0 }}><i className="fa-solid fa-id-badge" style={{ marginRight: 6 }}></i>{getCurrentPerson().occupation}</p>}
+              <button onClick={() => { router.push(`/people/${getCurrentPerson()?.username || activeUsername || activePersonId}`); setAccountDropdownOpen(false); }} className="btn-gold" style={{ marginTop: "0.5rem", padding: "0.45rem", fontSize: "0.78rem", borderRadius: "6px", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                <i className="fa-solid fa-user-circle"></i> Ver Mi Perfil
+              </button>
+            </div>
+            <button onClick={() => { logout(); setAccountDropdownOpen(false); router.push("/"); }} style={{ background: "transparent", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", borderRadius: "6px", padding: "0.4rem", fontSize: "0.78rem", cursor: "pointer", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", transition: "var(--transition-smooth)" }}>
+              <i className="fa-solid fa-right-from-bracket"></i> Cerrar Sesión
+            </button>
+          </div>
+        )}
+      </>
+    );
+  };
+
   const renderAccountBtnContent = () => {
     if (!activePersonId) return <span>Iniciar Sesión</span>;
     const p = getCurrentPerson();
@@ -684,55 +731,59 @@ function AppLayoutShell({ children }) {
                 {mounted && activePersonId && <i className="fa-solid fa-chevron-down" style={{ fontSize: "0.7rem", opacity: 0.8, transition: "transform 0.3s", transform: accountDropdownOpen ? "rotate(180deg)" : "none" }}></i>}
               </button>
 
-              {/* Popover dropdown */}
+              {/* Popover dropdown (Desktop) */}
               {mounted && accountDropdownOpen && (
-                <div className="glass-panel account-popover fade-in">
-                  {!activePersonId && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                      <div style={{ textAlign: "center", paddingBottom: "0.6rem", borderBottom: "1px solid var(--border-color)" }}>
-                        <div style={{ width: "44px", height: "44px", background: "var(--gold-gradient)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 0.6rem" }}>
-                          <span style={{ color: "#1C1C1E", fontWeight: 900, fontSize: "1.3rem", fontFamily: "serif" }}>A</span>
-                        </div>
-                        <h3 style={{ fontSize: "1rem", fontWeight: 800, margin: "0 0 3px 0" }}>¡Bienvenido a AOURUM!</h3>
-                        <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: 0 }}>El nodo central del talento local</p>
-                      </div>
-                      <div>
-                        <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", margin: "0 0 6px 0" }}>¿Primera vez aquí?</p>
-                        <button onClick={() => { setRegType("person"); setShowRegModal(true); setAccountDropdownOpen(false); }} className="btn-gold" style={{ width: "100%", borderRadius: "8px", padding: "0.6rem", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-                          <i className="fa-solid fa-user-plus"></i> Regístrate
-                        </button>
-                      </div>
-                      <div>
-                        <p style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", margin: "0 0 6px 0" }}>¿Ya tienes cuenta?</p>
-                        <button onClick={() => { setShowLoginModal(true); setAccountDropdownOpen(false); }} className="btn-outline-gold" style={{ width: "100%", borderRadius: "8px", padding: "0.6rem", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-                          <i className="fa-solid fa-right-to-bracket"></i> Iniciar Sesión
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                  {activePersonId && getCurrentPerson() && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-                      <div style={{ borderBottom: "1px solid var(--border-color)", paddingBottom: "0.6rem" }}>
-                        <h3 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-gold)", fontWeight: 700, margin: 0 }}><i className="fa-solid fa-user" style={{ marginRight: 6 }}></i>Tu Perfil</h3>
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                        <h4 style={{ fontSize: "0.88rem", fontWeight: 700, margin: 0 }}>{getCurrentPerson().name}</h4>
-                        {getCurrentPerson().occupation && <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: 0 }}><i className="fa-solid fa-id-badge" style={{ marginRight: 6 }}></i>{getCurrentPerson().occupation}</p>}
-                        <button onClick={() => { router.push(`/people/${getCurrentPerson()?.username || activeUsername || activePersonId}`); setAccountDropdownOpen(false); }} className="btn-gold" style={{ marginTop: "0.5rem", padding: "0.45rem", fontSize: "0.78rem", borderRadius: "6px", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-                          <i className="fa-solid fa-user-circle"></i> Ver Mi Perfil
-                        </button>
-                      </div>
-                      <button onClick={() => { logout(); setAccountDropdownOpen(false); router.push("/"); }} style={{ background: "transparent", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", borderRadius: "6px", padding: "0.4rem", fontSize: "0.78rem", cursor: "pointer", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", transition: "var(--transition-smooth)" }}>
-                        <i className="fa-solid fa-right-from-bracket"></i> Cerrar Sesión
-                      </button>
-                    </div>
-                  )}
+                <div className="glass-panel account-popover-desktop fade-in">
+                  {renderAccountDropdownContent()}
                 </div>
               )}
             </div>
           </nav>
         </div>
       </header>
+
+      {/* Mobile Account Popover (bottom sheet) */}
+      {mounted && accountDropdownOpen && (
+        <>
+          <div 
+            className="mobile-popover-backdrop show-on-mobile" 
+            onClick={() => setAccountDropdownOpen(false)}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              background: "rgba(0, 0, 0, 0.4)",
+              backdropFilter: "blur(4px)",
+              WebkitBackdropFilter: "blur(4px)",
+              zIndex: 1150
+            }}
+          ></div>
+          <div className="glass-panel account-popover-mobile fade-in">
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "0.5rem" }} className="show-on-mobile">
+              <button 
+                onClick={() => setAccountDropdownOpen(false)} 
+                style={{ 
+                  background: "rgba(0,0,0,0.04)", 
+                  border: "none", 
+                  fontSize: "1.2rem", 
+                  cursor: "pointer", 
+                  width: "32px", 
+                  height: "32px", 
+                  borderRadius: "50%", 
+                  display: "flex", 
+                  alignItems: "center", 
+                  justifyContent: "center" 
+                }}
+              >
+                &times;
+              </button>
+            </div>
+            {renderAccountDropdownContent()}
+          </div>
+        </>
+      )}
 
       {/* ── MOBILE BOTTOM TAB BAR ───────────────────────────────────────────── */}
       {mounted && (

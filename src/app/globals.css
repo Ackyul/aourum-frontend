@@ -1910,7 +1910,8 @@ header {
   to { opacity: 1; }
 }
 
-.account-popover {
+/* Desktop Popover */
+.account-popover-desktop {
   position: absolute;
   right: 0;
   top: 115%;
@@ -1927,8 +1928,22 @@ header {
   text-align: left;
 }
 
-@media (max-width: 480px) {
-  .account-popover {
+@media (max-width: 768px) {
+  .account-popover-desktop {
+    display: none !important;
+  }
+}
+
+/* Mobile Popover (Bottom Sheet) */
+.account-popover-mobile {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .account-popover-mobile {
+    display: flex !important;
+    flex-direction: column;
+    gap: 0.8rem;
     position: fixed;
     top: auto;
     bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom, 0px));
@@ -1936,12 +1951,14 @@ header {
     right: 0;
     width: 100vw !important;
     max-width: 100% !important;
-    border-radius: 20px 20px 0 0;
-    border-left: none;
-    border-right: none;
-    border-bottom: none;
-    border-top: 1.5px solid var(--gold-primary);
+    padding: 1.5rem 1.2rem;
+    z-index: 1200;
     box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.08);
+    border: none;
+    border-top: 1.5px solid var(--gold-primary);
+    background: #FFFFFF;
+    border-radius: 20px 20px 0 0;
+    text-align: left;
     animation: fadeInSimple 0.25s ease-out forwards;
   }
 }
