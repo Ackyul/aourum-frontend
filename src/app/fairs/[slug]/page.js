@@ -64,6 +64,7 @@ export default function FairProfilePage({ params }) {
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [activeEditTab, setActiveEditTab] = useState("general");
+  const [activeInfoTab, setActiveInfoTab] = useState("ubicacion");
 
   // Edit Map Refs
   const editMapContainerRef = useRef(null);
@@ -234,6 +235,15 @@ export default function FairProfilePage({ params }) {
       }, 100);
     }
   }, [activeEditTab]);
+
+  // When switching to the 'ubicacion' tab in the info modal, invalidate leaflet map size so it renders correctly
+  useEffect(() => {
+    if (activeInfoTab === "ubicacion" && profileLeafletMapRef.current) {
+      setTimeout(() => {
+        profileLeafletMapRef.current.invalidateSize();
+      }, 100);
+    }
+  }, [activeInfoTab]);
 
   if (loading) {
     return (
@@ -442,7 +452,10 @@ export default function FairProfilePage({ params }) {
 
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               <button
-                onClick={() => setInfoModalOpen(true)}
+                onClick={() => {
+                  setActiveInfoTab("ubicacion");
+                  setInfoModalOpen(true);
+                }}
                 className="btn-outline-gold"
                 style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
               >
@@ -822,140 +835,196 @@ export default function FairProfilePage({ params }) {
       {infoModalOpen && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal-backdrop" onClick={() => setInfoModalOpen(false)}></div>
-          <div className="modal-panel fade-in" style={{ maxWidth: "600px", width: "90%", maxHeight: "90vh", display: "flex", flexDirection: "column", padding: 0 }}>
+          <div className="modal-panel fade-in" style={{ maxWidth: "650px", width: "95%", maxHeight: "90vh", display: "flex", flexDirection: "column", padding: 0 }}>
             {/* Modal Header */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.5rem", borderBottom: "1px solid var(--border-color)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.5rem 1.5rem 0.8rem 1.5rem" }}>
               <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0, color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "8px" }}>
                 <i className="fa-solid fa-circle-info"></i> Información de la Feria
               </h3>
               <button onClick={() => setInfoModalOpen(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>&times;</button>
             </div>
 
+            {/* Tab bar header for Info Modal */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", borderBottom: "1.5px solid var(--border-color)", padding: "0 1.5rem 0.8rem 1.5rem", marginBottom: "0.5rem" }}>
+              <button 
+                type="button" 
+                onClick={() => setActiveInfoTab("ubicacion")} 
+                style={{
+                  background: activeInfoTab === "ubicacion" ? "var(--gold-gradient)" : "transparent",
+                  color: activeInfoTab === "ubicacion" ? "#1C1C1E" : "var(--text-muted)",
+                  border: "1px solid " + (activeInfoTab === "ubicacion" ? "var(--gold-primary)" : "transparent"),
+                  padding: "0.45rem 1rem",
+                  borderRadius: "20px",
+                  fontSize: "0.82rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                  transition: "var(--transition-smooth)",
+                  boxShadow: activeInfoTab === "ubicacion" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
+                }}
+              >
+                📍 Ubicación
+              </button>
+              {(fairType === "both" || fairType === "only_brands") && (
+                <button 
+                  type="button" 
+                  onClick={() => setActiveInfoTab("marcas")} 
+                  style={{
+                    background: activeInfoTab === "marcas" ? "var(--gold-gradient)" : "transparent",
+                    color: activeInfoTab === "marcas" ? "#1C1C1E" : "var(--text-muted)",
+                    border: "1px solid " + (activeInfoTab === "marcas" ? "var(--gold-primary)" : "transparent"),
+                    padding: "0.45rem 1rem",
+                    borderRadius: "20px",
+                    fontSize: "0.82rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    transition: "var(--transition-smooth)",
+                    boxShadow: activeInfoTab === "marcas" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
+                  }}
+                >
+                  🏪 Marcas
+                </button>
+              )}
+              {(fairType === "both" || fairType === "only_bands") && (
+                <button 
+                  type="button" 
+                  onClick={() => setActiveInfoTab("bandas")} 
+                  style={{
+                    background: activeInfoTab === "bandas" ? "var(--gold-gradient)" : "transparent",
+                    color: activeInfoTab === "bandas" ? "#1C1C1E" : "var(--text-muted)",
+                    border: "1px solid " + (activeInfoTab === "bandas" ? "var(--gold-primary)" : "transparent"),
+                    padding: "0.45rem 1rem",
+                    borderRadius: "20px",
+                    fontSize: "0.82rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    transition: "var(--transition-smooth)",
+                    boxShadow: activeInfoTab === "bandas" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
+                  }}
+                >
+                  🎸 Bandas
+                </button>
+              )}
+            </div>
+
             {/* Modal Body */}
-            <div style={{ overflowY: "auto", padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-              {descriptionText && (
-                <div>
-                  <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "var(--text-gold)", marginBottom: "0.5rem" }}>Sobre el Evento</h4>
-                  <p style={{ fontSize: "0.92rem", color: "var(--text-primary)", lineHeight: 1.6, margin: 0 }}>
-                    {descriptionText}
-                  </p>
-                </div>
-              )}
-              
-              {fair.location && (
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem", flexWrap: "wrap", gap: "10px" }}>
-                    <div>
-                      <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "var(--text-gold)", marginBottom: "0.2rem" }}>Ubicación</h4>
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.88rem", color: "var(--text-primary)" }}>
-                        <i className="fa-solid fa-location-dot" style={{ color: "var(--gold-primary)" }}></i>
-                        <span>{fair.location}</span>
+            <div style={{ overflowY: "auto", padding: "1.2rem 1.5rem", flex: 1, display: "flex", flexDirection: "column" }}>
+              {/* TAB: UBICACIÓN */}
+              <div style={{ display: activeInfoTab === "ubicacion" ? "block" : "none" }} className="fade-in">
+                {descriptionText && (
+                  <div style={{ marginBottom: "1.5rem" }}>
+                    <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "var(--text-gold)", marginBottom: "0.5rem" }}>Sobre el Evento</h4>
+                    <p style={{ fontSize: "0.92rem", color: "var(--text-primary)", lineHeight: 1.6, margin: 0 }}>
+                      {descriptionText}
+                    </p>
+                  </div>
+                )}
+                
+                {fair.location && (
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem", flexWrap: "wrap", gap: "10px" }}>
+                      <div>
+                        <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "var(--text-gold)", marginBottom: "0.2rem" }}>Dirección</h4>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.88rem", color: "var(--text-primary)" }}>
+                          <i className="fa-solid fa-location-dot" style={{ color: "var(--gold-primary)" }}></i>
+                          <span>{fair.location}</span>
+                        </div>
                       </div>
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${fair.lat || -16.39889},${fair.lng || -71.53694}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-outline-gold"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          padding: "5px 12px",
+                          borderRadius: "20px",
+                          fontSize: "0.78rem",
+                          fontWeight: 700,
+                          textDecoration: "none"
+                        }}
+                      >
+                        <i className="fa-solid fa-map-location-dot"></i> Google Maps
+                      </a>
                     </div>
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${fair.lat || -16.39889},${fair.lng || -71.53694}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-outline-gold"
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        padding: "5px 12px",
-                        borderRadius: "20px",
-                        fontSize: "0.78rem",
-                        fontWeight: 700,
-                        textDecoration: "none"
-                      }}
-                    >
-                      <i className="fa-solid fa-map-location-dot"></i> Google Maps
-                    </a>
+                    <div ref={profileMapContainerRef} style={{ height: "240px", width: "100%", borderRadius: "10px", border: "1px solid var(--border-color)", zIndex: 1, boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}></div>
                   </div>
-                  <div ref={profileMapContainerRef} style={{ height: "220px", width: "100%", borderRadius: "10px", border: "1px solid var(--border-color)", zIndex: 1, boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}></div>
+                )}
+              </div>
+
+              {/* TAB: MARCAS */}
+              {(fairType === "both" || fairType === "only_brands") && (
+                <div style={{ display: activeInfoTab === "marcas" ? "block" : "none" }} className="fade-in">
+                  <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "var(--text-gold)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <i className="fa-solid fa-store" style={{ color: "var(--gold-primary)" }}></i> Marcas Participantes
+                  </h4>
+                  {fair.acceptedBrands && fair.acceptedBrands.length > 0 ? (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "0.8rem", maxHeight: "400px", overflowY: "auto", paddingRight: "4px" }}>
+                      {fair.acceptedBrands.map((bId) => {
+                        const b = brands.find((br) => br.id === bId);
+                        if (!b) return null;
+                        return (
+                          <div 
+                            key={bId} 
+                            onClick={() => {
+                              setInfoModalOpen(false);
+                              router.push(`/brands/${b.slug || b.id}`);
+                            }}
+                            style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0.6rem", background: "var(--bg-input)", borderRadius: "8px", cursor: "pointer", border: "1px solid var(--border-color)" }}
+                            className="glass-panel"
+                          >
+                            <img src={b.logo} alt={b.name} style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
+                            <div>
+                              <strong style={{ fontSize: "0.82rem", color: "var(--text-primary)", display: "block" }}>{b.name}</strong>
+                              <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>{b.category}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Aún no hay marcas confirmadas para este evento.</p>
+                  )}
                 </div>
               )}
 
-              {/* Dynamic Content Sections: Marcas and/or Bandas */}
-              {(fairType === "both" || fairType === "only_brands" || fairType === "only_bands") && (
-                <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "1.5rem" }}>
-                  <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "var(--text-gold)", marginBottom: "1rem" }}>Contenido del Evento</h4>
-                  <div 
-                    style={{ 
-                      display: "grid",
-                      gridTemplateColumns: (fairType === "both") ? "repeat(auto-fit, minmax(220px, 1fr))" : "1fr",
-                      gap: "1.5rem"
-                    }}
-                  >
-                    {/* MARCAS PARTICIPANTES */}
-                    {(fairType === "both" || fairType === "only_brands") && (
-                      <div>
-                        <h5 style={{ fontSize: "0.92rem", fontWeight: 800, marginBottom: "0.8rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "6px" }}>
-                          <i className="fa-solid fa-store" style={{ color: "var(--gold-primary)" }}></i> Marcas Participantes
-                        </h5>
-                        {fair.acceptedBrands && fair.acceptedBrands.length > 0 ? (
-                          <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem", maxHeight: "250px", overflowY: "auto", paddingRight: "4px" }}>
-                            {fair.acceptedBrands.map((bId) => {
-                              const b = brands.find((br) => br.id === bId);
-                              if (!b) return null;
-                              return (
-                                <div 
-                                  key={bId} 
-                                  onClick={() => {
-                                    setInfoModalOpen(false);
-                                    router.push(`/brands/${b.slug || b.id}`);
-                                  }}
-                                  style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0.5rem", background: "var(--bg-input)", borderRadius: "8px", cursor: "pointer", border: "1px solid var(--border-color)" }}
-                                >
-                                  <img src={b.logo} alt={b.name} style={{ width: "30px", height: "30px", borderRadius: "50%", objectFit: "cover" }} />
-                                  <div>
-                                    <strong style={{ fontSize: "0.8rem", color: "var(--text-primary)", display: "block" }}>{b.name}</strong>
-                                    <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>{b.category}</span>
-                                  </div>
-                                </div>
-                              );
-                            })}
+              {/* TAB: BANDAS */}
+              {(fairType === "both" || fairType === "only_bands") && (
+                <div style={{ display: activeInfoTab === "bandas" ? "block" : "none" }} className="fade-in">
+                  <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "var(--text-gold)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <i className="fa-solid fa-music" style={{ color: "var(--gold-primary)" }}></i> Lineup de Música
+                  </h4>
+                  {fair.acceptedBands && fair.acceptedBands.length > 0 ? (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "0.8rem", maxHeight: "400px", overflowY: "auto", paddingRight: "4px" }}>
+                      {fair.acceptedBands.map((bId) => {
+                        const b = bands.find((br) => br.id === bId);
+                        if (!b) return null;
+                        return (
+                          <div 
+                            key={bId} 
+                            onClick={() => {
+                              setInfoModalOpen(false);
+                              router.push(`/bands/${b.slug || b.id}`);
+                            }}
+                            style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0.6rem", background: "var(--bg-input)", borderRadius: "8px", cursor: "pointer", border: "1px solid var(--border-color)" }}
+                            className="glass-panel"
+                          >
+                            <img src={b.image} alt={b.name} style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
+                            <div>
+                              <strong style={{ fontSize: "0.82rem", color: "var(--text-primary)", display: "block" }}>{b.name}</strong>
+                              <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>{b.genre}</span>
+                            </div>
                           </div>
-                        ) : (
-                          <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Aún no hay marcas confirmadas para este evento.</p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* BANDAS DE MÚSICA */}
-                    {(fairType === "both" || fairType === "only_bands") && (
-                      <div>
-                        <h5 style={{ fontSize: "0.92rem", fontWeight: 800, marginBottom: "0.8rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "6px" }}>
-                          <i className="fa-solid fa-music" style={{ color: "var(--gold-primary)" }}></i> Lineup de Música
-                        </h5>
-                        {fair.acceptedBands && fair.acceptedBands.length > 0 ? (
-                          <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem", maxHeight: "250px", overflowY: "auto", paddingRight: "4px" }}>
-                            {fair.acceptedBands.map((bId) => {
-                              const b = bands.find((br) => br.id === bId);
-                              if (!b) return null;
-                              return (
-                                <div 
-                                  key={bId} 
-                                  onClick={() => {
-                                    setInfoModalOpen(false);
-                                    router.push(`/bands/${b.slug || b.id}`);
-                                  }}
-                                  style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0.5rem", background: "var(--bg-input)", borderRadius: "8px", cursor: "pointer", border: "1px solid var(--border-color)" }}
-                                >
-                                  <img src={b.image} alt={b.name} style={{ width: "30px", height: "30px", borderRadius: "50%", objectFit: "cover" }} />
-                                  <div>
-                                    <strong style={{ fontSize: "0.8rem", color: "var(--text-primary)", display: "block" }}>{b.name}</strong>
-                                    <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>{b.genre}</span>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Aún no hay shows musicales confirmados.</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Aún no hay shows musicales confirmados.</p>
+                  )}
                 </div>
               )}
             </div>
