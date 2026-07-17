@@ -17,6 +17,58 @@ const getProductViews = (p) => {
   return Math.abs(hash % 980) + 120; // 120 to 1100 views
 };
 
+const formatDisplayDate = (dateStr) => {
+  if (!dateStr) return "";
+  const formatSingle = (str) => {
+    const trimmed = str.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      const [year, month, day] = trimmed.split("-");
+      return `${day}/${month}/${year}`;
+    }
+    return trimmed;
+  };
+  const separator = dateStr.includes(" al ") ? " al " : (dateStr.includes(" AL ") ? " AL " : null);
+  if (separator) {
+    const parts = dateStr.split(separator);
+    return parts.map(formatSingle).join(" al ");
+  }
+  return formatSingle(dateStr);
+};
+
+const isFairLive = (dateStr) => {
+  if (!dateStr) return false;
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  const todayStr = `${yyyy}-${mm}-${dd}`;
+
+  const parseSingleDate = (str) => {
+    const trimmed = str.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      return trimmed;
+    }
+    return null;
+  };
+
+  if (dateStr.includes(" al ")) {
+    const [start, end] = dateStr.split(" al ").map(parseSingleDate);
+    if (start && end) {
+      return todayStr >= start && todayStr <= end;
+    }
+  } else if (dateStr.includes(" AL ")) {
+    const [start, end] = dateStr.split(" AL ").map(parseSingleDate);
+    if (start && end) {
+      return todayStr >= start && todayStr <= end;
+    }
+  }
+  const single = parseSingleDate(dateStr);
+  if (single) {
+    return todayStr === single;
+  }
+  return false;
+};
+
 export default function FairProfilePage({ params }) {
   const unwrappedParams = use(params);
   const slug = unwrappedParams.slug;
@@ -583,6 +635,13 @@ export default function FairProfilePage({ params }) {
 
   return (
     <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
+      <style>{`
+        @keyframes pulse-live {
+          0% { transform: scale(0.9); opacity: 0.6; }
+          50% { transform: scale(1.3); opacity: 1; }
+          100% { transform: scale(0.9); opacity: 0.6; }
+        }
+      `}</style>
       <head>
         <title>{`${fair.name} | AOURUM`}</title>
         <meta name="description" content={descriptionText ? descriptionText.substring(0, 160) : `Asiste al evento ${fair.name} en AOURUM, el nodo central del talento local.`} />
@@ -604,8 +663,14 @@ export default function FairProfilePage({ params }) {
         <div className="profile-body">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "1rem" }}>
             <div>
-              <div style={{ display: "flex", gap: "10px", alignItems: "center", fontSize: "0.85rem", color: "var(--gold-dark)", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem" }}>
-                <span><i className="fa-solid fa-calendar-days"></i> {fair.date}</span>
+              <div style={{ display: "flex", gap: "10px", alignItems: "center", fontSize: "0.85rem", color: "var(--gold-dark)", textTransform: "uppercase", fontWeight: 700, marginBottom: "0.5rem", flexWrap: "wrap" }}>
+                {isFairLive(fair.date) && (
+                  <span style={{ background: "#ef4444", color: "white", padding: "2px 8px", borderRadius: "12px", fontSize: "0.7rem", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: "4px", boxShadow: "0 0 8px rgba(239,68,68,0.25)" }}>
+                    <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "white", display: "inline-block", animation: "pulse-live 1.5s infinite" }}></span>
+                    EN VIVO
+                  </span>
+                )}
+                <span><i className="fa-solid fa-calendar-days"></i> {formatDisplayDate(fair.date)}</span>
                 <span>•</span>
                 <span><i className="fa-solid fa-clock"></i> {fair.time}</span>
               </div>
@@ -913,8 +978,8 @@ export default function FairProfilePage({ params }) {
 
               {/* SECCIÓN: GENERAL */}
               <div style={{ display: activeEditTab === "general" ? "block" : "none" }} className="fade-in">
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                  <div className="form-group">
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
+                  <div className="form-group" style={{ flex: "1 1 200px", minWidth: "0" }}>
                     <label>Nombre del Evento *</label>
                     <input 
                       type="text" 
@@ -924,7 +989,7 @@ export default function FairProfilePage({ params }) {
                       required={activeEditTab === "general"} 
                     />
                   </div>
-                  <div className="form-group">
+                  <div className="form-group" style={{ flex: "1 1 200px", minWidth: "0" }}>
                     <label>Identificador de URL (Slug) *</label>
                     <input 
                       type="text" 
@@ -937,8 +1002,8 @@ export default function FairProfilePage({ params }) {
                   </div>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                  <div className="form-group">
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
+                  <div className="form-group" style={{ flex: "1 1 200px", minWidth: "0" }}>
                     <label>Fecha de Inicio *</label>
                     <input 
                       type="date" 
@@ -948,7 +1013,7 @@ export default function FairProfilePage({ params }) {
                       required={activeEditTab === "general"} 
                     />
                   </div>
-                  <div className="form-group">
+                  <div className="form-group" style={{ flex: "1 1 200px", minWidth: "0" }}>
                     <label>Fecha de Final (Opcional)</label>
                     <input type="date" className="form-control" value={editEndDate} onChange={(e) => setEditEndDate(e.target.value)} />
                   </div>
