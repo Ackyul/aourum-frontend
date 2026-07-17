@@ -43,7 +43,7 @@ export default function FairProfilePage({ params }) {
   const profileLeafletMapRef = useRef(null);
 
   // Edit states
-  const [showInfo, setShowInfo] = useState(false);
+  const [infoModalOpen, setInfoModalOpen] = useState(false);
   const [editBrandsAllowed, setEditBrandsAllowed] = useState(true);
   const [editBandsAllowed, setEditBandsAllowed] = useState(true);
   const [editFairOpen, setEditFairOpen] = useState(false);
@@ -116,7 +116,7 @@ export default function FairProfilePage({ params }) {
 
   // Lock background scroll when modal is open
   useEffect(() => {
-    if (editFairOpen) {
+    if (editFairOpen || infoModalOpen) {
       document.documentElement.style.overflow = "hidden";
       document.body.style.overflow = "hidden";
     } else {
@@ -127,7 +127,7 @@ export default function FairProfilePage({ params }) {
       document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     };
-  }, [editFairOpen]);
+  }, [editFairOpen, infoModalOpen]);
 
   // Initialize Profile Leaflet Map
   useEffect(() => {
@@ -170,7 +170,7 @@ export default function FairProfilePage({ params }) {
         profileLeafletMapRef.current = null;
       }
     };
-  }, [fair, showInfo]);
+  }, [fair, infoModalOpen]);
 
   // Initialize Edit Leaflet Map when editing is opened
   useEffect(() => {
@@ -441,6 +441,13 @@ export default function FairProfilePage({ params }) {
             </div>
 
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <button
+                onClick={() => setInfoModalOpen(true)}
+                className="btn-outline-gold"
+                style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+              >
+                <i className="fa-solid fa-location-dot"></i> Ubicación
+              </button>
               {canEditFair && (
                 <button
                   onClick={handleEditClick}
@@ -460,149 +467,6 @@ export default function FairProfilePage({ params }) {
                 </button>
               )}
             </div>
-          </div>
-               {/* Collapsible: Información de la Feria */}
-          <div className="glass-panel" style={{ marginTop: "1.5rem", marginBottom: "1.5rem", overflow: "hidden", background: "var(--bg-input)" }}>
-            <button 
-              type="button"
-              onClick={() => setShowInfo(!showInfo)} 
-              style={{ 
-                width: "100%", 
-                background: "transparent", 
-                border: "none", 
-                padding: "1rem 1.2rem", 
-                display: "flex", 
-                justifyContent: "space-between", 
-                alignItems: "center", 
-                cursor: "pointer",
-                textAlign: "left"
-              }}
-            >
-              <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "8px" }}>
-                <i className="fa-solid fa-circle-info"></i> Información de la Feria
-              </span>
-              <i className="fa-solid fa-chevron-down" style={{ transform: showInfo ? "rotate(180deg)" : "none", transition: "transform 0.3s", color: "var(--text-gold)" }}></i>
-            </button>
-            
-            {showInfo && (
-              <div style={{ padding: "0 1.2rem 1.5rem 1.2rem", borderTop: "1px solid var(--border-color)", background: "#FFFFFF" }}>
-                {descriptionText && (
-                  <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", lineHeight: 1.65, marginTop: "1.2rem", marginBottom: "1.2rem" }}>
-                    {descriptionText}
-                  </p>
-                )}
-                
-                {fair.location && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.95rem", fontWeight: 600, color: "var(--text-primary)", marginBottom: "1.2rem" }}>
-                    <i className="fa-solid fa-location-dot" style={{ color: "var(--gold-primary)" }}></i>
-                    <span>{fair.location}</span>
-                  </div>
-                )}
-
-                {/* Ubicación del mapa principal */}
-                <div style={{ marginBottom: "2rem" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem", flexWrap: "wrap", gap: "10px" }}>
-                    <h3 style={{ fontSize: "0.95rem", fontWeight: 800, margin: 0, color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "6px" }}>
-                      <i className="fa-solid fa-map"></i> Ubicación del Evento
-                    </h3>
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${fair.lat || -16.39889},${fair.lng || -71.53694}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-outline-gold"
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        padding: "5px 12px",
-                        borderRadius: "20px",
-                        fontSize: "0.78rem",
-                        fontWeight: 700,
-                        textDecoration: "none"
-                      }}
-                    >
-                      <i className="fa-solid fa-map-location-dot"></i> Abrir en Google Maps
-                    </a>
-                  </div>
-                  <div ref={profileMapContainerRef} style={{ height: "240px", width: "100%", borderRadius: "10px", border: "1px solid var(--border-color)", zIndex: 1, boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}></div>
-                </div>
-
-                {/* Marcas y Bandas Participantes inside the Info Collapsible */}
-                <div 
-                  className="fair-participants-grid" 
-                  style={{ 
-                    gridTemplateColumns: (fairType === "both") ? undefined : "1fr",
-                    borderTop: "1px solid var(--border-color)", 
-                    paddingTop: "1.5rem", 
-                    marginTop: "1.5rem" 
-                  }}
-                >
-                  
-                  {/* MARCAS PARTICIPANTES */}
-                  {(fairType === "both" || fairType === "only_brands") && (
-                    <div>
-                      <h3 style={{ fontSize: "1.1rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)" }}><i className="fa-solid fa-store" style={{ color: "var(--gold-primary)", marginRight: 6 }}></i>Marcas Participantes</h3>
-                      {fair.acceptedBrands && fair.acceptedBrands.length > 0 ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
-                          {fair.acceptedBrands.map((bId) => {
-                            const b = brands.find((br) => br.id === bId);
-                            if (!b) return null;
-                            return (
-                              <div 
-                                key={bId} 
-                                onClick={() => router.push(`/brands/${b.slug || b.id}`)}
-                                style={{ display: "flex", alignItems: "center", gap: "12px", padding: "0.7rem", background: "var(--bg-input)", borderRadius: "8px", cursor: "pointer" }}
-                                className="glass-panel"
-                              >
-                                <img src={b.logo} alt={b.name} style={{ width: "38px", height: "38px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
-                                <div>
-                                  <strong style={{ fontSize: "0.88rem", color: "var(--text-primary)" }}>{b.name}</strong>
-                                  <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", display: "block" }}>{b.category}</span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Aún no hay marcas confirmadas para este evento.</p>
-                      )}
-                    </div>
-                  )}
-
-                  {/* BANDAS DE MÚSICA */}
-                  {(fairType === "both" || fairType === "only_bands") && (
-                    <div>
-                      <h3 style={{ fontSize: "1.1rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)" }}><i className="fa-solid fa-music" style={{ color: "var(--gold-primary)", marginRight: 6 }}></i>Lineup de Música</h3>
-                      {fair.acceptedBands && fair.acceptedBands.length > 0 ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
-                          {fair.acceptedBands.map((bId) => {
-                            const b = bands.find((br) => br.id === bId);
-                            if (!b) return null;
-                            return (
-                              <div 
-                                key={bId} 
-                                onClick={() => router.push(`/bands/${b.slug || b.id}`)}
-                                style={{ display: "flex", alignItems: "center", gap: "12px", padding: "0.7rem", background: "var(--bg-input)", borderRadius: "8px", cursor: "pointer" }}
-                                className="glass-panel"
-                              >
-                                <img src={b.image} alt={b.name} style={{ width: "38px", height: "38px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
-                                <div>
-                                  <strong style={{ fontSize: "0.88rem", color: "var(--text-primary)" }}>{b.name}</strong>
-                                  <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", display: "block" }}>{b.genre}</span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Aún no hay shows musicales confirmados.</p>
-                      )}
-                    </div>
-                  )}
-
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Sección de Postulaciones Pendientes para Organizador */}
@@ -951,6 +815,157 @@ export default function FairProfilePage({ params }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* ── MODAL: INFORMACIÓN DE LA FERIA / EVENTO ── */}
+      {infoModalOpen && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+          <div className="modal-backdrop" onClick={() => setInfoModalOpen(false)}></div>
+          <div className="modal-panel fade-in" style={{ maxWidth: "600px", width: "90%", maxHeight: "90vh", display: "flex", flexDirection: "column", padding: 0 }}>
+            {/* Modal Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.5rem", borderBottom: "1px solid var(--border-color)" }}>
+              <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0, color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "8px" }}>
+                <i className="fa-solid fa-circle-info"></i> Información de la Feria
+              </h3>
+              <button onClick={() => setInfoModalOpen(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>&times;</button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ overflowY: "auto", padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+              {descriptionText && (
+                <div>
+                  <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "var(--text-gold)", marginBottom: "0.5rem" }}>Sobre el Evento</h4>
+                  <p style={{ fontSize: "0.92rem", color: "var(--text-primary)", lineHeight: 1.6, margin: 0 }}>
+                    {descriptionText}
+                  </p>
+                </div>
+              )}
+              
+              {fair.location && (
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem", flexWrap: "wrap", gap: "10px" }}>
+                    <div>
+                      <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "var(--text-gold)", marginBottom: "0.2rem" }}>Ubicación</h4>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.88rem", color: "var(--text-primary)" }}>
+                        <i className="fa-solid fa-location-dot" style={{ color: "var(--gold-primary)" }}></i>
+                        <span>{fair.location}</span>
+                      </div>
+                    </div>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${fair.lat || -16.39889},${fair.lng || -71.53694}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-outline-gold"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "5px 12px",
+                        borderRadius: "20px",
+                        fontSize: "0.78rem",
+                        fontWeight: 700,
+                        textDecoration: "none"
+                      }}
+                    >
+                      <i className="fa-solid fa-map-location-dot"></i> Google Maps
+                    </a>
+                  </div>
+                  <div ref={profileMapContainerRef} style={{ height: "220px", width: "100%", borderRadius: "10px", border: "1px solid var(--border-color)", zIndex: 1, boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}></div>
+                </div>
+              )}
+
+              {/* Dynamic Content Sections: Marcas and/or Bandas */}
+              {(fairType === "both" || fairType === "only_brands" || fairType === "only_bands") && (
+                <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "1.5rem" }}>
+                  <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "var(--text-gold)", marginBottom: "1rem" }}>Contenido del Evento</h4>
+                  <div 
+                    style={{ 
+                      display: "grid",
+                      gridTemplateColumns: (fairType === "both") ? "repeat(auto-fit, minmax(220px, 1fr))" : "1fr",
+                      gap: "1.5rem"
+                    }}
+                  >
+                    {/* MARCAS PARTICIPANTES */}
+                    {(fairType === "both" || fairType === "only_brands") && (
+                      <div>
+                        <h5 style={{ fontSize: "0.92rem", fontWeight: 800, marginBottom: "0.8rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "6px" }}>
+                          <i className="fa-solid fa-store" style={{ color: "var(--gold-primary)" }}></i> Marcas Participantes
+                        </h5>
+                        {fair.acceptedBrands && fair.acceptedBrands.length > 0 ? (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem", maxHeight: "250px", overflowY: "auto", paddingRight: "4px" }}>
+                            {fair.acceptedBrands.map((bId) => {
+                              const b = brands.find((br) => br.id === bId);
+                              if (!b) return null;
+                              return (
+                                <div 
+                                  key={bId} 
+                                  onClick={() => {
+                                    setInfoModalOpen(false);
+                                    router.push(`/brands/${b.slug || b.id}`);
+                                  }}
+                                  style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0.5rem", background: "var(--bg-input)", borderRadius: "8px", cursor: "pointer", border: "1px solid var(--border-color)" }}
+                                >
+                                  <img src={b.logo} alt={b.name} style={{ width: "30px", height: "30px", borderRadius: "50%", objectFit: "cover" }} />
+                                  <div>
+                                    <strong style={{ fontSize: "0.8rem", color: "var(--text-primary)", display: "block" }}>{b.name}</strong>
+                                    <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>{b.category}</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Aún no hay marcas confirmadas para este evento.</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* BANDAS DE MÚSICA */}
+                    {(fairType === "both" || fairType === "only_bands") && (
+                      <div>
+                        <h5 style={{ fontSize: "0.92rem", fontWeight: 800, marginBottom: "0.8rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "6px" }}>
+                          <i className="fa-solid fa-music" style={{ color: "var(--gold-primary)" }}></i> Lineup de Música
+                        </h5>
+                        {fair.acceptedBands && fair.acceptedBands.length > 0 ? (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem", maxHeight: "250px", overflowY: "auto", paddingRight: "4px" }}>
+                            {fair.acceptedBands.map((bId) => {
+                              const b = bands.find((br) => br.id === bId);
+                              if (!b) return null;
+                              return (
+                                <div 
+                                  key={bId} 
+                                  onClick={() => {
+                                    setInfoModalOpen(false);
+                                    router.push(`/bands/${b.slug || b.id}`);
+                                  }}
+                                  style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0.5rem", background: "var(--bg-input)", borderRadius: "8px", cursor: "pointer", border: "1px solid var(--border-color)" }}
+                                >
+                                  <img src={b.image} alt={b.name} style={{ width: "30px", height: "30px", borderRadius: "50%", objectFit: "cover" }} />
+                                  <div>
+                                    <strong style={{ fontSize: "0.8rem", color: "var(--text-primary)", display: "block" }}>{b.name}</strong>
+                                    <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>{b.genre}</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Aún no hay shows musicales confirmados.</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{ padding: "1.2rem", borderTop: "1px solid var(--border-color)", display: "flex", justifyContent: "flex-end" }}>
+              <button onClick={() => setInfoModalOpen(false)} className="btn-gold" style={{ padding: "0.45rem 1.5rem", borderRadius: "6px", fontSize: "0.85rem" }}>
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}
