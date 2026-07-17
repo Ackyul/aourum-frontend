@@ -321,7 +321,7 @@ export default function FairProfilePage({ params }) {
 
   // Lock background scroll when modal is open
   useEffect(() => {
-    if (editFairOpen || infoModalOpen) {
+    if (editFairOpen || infoModalOpen || locationModalOpen) {
       document.documentElement.style.overflow = "hidden";
       document.body.style.overflow = "hidden";
     } else {
@@ -332,7 +332,7 @@ export default function FairProfilePage({ params }) {
       document.documentElement.style.overflow = "";
       document.body.style.overflow = "";
     };
-  }, [editFairOpen, infoModalOpen]);
+  }, [editFairOpen, infoModalOpen, locationModalOpen]);
 
   // Initialize Profile Leaflet Map
   useEffect(() => {
@@ -439,6 +439,34 @@ export default function FairProfilePage({ params }) {
       }, 100);
     }
   }, [activeEditTab]);
+
+  const fairProducts = useMemo(() => {
+    if (!fair || !fair.acceptedBrands || !products) return [];
+    return products.filter(p => p.brandId && fair.acceptedBrands.includes(p.brandId));
+  }, [fair, products]);
+
+  const featuredFairProducts = useMemo(() => {
+    if (!fairProducts.length) return [];
+    return [...fairProducts]
+      .sort((a, b) => getProductViews(b) - getProductViews(a))
+      .slice(0, 8);
+  }, [fairProducts]);
+
+  const fairCategories = useMemo(() => {
+    const seen = new Set();
+    const unique = [];
+    fairProducts.forEach(p => {
+      if (p.category) {
+        const trimmed = p.category.trim();
+        const lower = trimmed.toLowerCase();
+        if (!seen.has(lower)) {
+          seen.add(lower);
+          unique.push(trimmed);
+        }
+      }
+    });
+    return unique;
+  }, [fairProducts]);
 
   if (loading) {
     return (
@@ -593,33 +621,7 @@ export default function FairProfilePage({ params }) {
   const fairType = parsed.fair_type || "both";
   const descriptionText = parsed.text || "";
 
-  const fairProducts = useMemo(() => {
-    if (!fair || !fair.acceptedBrands || !products) return [];
-    return products.filter(p => p.brandId && fair.acceptedBrands.includes(p.brandId));
-  }, [fair, products]);
-
-  const featuredFairProducts = useMemo(() => {
-    if (!fairProducts.length) return [];
-    return [...fairProducts]
-      .sort((a, b) => getProductViews(b) - getProductViews(a))
-      .slice(0, 8);
-  }, [fairProducts]);
-
-  const fairCategories = useMemo(() => {
-    const seen = new Set();
-    const unique = [];
-    fairProducts.forEach(p => {
-      if (p.category) {
-        const trimmed = p.category.trim();
-        const lower = trimmed.toLowerCase();
-        if (!seen.has(lower)) {
-          seen.add(lower);
-          unique.push(trimmed);
-        }
-      }
-    });
-    return unique;
-  }, [fairProducts]);
+  // useMemo hooks moved before loading check
 
   const filteredBrands = fair && fair.acceptedBrands
     ? fair.acceptedBrands
