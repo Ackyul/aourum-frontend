@@ -66,6 +66,8 @@ export default function FairProfilePage({ params }) {
   const [activeEditTab, setActiveEditTab] = useState("general");
   const [activeInfoTab, setActiveInfoTab] = useState("marcas");
   const [locationModalOpen, setLocationModalOpen] = useState(false);
+  const [brandSearchQuery, setBrandSearchQuery] = useState("");
+  const [bandSearchQuery, setBandSearchQuery] = useState("");
 
   // Edit Map Refs
   const editMapContainerRef = useRef(null);
@@ -389,6 +391,18 @@ export default function FairProfilePage({ params }) {
   const parsed = fair ? parseDescription(fair.description) : { text: "", fair_type: "both" };
   const fairType = parsed.fair_type || "both";
   const descriptionText = parsed.text || "";
+
+  const filteredBrands = fair && fair.acceptedBrands
+    ? fair.acceptedBrands
+        .map(bId => brands.find(br => br.id === bId))
+        .filter(b => b && b.name.toLowerCase().includes(brandSearchQuery.toLowerCase()))
+    : [];
+
+  const filteredBands = fair && fair.acceptedBands
+    ? fair.acceptedBands
+        .map(bId => bands.find(br => br.id === bId))
+        .filter(b => b && b.name.toLowerCase().includes(bandSearchQuery.toLowerCase()))
+    : [];
 
   return (
     <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
@@ -902,7 +916,7 @@ export default function FairProfilePage({ params }) {
             {/* Modal Header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.5rem 1.5rem 0.8rem 1.5rem" }}>
               <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0, color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "8px" }}>
-                <i className="fa-solid fa-circle-info"></i> Información de la Feria
+                <i className="fa-solid fa-store"></i> {fairType === "only_bands" ? "Lineup de Música" : "Marcas Presentes"}
               </h3>
               <button onClick={() => setInfoModalOpen(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>&times;</button>
             </div>
@@ -969,34 +983,56 @@ export default function FairProfilePage({ params }) {
               {(fairType === "both" || fairType === "only_brands") && (activeInfoTab === "marcas" || fairType === "only_brands") && (
                 <div className="fade-in">
                   <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "var(--text-gold)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "6px" }}>
-                    <i className="fa-solid fa-store" style={{ color: "var(--gold-primary)" }}></i> Marcas Participantes
+                    <i className="fa-solid fa-store" style={{ color: "var(--gold-primary)" }}></i> Marcas Presentes
                   </h4>
-                  {fair.acceptedBrands && fair.acceptedBrands.length > 0 ? (
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "0.8rem", maxHeight: "400px", overflowY: "auto", paddingRight: "4px" }}>
-                      {fair.acceptedBrands.map((bId) => {
-                        const b = brands.find((br) => br.id === bId);
-                        if (!b) return null;
-                        return (
-                          <div 
-                            key={bId} 
-                            onClick={() => {
-                              setInfoModalOpen(false);
-                              router.push(`/brands/${b.slug || b.id}`);
-                            }}
-                            style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0.6rem", background: "var(--bg-input)", borderRadius: "8px", cursor: "pointer", border: "1px solid var(--border-color)" }}
-                            className="glass-panel"
-                          >
-                            <img src={b.logo} alt={b.name} style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
-                            <div>
-                              <strong style={{ fontSize: "0.82rem", color: "var(--text-primary)", display: "block" }}>{b.name}</strong>
-                              <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>{b.category}</span>
-                            </div>
+
+                  {/* Search input for Brands */}
+                  {fair.acceptedBrands && fair.acceptedBrands.length > 0 && (
+                    <div style={{ position: "relative", marginBottom: "1.2rem" }}>
+                      <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", fontSize: "0.85rem" }}></i>
+                      <input
+                        type="text"
+                        placeholder="Buscar marca..."
+                        value={brandSearchQuery}
+                        onChange={(e) => setBrandSearchQuery(e.target.value)}
+                        className="form-control"
+                        style={{ paddingLeft: "32px", fontSize: "0.85rem", height: "36px", borderRadius: "8px" }}
+                      />
+                      {brandSearchQuery && (
+                        <button 
+                          onClick={() => setBrandSearchQuery("")} 
+                          style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "1.1rem" }}
+                        >
+                          &times;
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {filteredBrands.length > 0 ? (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "0.8rem", maxHeight: "350px", overflowY: "auto", paddingRight: "4px" }}>
+                      {filteredBrands.map((b) => (
+                        <div 
+                          key={b.id} 
+                          onClick={() => {
+                            setInfoModalOpen(false);
+                            router.push(`/brands/${b.slug || b.id}`);
+                          }}
+                          style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0.6rem", background: "var(--bg-input)", borderRadius: "8px", cursor: "pointer", border: "1px solid var(--border-color)" }}
+                          className="glass-panel"
+                        >
+                          <img src={b.logo} alt={b.name} style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
+                          <div>
+                            <strong style={{ fontSize: "0.82rem", color: "var(--text-primary)", display: "block" }}>{b.name}</strong>
+                            <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>{b.category}</span>
                           </div>
-                        );
-                      })}
+                        </div>
+                      ))}
                     </div>
                   ) : (
-                    <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Aún no hay marcas confirmadas para este evento.</p>
+                    <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
+                      {brandSearchQuery ? "No se encontraron marcas con ese nombre." : "Aún no hay marcas confirmadas para este evento."}
+                    </p>
                   )}
                 </div>
               )}
@@ -1007,32 +1043,54 @@ export default function FairProfilePage({ params }) {
                   <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "var(--text-gold)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "6px" }}>
                     <i className="fa-solid fa-music" style={{ color: "var(--gold-primary)" }}></i> Lineup de Música
                   </h4>
-                  {fair.acceptedBands && fair.acceptedBands.length > 0 ? (
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "0.8rem", maxHeight: "400px", overflowY: "auto", paddingRight: "4px" }}>
-                      {fair.acceptedBands.map((bId) => {
-                        const b = bands.find((br) => br.id === bId);
-                        if (!b) return null;
-                        return (
-                          <div 
-                            key={bId} 
-                            onClick={() => {
-                              setInfoModalOpen(false);
-                              router.push(`/bands/${b.slug || b.id}`);
-                            }}
-                            style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0.6rem", background: "var(--bg-input)", borderRadius: "8px", cursor: "pointer", border: "1px solid var(--border-color)" }}
-                            className="glass-panel"
-                          >
-                            <img src={b.image} alt={b.name} style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
-                            <div>
-                              <strong style={{ fontSize: "0.82rem", color: "var(--text-primary)", display: "block" }}>{b.name}</strong>
-                              <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>{b.genre}</span>
-                            </div>
+
+                  {/* Search input for Bands */}
+                  {fair.acceptedBands && fair.acceptedBands.length > 0 && (
+                    <div style={{ position: "relative", marginBottom: "1.2rem" }}>
+                      <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", fontSize: "0.85rem" }}></i>
+                      <input
+                        type="text"
+                        placeholder="Buscar banda..."
+                        value={bandSearchQuery}
+                        onChange={(e) => setBandSearchQuery(e.target.value)}
+                        className="form-control"
+                        style={{ paddingLeft: "32px", fontSize: "0.85rem", height: "36px", borderRadius: "8px" }}
+                      />
+                      {bandSearchQuery && (
+                        <button 
+                          onClick={() => setBandSearchQuery("")} 
+                          style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "1.1rem" }}
+                        >
+                          &times;
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {filteredBands.length > 0 ? (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "0.8rem", maxHeight: "350px", overflowY: "auto", paddingRight: "4px" }}>
+                      {filteredBands.map((b) => (
+                        <div 
+                          key={b.id} 
+                          onClick={() => {
+                            setInfoModalOpen(false);
+                            router.push(`/bands/${b.slug || b.id}`);
+                          }}
+                          style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0.6rem", background: "var(--bg-input)", borderRadius: "8px", cursor: "pointer", border: "1px solid var(--border-color)" }}
+                          className="glass-panel"
+                        >
+                          <img src={b.image} alt={b.name} style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} />
+                          <div>
+                            <strong style={{ fontSize: "0.82rem", color: "var(--text-primary)", display: "block" }}>{b.name}</strong>
+                            <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>{b.genre}</span>
                           </div>
-                        );
-                      })}
+                        </div>
+                      ))}
                     </div>
                   ) : (
-                    <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Aún no hay shows musicales confirmados.</p>
+                    <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
+                      {bandSearchQuery ? "No se encontraron bandas con ese nombre." : "Aún no hay shows musicales confirmados."}
+                    </p>
                   )}
                 </div>
               )}
