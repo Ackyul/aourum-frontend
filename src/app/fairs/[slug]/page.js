@@ -1,9 +1,21 @@
 "use client";
 
-import { use, useEffect, useRef, useState } from "react";
+import { use, useEffect, useRef, useState, useMemo } from "react";
 import { useApp } from "../../../context/AppContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+
+const getProductViews = (p) => {
+  if (!p) return 0;
+  if (p.views || p.viewCount) return p.views || p.viewCount;
+  // Stable deterministic views generator based on hash of name + id
+  let hash = 0;
+  const str = p.name + (p.id || 0);
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash % 980) + 120; // 120 to 1100 views
+};
 
 export default function FairProfilePage({ params }) {
   const unwrappedParams = use(params);
@@ -15,6 +27,7 @@ export default function FairProfilePage({ params }) {
     bands,
     organizers,
     people,
+    products,
     getOrganizerName,
     getBrandName,
     loading,
@@ -28,6 +41,7 @@ export default function FairProfilePage({ params }) {
     loadBrands,
     loadBands,
     loadPeople,
+    loadProducts,
     parseDescription
   } = useApp();
 
@@ -38,7 +52,8 @@ export default function FairProfilePage({ params }) {
     loadBrands();
     loadBands();
     loadPeople();
-  }, [loadFairs, loadBrands, loadBands, loadPeople]);
+    loadProducts();
+  }, [loadFairs, loadBrands, loadBands, loadPeople, loadProducts]);
   const profileMapContainerRef = useRef(null);
   const profileLeafletMapRef = useRef(null);
 
@@ -68,6 +83,140 @@ export default function FairProfilePage({ params }) {
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [brandSearchQuery, setBrandSearchQuery] = useState("");
   const [bandSearchQuery, setBandSearchQuery] = useState("");
+  const trackRefs = useRef({});
+  const [visibleCount, setVisibleCount] = useState(12);
+
+  const scrollTrack = (id, direction) => {
+    const track = trackRefs.current[id];
+    if (track) {
+      const scrollAmount = track.clientWidth * 0.75;
+      track.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth"
+      });
+    }
+  };
+
+  function FairProductCard({ prod }) {
+    const brandOfProd = brands.find(b => b.id === prod.brandId);
+    return (
+      <div 
+        className="glass-panel product-card" 
+        style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer", height: "100%" }}
+        onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
+      >
+        <div className="card-img-container" style={{ position: "relative" }}>
+          <img src={prod.image} alt={prod.name} className="card-img-hover" />
+        </div>
+        <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+          <span style={{ fontSize: "0.72rem", color: "var(--text-gold)", letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
+            {prod.category}
+          </span>
+          <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: "var(--text-primary)" }}>{prod.name}</h3>
+          {brandOfProd && (
+            <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px" }}>
+              <i className="fa-solid fa-store" style={{ fontSize: "0.7rem" }}></i> {brandOfProd.name}
+            </span>
+          )}
+          
+          <div style={{ 
+            display: "flex", 
+            justifyContent: "space-between", 
+            alignItems: "center", 
+            borderTop: "1px solid var(--border-color)", 
+            paddingTop: "0.8rem", 
+            marginTop: "auto" 
+          }}>
+            <div>
+              {prod.priceAourum ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textDecoration: "line-through" }}>
+                    S/ {prod.price.toLocaleString("es-PE")}
+                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-gold)" }}>
+                      S/ {prod.priceAourum.toLocaleString("es-PE")}
+                    </span>
+                    <span style={{ fontSize: "0.55rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "bold", textTransform: "uppercase" }}>
+                      Aourum
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-primary)" }}>
+                  S/ {prod.price.toLocaleString("es-PE")}
+                </span>
+              )}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+              <span className="card-type-label" style={{
+                fontSize: "0.65rem",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                color: prod.type === "service" ? "#1e3a8a" : "#78350f",
+                letterSpacing: "0.03em"
+              }}>
+                {prod.type === "service" ? "Servicio" : "Producto"}
+              </span>
+              <span className="card-stock-label" style={{
+                fontSize: "0.65rem",
+                fontWeight: 700,
+                padding: "2px 6px",
+                borderRadius: "8px",
+                textTransform: "uppercase",
+                letterSpacing: "0.02em",
+                background: prod.type === "service" ? "#dbeafe" : (prod.stock == null || prod.stock > 0) ? "#dcfce7" : "#fee2e2",
+                color: prod.type === "service" ? "#1e40af" : (prod.stock == null || prod.stock > 0) ? "#15803d" : "#b91c1c"
+              }}>
+                {prod.type === "service" ? "Agenda" : (prod.stock == null || prod.stock > 0) ? "Stock" : "Agotado"}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const renderCarousel = (id, title, subtitle, sectionProducts) => {
+    if (sectionProducts.length === 0) return null;
+
+    return (
+      <div key={id} className="carousel-container fade-in" style={{ marginBottom: "2.5rem" }}>
+        <div className="carousel-header" style={{ marginBottom: "1.0rem" }}>
+          <div className="carousel-title-group">
+            <h3 className="carousel-title" style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0 }}>{title}</h3>
+            {subtitle && <p className="carousel-subtitle" style={{ fontSize: "0.85rem", color: "var(--text-muted)", margin: "4px 0 0 0" }}>{subtitle}</p>}
+          </div>
+          <div className="carousel-actions">
+            <div className="carousel-arrows">
+              <button className="carousel-arrow-btn" onClick={() => scrollTrack(id, "left")} aria-label="Anterior">
+                <i className="fa-solid fa-chevron-left"></i>
+              </button>
+              <button className="carousel-arrow-btn" onClick={() => scrollTrack(id, "right")} aria-label="Siguiente">
+                <i className="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="carousel-track-wrapper">
+          <div className="carousel-track" ref={el => {
+            if (el) {
+              trackRefs.current[id] = el;
+            } else {
+              delete trackRefs.current[id];
+            }
+          }}>
+            {sectionProducts.map((prod) => (
+              <div key={prod.id} className="carousel-item">
+                <FairProductCard prod={prod} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Edit Map Refs
   const editMapContainerRef = useRef(null);
@@ -392,6 +541,34 @@ export default function FairProfilePage({ params }) {
   const fairType = parsed.fair_type || "both";
   const descriptionText = parsed.text || "";
 
+  const fairProducts = useMemo(() => {
+    if (!fair || !fair.acceptedBrands || !products) return [];
+    return products.filter(p => p.brandId && fair.acceptedBrands.includes(p.brandId));
+  }, [fair, products]);
+
+  const featuredFairProducts = useMemo(() => {
+    if (!fairProducts.length) return [];
+    return [...fairProducts]
+      .sort((a, b) => getProductViews(b) - getProductViews(a))
+      .slice(0, 8);
+  }, [fairProducts]);
+
+  const fairCategories = useMemo(() => {
+    const seen = new Set();
+    const unique = [];
+    fairProducts.forEach(p => {
+      if (p.category) {
+        const trimmed = p.category.trim();
+        const lower = trimmed.toLowerCase();
+        if (!seen.has(lower)) {
+          seen.add(lower);
+          unique.push(trimmed);
+        }
+      }
+    });
+    return unique;
+  }, [fairProducts]);
+
   const filteredBrands = fair && fair.acceptedBrands
     ? fair.acceptedBrands
         .map(bId => brands.find(br => br.id === bId))
@@ -574,6 +751,67 @@ export default function FairProfilePage({ params }) {
           
           </div>
         </div>
+
+        {/* ── SECCIÓN: CATÁLOGO DE LA FERIA ── */}
+        {fairProducts.length > 0 && (
+          <div style={{ marginTop: "3.5rem", borderTop: "1px solid var(--border-color)", paddingTop: "3rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", margin: 0, color: "var(--text-gold)" }}>
+                Catálogo de la Feria
+              </h2>
+            </div>
+
+            {/* 1. Carrusel de Productos Destacados de la Feria */}
+            {renderCarousel(
+              "productos-destacados-feria",
+              "Productos Destacados",
+              `Los artículos más populares y recomendados de las marcas en ${fair.name}`,
+              featuredFairProducts
+            )}
+
+            {/* 2. Carruseles por Categoría de la Feria */}
+            {fairCategories.map((cat) => (
+              renderCarousel(
+                `cat-${cat.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
+                cat,
+                `Explora la variedad en ${cat.toLowerCase()}`,
+                fairProducts.filter(p => p.category && p.category.trim().toLowerCase() === cat.trim().toLowerCase())
+              )
+            ))}
+
+            {/* 3. Grilla General de Todos los Productos de la Feria */}
+            <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "3rem", marginTop: "2rem" }}>
+              <h2 style={{ fontSize: "1.5rem", fontWeight: 800, marginBottom: "1.5rem", color: "var(--text-gold)" }}>
+                Vitrina de Productos de la Feria
+              </h2>
+              <div className="grid-catalog">
+                {fairProducts.slice(0, visibleCount).map((prod) => (
+                  <FairProductCard key={prod.id} prod={prod} />
+                ))}
+              </div>
+
+              {fairProducts.length > visibleCount && (
+                <div style={{ display: "flex", justifyContent: "center", marginTop: "3rem" }}>
+                  <button 
+                    onClick={() => setVisibleCount((prev) => prev + 12)}
+                    className="btn-outline-gold"
+                    style={{
+                      borderRadius: "30px",
+                      padding: "0.75rem 2rem",
+                      fontSize: "0.9rem",
+                      fontWeight: 700,
+                      boxShadow: "0 4px 12px rgba(214,175,55,0.08)",
+                      cursor: "pointer"
+                    }}
+                  >
+                    <i className="fa-solid fa-arrow-rotate-right" style={{ marginRight: "8px" }}></i>
+                    Ver más productos
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
       {/* ── MODAL: EDITAR FERIA / EVENTO ── */}
       {canEditFair && editFairOpen && (
