@@ -63,6 +63,7 @@ export default function FairProfilePage({ params }) {
   const [editFairLng, setEditFairLng] = useState(-71.53694);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [activeEditTab, setActiveEditTab] = useState("general");
 
   // Edit Map Refs
   const editMapContainerRef = useRef(null);
@@ -225,6 +226,15 @@ export default function FairProfilePage({ params }) {
     };
   }, [editFairOpen]);
 
+  // When switching to the 'ubicacion' tab, invalidate leaflet map size so it renders correctly
+  useEffect(() => {
+    if (activeEditTab === "ubicacion" && editLeafletMapRef.current) {
+      setTimeout(() => {
+        editLeafletMapRef.current.invalidateSize();
+      }, 100);
+    }
+  }, [activeEditTab]);
+
   if (loading) {
     return (
       <div style={{ textAlign: "center", padding: "6rem 0" }}>
@@ -279,6 +289,7 @@ export default function FairProfilePage({ params }) {
     setEditFairLat(fair.lat || -16.39889);
     setEditFairLng(fair.lng || -71.53694);
     setEditFairSlug(fair.slug || "");
+    setActiveEditTab("general");
     setEditFairOpen(true);
   };
 
@@ -683,140 +694,255 @@ export default function FairProfilePage({ params }) {
             </div>
 
             <form onSubmit={handleEditFairSubmit}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                <div className="form-group">
-                  <label>Nombre del Evento *</label>
-                  <input type="text" className="form-control" value={editFairName} onChange={(e) => setEditFairName(e.target.value)} required />
+              {/* Tab bar header */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", borderBottom: "1.5px solid var(--border-color)", paddingBottom: "0.6rem", marginBottom: "1.2rem" }}>
+                <button 
+                  type="button" 
+                  onClick={() => setActiveEditTab("general")} 
+                  style={{
+                    background: activeEditTab === "general" ? "var(--gold-gradient)" : "transparent",
+                    color: activeEditTab === "general" ? "#1C1C1E" : "var(--text-muted)",
+                    border: "1px solid " + (activeEditTab === "general" ? "var(--gold-primary)" : "transparent"),
+                    padding: "0.45rem 1rem",
+                    borderRadius: "20px",
+                    fontSize: "0.82rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    transition: "var(--transition-smooth)",
+                    boxShadow: activeEditTab === "general" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
+                  }}
+                >
+                  ⚙️ General
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setActiveEditTab("ubicacion");
+                    if (window.dispatchEvent) {
+                      setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+                    }
+                  }} 
+                  style={{
+                    background: activeEditTab === "ubicacion" ? "var(--gold-gradient)" : "transparent",
+                    color: activeEditTab === "ubicacion" ? "#1C1C1E" : "var(--text-muted)",
+                    border: "1px solid " + (activeEditTab === "ubicacion" ? "var(--gold-primary)" : "transparent"),
+                    padding: "0.45rem 1rem",
+                    borderRadius: "20px",
+                    fontSize: "0.82rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    transition: "var(--transition-smooth)",
+                    boxShadow: activeEditTab === "ubicacion" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
+                  }}
+                >
+                  📍 Ubicación
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setActiveEditTab("contenido")} 
+                  style={{
+                    background: activeEditTab === "contenido" ? "var(--gold-gradient)" : "transparent",
+                    color: activeEditTab === "contenido" ? "#1C1C1E" : "var(--text-muted)",
+                    border: "1px solid " + (activeEditTab === "contenido" ? "var(--gold-primary)" : "transparent"),
+                    padding: "0.45rem 1rem",
+                    borderRadius: "20px",
+                    fontSize: "0.82rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    transition: "var(--transition-smooth)",
+                    boxShadow: activeEditTab === "contenido" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
+                  }}
+                >
+                  📝 Contenido
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setActiveEditTab("personalizacion")} 
+                  style={{
+                    background: activeEditTab === "personalizacion" ? "var(--gold-gradient)" : "transparent",
+                    color: activeEditTab === "personalizacion" ? "#1C1C1E" : "var(--text-muted)",
+                    border: "1px solid " + (activeEditTab === "personalizacion" ? "var(--gold-primary)" : "transparent"),
+                    padding: "0.45rem 1rem",
+                    borderRadius: "20px",
+                    fontSize: "0.82rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    transition: "var(--transition-smooth)",
+                    boxShadow: activeEditTab === "personalizacion" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
+                  }}
+                >
+                  🎨 Personalización
+                </button>
+              </div>
+
+              {/* SECCIÓN: GENERAL */}
+              <div style={{ display: activeEditTab === "general" ? "block" : "none" }} className="fade-in">
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                  <div className="form-group">
+                    <label>Nombre del Evento *</label>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      value={editFairName} 
+                      onChange={(e) => setEditFairName(e.target.value)} 
+                      required={activeEditTab === "general"} 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Identificador de URL (Slug) *</label>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      value={editFairSlug} 
+                      onChange={(e) => setEditFairSlug(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))} 
+                      required={activeEditTab === "general"} 
+                      placeholder="Ej: rock-food-fest"
+                    />
+                  </div>
                 </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                  <div className="form-group">
+                    <label>Fecha de Inicio *</label>
+                    <input 
+                      type="date" 
+                      className="form-control" 
+                      value={editStartDate} 
+                      onChange={(e) => setEditStartDate(e.target.value)} 
+                      required={activeEditTab === "general"} 
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Fecha de Final (Opcional)</label>
+                    <input type="date" className="form-control" value={editEndDate} onChange={(e) => setEditEndDate(e.target.value)} />
+                  </div>
+                </div>
+
                 <div className="form-group">
-                  <label>Identificador de URL (Slug) *</label>
+                  <label>Horario (Opcional)</label>
+                  <input type="text" className="form-control" placeholder="Ej: 10:00 - 20:00" value={editFairTime} onChange={(e) => setEditFairTime(e.target.value)} />
+                </div>
+              </div>
+
+              {/* SECCIÓN: UBICACIÓN */}
+              <div style={{ display: activeEditTab === "ubicacion" ? "block" : "none" }} className="fade-in">
+                <div className="form-group">
+                  <label>Dirección del Evento *</label>
                   <input 
                     type="text" 
                     className="form-control" 
-                    value={editFairSlug} 
-                    onChange={(e) => setEditFairSlug(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))} 
-                    required 
-                    placeholder="Ej: rock-food-fest"
+                    value={editFairLocation} 
+                    onChange={(e) => setEditFairLocation(e.target.value)} 
+                    required={activeEditTab === "ubicacion"} 
+                  />
+                </div>
+
+                {/* Edit Coordinates Leaflet Map */}
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <label style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--text-primary)", display: "block", marginBottom: "0.5rem" }}>
+                    📍 Ajustar ubicación en el mapa (Arrastra el marcador o haz clic)
+                  </label>
+                  <div ref={editMapContainerRef} style={{ height: "200px", width: "100%", borderRadius: "8px", border: "1px solid var(--border-color)", zIndex: 1 }}></div>
+                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px", display: "block" }}>
+                    Coordenadas actuales: Lat: {editFairLat.toFixed(5)}, Lng: {editFairLng.toFixed(5)}
+                  </span>
+                </div>
+              </div>
+
+              {/* SECCIÓN: CONTENIDO */}
+              <div style={{ display: activeEditTab === "contenido" ? "block" : "none" }} className="fade-in">
+                <div className="form-group" style={{ marginBottom: "1.2rem" }}>
+                  <label style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--text-primary)", display: "block", marginBottom: "0.6rem" }}>
+                    Tipo de Participantes Requeridos (Selecciona al menos uno) *
+                  </label>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", fontSize: "0.9rem", color: "var(--text-primary)" }}>
+                      <input 
+                        type="checkbox" 
+                        checked={editBrandsAllowed} 
+                        onChange={(e) => setEditBrandsAllowed(e.target.checked)} 
+                        style={{ 
+                          width: "18px", 
+                          height: "18px", 
+                          cursor: "pointer", 
+                          accentColor: "var(--gold-primary)" 
+                        }} 
+                      />
+                      <span>🏪 Marcas y Emprendimientos Locales</span>
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", fontSize: "0.9rem", color: "var(--text-primary)" }}>
+                      <input 
+                        type="checkbox" 
+                        checked={editBandsAllowed} 
+                        onChange={(e) => setEditBandsAllowed(e.target.checked)} 
+                        style={{ 
+                          width: "18px", 
+                          height: "18px", 
+                          cursor: "pointer", 
+                          accentColor: "var(--gold-primary)" 
+                        }} 
+                      />
+                      <span>🎸 Bandas y Proyectos de Música (Lineup)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Descripción del Evento</label>
+                  <textarea className="form-control" rows="4" style={{ resize: "none" }} value={editFairDescription} onChange={(e) => setEditFairDescription(e.target.value)} placeholder="Escribe los detalles de la feria, atracciones, etc."></textarea>
+                </div>
+              </div>
+
+              {/* SECCIÓN: PERSONALIZACIÓN */}
+              <div style={{ display: activeEditTab === "personalizacion" ? "block" : "none" }} className="fade-in">
+                {/* Banner Upload */}
+                <div className="form-group">
+                  <label>Imagen del Banner del Evento</label>
+                  <label
+                    htmlFor="edit-fair-banner-upload"
+                    style={{
+                      display: "flex", alignItems: "center", gap: "12px",
+                      border: "2px dashed var(--border-color)", borderRadius: "8px",
+                      padding: "0.8rem", cursor: "pointer", transition: "var(--transition-smooth)",
+                      background: "var(--bg-input)"
+                    }}
+                  >
+                    {editFairBannerPreview ? (
+                      <img src={editFairBannerPreview} alt="preview" style={{ width: "80px", height: "48px", objectFit: "cover", borderRadius: "6px", border: "1.5px solid var(--border-color)" }} />
+                    ) : (
+                      <div style={{ width: "80px", height: "48px", background: "rgba(212,175,55,0.1)", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <i className="fa-solid fa-camera" style={{ color: "var(--gold-primary)", fontSize: "1.1rem" }}></i>
+                      </div>
+                    )}
+                    <div>
+                      <span style={{ fontSize: "0.82rem", fontWeight: 700, display: "block" }}>
+                        {uploadingBanner ? "Subiendo..." : editFairBannerPreview ? "Banner cargado ✓" : "Haz clic para cambiar banner"}
+                      </span>
+                      <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>Recomendado: Horizontal (800x260)</span>
+                    </div>
+                  </label>
+                  <input
+                    id="edit-fair-banner-upload"
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    disabled={uploadingBanner}
+                    onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      setEditFairBannerPreview(URL.createObjectURL(file));
+                      const url = await uploadImage(file, setUploadingBanner);
+                      if (url) setEditFairBanner(url);
+                    }}
                   />
                 </div>
               </div>
 
-              <div className="form-group">
-                <label>Dirección del Evento *</label>
-                <input type="text" className="form-control" value={editFairLocation} onChange={(e) => setEditFairLocation(e.target.value)} required />
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                <div className="form-group">
-                  <label>Fecha de Inicio *</label>
-                  <input type="date" className="form-control" value={editStartDate} onChange={(e) => setEditStartDate(e.target.value)} required />
-                </div>
-                <div className="form-group">
-                  <label>Fecha de Final (Opcional)</label>
-                  <input type="date" className="form-control" value={editEndDate} onChange={(e) => setEditEndDate(e.target.value)} />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Horario (Opcional)</label>
-                <input type="text" className="form-control" placeholder="Ej: 10:00 - 20:00" value={editFairTime} onChange={(e) => setEditFairTime(e.target.value)} />
-              </div>
-
-              <div className="form-group" style={{ marginBottom: "1.2rem" }}>
-                <label style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--text-primary)", display: "block", marginBottom: "0.6rem" }}>
-                  Tipo de Participantes Requeridos (Selecciona al menos uno) *
-                </label>
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", fontSize: "0.9rem", color: "var(--text-primary)" }}>
-                    <input 
-                      type="checkbox" 
-                      checked={editBrandsAllowed} 
-                      onChange={(e) => setEditBrandsAllowed(e.target.checked)} 
-                      style={{ 
-                        width: "18px", 
-                        height: "18px", 
-                        cursor: "pointer", 
-                        accentColor: "var(--gold-primary)" 
-                      }} 
-                    />
-                    <span>🏪 Marcas y Emprendimientos Locales</span>
-                  </label>
-                  <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", fontSize: "0.9rem", color: "var(--text-primary)" }}>
-                    <input 
-                      type="checkbox" 
-                      checked={editBandsAllowed} 
-                      onChange={(e) => setEditBandsAllowed(e.target.checked)} 
-                      style={{ 
-                        width: "18px", 
-                        height: "18px", 
-                        cursor: "pointer", 
-                        accentColor: "var(--gold-primary)" 
-                      }} 
-                    />
-                    <span>🎸 Bandas y Proyectos de Música (Lineup)</span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Descripción del Evento</label>
-                <textarea className="form-control" rows="3" style={{ resize: "none" }} value={editFairDescription} onChange={(e) => setEditFairDescription(e.target.value)} placeholder="Escribe los detalles de la feria, atracciones, etc."></textarea>
-              </div>
-
-              {/* Banner Upload */}
-              <div className="form-group">
-                <label>Imagen del Banner del Evento</label>
-                <label
-                  htmlFor="edit-fair-banner-upload"
-                  style={{
-                    display: "flex", alignItems: "center", gap: "12px",
-                    border: "2px dashed var(--border-color)", borderRadius: "8px",
-                    padding: "0.8rem", cursor: "pointer", transition: "var(--transition-smooth)",
-                    background: "var(--bg-input)"
-                  }}
-                >
-                  {editFairBannerPreview ? (
-                    <img src={editFairBannerPreview} alt="preview" style={{ width: "80px", height: "48px", objectFit: "cover", borderRadius: "6px", border: "1.5px solid var(--border-color)" }} />
-                  ) : (
-                    <div style={{ width: "80px", height: "48px", background: "rgba(212,175,55,0.1)", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <i className="fa-solid fa-camera" style={{ color: "var(--gold-primary)", fontSize: "1.1rem" }}></i>
-                    </div>
-                  )}
-                  <div>
-                    <span style={{ fontSize: "0.82rem", fontWeight: 700, display: "block" }}>
-                      {uploadingBanner ? "Subiendo..." : editFairBannerPreview ? "Banner cargado ✓" : "Haz clic para cambiar banner"}
-                    </span>
-                    <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>Recomendado: Horizontal (800x260)</span>
-                  </div>
-                </label>
-                <input
-                  id="edit-fair-banner-upload"
-                  type="file"
-                  accept="image/*"
-                  style={{ display: "none" }}
-                  disabled={uploadingBanner}
-                  onChange={async (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    setEditFairBannerPreview(URL.createObjectURL(file));
-                    const url = await uploadImage(file, setUploadingBanner);
-                    if (url) setEditFairBanner(url);
-                  }}
-                />
-              </div>
-
-              {/* Edit Coordinates Leaflet Map */}
-              <div style={{ marginBottom: "1.5rem" }}>
-                <label style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--text-primary)", display: "block", marginBottom: "0.5rem" }}>
-                  📍 Ajustar ubicación en el mapa (Arrastra el marcador o haz clic)
-                </label>
-                <div ref={editMapContainerRef} style={{ height: "200px", width: "100%", borderRadius: "8px", border: "1px solid var(--border-color)", zIndex: 1 }}></div>
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px", display: "block" }}>
-                  Coordenadas actuales: Lat: {editFairLat.toFixed(5)}, Lng: {editFairLng.toFixed(5)}
-                </span>
-              </div>
-
-              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1.5rem" }}>
                 <button type="button" onClick={() => setEditFairOpen(false)} className="btn-outline-gold" style={{ padding: "0.45rem 1.2rem", borderRadius: "6px", fontSize: "0.85rem" }}>
                   Cancelar
                 </button>
