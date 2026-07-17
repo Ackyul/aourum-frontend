@@ -1433,7 +1433,8 @@ export function parseDescription(description) {
     banner: "",
     theme_color: "",
     tagline: "",
-    interests: ""
+    interests: "",
+    fair_type: "both"
   };
   if (!description) return defaultVal;
   const trimmed = description.trim();
@@ -1456,7 +1457,8 @@ export function parseDescription(description) {
         banner: parsed.banner || "",
         theme_color: parsed.theme_color || "",
         tagline: parsed.tagline || "",
-        interests: parsed.interests || ""
+        interests: parsed.interests || "",
+        fair_type: parsed.fair_type || "both"
       };
     } catch (e) {
       return defaultVal;
