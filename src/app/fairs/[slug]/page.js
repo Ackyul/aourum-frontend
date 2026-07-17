@@ -64,7 +64,8 @@ export default function FairProfilePage({ params }) {
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [activeEditTab, setActiveEditTab] = useState("general");
-  const [activeInfoTab, setActiveInfoTab] = useState("ubicacion");
+  const [activeInfoTab, setActiveInfoTab] = useState("marcas");
+  const [locationModalOpen, setLocationModalOpen] = useState(false);
 
   // Edit Map Refs
   const editMapContainerRef = useRef(null);
@@ -171,7 +172,7 @@ export default function FairProfilePage({ params }) {
         profileLeafletMapRef.current = null;
       }
     };
-  }, [fair, infoModalOpen]);
+  }, [fair, locationModalOpen]);
 
   // Initialize Edit Leaflet Map when editing is opened
   useEffect(() => {
@@ -235,15 +236,6 @@ export default function FairProfilePage({ params }) {
       }, 100);
     }
   }, [activeEditTab]);
-
-  // When switching to the 'ubicacion' tab in the info modal, invalidate leaflet map size so it renders correctly
-  useEffect(() => {
-    if (activeInfoTab === "ubicacion" && profileLeafletMapRef.current) {
-      setTimeout(() => {
-        profileLeafletMapRef.current.invalidateSize();
-      }, 100);
-    }
-  }, [activeInfoTab]);
 
   if (loading) {
     return (
@@ -452,14 +444,25 @@ export default function FairProfilePage({ params }) {
 
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               <button
+                onClick={() => setLocationModalOpen(true)}
+                className="btn-outline-gold"
+                style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+              >
+                <i className="fa-solid fa-location-dot"></i> Ubicación
+              </button>
+              <button
                 onClick={() => {
-                  setActiveInfoTab("ubicacion");
+                  if (fairType === "only_bands") {
+                    setActiveInfoTab("bandas");
+                  } else {
+                    setActiveInfoTab("marcas");
+                  }
                   setInfoModalOpen(true);
                 }}
                 className="btn-outline-gold"
                 style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
               >
-                <i className="fa-solid fa-location-dot"></i> Ubicación
+                <i className="fa-solid fa-circle-info"></i> Información
               </button>
               {canEditFair && (
                 <button
@@ -832,6 +835,66 @@ export default function FairProfilePage({ params }) {
         </div>
       )}
       {/* ── MODAL: INFORMACIÓN DE LA FERIA / EVENTO ── */}
+      {/* ── MODAL: UBICACIÓN DEL EVENTO ── */}
+      {locationModalOpen && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }}>
+          <div className="modal-backdrop" onClick={() => setLocationModalOpen(false)}></div>
+          <div className="modal-panel fade-in" style={{ maxWidth: "600px", width: "90%", maxHeight: "85vh", display: "flex", flexDirection: "column", padding: 0 }}>
+            {/* Modal Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.5rem", borderBottom: "1px solid var(--border-color)" }}>
+              <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0, color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "8px" }}>
+                <i className="fa-solid fa-location-dot"></i> Ubicación del Evento
+              </h3>
+              <button onClick={() => setLocationModalOpen(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>&times;</button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ overflowY: "auto", padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", gap: "1rem" }}>
+              {fair.location && (
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "10px" }}>
+                    <div>
+                      <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "var(--text-gold)", marginBottom: "0.2rem" }}>Dirección</h4>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.88rem", color: "var(--text-primary)" }}>
+                        <i className="fa-solid fa-location-dot" style={{ color: "var(--gold-primary)" }}></i>
+                        <span>{fair.location}</span>
+                      </div>
+                    </div>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${fair.lat || -16.39889},${fair.lng || -71.53694}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-outline-gold"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        padding: "5px 12px",
+                        borderRadius: "20px",
+                        fontSize: "0.78rem",
+                        fontWeight: 700,
+                        textDecoration: "none"
+                      }}
+                    >
+                      <i className="fa-solid fa-map-location-dot"></i> Google Maps
+                    </a>
+                  </div>
+                  <div ref={profileMapContainerRef} style={{ height: "280px", width: "100%", borderRadius: "10px", border: "1px solid var(--border-color)", zIndex: 1, boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}></div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{ padding: "1.2rem", borderTop: "1px solid var(--border-color)", display: "flex", justifyContent: "flex-end" }}>
+              <button onClick={() => setLocationModalOpen(false)} className="btn-gold" style={{ padding: "0.45rem 1.5rem", borderRadius: "6px", fontSize: "0.85rem" }}>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: INFORMACIÓN Y CONTENIDO DE LA FERIA ── */}
       {infoModalOpen && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal-backdrop" onClick={() => setInfoModalOpen(false)}></div>
@@ -844,28 +907,21 @@ export default function FairProfilePage({ params }) {
               <button onClick={() => setInfoModalOpen(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>&times;</button>
             </div>
 
-            {/* Tab bar header for Info Modal */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", borderBottom: "1.5px solid var(--border-color)", padding: "0 1.5rem 0.8rem 1.5rem", marginBottom: "0.5rem" }}>
-              <button 
-                type="button" 
-                onClick={() => setActiveInfoTab("ubicacion")} 
-                style={{
-                  background: activeInfoTab === "ubicacion" ? "var(--gold-gradient)" : "transparent",
-                  color: activeInfoTab === "ubicacion" ? "#1C1C1E" : "var(--text-muted)",
-                  border: "1px solid " + (activeInfoTab === "ubicacion" ? "var(--gold-primary)" : "transparent"),
-                  padding: "0.45rem 1rem",
-                  borderRadius: "20px",
-                  fontSize: "0.82rem",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                  transition: "var(--transition-smooth)",
-                  boxShadow: activeInfoTab === "ubicacion" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
-                }}
-              >
-                📍 Ubicación
-              </button>
-              {(fairType === "both" || fairType === "only_brands") && (
+            {/* Description is always shown at the top of the body if present */}
+            {descriptionText && (
+              <div style={{ padding: "0 1.5rem 0.8rem 1.5rem" }}>
+                <div>
+                  <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "var(--text-gold)", marginBottom: "0.4rem" }}>Sobre el Evento</h4>
+                  <p style={{ fontSize: "0.92rem", color: "var(--text-primary)", lineHeight: 1.6, margin: 0 }}>
+                    {descriptionText}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Tab bar header for Info Modal: Only Marcas and Bandas tabs as shown in the screenshot */}
+            {(fairType === "both") && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", borderBottom: "1.5px solid var(--border-color)", padding: "0 1.5rem 0.8rem 1.5rem", marginBottom: "0.5rem" }}>
                 <button 
                   type="button" 
                   onClick={() => setActiveInfoTab("marcas")} 
@@ -885,8 +941,6 @@ export default function FairProfilePage({ params }) {
                 >
                   🏪 Marcas
                 </button>
-              )}
-              {(fairType === "both" || fairType === "only_bands") && (
                 <button 
                   type="button" 
                   onClick={() => setActiveInfoTab("bandas")} 
@@ -906,59 +960,14 @@ export default function FairProfilePage({ params }) {
                 >
                   🎸 Bandas
                 </button>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Modal Body */}
             <div style={{ overflowY: "auto", padding: "1.2rem 1.5rem", flex: 1, display: "flex", flexDirection: "column" }}>
-              {/* TAB: UBICACIÓN */}
-              <div style={{ display: activeInfoTab === "ubicacion" ? "block" : "none" }} className="fade-in">
-                {descriptionText && (
-                  <div style={{ marginBottom: "1.5rem" }}>
-                    <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "var(--text-gold)", marginBottom: "0.5rem" }}>Sobre el Evento</h4>
-                    <p style={{ fontSize: "0.92rem", color: "var(--text-primary)", lineHeight: 1.6, margin: 0 }}>
-                      {descriptionText}
-                    </p>
-                  </div>
-                )}
-                
-                {fair.location && (
-                  <div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem", flexWrap: "wrap", gap: "10px" }}>
-                      <div>
-                        <h4 style={{ fontSize: "0.95rem", fontWeight: 800, color: "var(--text-gold)", marginBottom: "0.2rem" }}>Dirección</h4>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.88rem", color: "var(--text-primary)" }}>
-                          <i className="fa-solid fa-location-dot" style={{ color: "var(--gold-primary)" }}></i>
-                          <span>{fair.location}</span>
-                        </div>
-                      </div>
-                      <a
-                        href={`https://www.google.com/maps/search/?api=1&query=${fair.lat || -16.39889},${fair.lng || -71.53694}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn-outline-gold"
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          padding: "5px 12px",
-                          borderRadius: "20px",
-                          fontSize: "0.78rem",
-                          fontWeight: 700,
-                          textDecoration: "none"
-                        }}
-                      >
-                        <i className="fa-solid fa-map-location-dot"></i> Google Maps
-                      </a>
-                    </div>
-                    <div ref={profileMapContainerRef} style={{ height: "240px", width: "100%", borderRadius: "10px", border: "1px solid var(--border-color)", zIndex: 1, boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}></div>
-                  </div>
-                )}
-              </div>
-
               {/* TAB: MARCAS */}
-              {(fairType === "both" || fairType === "only_brands") && (
-                <div style={{ display: activeInfoTab === "marcas" ? "block" : "none" }} className="fade-in">
+              {(fairType === "both" || fairType === "only_brands") && (activeInfoTab === "marcas" || fairType === "only_brands") && (
+                <div className="fade-in">
                   <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "var(--text-gold)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "6px" }}>
                     <i className="fa-solid fa-store" style={{ color: "var(--gold-primary)" }}></i> Marcas Participantes
                   </h4>
@@ -993,8 +1002,8 @@ export default function FairProfilePage({ params }) {
               )}
 
               {/* TAB: BANDAS */}
-              {(fairType === "both" || fairType === "only_bands") && (
-                <div style={{ display: activeInfoTab === "bandas" ? "block" : "none" }} className="fade-in">
+              {(fairType === "both" || fairType === "only_bands") && (activeInfoTab === "bandas" || fairType === "only_bands") && (
+                <div className="fade-in">
                   <h4 style={{ fontSize: "1rem", fontWeight: 800, color: "var(--text-gold)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "6px" }}>
                     <i className="fa-solid fa-music" style={{ color: "var(--gold-primary)" }}></i> Lineup de Música
                   </h4>
