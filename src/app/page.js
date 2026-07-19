@@ -144,17 +144,69 @@ export default function Home() {
   }, [loadProducts, loadBrands]);
 
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(15);
-  const [prevSearchTerm, setPrevSearchTerm] = useState(searchTerm);
-  const [prevFilterType, setPrevFilterType] = useState(filterType);
-  const [prevFilterCategory, setPrevFilterCategory] = useState(filterCategory);
 
-  if (searchTerm !== prevSearchTerm || filterType !== prevFilterType || filterCategory !== prevFilterCategory) {
-    setPrevSearchTerm(searchTerm);
-    setPrevFilterType(filterType);
-    setPrevFilterCategory(filterCategory);
-    setVisibleCount(15);
-  }
+  // Estados de paginación del lado del servidor para filtros
+  const [pagedProducts, setPagedProducts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [pagedLoading, setPagedLoading] = useState(false);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const hasActiveFilters = searchTerm !== "" || filterType !== "all" || filterCategory !== "all";
+
+  // Buscar y paginar productos desde el backend cuando cambian los filtros
+  useEffect(() => {
+    if (!hasActiveFilters) {
+      setPagedProducts([]);
+      return;
+    }
+    
+    const fetchFiltered = async () => {
+      setPagedLoading(true);
+      try {
+        const queryParams = new URLSearchParams({
+          page: 1,
+          limit: 15,
+          category: filterCategory,
+          type: filterType,
+          search: searchTerm
+        });
+        const res = await fetch(`${API_URL}/api/products?${queryParams.toString()}`).then(r => r.json());
+        setPagedProducts(res.items || []);
+        setTotalCount(res.count || 0);
+        setCurrentPage(1);
+      } catch (err) {
+        console.error("Error al cargar productos paginados:", err);
+      } finally {
+        setPagedLoading(false);
+      }
+    };
+    
+    fetchFiltered();
+  }, [searchTerm, filterType, filterCategory, hasActiveFilters, API_URL]);
+
+  // Cargar más productos desde el backend
+  const loadMoreProducts = async () => {
+    if (pagedLoading) return;
+    setPagedLoading(true);
+    try {
+      const nextPage = currentPage + 1;
+      const queryParams = new URLSearchParams({
+        page: nextPage,
+        limit: 15,
+        category: filterCategory,
+        type: filterType,
+        search: searchTerm
+      });
+      const res = await fetch(`${API_URL}/api/products?${queryParams.toString()}`).then(r => r.json());
+      setPagedProducts(prev => [...prev, ...(res.items || [])]);
+      setCurrentPage(nextPage);
+    } catch (err) {
+      console.error("Error al cargar más productos:", err);
+    } finally {
+      setPagedLoading(false);
+    }
+  };
   const router = useRouter();
 
   // Scroll listener for floating filter button
@@ -226,7 +278,6 @@ export default function Home() {
     return matchesSearch && matchesType && matchesCategory;
   });
 
-  const hasActiveFilters = searchTerm !== "" || filterType !== "all" || filterCategory !== "all";
   const allCategories = (() => {
     const seen = new Set();
     const unique = [];
@@ -500,7 +551,7 @@ export default function Home() {
           {/* Catalog items display logic */}
           {hasActiveFilters ? (
             // Grid view for filtered results
-            filteredProducts.length === 0 ? (
+            (!pagedLoading && pagedProducts.length === 0) ? (
               <div style={{ padding: "5rem", textAlign: "center", background: "#FFFFFF", borderRadius: "12px", border: "1px solid var(--border-color)" }}>
                 <i className="fa-solid fa-store-slash" style={{ fontSize: "3rem", color: "var(--border-color)", marginBottom: "1rem" }}></i>
                 <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>No se encontraron items con los filtros aplicados. Intenta buscando otro término o reseteando los filtros.</p>
@@ -518,15 +569,16 @@ export default function Home() {
             ) : (
               <div>
                 <div className="grid-catalog">
-                  {interleavedFilteredProducts.slice(0, visibleCount).map((prod) => (
+                  {pagedProducts.map((prod) => (
                     <ProductCard key={prod.id} prod={prod} />
                   ))}
                 </div>
                 
-                {interleavedFilteredProducts.length > visibleCount && (
+                {pagedProducts.length < totalCount && (
                   <div style={{ display: "flex", justifyContent: "center", marginTop: "3rem" }}>
                     <button 
-                      onClick={() => setVisibleCount((prev) => prev + 15)}
+                      onClick={loadMoreProducts}
+                      disabled={pagedLoading}
                       className="btn-outline-gold"
                       style={{
                         borderRadius: "30px",
@@ -534,11 +586,12 @@ export default function Home() {
                         fontSize: "0.9rem",
                         fontWeight: 700,
                         boxShadow: "0 4px 12px rgba(214,175,55,0.08)",
-                        cursor: "pointer"
+                        cursor: pagedLoading ? "not-allowed" : "pointer",
+                        opacity: pagedLoading ? 0.6 : 1
                       }}
                     >
-                      <i className="fa-solid fa-arrow-rotate-right" style={{ marginRight: "8px" }}></i>
-                      Ver más productos
+                      <i className={`fa-solid ${pagedLoading ? 'fa-spinner fa-spin' : 'fa-arrow-rotate-right'}`} style={{ marginRight: "8px" }}></i>
+                      {pagedLoading ? "Cargando..." : "Ver más productos"}
                     </button>
                   </div>
                 )}
