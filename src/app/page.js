@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useApp } from "../context/AppContext";
 import Link from "next/link";
@@ -790,6 +790,7 @@ export default function Home() {
           </div>
           )}
 
+          {activeTab === "vitrina" && (<>
           {/* Sliding Sidebar Filters */}
           <div className={`sidebar-backdrop ${filtersOpen ? "open" : ""}`} onClick={() => setFiltersOpen(false)} />
           <div className={`sidebar-panel ${filtersOpen ? "open" : ""}`}>
@@ -848,6 +849,7 @@ export default function Home() {
               <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#1C1C1E" }}></span>
             )}
           </button>
+          </>)}
 
           </div>
         </>
