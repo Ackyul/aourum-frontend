@@ -792,8 +792,23 @@ export default function Home() {
 
           {activeTab === "vitrina" && (<>
           {/* Sliding Sidebar Filters */}
-          <div className={`sidebar-backdrop ${filtersOpen ? "open" : ""}`} onClick={() => setFiltersOpen(false)} />
-          <div className={`sidebar-panel ${filtersOpen ? "open" : ""}`}>
+          <div 
+            className={`sidebar-backdrop ${filtersOpen ? "open" : ""}`} 
+            onClick={() => setFiltersOpen(false)} 
+            style={{
+              opacity: filtersOpen ? 1 : 0,
+              visibility: filtersOpen ? "visible" : "hidden",
+              transition: "opacity 0.3s ease, visibility 0.3s ease"
+            }}
+          />
+          <div 
+            className={`sidebar-panel ${filtersOpen ? "open" : ""}`}
+            style={{
+              transform: filtersOpen ? "translateX(0)" : "translateX(-380px)",
+              visibility: filtersOpen ? "visible" : "hidden",
+              transition: "transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s ease"
+            }}
+          >
             <div className="sidebar-header">
               <h3>Filtros Avanzados</h3>
               <button className="sidebar-close-btn" onClick={() => setFiltersOpen(false)} aria-label="Cerrar filtros">
