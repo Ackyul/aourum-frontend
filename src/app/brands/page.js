@@ -527,6 +527,15 @@ export default function BrandsPage() {
             className={`sidebar-backdrop ${filtersOpen ? "open" : ""}`} 
             onClick={() => setFiltersOpen(false)} 
             style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              background: "rgba(28, 28, 30, 0.4)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              zIndex: 1000,
               opacity: filtersOpen ? 1 : 0,
               visibility: filtersOpen ? "visible" : "hidden",
               transition: "opacity 0.3s ease, visibility 0.3s ease"
@@ -535,7 +544,19 @@ export default function BrandsPage() {
           <div 
             className={`sidebar-panel ${filtersOpen ? "open" : ""}`}
             style={{
-              transform: filtersOpen ? "translateX(0)" : "translateX(-380px)",
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100%",
+              maxWidth: "380px",
+              height: "100vh",
+              background: "var(--bg-card, #fff)",
+              borderRight: "1px solid var(--border-color)",
+              boxShadow: "20px 0 50px rgba(0, 0, 0, 0.15)",
+              zIndex: 1001,
+              display: "flex",
+              flexDirection: "column",
+              transform: filtersOpen ? "translateX(0)" : "translateX(-100%)",
               visibility: filtersOpen ? "visible" : "hidden",
               transition: "transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s ease"
             }}
