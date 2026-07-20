@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useApp } from "../context/AppContext";
 import Link from "next/link";
@@ -144,8 +144,62 @@ export default function Home() {
   }, [loadProducts, loadBrands]);
 
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(15);
 
-  // Estados de paginación del lado del servidor para filtros
+  // â”€â”€ Feed de Actividad Cultural â”€â”€
+  const [activeTab, setActiveTab] = useState('vitrina'); // 'vitrina' | 'feed'
+  const [feedItems, setFeedItems] = useState([]);
+  const [feedPage, setFeedPage] = useState(1);
+  const [feedTotal, setFeedTotal] = useState(0);
+  const [feedLoading, setFeedLoading] = useState(false);
+  const [feedLoaded, setFeedLoaded] = useState(false);
+
+  const loadFeed = async (page = 1, append = false) => {
+    setFeedLoading(true);
+    try {
+      const res = await fetch(`${API_URL || 'http://localhost:5000'}/api/feed?page=${page}&limit=15`).then(r => r.json());
+      const items = res.items || [];
+      setFeedItems(prev => append ? [...prev, ...items] : items);
+      setFeedTotal(res.count || 0);
+      setFeedPage(page);
+      setFeedLoaded(true);
+    } catch (err) {
+      console.error('Error loading feed:', err);
+    } finally {
+      setFeedLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'feed' && !feedLoaded) {
+      loadFeed(1);
+    }
+  }, [activeTab, feedLoaded]);
+
+  const formatFeedDate = (iso) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const now = new Date();
+    const diff = Math.floor((now - d) / 1000);
+    if (diff < 60) return 'hace un momento';
+    if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
+    if (diff < 86400) return `hace ${Math.floor(diff / 3600)} h`;
+    if (diff < 604800) return `hace ${Math.floor(diff / 86400)} d`;
+    return d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short' });
+  };
+
+  const feedEventMeta = (item) => {
+    switch(item.eventType) {
+      case 'product_created': return { icon: 'fa-box-open', color: '#d4af37', label: 'Nueva creaciÃ³n' };
+      case 'fair_created':    return { icon: 'fa-store', color: '#16a34a', label: 'Nueva feria' };
+      case 'brand_created':   return { icon: 'fa-star', color: '#2563eb', label: 'Nueva marca' };
+      case 'band_created':    return { icon: 'fa-music', color: '#9333ea', label: 'Nueva banda' };
+      case 'person_created':  return { icon: 'fa-user-plus', color: '#ea580c', label: 'Nuevo talento' };
+      default: return { icon: 'fa-bell', color: '#6b7280', label: 'Novedad' };
+    }
+  };
+
+  // Estados de paginaciÃ³n del lado del servidor para filtros
   const [pagedProducts, setPagedProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -185,7 +239,7 @@ export default function Home() {
     fetchFiltered();
   }, [searchTerm, filterType, filterCategory, hasActiveFilters, API_URL]);
 
-  // Cargar más productos desde el backend
+  // Cargar mÃ¡s productos desde el backend
   const loadMoreProducts = async () => {
     if (pagedLoading) return;
     setPagedLoading(true);
@@ -202,7 +256,7 @@ export default function Home() {
       setPagedProducts(prev => [...prev, ...(res.items || [])]);
       setCurrentPage(nextPage);
     } catch (err) {
-      console.error("Error al cargar más productos:", err);
+      console.error("Error al cargar mÃ¡s productos:", err);
     } finally {
       setPagedLoading(false);
     }
@@ -323,22 +377,22 @@ export default function Home() {
   const themeSpecs = [
     {
       id: "joyeria",
-      title: "Novedades en Joyería",
-      subtitle: "Diseños únicos, brillo local e identidad cultural",
-      keywords: ["joyeria", "joyería", "anillo", "collar", "pulsera", "arete", "esmeralda", "plata", "oro"],
-      fallbackCategory: "Joyería"
+      title: "Novedades en JoyerÃ­a",
+      subtitle: "DiseÃ±os Ãºnicos, brillo local e identidad cultural",
+      keywords: ["joyeria", "joyerÃ­a", "anillo", "collar", "pulsera", "arete", "esmeralda", "plata", "oro"],
+      fallbackCategory: "JoyerÃ­a"
     },
     {
       id: "ropa",
       title: "Tendencias en Ropa",
-      subtitle: "Prendas con historia y estilo contemporáneo",
-      keywords: ["ropa", "vestimenta", "prenda", "moda", "polo", "casaca", "pantalon", "pantalón", "falda", "vestido", "abrigo"],
+      subtitle: "Prendas con historia y estilo contemporÃ¡neo",
+      keywords: ["ropa", "vestimenta", "prenda", "moda", "polo", "casaca", "pantalon", "pantalÃ³n", "falda", "vestido", "abrigo"],
       fallbackCategory: "Ropa"
     },
     {
       id: "accesorios",
       title: "Accesorios Destacados",
-      subtitle: "El complemento perfecto para tu día a día",
+      subtitle: "El complemento perfecto para tu dÃ­a a dÃ­a",
       keywords: ["accesorio", "accesorios", "cartera", "bolso", "sombrero", "lentes", "correa", "billetera"],
       fallbackCategory: "Accesorios"
     }
@@ -507,6 +561,7 @@ export default function Home() {
     );
   };
 
+
   return (
     <div className="container" style={{ paddingBottom: "3rem" }}>
       {loading ? (
@@ -517,28 +572,146 @@ export default function Home() {
       ) : (
         <>
           <div className="fade-in">
-          
-          {/* Header area of catalogue */}
+
+          {/* Tab Switcher */}
+          <div style={{ display: "flex", gap: "0.5rem", marginBottom: "2rem", borderBottom: "2px solid var(--border-color)", paddingBottom: "0" }}>
+            {[{ id: "vitrina", label: "Vitrina Cultural", icon: "fa-store" }, { id: "feed", label: "Muro de Novedades", icon: "fa-rss" }].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  padding: "0.6rem 1.2rem",
+                  borderRadius: "8px 8px 0 0",
+                  border: "none",
+                  cursor: "pointer",
+                  fontWeight: 700,
+                  fontSize: "0.88rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "7px",
+                  transition: "all 0.18s",
+                  background: activeTab === tab.id ? "var(--gold-primary)" : "transparent",
+                  color: activeTab === tab.id ? "#1c1c1e" : "var(--text-muted)",
+                  borderBottom: activeTab === tab.id ? "2px solid var(--gold-primary)" : "2px solid transparent",
+                  marginBottom: "-2px"
+                }}
+              >
+                <i className={`fa-solid ${tab.icon}`} style={{ fontSize: "0.8rem" }}></i>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Feed Tab */}
+          {activeTab === "feed" && (
+            <div style={{ maxWidth: "640px", margin: "0 auto" }}>
+              {feedLoading && feedItems.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "4rem 0" }}>
+                  <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2rem", color: "var(--gold-primary)" }}></i>
+                </div>
+              ) : feedItems.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "4rem 0", color: "var(--text-muted)" }}>
+                  <i className="fa-solid fa-rss" style={{ fontSize: "2.5rem", marginBottom: "1rem", display: "block" }}></i>
+                  <p>Aun no hay actividad registrada.</p>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  {feedItems.map(item => {
+                    const meta = feedEventMeta(item);
+                    return (
+                      <div
+                        key={item.id}
+                        className="fade-in"
+                        style={{
+                          background: "var(--card-bg, #fff)",
+                          border: "1px solid var(--border-color)",
+                          borderRadius: "14px",
+                          padding: "1rem 1.2rem",
+                          display: "flex",
+                          gap: "1rem",
+                          alignItems: "flex-start",
+                          boxShadow: "0 2px 10px rgba(0,0,0,0.04)"
+                        }}
+                      >
+                        <div style={{
+                          width: "42px", height: "42px", borderRadius: "50%",
+                          background: meta.color + "18",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          flexShrink: 0
+                        }}>
+                          <i className={`fa-solid ${meta.icon}`} style={{ color: meta.color, fontSize: "1rem" }}></i>
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                            <span style={{
+                              fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase",
+                              letterSpacing: "0.05em", color: meta.color, background: meta.color + "15",
+                              padding: "2px 8px", borderRadius: "20px"
+                            }}>{meta.label}</span>
+                            <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{formatFeedDate(item.timestamp)}</span>
+                          </div>
+                          {item.link ? (
+                            <Link href={item.link} style={{ textDecoration: "none", color: "inherit" }}>
+                              <p style={{ fontWeight: 700, fontSize: "0.95rem", margin: "0.3rem 0 0.2rem", lineHeight: 1.3 }}>{item.title}</p>
+                            </Link>
+                          ) : (
+                            <p style={{ fontWeight: 700, fontSize: "0.95rem", margin: "0.3rem 0 0.2rem", lineHeight: 1.3 }}>{item.title}</p>
+                          )}
+                          {item.description && (
+                            <p style={{
+                              fontSize: "0.83rem", color: "var(--text-muted)",
+                              display: "-webkit-box", WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical", overflow: "hidden", margin: 0
+                            }}>{item.description}</p>
+                          )}
+                          {item.image && (
+                            <img
+                              src={item.image} alt={item.title}
+                              style={{ width: "100%", maxHeight: "180px", objectFit: "cover", borderRadius: "10px", marginTop: "0.7rem" }}
+                              onError={e => { e.currentTarget.style.display = "none"; }}
+                            />
+                          )}
+                          {item.meta && item.eventType === "fair_created" && item.meta.date && (
+                            <div style={{ display: "flex", gap: "1rem", marginTop: "0.6rem", fontSize: "0.78rem", color: "var(--text-muted)" }}>
+                              <span><i className="fa-solid fa-calendar" style={{ marginRight: "4px" }}></i>{item.meta.date}</span>
+                              {item.meta.location && <span><i className="fa-solid fa-location-dot" style={{ marginRight: "4px" }}></i>{item.meta.location}</span>}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {feedItems.length < feedTotal && (
+                    <div style={{ textAlign: "center", marginTop: "1rem" }}>
+                      <button
+                        onClick={() => loadFeed(feedPage + 1, true)}
+                        disabled={feedLoading}
+                        className="btn-outline-gold"
+                        style={{ borderRadius: "30px", padding: "0.7rem 2rem", fontWeight: 700, cursor: feedLoading ? "not-allowed" : "pointer", opacity: feedLoading ? 0.6 : 1 }}
+                      >
+                        <i className={`fa-solid ${feedLoading ? "fa-spinner fa-spin" : "fa-arrow-down"}`} style={{ marginRight: "8px" }}></i>
+                        {feedLoading ? "Cargando..." : "Ver mas novedades"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Vitrina Tab */}
+          {activeTab === "vitrina" && (
+          <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2.0rem", flexWrap: "wrap", gap: "1rem" }}>
             <div>
               <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", marginTop: "2px" }}>
-                {hasActiveFilters ? "Resultados de búsqueda" : "Marcas Locales"}
+                {hasActiveFilters ? "Resultados de busqueda" : "Marcas Locales"}
               </h2>
             </div>
-            
-            <button 
+            <button
               onClick={() => setFiltersOpen(true)}
               className="btn-outline-gold desktop-filter-btn"
-              style={{
-                borderRadius: "20px",
-                padding: "0.45rem 1.2rem",
-                fontSize: "0.85rem",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                cursor: "pointer",
-                background: "transparent"
-              }}
+              style={{ borderRadius: "20px", padding: "0.45rem 1.2rem", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", background: "transparent" }}
             >
               <i className="fa-solid fa-sliders"></i>
               Mostrar Filtros
@@ -548,23 +721,16 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Catalog items display logic */}
           {hasActiveFilters ? (
-            // Grid view for filtered results
             (!pagedLoading && pagedProducts.length === 0) ? (
               <div style={{ padding: "5rem", textAlign: "center", background: "#FFFFFF", borderRadius: "12px", border: "1px solid var(--border-color)" }}>
                 <i className="fa-solid fa-store-slash" style={{ fontSize: "3rem", color: "var(--border-color)", marginBottom: "1rem" }}></i>
-                <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>No se encontraron items con los filtros aplicados. Intenta buscando otro término o reseteando los filtros.</p>
-                <button 
-                  className="btn-outline-gold" 
+                <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>No se encontraron items con los filtros aplicados.</p>
+                <button
+                  className="btn-outline-gold"
                   style={{ marginTop: "1.5rem", borderRadius: "20px", padding: "0.4rem 1.2rem", fontSize: "0.85rem" }}
-                  onClick={() => {
-                    setFilterType("all");
-                    setFilterCategory("all");
-                  }}
-                >
-                  Limpiar Filtros
-                </button>
+                  onClick={() => { setFilterType("all"); setFilterCategory("all"); }}
+                >Limpiar Filtros</button>
               </div>
             ) : (
               <div>
@@ -573,66 +739,32 @@ export default function Home() {
                     <ProductCard key={prod.id} prod={prod} />
                   ))}
                 </div>
-                
                 {pagedProducts.length < totalCount && (
                   <div style={{ display: "flex", justifyContent: "center", marginTop: "3rem" }}>
-                    <button 
+                    <button
                       onClick={loadMoreProducts}
                       disabled={pagedLoading}
                       className="btn-outline-gold"
-                      style={{
-                        borderRadius: "30px",
-                        padding: "0.75rem 2rem",
-                        fontSize: "0.9rem",
-                        fontWeight: 700,
-                        boxShadow: "0 4px 12px rgba(214,175,55,0.08)",
-                        cursor: pagedLoading ? "not-allowed" : "pointer",
-                        opacity: pagedLoading ? 0.6 : 1
-                      }}
+                      style={{ borderRadius: "30px", padding: "0.75rem 2rem", fontSize: "0.9rem", fontWeight: 700, cursor: pagedLoading ? "not-allowed" : "pointer", opacity: pagedLoading ? 0.6 : 1 }}
                     >
-                      <i className={`fa-solid ${pagedLoading ? 'fa-spinner fa-spin' : 'fa-arrow-rotate-right'}`} style={{ marginRight: "8px" }}></i>
-                      {pagedLoading ? "Cargando..." : "Ver más productos"}
+                      <i className={`fa-solid ${pagedLoading ? "fa-spinner fa-spin" : "fa-arrow-rotate-right"}`} style={{ marginRight: "8px" }}></i>
+                      {pagedLoading ? "Cargando..." : "Ver mas productos"}
                     </button>
                   </div>
                 )}
               </div>
             )
           ) : (
-            // Categorized Carousels (Default Homepage View)
             <div>
-
-
-              {renderCarousel(
-                "productos-destacados",
-                "Productos Destacados",
-                "Los artículos más vistos y preferidos de la vitrina cultural",
-                featuredProducts,
-                "all"
-              )}
-
-              {/* 1. Render themed sections */}
-              {themeSpecs.map(spec => 
-                renderCarousel(
-                  spec.id, 
-                  spec.title, 
-                  spec.subtitle, 
-                  getThemedProducts(spec), 
-                  spec.fallbackCategory
-                )
-              )}
-
-              {/* 2. Render other categories dynamically */}
-              {remainingCategories.map(cat => 
-                renderCarousel(
-                  cat.toLowerCase().replace(/[^a-z0-9]/g, ""),
-                  cat,
-                  `Explora nuestra selección de ${cat.toLowerCase()}`,
-                  products.filter(p => p.category && p.category.trim().toLowerCase() === cat.trim().toLowerCase()),
-                  cat
-                )
-              )}
-
-              {/* 3. General Catalogue Grid ("Otros Productos") */}
+              {renderCarousel("productos-destacados", "Productos Destacados", "Los articulos mas vistos y preferidos de la vitrina cultural", featuredProducts, "all")}
+              {themeSpecs.map(spec => renderCarousel(spec.id, spec.title, spec.subtitle, getThemedProducts(spec), spec.fallbackCategory))}
+              {remainingCategories.map(cat => renderCarousel(
+                cat.toLowerCase().replace(/[^a-z0-9]/g, ""),
+                cat,
+                `Explora nuestra seleccion de ${cat.toLowerCase()}`,
+                products.filter(p => p.category && p.category.trim().toLowerCase() === cat.trim().toLowerCase()),
+                cat
+              ))}
               <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "3rem", marginTop: "1rem" }}>
                 <h2 className="carousel-title" style={{ marginBottom: "1.5rem", paddingLeft: "0.2rem" }}>Vitrina de Productos</h2>
                 <div className="grid-catalog">
@@ -640,33 +772,25 @@ export default function Home() {
                     <ProductCard key={prod.id} prod={prod} />
                   ))}
                 </div>
-
                 {showcaseProducts.length > visibleCount && (
                   <div style={{ display: "flex", justifyContent: "center", marginTop: "3rem" }}>
-                    <button 
+                    <button
                       onClick={() => setVisibleCount((prev) => prev + 15)}
                       className="btn-outline-gold"
-                      style={{
-                        borderRadius: "30px",
-                        padding: "0.75rem 2rem",
-                        fontSize: "0.9rem",
-                        fontWeight: 700,
-                        boxShadow: "0 4px 12px rgba(214,175,55,0.08)",
-                        cursor: "pointer"
-                      }}
+                      style={{ borderRadius: "30px", padding: "0.75rem 2rem", fontSize: "0.9rem", fontWeight: 700, cursor: "pointer" }}
                     >
                       <i className="fa-solid fa-arrow-rotate-right" style={{ marginRight: "8px" }}></i>
-                      Ver más productos
+                      Ver mas productos
                     </button>
                   </div>
                 )}
               </div>
             </div>
           )}
-
           </div>
+          )}
 
-          {/* Sliding Left Sidebar for Filters */}
+          {/* Sliding Sidebar Filters */}
           <div className={`sidebar-backdrop ${filtersOpen ? "open" : ""}`} onClick={() => setFiltersOpen(false)} />
           <div className={`sidebar-panel ${filtersOpen ? "open" : ""}`}>
             <div className="sidebar-header">
@@ -676,95 +800,45 @@ export default function Home() {
               </button>
             </div>
             <div className="sidebar-body">
-              {/* Filter by Type */}
               <div>
-                <h4 className="sidebar-section-title">
-                  <i className="fa-solid fa-sliders"></i> Tipo de Oferta
-                </h4>
+                <h4 className="sidebar-section-title"><i className="fa-solid fa-sliders"></i> Tipo de Oferta</h4>
                 <div className="filter-group">
                   <label className={`filter-option-label ${filterType === "all" ? "active" : ""}`}>
-                    <input 
-                      type="radio" 
-                      name="filterType" 
-                      className="filter-input-radio"
-                      checked={filterType === "all"} 
-                      onChange={() => setFilterType("all")} 
-                    />
-                    Todos
+                    <input type="radio" name="filterType" className="filter-input-radio" checked={filterType === "all"} onChange={() => setFilterType("all")} />Todos
                   </label>
                   <label className={`filter-option-label ${filterType === "product" ? "active" : ""}`}>
-                    <input 
-                      type="radio" 
-                      name="filterType" 
-                      className="filter-input-radio"
-                      checked={filterType === "product"} 
-                      onChange={() => setFilterType("product")} 
-                    />
-                    🛍️ Productos
+                    <input type="radio" name="filterType" className="filter-input-radio" checked={filterType === "product"} onChange={() => setFilterType("product")} />Productos
                   </label>
                   <label className={`filter-option-label ${filterType === "service" ? "active" : ""}`}>
-                    <input 
-                      type="radio" 
-                      name="filterType" 
-                      className="filter-input-radio"
-                      checked={filterType === "service"} 
-                      onChange={() => setFilterType("service")} 
-                    />
-                    📅 Servicios
+                    <input type="radio" name="filterType" className="filter-input-radio" checked={filterType === "service"} onChange={() => setFilterType("service")} />Servicios
                   </label>
                 </div>
               </div>
-
-              {/* Filter by Category */}
               <div>
-                <h4 className="sidebar-section-title">
-                  <i className="fa-solid fa-tags"></i> Categorías
-                </h4>
+                <h4 className="sidebar-section-title"><i className="fa-solid fa-tags"></i> Categorias</h4>
                 <div className="filter-group">
                   <label className={`filter-option-label ${filterCategory === "all" ? "active" : ""}`}>
-                    <input 
-                      type="radio" 
-                      name="filterCategory" 
-                      className="filter-input-radio"
-                      checked={filterCategory === "all"} 
-                      onChange={() => setFilterCategory("all")} 
-                    />
-                    Todas las categorías
+                    <input type="radio" name="filterCategory" className="filter-input-radio" checked={filterCategory === "all"} onChange={() => setFilterCategory("all")} />Todas las categorias
                   </label>
                   {allCategories.map(cat => (
                     <label key={cat} className={`filter-option-label ${filterCategory === cat ? "active" : ""}`}>
-                      <input 
-                        type="radio" 
-                        name="filterCategory" 
-                        className="filter-input-radio"
-                        checked={filterCategory === cat} 
-                        onChange={() => setFilterCategory(cat)} 
-                      />
-                      {cat}
+                      <input type="radio" name="filterCategory" className="filter-input-radio" checked={filterCategory === cat} onChange={() => setFilterCategory(cat)} />{cat}
                     </label>
                   ))}
                 </div>
               </div>
             </div>
-            
             <div className="sidebar-footer">
-              <button 
-                className="btn-outline-gold" 
+              <button
+                className="btn-outline-gold"
                 style={{ width: "100%", padding: "0.75rem", borderRadius: "8px", cursor: "pointer", fontWeight: 700 }}
-                onClick={() => {
-                  setFilterType("all");
-                  setFilterCategory("all");
-                  setFiltersOpen(false);
-                }}
-              >
-                Limpiar Filtros
-              </button>
+                onClick={() => { setFilterType("all"); setFilterCategory("all"); setFiltersOpen(false); }}
+              >Limpiar Filtros</button>
             </div>
           </div>
 
-          {/* Floating Filter Button */}
-          <button 
-            onClick={() => setFiltersOpen(true)} 
+          <button
+            onClick={() => setFiltersOpen(true)}
             className={`floating-filter-btn fade-in ${showFloatingBtn ? "visible" : ""}`}
             aria-label="Abrir filtros"
           >
@@ -775,10 +849,9 @@ export default function Home() {
             )}
           </button>
 
-      </>
+          </div>
+        </>
       )}
     </div>
   );
 }
-
-
