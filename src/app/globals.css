@@ -1014,12 +1014,14 @@ header {
   z-index: 1001;
   display: flex;
   flex-direction: column;
-  transform: translateX(-100%);
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(-380px);
+  visibility: hidden;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s ease;
 }
 
 .sidebar-panel.open {
   transform: translateX(0);
+  visibility: visible;
 }
 
 .sidebar-header {
