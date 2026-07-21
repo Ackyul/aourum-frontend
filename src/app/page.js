@@ -220,6 +220,41 @@ export default function Home() {
   const [uploadingPostImage, setUploadingPostImage] = useState(false);
   const [submittingPost, setSubmittingPost] = useState(false);
 
+  // Client-side interactive states for posts
+  const [likedPosts, setLikedPosts] = useState(new Set());
+  const [bookmarkedPosts, setBookmarkedPosts] = useState(new Set());
+
+  const toggleLike = (id) => {
+    setLikedPosts(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleBookmark = (id) => {
+    setBookmarkedPosts(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleSharePost = (content) => {
+    if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(content);
+      triggerNotification(true, "🔗 ¡Publicación copiada al portapapeles!");
+    }
+  };
+
   const handlePostImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -880,7 +915,7 @@ export default function Home() {
                     return (
                       <div
                         key={item.id}
-                        className="fade-in"
+                        className="fade-in feed-card"
                         style={{
                           background: "var(--bg-card)",
                           border: "1px solid var(--border-color)",
@@ -889,36 +924,58 @@ export default function Home() {
                           display: "flex",
                           flexDirection: "column",
                           gap: "0.8rem",
-                          boxShadow: "0 4px 20px rgba(0,0,0,0.02)",
                           position: "relative"
                         }}
                       >
                         {/* Header: Author Info */}
                         <div style={{ display: "flex", gap: "1rem", alignItems: "center", justifyContent: "space-between" }}>
-                          <div style={{ display: "flex", gap: "0.8rem", alignItems: "center", minWidth: 0 }}>
-                            <img
-                              src={item.author?.logo || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&q=80"}
-                              alt={item.title}
-                              style={{ width: "42px", height: "42px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)", flexShrink: 0 }}
-                            />
-                            <div style={{ minWidth: 0 }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                                <p style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-primary)", margin: 0 }}>
-                                  {item.title}
-                                </p>
-                                {item.author?.username && (
+                          {item.author?.username ? (
+                            <Link
+                              href={`/people/${item.author.username}`}
+                              style={{ display: "flex", gap: "0.8rem", alignItems: "center", minWidth: 0, textDecoration: "none" }}
+                            >
+                              <img
+                                src={item.author?.logo || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&q=80"}
+                                alt={item.title}
+                                style={{ width: "42px", height: "42px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)", flexShrink: 0 }}
+                              />
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                                  <p style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-primary)", margin: 0 }}>
+                                    {item.title}
+                                  </p>
                                   <span style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
                                     @{item.author.username}
                                   </span>
+                                </div>
+                                {item.author?.occupation && (
+                                  <p style={{ fontSize: "0.78rem", color: "var(--text-gold)", margin: "1px 0 0 0", fontWeight: 500 }}>
+                                    {item.author.occupation}
+                                  </p>
                                 )}
                               </div>
-                              {item.author?.occupation && (
-                                <p style={{ fontSize: "0.78rem", color: "var(--text-gold)", margin: "1px 0 0 0", fontWeight: 500 }}>
-                                  {item.author.occupation}
-                                </p>
-                              )}
+                            </Link>
+                          ) : (
+                            <div style={{ display: "flex", gap: "0.8rem", alignItems: "center", minWidth: 0 }}>
+                              <img
+                                src={item.author?.logo || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&q=80"}
+                                alt={item.title}
+                                style={{ width: "42px", height: "42px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)", flexShrink: 0 }}
+                              />
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                                  <p style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-primary)", margin: 0 }}>
+                                    {item.title}
+                                  </p>
+                                </div>
+                                {item.author?.occupation && (
+                                  <p style={{ fontSize: "0.78rem", color: "var(--text-gold)", margin: "1px 0 0 0", fontWeight: 500 }}>
+                                    {item.author.occupation}
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                          </div>
+                          )}
 
                           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                             <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
@@ -927,7 +984,7 @@ export default function Home() {
                             {/* Delete button if user is the author */}
                             {Number(activePersonId) === item.authorId && (
                               <button
-                                onClick={() => handleDeletePost(item.id)}
+                                onClick={(e) => { e.stopPropagation(); handleDeletePost(item.id); }}
                                 style={{
                                   background: "transparent",
                                   border: "none",
@@ -937,6 +994,7 @@ export default function Home() {
                                   borderRadius: "6px",
                                   transition: "all 0.2s"
                                 }}
+                                className="hover-delete-btn"
                                 title="Eliminar publicación"
                               >
                                 <i className="fa-regular fa-trash-can" style={{ fontSize: "0.95rem" }}></i>
@@ -967,6 +1025,39 @@ export default function Home() {
                             />
                           </div>
                         )}
+
+                        {/* Actions Bar */}
+                        <div style={{ display: "flex", gap: "1.5rem", borderTop: "1px solid var(--border-color)", paddingTop: "0.6rem", marginTop: "0.4rem" }}>
+                          <button
+                            onClick={() => toggleLike(item.id)}
+                            className={`feed-action-btn ${likedPosts.has(item.id) ? "active-like" : ""}`}
+                          >
+                            <i className={likedPosts.has(item.id) ? "fa-solid fa-heart" : "fa-regular fa-heart"}></i>
+                            <span>{likedPosts.has(item.id) ? 1 : 0}</span>
+                          </button>
+                          
+                          <button className="feed-action-btn">
+                            <i className="fa-regular fa-comment"></i>
+                            <span>0</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => handleSharePost(item.description)}
+                            className="feed-action-btn"
+                            title="Compartir publicación"
+                          >
+                            <i className="fa-regular fa-share-from-square"></i>
+                          </button>
+                          
+                          <button
+                            onClick={() => toggleBookmark(item.id)}
+                            className={`feed-action-btn ${bookmarkedPosts.has(item.id) ? "active-bookmark" : ""}`}
+                            style={{ marginLeft: "auto" }}
+                            title="Guardar"
+                          >
+                            <i className={bookmarkedPosts.has(item.id) ? "fa-solid fa-bookmark" : "fa-regular fa-bookmark"}></i>
+                          </button>
+                        </div>
                       </div>
                     );
                   })}

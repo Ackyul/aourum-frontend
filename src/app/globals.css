@@ -2070,3 +2070,53 @@ header {
   }
 }
 
+/* ── PREMIUM USER POSTS SYSTEM ─────────────────────────── */
+.feed-card {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+}
+.feed-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  border-color: rgba(212, 175, 55, 0.35);
+}
+
+.feed-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  font-family: var(--font-body);
+}
+.feed-action-btn:hover {
+  background: rgba(212, 175, 55, 0.08);
+  color: var(--text-gold);
+}
+.feed-action-btn.active-like {
+  color: #ef4444 !important;
+}
+.feed-action-btn.active-like:hover {
+  background: rgba(239, 68, 68, 0.08);
+}
+.feed-action-btn.active-bookmark {
+  color: var(--gold-primary) !important;
+}
+.feed-action-btn.active-bookmark:hover {
+  background: rgba(212, 175, 55, 0.12);
+}
+.hover-delete-btn:hover {
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.08);
+}
+.post-textarea:focus {
+  border-bottom: 1.5px solid var(--gold-primary) !important;
+}
+
+
