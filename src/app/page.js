@@ -135,7 +135,13 @@ export default function Home() {
     searchTerm,
     parseDescription,
     loadProducts,
-    loadBrands
+    loadBrands,
+    activePersonId,
+    getCurrentPerson,
+    uploadImage,
+    removeBgAi,
+    triggerNotification,
+    authHeaders
   } = useApp();
 
   useEffect(() => {
@@ -200,12 +206,113 @@ export default function Home() {
   };
 
   // Estados de paginaciÃ³n del lado del servidor para filtros
+  // Estados de paginación del lado del servidor para filtros
   const [pagedProducts, setPagedProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [pagedLoading, setPagedLoading] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+  // Post state & action handlers
+  const [postText, setPostText] = useState("");
+  const [postImage, setPostImage] = useState("");
+  const [uploadingPostImage, setUploadingPostImage] = useState(false);
+  const [submittingPost, setSubmittingPost] = useState(false);
+
+  const handlePostImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const url = await uploadImage(file, setUploadingPostImage);
+    if (url) {
+      setPostImage(url);
+    }
+  };
+
+  const handleRemovePostBg = async () => {
+    if (!postImage) return;
+    setUploadingPostImage(true);
+    try {
+      const response = await fetch(postImage);
+      const blob = await response.blob();
+      const base64 = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+      const transparentBase64 = await removeBgAi(base64);
+      if (transparentBase64) {
+        const res = await fetch(transparentBase64);
+        const transBlob = await res.blob();
+        const transFile = new File([transBlob], "transparent.png", { type: "image/png" });
+        const newUrl = await uploadImage(transFile, setUploadingPostImage);
+        if (newUrl) {
+          setPostImage(newUrl);
+          triggerNotification(true, "✨ Fondo removido con éxito.");
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      triggerNotification(false, "No se pudo quitar el fondo.");
+    } finally {
+      setUploadingPostImage(false);
+    }
+  };
+
+  const handleCreatePost = async (e) => {
+    if (e) e.preventDefault();
+    if (!postText.trim()) {
+      triggerNotification(false, "El texto de la publicación no puede estar vacío.");
+      return;
+    }
+    setSubmittingPost(true);
+    try {
+      const response = await fetch(`${API_URL}/api/posts`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          content: postText.trim(),
+          image: postImage || null
+        })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        triggerNotification(true, "✨ ¡Publicación compartida con éxito!");
+        setPostText("");
+        setPostImage("");
+        loadFeed(1, false);
+      } else {
+        triggerNotification(false, data.error || "No se pudo crear la publicación.");
+      }
+    } catch (err) {
+      console.error(err);
+      triggerNotification(false, "Error de red al crear la publicación.");
+    } finally {
+      setSubmittingPost(false);
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    if (!confirm("¿Seguro que deseas eliminar esta publicación?")) return;
+    try {
+      const response = await fetch(`${API_URL}/api/posts/${postId}`, {
+        method: "DELETE",
+        headers: authHeaders()
+      });
+      const data = await response.json();
+      if (response.ok) {
+        triggerNotification(true, "🗑️ Publicación eliminada.");
+        setFeedItems(prev => prev.filter(item => item.id !== postId));
+        setFeedTotal(prev => prev - 1);
+      } else {
+        triggerNotification(false, data.error || "No se pudo eliminar la publicación.");
+      }
+    } catch (err) {
+      console.error(err);
+      triggerNotification(false, "Error de red al eliminar la publicación.");
+    }
+  };
+
   const hasActiveFilters = searchTerm !== "" || filterType !== "all" || filterCategory !== "all";
 
   // Buscar y paginar productos desde el backend cuando cambian los filtros
@@ -605,6 +712,159 @@ export default function Home() {
           {/* Feed Tab */}
           {activeTab === "feed" && (
             <div style={{ maxWidth: "640px", margin: "0 auto" }}>
+              {/* Box to create a new post if user is logged in */}
+              {activePersonId && (
+                <div
+                  className="glass-panel fade-in"
+                  style={{
+                    marginBottom: "2rem",
+                    padding: "1.2rem 1.4rem",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "1rem",
+                    borderRadius: "16px"
+                  }}
+                >
+                  <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+                    <img
+                      src={getCurrentPerson()?.logo || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&q=80"}
+                      alt="Perfil"
+                      style={{ width: "42px", height: "42px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <textarea
+                        value={postText}
+                        onChange={(e) => setPostText(e.target.value)}
+                        placeholder={`¿Qué hay de nuevo, ${getCurrentPerson()?.name || "talent"}? Comparte algo con la comunidad...`}
+                        rows={3}
+                        style={{
+                          width: "100%",
+                          border: "none",
+                          resize: "none",
+                          outline: "none",
+                          fontFamily: "var(--font-body)",
+                          fontSize: "0.95rem",
+                          background: "transparent",
+                          color: "var(--text-primary)"
+                        }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {postImage && (
+                    <div style={{ position: "relative", borderRadius: "12px", overflow: "hidden", border: "1px solid var(--border-color)", alignSelf: "center", width: "100%", maxHeight: "250px" }}>
+                      <img
+                        src={postImage}
+                        alt="Vista previa de publicación"
+                        style={{ width: "100%", maxHeight: "250px", objectFit: "cover" }}
+                      />
+                      <button
+                        onClick={() => setPostImage("")}
+                        style={{
+                          position: "absolute",
+                          top: "10px",
+                          right: "10px",
+                          background: "rgba(0,0,0,0.6)",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "50%",
+                          width: "28px",
+                          height: "28px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer"
+                        }}
+                        title="Eliminar imagen"
+                      >
+                        <i className="fa-solid fa-xmark"></i>
+                      </button>
+                      <button
+                        onClick={handleRemovePostBg}
+                        disabled={uploadingPostImage}
+                        style={{
+                          position: "absolute",
+                          bottom: "10px",
+                          right: "10px",
+                          background: "var(--gold-primary)",
+                          color: "#1c1c1e",
+                          border: "none",
+                          borderRadius: "20px",
+                          padding: "0.4rem 1rem",
+                          fontSize: "0.78rem",
+                          fontWeight: 700,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          cursor: "pointer",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
+                        }}
+                      >
+                        {uploadingPostImage ? (
+                          <i className="fa-solid fa-spinner fa-spin"></i>
+                        ) : (
+                          <i className="fa-solid fa-wand-magic-sparkles"></i>
+                        )}
+                        Quitar fondo con IA
+                      </button>
+                    </div>
+                  )}
+                  
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid var(--border-color)", paddingTop: "0.8rem" }}>
+                    <div>
+                      <label
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          fontSize: "0.85rem",
+                          fontWeight: 600,
+                          color: "var(--text-muted)",
+                          cursor: "pointer",
+                          padding: "0.5rem 0.8rem",
+                          borderRadius: "20px",
+                          transition: "background 0.2s"
+                        }}
+                        className="hover-bg-light"
+                      >
+                        <i className="fa-regular fa-image" style={{ color: "var(--gold-primary)", fontSize: "1rem" }}></i>
+                        <span>Agregar imagen</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePostImageChange}
+                          style={{ display: "none" }}
+                          disabled={uploadingPostImage}
+                        />
+                      </label>
+                    </div>
+                    
+                    <button
+                      onClick={handleCreatePost}
+                      disabled={submittingPost || uploadingPostImage || !postText.trim()}
+                      className="btn-gold"
+                      style={{
+                        borderRadius: "30px",
+                        padding: "0.5rem 1.6rem",
+                        fontWeight: 700,
+                        fontSize: "0.88rem",
+                        border: "none",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        cursor: (submittingPost || uploadingPostImage || !postText.trim()) ? "not-allowed" : "pointer",
+                        opacity: (submittingPost || uploadingPostImage || !postText.trim()) ? 0.6 : 1,
+                        background: "var(--gold-gradient)",
+                        color: "#1c1c1e"
+                      }}
+                    >
+                      {submittingPost && <i className="fa-solid fa-spinner fa-spin"></i>}
+                      Publicar
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {feedLoading && feedItems.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "4rem 0" }}>
                   <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2rem", color: "var(--gold-primary)" }}></i>
@@ -612,75 +872,105 @@ export default function Home() {
               ) : feedItems.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "4rem 0", color: "var(--text-muted)" }}>
                   <i className="fa-solid fa-rss" style={{ fontSize: "2.5rem", marginBottom: "1rem", display: "block" }}></i>
-                  <p>Aun no hay actividad registrada.</p>
+                  <p>Aún no hay actividad registrada.</p>
                 </div>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
                   {feedItems.map(item => {
-                    const meta = feedEventMeta(item);
                     return (
                       <div
                         key={item.id}
                         className="fade-in"
                         style={{
-                          background: "var(--card-bg, #fff)",
+                          background: "var(--bg-card)",
                           border: "1px solid var(--border-color)",
-                          borderRadius: "14px",
-                          padding: "1rem 1.2rem",
+                          borderRadius: "16px",
+                          padding: "1.2rem 1.4rem",
                           display: "flex",
-                          gap: "1rem",
-                          alignItems: "flex-start",
-                          boxShadow: "0 2px 10px rgba(0,0,0,0.04)"
+                          flexDirection: "column",
+                          gap: "0.8rem",
+                          boxShadow: "0 4px 20px rgba(0,0,0,0.02)",
+                          position: "relative"
                         }}
                       >
-                        <div style={{
-                          width: "42px", height: "42px", borderRadius: "50%",
-                          background: meta.color + "18",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          flexShrink: 0
-                        }}>
-                          <i className={`fa-solid ${meta.icon}`} style={{ color: meta.color, fontSize: "1rem" }}></i>
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                            <span style={{
-                              fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase",
-                              letterSpacing: "0.05em", color: meta.color, background: meta.color + "15",
-                              padding: "2px 8px", borderRadius: "20px"
-                            }}>{meta.label}</span>
-                            <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{formatFeedDate(item.timestamp)}</span>
-                          </div>
-                          {item.link ? (
-                            <Link href={item.link} style={{ textDecoration: "none", color: "inherit" }}>
-                              <p style={{ fontWeight: 700, fontSize: "0.95rem", margin: "0.3rem 0 0.2rem", lineHeight: 1.3 }}>{item.title}</p>
-                            </Link>
-                          ) : (
-                            <p style={{ fontWeight: 700, fontSize: "0.95rem", margin: "0.3rem 0 0.2rem", lineHeight: 1.3 }}>{item.title}</p>
-                          )}
-                          {item.description && (
-                            <p style={{
-                              fontSize: "0.83rem", color: "var(--text-muted)",
-                              display: "-webkit-box", WebkitLineClamp: 2,
-                              WebkitBoxOrient: "vertical", overflow: "hidden", margin: 0
-                            }}>{item.description}</p>
-                          )}
-                          {item.image && (
+                        {/* Header: Author Info */}
+                        <div style={{ display: "flex", gap: "1rem", alignItems: "center", justifyContent: "space-between" }}>
+                          <div style={{ display: "flex", gap: "0.8rem", alignItems: "center", minWidth: 0 }}>
                             <img
-                              src={item.image} alt={item.title}
-                              style={{ width: "100%", maxHeight: "180px", objectFit: "cover", borderRadius: "10px", marginTop: "0.7rem" }}
+                              src={item.author?.logo || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&q=80"}
+                              alt={item.title}
+                              style={{ width: "42px", height: "42px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)", flexShrink: 0 }}
+                            />
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                                <p style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--text-primary)", margin: 0 }}>
+                                  {item.title}
+                                </p>
+                                {item.author?.username && (
+                                  <span style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
+                                    @{item.author.username}
+                                  </span>
+                                )}
+                              </div>
+                              {item.author?.occupation && (
+                                <p style={{ fontSize: "0.78rem", color: "var(--text-gold)", margin: "1px 0 0 0", fontWeight: 500 }}>
+                                  {item.author.occupation}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                              {formatFeedDate(item.timestamp)}
+                            </span>
+                            {/* Delete button if user is the author */}
+                            {Number(activePersonId) === item.authorId && (
+                              <button
+                                onClick={() => handleDeletePost(item.id)}
+                                style={{
+                                  background: "transparent",
+                                  border: "none",
+                                  color: "var(--text-muted)",
+                                  cursor: "pointer",
+                                  padding: "4px 8px",
+                                  borderRadius: "6px",
+                                  transition: "all 0.2s"
+                                }}
+                                title="Eliminar publicación"
+                              >
+                                <i className="fa-regular fa-trash-can" style={{ fontSize: "0.95rem" }}></i>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Content: Text */}
+                        <p style={{
+                          fontSize: "0.9rem",
+                          color: "var(--text-primary)",
+                          margin: "0.2rem 0",
+                          lineHeight: "1.5",
+                          whiteSpace: "pre-wrap"
+                        }}>
+                          {item.description}
+                        </p>
+
+                        {/* Content: Image */}
+                        {item.image && (
+                          <div style={{ borderRadius: "12px", overflow: "hidden", border: "1px solid var(--border-color)", marginTop: "0.4rem" }}>
+                            <img
+                              src={item.image}
+                              alt="Imagen de publicación"
+                              style={{ width: "100%", maxHeight: "350px", objectFit: "cover" }}
                               onError={e => { e.currentTarget.style.display = "none"; }}
                             />
-                          )}
-                          {item.meta && item.eventType === "fair_created" && item.meta.date && (
-                            <div style={{ display: "flex", gap: "1rem", marginTop: "0.6rem", fontSize: "0.78rem", color: "var(--text-muted)" }}>
-                              <span><i className="fa-solid fa-calendar" style={{ marginRight: "4px" }}></i>{item.meta.date}</span>
-                              {item.meta.location && <span><i className="fa-solid fa-location-dot" style={{ marginRight: "4px" }}></i>{item.meta.location}</span>}
-                            </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
+                  
                   {feedItems.length < feedTotal && (
                     <div style={{ textAlign: "center", marginTop: "1rem" }}>
                       <button
