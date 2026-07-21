@@ -348,6 +348,30 @@ export default function Home() {
     }
   };
 
+  const handleReportPost = async (postId) => {
+    if (!confirm("¿Deseas reportar esta publicación por contenido inapropiado o +18?")) return;
+    try {
+      const response = await fetch(`${API_URL}/api/posts/${postId}/report`, {
+        method: "POST",
+        headers: authHeaders()
+      });
+      const data = await response.json();
+      if (response.ok) {
+        triggerNotification(true, data.message);
+        if (data.status === 'flagged' || data.status === 'rejected') {
+          // Remove the post from UI if it has been auto-flagged
+          setFeedItems(prev => prev.filter(item => item.id !== postId));
+          setFeedTotal(prev => prev - 1);
+        }
+      } else {
+        triggerNotification(false, data.error || "No se pudo procesar el reporte.");
+      }
+    } catch (err) {
+      console.error(err);
+      triggerNotification(false, "Error de red al enviar el reporte.");
+    }
+  };
+
   const hasActiveFilters = searchTerm !== "" || filterType !== "all" || filterCategory !== "all";
 
   // Buscar y paginar productos desde el backend cuando cambian los filtros
@@ -981,6 +1005,25 @@ export default function Home() {
                             <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                               {formatFeedDate(item.timestamp)}
                             </span>
+                            {/* Report button */}
+                            {activePersonId && Number(activePersonId) !== item.authorId && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleReportPost(item.id); }}
+                                style={{
+                                  background: "transparent",
+                                  border: "none",
+                                  color: "var(--text-muted)",
+                                  cursor: "pointer",
+                                  padding: "4px 8px",
+                                  borderRadius: "6px",
+                                  transition: "all 0.2s"
+                                }}
+                                className="hover-delete-btn"
+                                title="Reportar contenido inapropiado o +18"
+                              >
+                                <i className="fa-regular fa-flag" style={{ fontSize: "0.9rem" }}></i>
+                              </button>
+                            )}
                             {/* Delete button if user is the author */}
                             {Number(activePersonId) === item.authorId && (
                               <button
