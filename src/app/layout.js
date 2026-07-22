@@ -7,6 +7,7 @@ import { AppContextProvider, useApp } from "../context/AppContext";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Script from "next/script";
+import CreatePostModal from "../components/CreatePostModal";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -837,6 +838,9 @@ function AppLayoutShell({ children }) {
           <span style={{ fontSize: "0.75rem", color: "var(--text-gold)", display: "block", marginTop: "6px", fontWeight: 500 }}>Arequipa, Perú</span>
         </div>
       </footer>
+
+      {/* ── CREATE POST MODAL ────────────────────────────────────────────────── */}
+      <CreatePostModal />
 
       {/* ── ACCOUNT REGISTRATION MODAL ─────────────────────────────────────── */}
       {showRegModal && (

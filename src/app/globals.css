@@ -156,6 +156,148 @@ h1, h2, h3, h4, h5, h6 {
     height: 18px;
     width: 100px;
   }
+/* ── AOURUM DUAL TABS (Vitrina Cultural / Muro de Novedades) ── */
+.aourum-tabs-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 1.5rem;
+  padding-bottom: 2px;
+}
+
+.aourum-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.65rem 1.25rem;
+  border-radius: 10px 10px 0 0;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.aourum-tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.aourum-tab-btn.active {
+  background: #DFC260;
+  color: #1C1C1E;
+  box-shadow: 0 4px 12px rgba(223, 194, 96, 0.25);
+}
+
+.aourum-tab-btn.active i {
+  color: #1C1C1E;
+}
+
+/* ── POST CARDS & FEED ─────────────────────────────────────── */
+.posts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.post-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  transition: var(--transition-smooth);
+}
+
+.post-card:hover {
+  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.08);
+}
+
+.post-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.post-card-author-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.post-card-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+}
+
+.post-card-author-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.post-card-author-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.post-card-fair-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  background: rgba(212, 175, 55, 0.12);
+  color: var(--text-gold);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--transition-smooth);
+}
+
+.post-card-fair-tag:hover {
+  background: var(--gold-primary);
+  color: #1C1C1E;
+}
+
+.post-card-content {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  margin-bottom: 0.85rem;
+}
+
+.post-card-image {
+  width: 100%;
+  max-height: 480px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-top: 0.6rem;
+  border: 1px solid var(--border-color);
+}
+
+.post-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.85rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(0,0,0,0.04);
+  font-size: 0.78rem;
+  color: var(--text-muted);
 }
 
 

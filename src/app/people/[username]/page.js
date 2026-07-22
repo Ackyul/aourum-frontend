@@ -4,6 +4,7 @@ import { useApp } from "../../../context/AppContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import PostList from "../../../components/PostList";
 
 export default function PersonProfile({ params }) {
   const [usernameParam, setUsernameParam] = useState("");
@@ -62,10 +63,15 @@ export default function PersonProfile({ params }) {
     loadInvitations,
     loadBrands,
     loadFairs,
-    loadBands
+    loadBands,
+    loadPosts,
+    openCreatePostModal
   } = useApp();
 
   const router = useRouter();
+
+  const [personPosts, setPersonPosts] = useState([]);
+  const [personPostsLoading, setPersonPostsLoading] = useState(false);
 
   useEffect(() => {
     loadPeople();
@@ -90,6 +96,15 @@ export default function PersonProfile({ params }) {
       setPersonId(person.id);
     }
   }, [person, personId]);
+
+  useEffect(() => {
+    if (person?.id) {
+      setPersonPostsLoading(true);
+      loadPosts({ personId: person.id })
+        .then(res => setPersonPosts(res || []))
+        .finally(() => setPersonPostsLoading(false));
+    }
+  }, [person?.id, loadPosts]);
 
   // Redirect if username changes
   useEffect(() => {
@@ -504,6 +519,39 @@ export default function PersonProfile({ params }) {
               </div>
             </div>
           )}
+
+          {/* ── PUBLICACIONES EN FERIAS DE LA PERSONA ── */}
+          <div className="glass-panel" style={{ padding: "1.8rem", marginTop: "2rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem", flexWrap: "wrap", gap: "10px" }}>
+              <div>
+                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+                  <i className="fa-solid fa-camera-retro" style={{ color: "var(--gold-primary)" }}></i>
+                  Publicaciones en Ferias
+                </h3>
+                <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: "4px 0 0 0" }}>
+                  Experiencias, fotos y momentos compartidos por {person.name} en ferias.
+                </p>
+              </div>
+
+              {isMe && (
+                <button
+                  type="button"
+                  onClick={() => openCreatePostModal({ authorType: "person" })}
+                  className="btn-gold"
+                  style={{ padding: "0.45rem 1rem", fontSize: "0.82rem", borderRadius: "8px", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "6px" }}
+                >
+                  <i className="fa-solid fa-plus"></i> Publicar en Feria
+                </button>
+              )}
+            </div>
+
+            <PostList
+              posts={personPosts}
+              loading={personPostsLoading}
+              emptyMessage={`${person.name} aún no ha publicado fotos ni vivencias de ferias.`}
+              onPostDeleted={(id) => setPersonPosts(prev => prev.filter(p => p.id !== id))}
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@ import { use, useEffect, useRef, useState, useMemo } from "react";
 import { useApp } from "../../../context/AppContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import PostList from "../../../components/PostList";
 
 const getProductViews = (p) => {
   if (!p) return 0;
@@ -94,10 +95,15 @@ export default function FairProfileClient({ params, initialFair }) {
     loadBands,
     loadPeople,
     loadProducts,
-    parseDescription
+    parseDescription,
+    loadPosts,
+    openCreatePostModal
   } = useApp();
 
   const router = useRouter();
+
+  const [fairPosts, setFairPosts] = useState([]);
+  const [fairPostsLoading, setFairPostsLoading] = useState(false);
 
   useEffect(() => {
     loadFairs();
@@ -106,6 +112,15 @@ export default function FairProfileClient({ params, initialFair }) {
     loadPeople();
     loadProducts();
   }, [loadFairs, loadBrands, loadBands, loadPeople, loadProducts]);
+
+  useEffect(() => {
+    if (fair?.id) {
+      setFairPostsLoading(true);
+      loadPosts({ fairId: fair.id })
+        .then(res => setFairPosts(res || []))
+        .finally(() => setFairPostsLoading(false));
+    }
+  }, [fair?.id, loadPosts]);
   const profileMapContainerRef = useRef(null);
   const profileLeafletMapRef = useRef(null);
 
@@ -879,6 +894,36 @@ export default function FairProfileClient({ params, initialFair }) {
             </div>
           </div>
         )}
+      {/* ── MURO DE LA FERIA ── */}
+      <div style={{ marginTop: "4rem", borderTop: "1px solid var(--border-color)", paddingTop: "3rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "10px" }}>
+          <div>
+            <h2 style={{ fontSize: "1.6rem", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "10px" }}>
+              <i className="fa-solid fa-comments" style={{ color: "var(--gold-primary)" }}></i>
+              Muro de la Feria
+            </h2>
+            <p style={{ fontSize: "0.88rem", color: "var(--text-muted)", margin: "4px 0 0 0" }}>
+              Todas las publicaciones, fotos y vivencias compartidas por asistentes, marcas y productores en {fair?.name || 'la feria'}.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => openCreatePostModal({ fairId: fair?.id })}
+            className="btn-gold"
+            style={{ padding: "0.55rem 1.2rem", fontSize: "0.88rem", borderRadius: "10px", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "8px" }}
+          >
+            <i className="fa-solid fa-pen-to-square"></i> Publicar en esta Feria
+          </button>
+        </div>
+
+        <PostList
+          posts={fairPosts}
+          loading={fairPostsLoading}
+          emptyMessage={`Aún no hay publicaciones en el muro de ${fair?.name || 'esta feria'}.`}
+          onPostDeleted={(id) => setFairPosts(prev => prev.filter(p => p.id !== id))}
+        />
+      </div>
 
       {/* ── MODAL: EDITAR FERIA / EVENTO ── */}
       {canEditFair && editFairOpen && (

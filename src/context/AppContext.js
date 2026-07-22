@@ -58,6 +58,14 @@ export function AppContextProvider({ children }) {
   const [organizers, setOrganizers] = useState([]);
   const [people, setPeople] = useState([]);
   const [invitations, setInvitations] = useState([]);
+  const [posts, setPosts] = useState([]);
+  const [postsLoading, setPostsLoading] = useState(false);
+
+  // Global Post Creation Modal state
+  const [showCreatePostModal, setShowCreatePostModal] = useState(false);
+  const [postModalDefaultFairId, setPostModalDefaultFairId] = useState("");
+  const [postModalDefaultBrandId, setPostModalDefaultBrandId] = useState("");
+  const [postModalDefaultAuthorType, setPostModalDefaultAuthorType] = useState("person");
 
   // Loading & status states
   const [loading, setLoading] = useState(true);
@@ -347,6 +355,72 @@ export function AppContextProvider({ children }) {
       setLoading(false);
     }
   }, [API_URL, invitations.length]);
+
+  const loadPosts = useCallback(async (params = {}) => {
+    setPostsLoading(true);
+    try {
+      const query = new URLSearchParams();
+      if (params.fairId) query.set("fairId", params.fairId);
+      if (params.brandId) query.set("brandId", params.brandId);
+      if (params.personId) query.set("personId", params.personId);
+
+      const res = await fetch(`${API_URL}/api/posts?${query.toString()}`).then((r) => r.json());
+      if (res && Array.isArray(res.items)) {
+        setPosts(res.items);
+        return res.items;
+      }
+      return [];
+    } catch (err) {
+      console.error("Error loading posts:", err);
+      return [];
+    } finally {
+      setPostsLoading(false);
+    }
+  }, [API_URL]);
+
+  const createPost = async (postData) => {
+    try {
+      const res = await fetch(`${API_URL}/api/posts`, {
+        method: "POST",
+        headers: authHeaders("application/json"),
+        body: JSON.stringify(postData)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al crear la publicación");
+      
+      triggerNotification("Publicación creada con éxito", "success");
+      await loadPosts();
+      return data;
+    } catch (err) {
+      triggerNotification(err.message, "error");
+      throw err;
+    }
+  };
+
+  const deletePost = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/api/posts/${id}`, {
+        method: "DELETE",
+        headers: authHeaders()
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al eliminar la publicación");
+      
+      triggerNotification("Publicación eliminada", "success");
+      setPosts((prev) => prev.filter((p) => p.id !== id));
+      return true;
+    } catch (err) {
+      triggerNotification(err.message, "error");
+      throw err;
+    }
+  };
+
+  const openCreatePostModal = (options = {}) => {
+    setPostModalDefaultFairId(options.fairId || "");
+    setPostModalDefaultBrandId(options.brandId || "");
+    setPostModalDefaultAuthorType(options.authorType || (options.brandId ? "brand" : "person"));
+    setShowCreatePostModal(true);
+  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -1406,6 +1480,17 @@ export function AppContextProvider({ children }) {
         getCurrentBand,
         getCurrentPerson,
         getPersonName,
+        posts,
+        postsLoading,
+        loadPosts,
+        createPost,
+        deletePost,
+        showCreatePostModal,
+        setShowCreatePostModal,
+        postModalDefaultFairId,
+        postModalDefaultBrandId,
+        postModalDefaultAuthorType,
+        openCreatePostModal,
         triggerNotification,
         logout,
         parseDescription

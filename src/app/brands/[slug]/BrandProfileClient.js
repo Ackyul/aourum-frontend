@@ -4,6 +4,7 @@ import { use, useState, useMemo, useEffect, useRef } from "react";
 import { useApp } from "../../../context/AppContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import PostList from "../../../components/PostList";
 // Stable deterministic views generator based on hash of name + id
 const getItemViews = (name, id) => {
   if (!name) return 0;
@@ -99,10 +100,16 @@ export default function BrandProfileClient({ params, initialBrand }) {
     loadInvitations,
     activeRole,
     setShowLoginModal,
-    triggerNotification
+    triggerNotification,
+    loadPosts,
+    openCreatePostModal
   } = useApp();
 
   const router = useRouter();
+
+  const [activeBrandTab, setActiveBrandTab] = useState("vitrina");
+  const [brandPosts, setBrandPosts] = useState([]);
+  const [brandPostsLoading, setBrandPostsLoading] = useState(false);
 
   useEffect(() => {
     loadBrands();
@@ -111,6 +118,15 @@ export default function BrandProfileClient({ params, initialBrand }) {
     loadFairs();
     loadInvitations();
   }, [loadBrands, loadProducts, loadPeople, loadFairs, loadInvitations]);
+
+  useEffect(() => {
+    if (brand?.id) {
+      setBrandPostsLoading(true);
+      loadPosts({ brandId: brand.id })
+        .then(res => setBrandPosts(res || []))
+        .finally(() => setBrandPostsLoading(false));
+    }
+  }, [brand?.id, loadPosts]);
   const [showFairs, setShowFairs] = useState(false);
   const [showCollabs, setShowCollabs] = useState(false);
   const [fairSearchQuery, setFairSearchQuery] = useState("");
@@ -1010,19 +1026,58 @@ export default function BrandProfileClient({ params, initialBrand }) {
         </div>
       </div>
 
-      {/* ── SECCIÓN DE CATÁLOGO ESTILO DESCUBRE ── */}
-      {brandProducts.length === 0 ? (
-        <div className="glass-panel" style={{ textAlign: "center", padding: "4rem 0", color: "var(--text-muted)", borderRadius: "16px", marginTop: "2rem" }}>
-          <i className="fa-solid fa-box-open" style={{ fontSize: "2.5rem", opacity: 0.3, marginBottom: "1rem", display: "block" }}></i>
-          <p style={{ fontSize: "0.9rem" }}>Esta marca aún no ha publicado items en su catálogo virtual.</p>
+      {/* ── PESTAÑAS: VITRINA CULTURAL vs MURO DE NOVEDADES ── */}
+      <div className="aourum-tabs-container" style={{ marginTop: "2.5rem" }}>
+        <button
+          type="button"
+          className={`aourum-tab-btn ${activeBrandTab === "vitrina" ? "active" : ""}`}
+          onClick={() => setActiveBrandTab("vitrina")}
+        >
+          <i className="fa-solid fa-shop"></i> Vitrina Cultural
+        </button>
+        <button
+          type="button"
+          className={`aourum-tab-btn ${activeBrandTab === "muro" ? "active" : ""}`}
+          onClick={() => setActiveBrandTab("muro")}
+        >
+          <i className="fa-solid fa-rss"></i> Muro de Novedades
+        </button>
+
+        {isCollaborator && (
+          <button
+            type="button"
+            onClick={() => openCreatePostModal({ brandId: brand?.id, authorType: "brand" })}
+            className="btn-gold"
+            style={{ marginLeft: "auto", padding: "0.45rem 1rem", fontSize: "0.82rem", borderRadius: "8px", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+          >
+            <i className="fa-solid fa-pen-to-square"></i> Publicar Novedad
+          </button>
+        )}
+      </div>
+
+      {activeBrandTab === "muro" ? (
+        <div style={{ marginTop: "1.5rem" }}>
+          <PostList
+            posts={brandPosts}
+            loading={brandPostsLoading}
+            emptyMessage={`Aún no hay novedades publicadas por ${brand?.name || 'esta marca'}.`}
+            onPostDeleted={(id) => setBrandPosts(prev => prev.filter(p => p.id !== id))}
+          />
         </div>
       ) : (
-        <div style={{ marginTop: "3rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
-            <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", margin: 0 }}>
-              Catálogo de la Marca
-            </h2>
+        /* ── SECCIÓN DE CATÁLOGO ESTILO DESCUBRE ── */
+        brandProducts.length === 0 ? (
+          <div className="glass-panel" style={{ textAlign: "center", padding: "4rem 0", color: "var(--text-muted)", borderRadius: "16px", marginTop: "2rem" }}>
+            <i className="fa-solid fa-box-open" style={{ fontSize: "2.5rem", opacity: 0.3, marginBottom: "1rem", display: "block" }}></i>
+            <p style={{ fontSize: "0.9rem" }}>Esta marca aún no ha publicado items en su catálogo virtual.</p>
           </div>
+        ) : (
+          <div style={{ marginTop: "2rem" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
+              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", margin: 0 }}>
+                Catálogo de la Marca
+              </h2>
+            </div>
 
           {/* 1. Carrusel de Productos Destacados de la Marca */}
           {renderCarousel(
@@ -1074,6 +1129,7 @@ export default function BrandProfileClient({ params, initialBrand }) {
             )}
           </div>
         </div>
+      )
       )}
 
       {/* ── VENTANAS SUPERPUESTAS (MODALS) RENDERIZADAS A NIVEL DE RAÍZ DEL COMPONENTE ── */}
