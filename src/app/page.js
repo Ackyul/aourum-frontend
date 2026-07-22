@@ -4,75 +4,7 @@ import { useApp } from "../context/AppContext";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useMemo } from "react";
-
-// MaxHeap implementation for ranking
-class MaxHeap {
-  constructor(compareFn) {
-    this.heap = [];
-    this.compare = compareFn || ((a, b) => a - b);
-  }
-
-  size() {
-    return this.heap.length;
-  }
-
-  peek() {
-    return this.heap[0];
-  }
-
-  insert(val) {
-    this.heap.push(val);
-    this.up(this.heap.length - 1);
-  }
-
-  extractMax() {
-    if (this.heap.length === 0) return null;
-    const max = this.heap[0];
-    const end = this.heap.pop();
-    if (this.heap.length > 0) {
-      this.heap[0] = end;
-      this.down(0);
-    }
-    return max;
-  }
-
-  up(i) {
-    while (i > 0) {
-      const p = Math.floor((i - 1) / 2);
-      if (this.compare(this.heap[i], this.heap[p]) <= 0) break;
-      [this.heap[i], this.heap[p]] = [this.heap[p], this.heap[i]];
-      i = p;
-    }
-  }
-
-  down(i) {
-    const len = this.heap.length;
-    while (2 * i + 1 < len) {
-      let left = 2 * i + 1;
-      let right = 2 * i + 2;
-      let best = left;
-      if (right < len && this.compare(this.heap[right], this.heap[left]) > 0) {
-        best = right;
-      }
-      if (this.compare(this.heap[i], this.heap[best]) >= 0) break;
-      [this.heap[i], this.heap[best]] = [this.heap[best], this.heap[i]];
-      i = best;
-    }
-  }
-}
-
-// Stable deterministic views generator based on hash of name + id
-const getItemViews = (name, id) => {
-  if (!name) return 0;
-  let hash = 0;
-  const str = name + (id || 0);
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return Math.abs(hash % 980) + 120; // 120 to 1100 views
-};
-
-const getProductViews = (p) => p.views || p.viewCount || getItemViews(p.name, p.id);
+import { MaxHeap, getItemViews, getBrandViews, getProductViews } from "@/utils/maxHeap";
 
 // Helper to interleave products of different brands to guarantee representation and bypass entry order
 const interleaveProducts = (productList) => {

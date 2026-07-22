@@ -8,6 +8,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Script from "next/script";
 import CreatePostModal from "../components/CreatePostModal";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -2352,7 +2353,9 @@ export default function RootLayout({ children }) {
           }}
         />
         <AppContextProvider>
-          <AppLayoutShell>{children}</AppLayoutShell>
+          <ErrorBoundary>
+            <AppLayoutShell>{children}</AppLayoutShell>
+          </ErrorBoundary>
         </AppContextProvider>
       </body>
     </html>

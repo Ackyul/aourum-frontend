@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useApp } from "../context/AppContext";
 
 export default function CreatePostModal() {
@@ -35,8 +35,10 @@ export default function CreatePostModal() {
   const userBrands = brands.filter(b => b.personId === Number(activePersonId));
   const userOrganizers = organizers.filter(o => o.personId === Number(activePersonId));
 
+  // Reset form state when modal opens
+  const prevShowRef = useRef(false);
   useEffect(() => {
-    if (showCreatePostModal) {
+    if (showCreatePostModal && !prevShowRef.current) {
       setAuthorType(postModalDefaultAuthorType || "person");
       setSelectedFairId(postModalDefaultFairId || (fairs.length > 0 ? fairs[0].id.toString() : ""));
       setSelectedBrandId(postModalDefaultBrandId || (userBrands.length > 0 ? userBrands[0].id.toString() : ""));
@@ -45,7 +47,8 @@ export default function CreatePostModal() {
       setImage("");
       setImagePreview("");
     }
-  }, [showCreatePostModal, postModalDefaultFairId, postModalDefaultBrandId, postModalDefaultAuthorType, fairs, userBrands.length, userOrganizers.length]);
+    prevShowRef.current = showCreatePostModal;
+  }, [showCreatePostModal, postModalDefaultAuthorType, postModalDefaultFairId, postModalDefaultBrandId, fairs, userBrands, userOrganizers]);
 
   if (!showCreatePostModal) return null;
 
