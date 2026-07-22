@@ -76,11 +76,15 @@ export default function PersonProfile() {
 
   const person = useMemo(() => {
     if (!people || people.length === 0) return null;
-    const normParam = usernameParam ? usernameParam.toString().toLowerCase() : "";
+    const normParam = usernameParam ? usernameParam.toString().toLowerCase().trim() : "";
     const isNum = /^\d+$/.test(normParam);
     return people.find((p) => {
+      if (!p) return false;
       if (personId && p.id === personId) return true;
-      if (p.username && p.username.toLowerCase() === normParam) return true;
+      const pUser = (p.username || "").toLowerCase().trim();
+      const pName = (p.name || "").toLowerCase().trim();
+      if (pUser && (pUser === normParam || pUser.replace(/_/g, '-') === normParam || pUser.replace(/-/g, '_') === normParam)) return true;
+      if (pName && (pName === normParam || pName.replace(/\s+/g, '') === normParam)) return true;
       if (isNum && p.id === Number(normParam)) return true;
       return p.id != null && p.id.toString() === normParam;
     }) || null;
@@ -225,7 +229,9 @@ export default function PersonProfile() {
     setEditProfileOpen(true);
   };
 
-  const parsed = parseDescription(person.description);
+  const parsed = (parseDescription && typeof parseDescription === "function") 
+    ? parseDescription(person.description) 
+    : { text: person.description || "", tagline: "", theme_color: "", banner: "" };
   const themeColor = (parsed.theme_color && parsed.theme_color.startsWith('#')) ? parsed.theme_color : "#D4AF37";
   const bannerStyle = parsed.banner 
     ? { backgroundImage: `url(${parsed.banner})`, backgroundSize: "cover", backgroundPosition: "center", height: "200px" } 
@@ -343,7 +349,7 @@ export default function PersonProfile() {
           {isOwner && (
             <div style={{ display: "flex", flexDirection: "column", gap: "2rem", marginBottom: "2.5rem" }}>
               {(() => {
-                const receivedInvs = invitations.filter(inv => inv.receiverPersonId === person.id);
+                const receivedInvs = (invitations || []).filter(inv => inv && inv.receiverPersonId === person.id);
                 if (receivedInvs.length === 0) return null;
                 return (
                   <div className="glass-panel" style={{ padding: "1.5rem", border: `1.5px solid ${themeColor}`, background: `${themeColor}05` }}>
