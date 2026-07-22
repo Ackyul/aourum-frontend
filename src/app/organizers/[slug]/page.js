@@ -1,13 +1,13 @@
 "use client";
 
-import { use, useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useApp } from "../../../context/AppContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 
-export default function OrganizerProfilePage({ params }) {
-  const unwrappedParams = use(params);
-  const slug = unwrappedParams.slug;
+export default function OrganizerProfilePage() {
+  const routeParams = useParams();
+  const slug = routeParams?.slug || "";
 
   const {
     organizers,

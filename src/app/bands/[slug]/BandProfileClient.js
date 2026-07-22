@@ -1,13 +1,13 @@
 "use client";
 
-import { use, useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useApp } from "../../../context/AppContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 
-export default function BandProfileClient({ params, initialBand }) {
-  const unwrappedParams = use(params);
-  const slug = unwrappedParams.slug;
+export default function BandProfileClient({ initialBand }) {
+  const routeParams = useParams();
+  const slug = routeParams?.slug || "";
 
   const {
     bands,

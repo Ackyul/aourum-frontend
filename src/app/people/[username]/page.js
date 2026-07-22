@@ -2,22 +2,13 @@
 
 import { useApp } from "../../../context/AppContext";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import PostList from "../../../components/PostList";
 
-export default function PersonProfile({ params }) {
-  const [usernameParam, setUsernameParam] = useState("");
-
-  useEffect(() => {
-    async function resolveParams() {
-      const resolvedParams = await params;
-      if (resolvedParams && resolvedParams.username) {
-        setUsernameParam(resolvedParams.username);
-      }
-    }
-    resolveParams();
-  }, [params]);
+export default function PersonProfile() {
+  const routeParams = useParams();
+  const usernameParam = routeParams?.username || "";
 
   const {
     people,

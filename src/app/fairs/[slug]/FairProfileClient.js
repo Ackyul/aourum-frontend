@@ -2,7 +2,7 @@
 
 import { use, useEffect, useRef, useState, useMemo } from "react";
 import { useApp } from "../../../context/AppContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import PostList from "../../../components/PostList";
 
@@ -70,9 +70,9 @@ const isFairLive = (dateStr) => {
   return false;
 };
 
-export default function FairProfileClient({ params, initialFair }) {
-  const unwrappedParams = use(params);
-  const slug = unwrappedParams.slug;
+export default function FairProfileClient({ initialFair }) {
+  const routeParams = useParams();
+  const slug = routeParams?.slug || "";
 
   const {
     fairs,

@@ -1,10 +1,11 @@
 "use client";
 
-import { use, useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useApp } from "../../../context/AppContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import PostList from "../../../components/PostList";
+
 // Stable deterministic views generator based on hash of name + id
 const getItemViews = (name, id) => {
   if (!name) return 0;
@@ -18,9 +19,9 @@ const getItemViews = (name, id) => {
 
 const getProductViews = (p) => p.views || p.viewCount || getItemViews(p.name, p.id);
 
-export default function BrandProfileClient({ params, initialBrand }) {
-  const unwrappedParams = use(params);
-  const slug = unwrappedParams.slug;
+export default function BrandProfileClient({ initialBrand }) {
+  const routeParams = useParams();
+  const slug = routeParams?.slug || "";
 
   const {
     brands,

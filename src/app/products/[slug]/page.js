@@ -1,8 +1,8 @@
 "use client";
 
-import { use, useMemo, useEffect } from "react";
+import { useMemo, useEffect } from "react";
 import { useApp } from "../../../context/AppContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 
 // Stable deterministic views generator based on hash of name + id
 const getItemViews = (name, id) => {
@@ -56,9 +56,9 @@ const getBalancedSuggestions = (candidates, limit = 5) => {
   return combined;
 };
 
-export default function ProductDetailPage({ params }) {
-  const unwrappedParams = use(params);
-  const slugParam = unwrappedParams.slug;
+export default function ProductDetailPage() {
+  const routeParams = useParams();
+  const slugParam = routeParams?.slug || "";
 
   const {
     products,

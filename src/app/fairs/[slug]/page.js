@@ -43,5 +43,5 @@ export default async function FairProfilePage({ params }) {
   const unwrappedParams = await params;
   const fair = await getFairData(unwrappedParams.slug);
 
-  return <FairProfileClient params={params} initialFair={fair} />;
+  return <FairProfileClient initialFair={fair} />;
 }

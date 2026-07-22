@@ -43,5 +43,5 @@ export default async function BandProfilePage({ params }) {
   const unwrappedParams = await params;
   const band = await getBandData(unwrappedParams.slug);
 
-  return <BandProfileClient params={params} initialBand={band} />;
+  return <BandProfileClient initialBand={band} />;
 }

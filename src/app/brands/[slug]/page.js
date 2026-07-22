@@ -43,5 +43,5 @@ export default async function BrandProfilePage({ params }) {
   const unwrappedParams = await params;
   const brand = await getBrandData(unwrappedParams.slug);
 
-  return <BrandProfileClient params={params} initialBrand={brand} />;
+  return <BrandProfileClient initialBrand={brand} />;
 }
