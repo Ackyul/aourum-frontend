@@ -92,6 +92,73 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary);
 }
 
+/* Custom Header Logo & Wordmark */
+.aourum-icon-badge {
+  background: var(--gold-gradient);
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.25);
+  flex-shrink: 0;
+  transition: var(--transition-smooth);
+}
+
+.aourum-icon-badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 18px rgba(212, 175, 55, 0.35);
+}
+
+.aourum-logo-icon {
+  display: block;
+  width: 22px;
+  height: 22px;
+  background-color: #1C1C1E;
+  mask-image: url('/aourum-logo-a.png');
+  -webkit-mask-image: url('/aourum-logo-a.png');
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-position: center;
+}
+
+.aourum-logo-wordmark {
+  display: block;
+  height: 22px;
+  width: 122px;
+  background-color: var(--text-primary);
+  mask-image: url('/aourum-logo-wordmark.png');
+  -webkit-mask-image: url('/aourum-logo-wordmark.png');
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: left center;
+  -webkit-mask-position: left center;
+  transition: var(--transition-smooth);
+}
+
+@media (max-width: 480px) {
+  .aourum-icon-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+  .aourum-logo-icon {
+    width: 18px;
+    height: 18px;
+  }
+  .aourum-logo-wordmark {
+    height: 18px;
+    width: 100px;
+  }
+}
+
+
 /* Premium Card Panels */
 .glass-panel {
   background: var(--bg-card);

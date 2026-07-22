@@ -443,14 +443,13 @@ function AppLayoutShell({ children }) {
         <div className="header-inner">
           
           {/* Logo */}
-          <Link href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none", flexShrink: 0 }}>
-            <div style={{ background: "var(--gold-gradient)", width: "36px", height: "36px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(212,175,55,0.2)", flexShrink: 0 }}>
-              <span style={{ color: "#1C1C1E", fontFamily: "'Syne', sans-serif", fontWeight: 400, fontSize: "1.2rem" }}>A</span>
+          <Link href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none", flexShrink: 0 }} aria-label="AOURUM Inicio">
+            <div className="aourum-icon-badge">
+              <span className="aourum-logo-icon" title="AOURUM" />
             </div>
-            <div className="hide-on-mobile">
-              <h1 className="brand-logo" style={{ fontSize: "1.25rem", margin: 0 }}>AOURUM</h1>
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <span className="aourum-logo-wordmark" aria-label="AOURUM" />
             </div>
-            <span className="show-on-mobile" style={{ fontFamily: "'Syne', sans-serif", fontWeight: 400, fontSize: "1.1rem", color: "var(--text-primary)", letterSpacing: "0.05em" }}>AOURUM</span>
           </Link>
 
           {/* Search bar */}
