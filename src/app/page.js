@@ -740,29 +740,15 @@ export default function Home() {
           <div className="fade-in">
 
           {/* Tab Switcher */}
-          <div style={{ display: "flex", gap: "0.5rem", marginBottom: "2rem", borderBottom: "2px solid var(--border-color)", paddingBottom: "0" }}>
-            {[{ id: "vitrina", label: "Vitrina Cultural", icon: "fa-store" }, { id: "feed", label: "Muro de Novedades", icon: "fa-rss" }].map(tab => (
+          <div className="aourum-tabs-container" style={{ marginBottom: "2rem" }}>
+            {[{ id: "vitrina", label: "Vitrina Cultural", icon: "fa-shop" }, { id: "feed", label: "Muro de Novedades", icon: "fa-rss" }].map(tab => (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => setActiveTab(tab.id)}
-                style={{
-                  padding: "0.6rem 1.2rem",
-                  borderRadius: "8px 8px 0 0",
-                  border: "none",
-                  cursor: "pointer",
-                  fontWeight: 700,
-                  fontSize: "0.88rem",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "7px",
-                  transition: "all 0.18s",
-                  background: activeTab === tab.id ? "var(--gold-primary)" : "transparent",
-                  color: activeTab === tab.id ? "#1c1c1e" : "var(--text-muted)",
-                  borderBottom: activeTab === tab.id ? "2px solid var(--gold-primary)" : "2px solid transparent",
-                  marginBottom: "-2px"
-                }}
+                className={`aourum-tab-btn ${activeTab === tab.id ? "active" : ""}`}
               >
-                <i className={`fa-solid ${tab.icon}`} style={{ fontSize: "0.8rem" }}></i>
+                <i className={`fa-solid ${tab.icon}`}></i>
                 {tab.label}
               </button>
             ))}
