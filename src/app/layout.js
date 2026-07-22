@@ -2260,19 +2260,24 @@ export default function RootLayout({ children }) {
         <meta name="robots" content="index, follow" />
         <link rel="canonical" href="https://aourum.com/" />
         
+        {/* Favicon & App Icons */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon.png" type="image/png" sizes="192x192" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://aourum.com/" />
         <meta property="og:title" content="AOURUM | El nodo central del talento local" />
         <meta property="og:description" content="AOURUM es el nodo central del talento local. Conecta con marcas locales, diseñadores, ferias independientes y las mejores bandas de música." />
-        <meta property="og:image" content="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80" />
+        <meta property="og:image" content="https://aourum.com/aourum-gold-badge.png" />
 
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content="https://aourum.com/" />
         <meta property="twitter:title" content="AOURUM | El nodo central del talento local" />
         <meta property="twitter:description" content="AOURUM es el nodo central del talento local. Conecta con marcas locales, diseñadores, ferias independientes y las mejores bandas de música." />
-        <meta property="twitter:image" content="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80" />
+        <meta property="twitter:image" content="https://aourum.com/aourum-gold-badge.png" />
 
         {/* JSON-LD Structured Data for Google Rich Snippets */}
         <script
@@ -2286,7 +2291,7 @@ export default function RootLayout({ children }) {
                   "@id": "https://aourum.com/#organization",
                   "name": "Aourum",
                   "url": "https://aourum.com/",
-                  "logo": "https://aourum.com/favicon.ico",
+                  "logo": "https://aourum.com/aourum-gold-badge.png",
                   "description": "El nodo central del talento local que reúne marcas de diseño, arte, ferias y bandas locales.",
                   "sameAs": [
                     "https://www.instagram.com/aourum",
