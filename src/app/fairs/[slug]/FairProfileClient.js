@@ -74,6 +74,9 @@ export default function FairProfileClient({ initialFair }) {
   const routeParams = useParams();
   const slug = routeParams?.slug || "";
 
+  const isNumeric = /^\d+$/.test(slug);
+  const [fairId, setFairId] = useState(null);
+
   const {
     fairs,
     brands,
@@ -112,6 +115,19 @@ export default function FairProfileClient({ initialFair }) {
     loadPeople();
     loadProducts();
   }, [loadFairs, loadBrands, loadBands, loadPeople, loadProducts]);
+
+  const fair = useMemo(() => {
+    if (initialFair) return initialFair;
+    if (!fairs || fairs.length === 0) return null;
+    const normSlug = slug ? slug.toString().toLowerCase() : "";
+    const altSlug = normSlug.includes('_') ? normSlug.replace(/_/g, '-') : normSlug.replace(/-/g, '_');
+    return fairs.find((f) => {
+      if (fairId && f.id === fairId) return true;
+      if (isNumeric && f.id === Number(slug)) return true;
+      const fSlug = (f.slug || "").toLowerCase();
+      return fSlug === normSlug || fSlug === altSlug || f.id.toString() === slug;
+    }) || null;
+  }, [initialFair, fairs, fairId, isNumeric, slug]);
 
   useEffect(() => {
     if (fair?.id) {
@@ -289,22 +305,6 @@ export default function FairProfileClient({ initialFair }) {
   const editMapContainerRef = useRef(null);
   const editLeafletMapRef = useRef(null);
   const editMarkerRef = useRef(null);
-
-  const isNumeric = /^\d+$/.test(slug);
-  const [fairId, setFairId] = useState(null);
-
-  const fair = useMemo(() => {
-    if (initialFair) return initialFair;
-    if (!fairs || fairs.length === 0) return null;
-    const normSlug = slug ? slug.toString().toLowerCase() : "";
-    const altSlug = normSlug.includes('_') ? normSlug.replace(/_/g, '-') : normSlug.replace(/-/g, '_');
-    return fairs.find((f) => {
-      if (fairId && f.id === fairId) return true;
-      if (isNumeric && f.id === Number(slug)) return true;
-      const fSlug = (f.slug || "").toLowerCase();
-      return fSlug === normSlug || fSlug === altSlug || f.id.toString() === slug;
-    }) || null;
-  }, [initialFair, fairs, fairId, isNumeric, slug]);
 
   useEffect(() => {
     if (fair && !fairId) {

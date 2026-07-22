@@ -23,6 +23,9 @@ export default function BrandProfileClient({ initialBrand }) {
   const routeParams = useParams();
   const slug = routeParams?.slug || "";
 
+  const isNumeric = /^\d+$/.test(slug);
+  const [brandId, setBrandId] = useState(null);
+
   const {
     brands,
     products,
@@ -119,6 +122,19 @@ export default function BrandProfileClient({ initialBrand }) {
     loadFairs();
     loadInvitations();
   }, [loadBrands, loadProducts, loadPeople, loadFairs, loadInvitations]);
+
+  const brand = useMemo(() => {
+    if (initialBrand) return initialBrand;
+    if (!brands || brands.length === 0) return null;
+    const normSlug = slug ? slug.toString().toLowerCase() : "";
+    const altSlug = normSlug.includes('_') ? normSlug.replace(/_/g, '-') : normSlug.replace(/-/g, '_');
+    return brands.find((b) => {
+      if (brandId && b.id === brandId) return true;
+      if (isNumeric && b.id === Number(slug)) return true;
+      const bSlug = (b.slug || "").toLowerCase();
+      return bSlug === normSlug || bSlug === altSlug || b.id.toString() === slug;
+    }) || null;
+  }, [initialBrand, brands, brandId, isNumeric, slug]);
 
   useEffect(() => {
     if (brand?.id) {
@@ -436,22 +452,6 @@ export default function BrandProfileClient({ initialBrand }) {
   
   const brandMapContainerRef = useRef(null);
   const brandLeafletMapRef = useRef(null);
-
-  const isNumeric = /^\d+$/.test(slug);
-  const [brandId, setBrandId] = useState(null);
-
-  const brand = useMemo(() => {
-    if (initialBrand) return initialBrand;
-    if (!brands || brands.length === 0) return null;
-    const normSlug = slug ? slug.toString().toLowerCase() : "";
-    const altSlug = normSlug.includes('_') ? normSlug.replace(/_/g, '-') : normSlug.replace(/-/g, '_');
-    return brands.find((b) => {
-      if (brandId && b.id === brandId) return true;
-      if (isNumeric && b.id === Number(slug)) return true;
-      const bSlug = (b.slug || "").toLowerCase();
-      return bSlug === normSlug || bSlug === altSlug || b.id.toString() === slug;
-    }) || null;
-  }, [initialBrand, brands, brandId, isNumeric, slug]);
 
   useEffect(() => {
     if (brand && !brandId) {
