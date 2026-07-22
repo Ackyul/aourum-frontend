@@ -2270,14 +2270,16 @@ export default function RootLayout({ children }) {
         <meta property="og:url" content="https://aourum.com/" />
         <meta property="og:title" content="AOURUM | El nodo central del talento local" />
         <meta property="og:description" content="AOURUM es el nodo central del talento local. Conecta con marcas locales, diseñadores, ferias independientes y las mejores bandas de música." />
-        <meta property="og:image" content="https://aourum.com/aourum-gold-badge.png" />
+        <meta property="og:image" content="https://aourum.com/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
 
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content="https://aourum.com/" />
         <meta property="twitter:title" content="AOURUM | El nodo central del talento local" />
         <meta property="twitter:description" content="AOURUM es el nodo central del talento local. Conecta con marcas locales, diseñadores, ferias independientes y las mejores bandas de música." />
-        <meta property="twitter:image" content="https://aourum.com/aourum-gold-badge.png" />
+        <meta property="twitter:image" content="https://aourum.com/og-image.png" />
 
         {/* JSON-LD Structured Data for Google Rich Snippets */}
         <script
