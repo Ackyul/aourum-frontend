@@ -3,7 +3,7 @@
 import { useApp } from "../../../context/AppContext";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import PostList from "../../../components/PostList";
 
 export default function PersonProfile() {
@@ -74,13 +74,17 @@ export default function PersonProfile() {
 
   const [personId, setPersonId] = useState(null);
 
-  const person = people.find((p) => {
-    if (personId) return p.id === personId;
-    if (p.username && p.username.toLowerCase() === usernameParam.toLowerCase()) {
-      return true;
-    }
-    return p.id.toString() === usernameParam;
-  });
+  const person = useMemo(() => {
+    if (!people || people.length === 0) return null;
+    const normParam = usernameParam ? usernameParam.toString().toLowerCase() : "";
+    const isNum = /^\d+$/.test(normParam);
+    return people.find((p) => {
+      if (personId && p.id === personId) return true;
+      if (p.username && p.username.toLowerCase() === normParam) return true;
+      if (isNum && p.id === Number(normParam)) return true;
+      return p.id != null && p.id.toString() === normParam;
+    }) || null;
+  }, [people, personId, usernameParam]);
 
   useEffect(() => {
     if (person && !personId) {
@@ -96,13 +100,6 @@ export default function PersonProfile() {
         .finally(() => setPersonPostsLoading(false));
     }
   }, [person?.id, loadPosts]);
-
-  // Redirect if username changes
-  useEffect(() => {
-    if (person && person.username && person.username.toLowerCase() !== usernameParam.toLowerCase()) {
-      router.replace(`/people/${person.username}`);
-    }
-  }, [person, usernameParam, router]);
 
   const [createProjectOpen, setCreateProjectOpen] = useState(false);
 
@@ -128,7 +125,7 @@ export default function PersonProfile() {
     );
   }
 
-  const isOwner = activePersonId != null && activePersonId.toString() === person.id.toString();
+  const isOwner = activePersonId != null && person?.id != null && activePersonId.toString() === person.id.toString();
 
   const myBrands = (brands || []).filter((b) => (person.brandIds || []).includes(b.id));
   const myOrganizers = (organizers || []).filter((o) => {
