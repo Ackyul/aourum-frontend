@@ -1,39 +1,39 @@
 import BrandProfileClient from "./BrandProfileClient";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-// Obtener datos de la marca en el servidor
 async function getBrandData(slug) {
+  if (!slug) return null;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiUrl || apiUrl.includes("localhost")) return null;
   try {
-    const res = await fetch(`${API_URL}/api/brands/by-slug/${slug}`, {
-      next: { revalidate: 15 } // Revalidar cada 15 segundos
+    const res = await fetch(`${apiUrl}/api/brands/by-slug/${slug}`, {
+      signal: AbortSignal.timeout(2500),
+      next: { revalidate: 15 }
     });
     if (!res.ok) return null;
     return await res.json();
   } catch (err) {
-    console.error("Error al obtener datos de marca para SSR:", err);
     return null;
   }
 }
 
-// Generación de metadatos dinámicos para SEO
 export async function generateMetadata({ params }) {
   const unwrappedParams = await params;
-  const brand = await getBrandData(unwrappedParams.slug);
+  const slug = unwrappedParams?.slug || "";
+  const brand = await getBrandData(slug);
 
   if (!brand) {
     return {
-      title: "Aourum - Marca no encontrada",
-      description: "La marca solicitada no existe o no está disponible en la vitrina Aourum."
+      title: "Aourum - Marca",
+      description: "Explora las creaciones y catálogo de marcas locales en Aourum."
     };
   }
 
   return {
     title: `Aourum - ${brand.name}`,
-    description: brand.description || `Explora los productos y creaciones exclusivas de ${brand.name} en Aourum.`,
+    description: brand.description || `Explora los productos de ${brand.name} en Aourum.`,
     openGraph: {
       title: `Aourum - ${brand.name}`,
-      description: brand.description || `Vitrina exclusiva de ${brand.name}`,
+      description: brand.description || `Vitrina de ${brand.name}`,
       images: brand.logo ? [{ url: brand.logo }] : []
     }
   };
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }) {
 
 export default async function BrandProfilePage({ params }) {
   const unwrappedParams = await params;
-  const brand = await getBrandData(unwrappedParams.slug);
+  const brand = await getBrandData(unwrappedParams?.slug);
 
   return <BrandProfileClient initialBrand={brand} />;
 }

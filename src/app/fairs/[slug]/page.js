@@ -1,36 +1,36 @@
 import FairProfileClient from "./FairProfileClient";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-// Obtener datos de la feria en el servidor
 async function getFairData(slug) {
+  if (!slug) return null;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!apiUrl || apiUrl.includes("localhost")) return null;
   try {
-    const res = await fetch(`${API_URL}/api/fairs/by-slug/${slug}`, {
-      next: { revalidate: 15 } // Revalidar cada 15 segundos
+    const res = await fetch(`${apiUrl}/api/fairs/by-slug/${slug}`, {
+      signal: AbortSignal.timeout(2500),
+      next: { revalidate: 15 }
     });
     if (!res.ok) return null;
     return await res.json();
   } catch (err) {
-    console.error("Error al obtener datos de feria para SSR:", err);
     return null;
   }
 }
 
-// Generación de metadatos dinámicos para SEO
 export async function generateMetadata({ params }) {
   const unwrappedParams = await params;
-  const fair = await getFairData(unwrappedParams.slug);
+  const slug = unwrappedParams?.slug || "";
+  const fair = await getFairData(slug);
 
   if (!fair) {
     return {
-      title: "Aourum - Feria no encontrada",
-      description: "La feria cultural o comercial solicitada no existe o no está disponible en Aourum."
+      title: "Aourum - Feria",
+      description: "Infórmate sobre las ferias culturales y comerciales en Aourum."
     };
   }
 
   return {
     title: `Aourum - Feria: ${fair.name}`,
-    description: fair.description || `Infórmate sobre fechas, ubicación (${fair.location}) y marcas participantes en la feria ${fair.name} en Aourum.`,
+    description: fair.description || `Ubicación: ${fair.location}. Fecha: ${fair.date}`,
     openGraph: {
       title: `Aourum - Feria: ${fair.name}`,
       description: fair.description || `Ubicación: ${fair.location}. Fecha: ${fair.date}`,
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }) {
 
 export default async function FairProfilePage({ params }) {
   const unwrappedParams = await params;
-  const fair = await getFairData(unwrappedParams.slug);
+  const fair = await getFairData(unwrappedParams?.slug);
 
   return <FairProfileClient initialFair={fair} />;
 }
