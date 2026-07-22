@@ -439,13 +439,18 @@ export default function BrandProfileClient({ params, initialBrand }) {
   const isNumeric = /^\d+$/.test(slug);
   const [brandId, setBrandId] = useState(null);
 
-  const brand = initialBrand || brands.find((b) => {
-    if (brandId) return b.id === brandId;
-    if (isNumeric) {
-      return b.id === Number(slug) || b.slug === slug;
-    }
-    return b.slug === slug;
-  });
+  const brand = useMemo(() => {
+    if (initialBrand) return initialBrand;
+    if (!brands || brands.length === 0) return null;
+    const normSlug = slug ? slug.toString().toLowerCase() : "";
+    const altSlug = normSlug.includes('_') ? normSlug.replace(/_/g, '-') : normSlug.replace(/-/g, '_');
+    return brands.find((b) => {
+      if (brandId && b.id === brandId) return true;
+      if (isNumeric && b.id === Number(slug)) return true;
+      const bSlug = (b.slug || "").toLowerCase();
+      return bSlug === normSlug || bSlug === altSlug || b.id.toString() === slug;
+    }) || null;
+  }, [initialBrand, brands, brandId, isNumeric, slug]);
 
   useEffect(() => {
     if (brand && !brandId) {
@@ -742,6 +747,28 @@ export default function BrandProfileClient({ params, initialBrand }) {
     setEditProfileOpen(true);
   };
 
+  if (loading && !brand) {
+    return (
+      <div className="container" style={{ textAlign: "center", padding: "6rem 0" }}>
+        <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2.5rem", color: "var(--gold-primary)", marginBottom: "1rem" }}></i>
+        <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>Cargando perfil de la marca...</p>
+      </div>
+    );
+  }
+
+  if (!brand) {
+    return (
+      <div className="container" style={{ textAlign: "center", padding: "6rem 0" }}>
+        <i className="fa-solid fa-store-slash" style={{ fontSize: "3.5rem", color: "var(--text-muted)", marginBottom: "1rem" }}></i>
+        <h2 style={{ fontSize: "1.6rem", fontWeight: 800, marginTop: "0.5rem", color: "var(--text-primary)" }}>Marca no encontrada</h2>
+        <p style={{ color: "var(--text-muted)", margin: "0.5rem 0 1.5rem 0" }}>La marca que buscas no existe o ha sido desincorporada.</p>
+        <Link href="/brands" className="btn-gold" style={{ padding: "0.6rem 1.2rem", borderRadius: "8px", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+          <i className="fa-solid fa-arrow-left"></i> Volver al Catálogo de Marcas
+        </Link>
+      </div>
+    );
+  }
+
   const parsed = parseDescription(brand.description);
   const themeColor = (parsed.theme_color && parsed.theme_color.startsWith('#')) ? parsed.theme_color : "#D4AF37";
   const bannerStyle = parsed.banner 
@@ -750,14 +777,6 @@ export default function BrandProfileClient({ params, initialBrand }) {
 
   return (
     <div className="container" style={{ maxWidth: "1200px", padding: "0 1rem", paddingBottom: "3rem" }}>
-      <head>
-        <title>{`${brand.name} | AOURUM`}</title>
-        <meta name="description" content={brand.description ? brand.description.substring(0, 160) : `Explora el catálogo y perfil de ${brand.name} en AOURUM, el nodo central del talento local.`} />
-        <meta property="og:title" content={`${brand.name} | AOURUM`} />
-        <meta property="og:description" content={brand.description ? brand.description.substring(0, 160) : `Explora ${brand.name} en AOURUM.`} />
-        <meta property="og:image" content={brand.logo || "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80"} />
-        <link rel="canonical" href={`https://aourum.com/brands/${brand.slug || brand.id}`} />
-      </head>
 
       {/* Botones de Navegación Superior */}
       <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>

@@ -293,13 +293,18 @@ export default function FairProfileClient({ params, initialFair }) {
   const isNumeric = /^\d+$/.test(slug);
   const [fairId, setFairId] = useState(null);
 
-  const fair = initialFair || fairs.find((f) => {
-    if (fairId) return f.id === fairId;
-    if (isNumeric) {
-      return f.id === Number(slug) || f.slug === slug;
-    }
-    return f.slug === slug;
-  });
+  const fair = useMemo(() => {
+    if (initialFair) return initialFair;
+    if (!fairs || fairs.length === 0) return null;
+    const normSlug = slug ? slug.toString().toLowerCase() : "";
+    const altSlug = normSlug.includes('_') ? normSlug.replace(/_/g, '-') : normSlug.replace(/-/g, '_');
+    return fairs.find((f) => {
+      if (fairId && f.id === fairId) return true;
+      if (isNumeric && f.id === Number(slug)) return true;
+      const fSlug = (f.slug || "").toLowerCase();
+      return fSlug === normSlug || fSlug === altSlug || f.id.toString() === slug;
+    }) || null;
+  }, [initialFair, fairs, fairId, isNumeric, slug]);
 
   useEffect(() => {
     if (fair && !fairId) {
@@ -650,6 +655,28 @@ export default function FairProfileClient({ params, initialFair }) {
         .filter(b => b && b.name.toLowerCase().includes(bandSearchQuery.toLowerCase()))
     : [];
 
+  if (loading && !fair) {
+    return (
+      <div className="container" style={{ textAlign: "center", padding: "6rem 0" }}>
+        <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2.5rem", color: "var(--gold-primary)", marginBottom: "1rem" }}></i>
+        <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>Cargando evento...</p>
+      </div>
+    );
+  }
+
+  if (!fair) {
+    return (
+      <div className="container" style={{ textAlign: "center", padding: "6rem 0" }}>
+        <i className="fa-solid fa-calendar-xmark" style={{ fontSize: "3.5rem", color: "var(--text-muted)", marginBottom: "1rem" }}></i>
+        <h2 style={{ fontSize: "1.6rem", fontWeight: 800, marginTop: "0.5rem", color: "var(--text-primary)" }}>Feria no encontrada</h2>
+        <p style={{ color: "var(--text-muted)", margin: "0.5rem 0 1.5rem 0" }}>El evento que buscas no existe o ha finalizado.</p>
+        <Link href="/fairs" className="btn-gold" style={{ padding: "0.6rem 1.2rem", borderRadius: "8px", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+          <i className="fa-solid fa-arrow-left"></i> Volver a Ferias
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
       <style>{`
@@ -659,14 +686,6 @@ export default function FairProfileClient({ params, initialFair }) {
           100% { transform: scale(0.9); opacity: 0.6; }
         }
       `}</style>
-      <head>
-        <title>{`${fair.name} | AOURUM`}</title>
-        <meta name="description" content={descriptionText ? descriptionText.substring(0, 160) : `Asiste al evento ${fair.name} en AOURUM, el nodo central del talento local.`} />
-        <meta property="og:title" content={`${fair.name} | AOURUM`} />
-        <meta property="og:description" content={descriptionText ? descriptionText.substring(0, 160) : `Asiste a ${fair.name} en AOURUM.`} />
-        <meta property="og:image" content={fair.banner || "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80"} />
-        <link rel="canonical" href={`https://aourum.com/fairs/${fair.slug || fair.id}`} />
-      </head>
       <div className="glass-panel" style={{ position: "relative", overflow: "hidden", borderRadius: "16px" }}>
         <button onClick={() => router.push("/fairs")} className="profile-close-btn" style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>&times;</button>
         <button onClick={copyLink} className="profile-share-btn" style={{ position: "absolute", top: "15px", right: "60px", zIndex: 10 }} title="Copiar enlace del evento">
