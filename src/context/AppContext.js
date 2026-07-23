@@ -198,6 +198,7 @@ export function AppContextProvider({ children }) {
   const [editThemeColor, setEditThemeColor] = useState("");
   const [editTagline, setEditTagline] = useState("");
   const [editInterests, setEditInterests] = useState("");
+  const [editBrandDesign, setEditBrandDesign] = useState({});
 
   // 2. Product/Service creation & editing
   const [prodFormOpen, setProdFormOpen] = useState(false);
@@ -1155,7 +1156,8 @@ export function AppContextProvider({ children }) {
         logo: editLogo, 
         slug: editSlug, 
         whatsappNumber: editWhatsappNumber,
-        themeColor: editThemeColor || ''
+        themeColor: editThemeColor || '',
+        brandDesign: editBrandDesign || {}
       };
     } else if (effectiveType === "fair" || effectiveType === "organizer") {
       url = `${API_URL}/api/organizers/${effectiveId}`;
@@ -1424,6 +1426,7 @@ export function AppContextProvider({ children }) {
         editThemeColor, setEditThemeColor,
         editTagline, setEditTagline,
         editInterests, setEditInterests,
+        editBrandDesign, setEditBrandDesign,
         prodFormOpen, setProdFormOpen,
         editingProdId, setEditingProdId,
         prodName, setProdName,

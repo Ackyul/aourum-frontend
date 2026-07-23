@@ -83,6 +83,7 @@ function AppLayoutShell({ children }) {
     editThemeColor, setEditThemeColor,
     editTagline, setEditTagline,
     editInterests, setEditInterests,
+    editBrandDesign, setEditBrandDesign,
     handleAccountRegistration,
     handleEditProfileSubmit,
     triggerNotification,
@@ -1916,6 +1917,141 @@ function AppLayoutShell({ children }) {
                       style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
                     />
                   </div>
+
+                  {/* 🖼️ Estilo Visual Personalizado (Exclusivo Marcas) */}
+                  {editProfileType === "brand" && (
+                    <div style={{ marginTop: "1.5rem", paddingTop: "1.2rem", borderTop: "1px dashed var(--border-color)" }}>
+                      <h4 style={{ fontSize: "0.88rem", fontWeight: 800, marginBottom: "0.8rem", color: "var(--gold-primary)", display: "flex", alignItems: "center", gap: "6px" }}>
+                        🖼️ Estilo Visual de la Página de Marca
+                      </h4>
+
+                      {(() => {
+                        const design = editBrandDesign || {};
+                        const updateDesignKey = (key, val) => {
+                          setEditBrandDesign(prev => ({ ...(prev || {}), [key]: val }));
+                        };
+
+                        return (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                            {/* Estilo de Fondo */}
+                            <div className="form-group" style={{ margin: 0 }}>
+                              <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Fondo de Perfil</label>
+                              <select 
+                                className="form-control" 
+                                value={design.bgStyle || "gradient"} 
+                                onChange={(e) => updateDesignKey("bgStyle", e.target.value)}
+                                style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                              >
+                                <option value="gradient">Resplandor Gradiente Multi-Radial (Por Defecto)</option>
+                                <option value="solid">Sólido Suavizado</option>
+                                <option value="mesh">Malla de Gradientes Fluidos (Mesh)</option>
+                                <option value="dots">Patrón de Puntos Sutiles</option>
+                                <option value="none">Blanco Limpio Mínimo</option>
+                              </select>
+                            </div>
+
+                            {/* Forma del Logo y Overlay del Banner */}
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                              <div className="form-group" style={{ margin: 0 }}>
+                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Forma del Logo</label>
+                                <select 
+                                  className="form-control" 
+                                  value={design.logoShape || "circle"} 
+                                  onChange={(e) => updateDesignKey("logoShape", e.target.value)}
+                                  style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                                >
+                                  <option value="circle">Circular (Actual)</option>
+                                  <option value="square">Cuadrado Recto</option>
+                                  <option value="rounded">Cuadrado Redondeado</option>
+                                </select>
+                              </div>
+
+                              <div className="form-group" style={{ margin: 0 }}>
+                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Efecto sobre Banner</label>
+                                <select 
+                                  className="form-control" 
+                                  value={design.bannerOverlay || "none"} 
+                                  onChange={(e) => updateDesignKey("bannerOverlay", e.target.value)}
+                                  style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                                >
+                                  <option value="none">Sin Filtro</option>
+                                  <option value="gradient">Sombra Gradiente</option>
+                                  <option value="color">Tinta Color de Marca</option>
+                                  <option value="blur">Bordes Suaves</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            {/* Estilo de Tarjetas y Tipografía */}
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                              <div className="form-group" style={{ margin: 0 }}>
+                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Tarjetas de Productos</label>
+                                <select 
+                                  className="form-control" 
+                                  value={design.cardStyle || "glass"} 
+                                  onChange={(e) => updateDesignKey("cardStyle", e.target.value)}
+                                  style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                                >
+                                  <option value="glass">Glassmorphism Transparente</option>
+                                  <option value="flat">Plano Fino</option>
+                                  <option value="elevated">Sombra Elevada</option>
+                                  <option value="bordered">Borde de Marca</option>
+                                </select>
+                              </div>
+
+                              <div className="form-group" style={{ margin: 0 }}>
+                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Tipografía</label>
+                                <select 
+                                  className="form-control" 
+                                  value={design.fontFamily || "Inter"} 
+                                  onChange={(e) => updateDesignKey("fontFamily", e.target.value)}
+                                  style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                                >
+                                  <option value="Inter">Inter (Estándar AOURUM)</option>
+                                  <option value="Playfair Display">Playfair Display (Elegante Serif)</option>
+                                  <option value="Space Grotesk">Space Grotesk (Moderna Tech)</option>
+                                  <option value="Lora">Lora (Cálido y Artesanal)</option>
+                                  <option value="Montserrat">Montserrat (Limpio Premium)</option>
+                                  <option value="Bebas Neue">Bebas Neue (Titulares Impactantes)</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            {/* Intensidad del Resplandor y Animaciones */}
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", alignItems: "center" }}>
+                              <div className="form-group" style={{ margin: 0 }}>
+                                <label style={{ fontSize: "0.78rem", fontWeight: 700, display: "flex", justifyContent: "space-between" }}>
+                                  <span>Intensidad de Resplandor</span>
+                                  <span>{design.glowIntensity !== undefined ? design.glowIntensity : 70}%</span>
+                                </label>
+                                <input 
+                                  type="range" 
+                                  min="0" 
+                                  max="100" 
+                                  value={design.glowIntensity !== undefined ? design.glowIntensity : 70} 
+                                  onChange={(e) => updateDesignKey("glowIntensity", Number(e.target.value))}
+                                  style={{ width: "100%", accentColor: "var(--gold-primary)" }}
+                                />
+                              </div>
+
+                              <div className="form-group" style={{ margin: 0, display: "flex", alignItems: "center", gap: "8px", paddingTop: "14px" }}>
+                                <input 
+                                  type="checkbox" 
+                                  id="brandAnimCheck"
+                                  checked={design.animations !== false} 
+                                  onChange={(e) => updateDesignKey("animations", e.target.checked)}
+                                  style={{ width: "16px", height: "16px", accentColor: "var(--gold-primary)", cursor: "pointer" }}
+                                />
+                                <label htmlFor="brandAnimCheck" style={{ fontSize: "0.78rem", fontWeight: 700, margin: 0, cursor: "pointer" }}>
+                                  Animaciones en Hover
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
                 </div>
               )}
 

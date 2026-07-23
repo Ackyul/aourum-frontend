@@ -97,6 +97,7 @@ export default function BrandProfileClient({ initialBrand }) {
     setEditThemeColor,
     setEditTagline,
     setEditInterests,
+    setEditBrandDesign,
     parseDescription,
     handleDeleteBrand,
     loadBrands,
@@ -766,6 +767,9 @@ export default function BrandProfileClient({ initialBrand }) {
     setEditThemeColor(parsed.theme_color || "");
     setEditTagline(parsed.tagline || "");
     setEditInterests(parsed.interests || "");
+    if (setEditBrandDesign) {
+      setEditBrandDesign(brand.brandDesign || {});
+    }
     setEditProfileOpen(true);
   };
 
@@ -797,8 +801,78 @@ export default function BrandProfileClient({ initialBrand }) {
   const themeColor = palette.c1;
   const bannerStyle = !parsed.banner ? { background: `linear-gradient(135deg, ${palette.c1}, ${palette.c2})` } : {};
 
+  // Opciones avanzadas de personalización visual (brandDesign)
+  const design = brand.brandDesign || {};
+  const bgStyle = design.bgStyle || "gradient";
+  const logoShape = design.logoShape || "circle";
+  const bannerOverlay = design.bannerOverlay || "none";
+  const cardStyle = design.cardStyle || "glass";
+  const fontFamily = design.fontFamily || "Inter";
+  const glowIntensity = (design.glowIntensity !== undefined ? design.glowIntensity : 70) / 100;
+  const enableAnimations = design.animations !== false;
+
+  // Calculo de estilos derivados
+  const logoBorderRadius = logoShape === "square" ? "0px" : logoShape === "rounded" ? "24px" : "50%";
+  
+  let bgGradientCss = "";
+  if (bgStyle === "gradient") {
+    bgGradientCss = `
+      radial-gradient(ellipse at 15% 5%, ${palette.c1}${Math.round(40 * glowIntensity).toString(16).padStart(2, '0')} 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 15%, ${palette.c2}${Math.round(40 * glowIntensity).toString(16).padStart(2, '0')} 0%, transparent 55%),
+      radial-gradient(ellipse at 20% 40%, ${palette.c3}${Math.round(35 * glowIntensity).toString(16).padStart(2, '0')} 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 65%, ${palette.c4}${Math.round(35 * glowIntensity).toString(16).padStart(2, '0')} 0%, transparent 50%),
+      radial-gradient(ellipse at 30% 88%, ${palette.c1}${Math.round(30 * glowIntensity).toString(16).padStart(2, '0')} 0%, transparent 50%),
+      linear-gradient(180deg, ${palette.c1}12 0%, ${palette.c2}08 25%, ${palette.c3}06 55%, ${palette.c4}10 85%, ${palette.c1}15 100%)
+    `;
+  } else if (bgStyle === "mesh") {
+    bgGradientCss = `
+      radial-gradient(at 0% 0%, ${palette.c1}30 0px, transparent 50%),
+      radial-gradient(at 100% 0%, ${palette.c2}30 0px, transparent 50%),
+      radial-gradient(at 100% 100%, ${palette.c3}25 0px, transparent 50%),
+      radial-gradient(at 0% 100%, ${palette.c4}30 0px, transparent 50%)
+    `;
+  } else if (bgStyle === "dots") {
+    bgGradientCss = `radial-gradient(${palette.c1}35 1px, transparent 1px)`;
+  } else if (bgStyle === "solid") {
+    bgGradientCss = `linear-gradient(180deg, ${palette.c4}10 0%, ${palette.c1}08 100%)`;
+  }
+
+  // Estilos de tarjetas según cardStyle
+  let cardCss = "";
+  if (cardStyle === "glass") {
+    cardCss = `
+      background: rgba(255, 255, 255, 0.75) !important;
+      backdrop-filter: blur(12px) !important;
+      border: 1px solid ${palette.c1}30 !important;
+      box-shadow: 0 4px 16px ${palette.c1}08 !important;
+    `;
+  } else if (cardStyle === "flat") {
+    cardCss = `
+      background: #FFFFFF !important;
+      border: 1px solid var(--border-color) !important;
+      box-shadow: none !important;
+    `;
+  } else if (cardStyle === "elevated") {
+    cardCss = `
+      background: #FFFFFF !important;
+      border: none !important;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1) !important;
+    `;
+  } else if (cardStyle === "bordered") {
+    cardCss = `
+      background: #FFFFFF !important;
+      border: 2px solid ${palette.c1} !important;
+      box-shadow: 0 4px 14px ${palette.c1}15 !important;
+    `;
+  }
+
   return (
-    <div className="container brand-profile-theme-scope" style={{ maxWidth: "1400px", padding: "0 1rem", paddingBottom: "3rem", position: "relative", minHeight: "100vh" }}>
+    <div className="container brand-profile-theme-scope" style={{ maxWidth: "1400px", padding: "0 1rem", paddingBottom: "3rem", position: "relative", minHeight: "100vh", fontFamily: fontFamily !== "Inter" ? `"${fontFamily}", sans-serif` : "inherit" }}>
+      {/* Import de la fuente de Google seleccionada si no es Inter */}
+      {fontFamily !== "Inter" && (
+        <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400;600;700;800&display=swap`} />
+      )}
+
       {/* Estilos dinámicos de la Paleta de Marca para toda la página */}
       <style>{`
         .brand-profile-theme-scope .aourum-tab-btn.active {
@@ -815,10 +889,12 @@ export default function BrandProfileClient({ initialBrand }) {
           color: #ffffff !important;
           border: none !important;
           box-shadow: 0 4px 14px ${palette.c1}35 !important;
+          ${enableAnimations ? 'transition: all 0.25s ease-in-out !important;' : ''}
         }
         .brand-profile-theme-scope .btn-outline-gold {
           border-color: ${palette.c1} !important;
           color: ${palette.c1} !important;
+          ${enableAnimations ? 'transition: all 0.25s ease-in-out !important;' : ''}
         }
         .brand-profile-theme-scope .btn-outline-gold:hover {
           background: ${palette.c1}18 !important;
@@ -826,10 +902,6 @@ export default function BrandProfileClient({ initialBrand }) {
         .brand-profile-theme-scope .glass-panel {
           border: 1px solid ${palette.c1}25 !important;
           box-shadow: 0 8px 24px ${palette.c1}08 !important;
-        }
-        .brand-profile-theme-scope .product-card:hover {
-          border-color: ${palette.c1}60 !important;
-          box-shadow: 0 10px 30px ${palette.c1}20 !important;
         }
         header {
           background: linear-gradient(180deg, ${palette.c1}18 0%, rgba(255, 255, 255, 0.96) 100%) !important;
@@ -844,38 +916,40 @@ export default function BrandProfileClient({ initialBrand }) {
           color: ${palette.c1} !important;
         }
         .brand-profile-theme-scope .product-card {
-          border: 1px solid ${palette.c1}30 !important;
-          box-shadow: 0 4px 16px ${palette.c1}08 !important;
-          transition: all 0.25s ease-in-out !important;
+          ${cardCss}
+          ${enableAnimations ? 'transition: all 0.25s ease-in-out !important;' : ''}
         }
-        .brand-profile-theme-scope .product-card:hover {
-          border-color: ${palette.c1} !important;
-          box-shadow: 0 12px 32px ${palette.c1}25 !important;
-          transform: translateY(-4px) !important;
+        ${enableAnimations ? `
+          .brand-profile-theme-scope .product-card:hover {
+            border-color: ${palette.c1} !important;
+            box-shadow: 0 12px 32px ${palette.c1}25 !important;
+            transform: translateY(-4px) !important;
+          }
+        ` : ''}
+        .brand-profile-theme-scope .profile-avatar-wrapper {
+          border-radius: ${logoBorderRadius} !important;
+        }
+        .brand-profile-theme-scope .profile-avatar-wrapper img {
+          border-radius: ${logoBorderRadius} !important;
         }
       `}</style>
 
-      {/* Resplandor Multi-Color de Ambiente de Marca en TODA la Página (Paleta de 4 Colores) */}
-      <div 
-        style={{ 
-          position: "absolute", 
-          top: "-30px", 
-          left: "-50vw", 
-          right: "-50vw", 
-          bottom: "-3rem", 
-          background: `
-            radial-gradient(ellipse at 15% 5%, ${palette.c1}25 0%, transparent 55%),
-            radial-gradient(ellipse at 85% 15%, ${palette.c2}25 0%, transparent 55%),
-            radial-gradient(ellipse at 20% 40%, ${palette.c3}20 0%, transparent 50%),
-            radial-gradient(ellipse at 80% 65%, ${palette.c4}22 0%, transparent 50%),
-            radial-gradient(ellipse at 30% 88%, ${palette.c1}20 0%, transparent 50%),
-            radial-gradient(ellipse at 75% 95%, ${palette.c2}18 0%, transparent 50%),
-            linear-gradient(180deg, ${palette.c1}12 0%, ${palette.c2}08 25%, ${palette.c3}06 55%, ${palette.c4}10 85%, ${palette.c1}15 100%)
-          `, 
-          pointerEvents: "none", 
-          zIndex: 0 
-        }} 
-      />
+      {/* Resplandor / Fondo Personalizado de Ambiente de Marca */}
+      {bgStyle !== "none" && (
+        <div 
+          style={{ 
+            position: "absolute", 
+            top: "-30px", 
+            left: "-50vw", 
+            right: "-50vw", 
+            bottom: "-3rem", 
+            background: bgGradientCss,
+            backgroundSize: bgStyle === "dots" ? "20px 20px" : "auto",
+            pointerEvents: "none", 
+            zIndex: 0 
+          }} 
+        />
+      )}
 
       {/* Botones de Navegación Superior */}
       <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", zIndex: 1 }}>
@@ -896,16 +970,24 @@ export default function BrandProfileClient({ initialBrand }) {
         </button>
       </div>
 
-      {/* Cabezal de Perfil Extremo a Extremo 1200x500 (Sin Cuadro Contenedor) */}
+      {/* Cabezal de Perfil Extremo a Extremo 1200x500 */}
       <div style={{ position: "relative", marginBottom: "2.5rem", zIndex: 1 }}>
-        <div className="profile-header-banner" style={bannerStyle}>
+        <div className="profile-header-banner" style={{ ...bannerStyle, overflow: "hidden", position: "relative" }}>
           {parsed.banner && (
-            <img src={parsed.banner} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <img src={parsed.banner} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "cover", filter: bannerOverlay === "blur" ? "blur(3px)" : "none" }} />
+          )}
+          
+          {/* Overlay sobre el banner */}
+          {bannerOverlay === "gradient" && (
+            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.65) 100%)", pointerEvents: "none" }} />
+          )}
+          {bannerOverlay === "color" && (
+            <div style={{ position: "absolute", inset: 0, background: `${palette.c1}35`, mixBlendMode: "multiply", pointerEvents: "none" }} />
           )}
         </div>
 
-        <div className="profile-avatar-wrapper" style={{ boxShadow: `0 10px 30px ${palette.c1}30, 0 4px 16px ${palette.c2}25, 0 0 40px ${palette.c4}20` }}>
-          <img src={brand.logo} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <div className="profile-avatar-wrapper" style={{ borderRadius: logoBorderRadius, boxShadow: `0 10px 30px ${palette.c1}30, 0 4px 16px ${palette.c2}25, 0 0 40px ${palette.c4}20` }}>
+          <img src={brand.logo} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: logoBorderRadius }} />
         </div>
 
         <div className="profile-body">
