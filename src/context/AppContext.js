@@ -1154,7 +1154,8 @@ export function AppContextProvider({ children }) {
         description: descriptionPayload, 
         logo: editLogo, 
         slug: editSlug, 
-        whatsappNumber: editWhatsappNumber 
+        whatsappNumber: editWhatsappNumber,
+        themeColor: editThemeColor || ''
       };
     } else if (effectiveType === "fair" || effectiveType === "organizer") {
       url = `${API_URL}/api/organizers/${effectiveId}`;
@@ -1517,9 +1518,18 @@ export function AppContextProvider({ children }) {
   );
 }
 
-export function getBrandPalette(description) {
-  const parsed = typeof description === "object" && description !== null ? description : parseDescription(description);
-  let rawColor = parsed?.theme_color || "";
+export function getBrandPalette(description, brand) {
+  // Primero leer directamente desde brand.themeColor (columna DB dedicada)
+  let rawColor = (brand && brand.themeColor && brand.themeColor.trim()) 
+    ? brand.themeColor
+    : '';
+  
+  // Fallback al JSON embebido en description (retrocompatibilidad)
+  if (!rawColor) {
+    const parsed = typeof description === "object" && description !== null ? description : parseDescription(description);
+    rawColor = parsed?.theme_color || "";
+  }
+  
   let colors = rawColor.split(",").map(c => c.trim()).filter(c => c.startsWith("#"));
 
   const defaultGold = "#D4AF37";

@@ -793,7 +793,7 @@ export default function BrandProfileClient({ initialBrand }) {
 
   const { getBrandPalette } = useApp();
   const parsed = parseDescription(brand.description);
-  const palette = getBrandPalette ? getBrandPalette(parsed) : { c1: "#D4AF37", c2: "#EAB308", c3: "#F97316", c4: "#8B5CF6" };
+  const palette = getBrandPalette ? getBrandPalette(parsed, brand) : { c1: "#D4AF37", c2: "#EAB308", c3: "#F97316", c4: "#8B5CF6" };
   const themeColor = palette.c1;
   const bannerStyle = !parsed.banner ? { background: `linear-gradient(135deg, ${palette.c1}, ${palette.c2})` } : {};
 

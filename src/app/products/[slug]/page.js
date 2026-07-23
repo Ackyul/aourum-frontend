@@ -147,7 +147,7 @@ export default function ProductDetailPage() {
   const brand = brands.find((b) => b.id === prod.brandId);
   const parsedBrand = brand ? parseDescription(brand.description) : null;
   const palette = (brand && getBrandPalette) 
-    ? getBrandPalette(parsedBrand) 
+    ? getBrandPalette(parsedBrand, brand) 
     : { c1: "#D4AF37", c2: "#EAB308", c3: "#F97316", c4: "#8B5CF6" };
   const brandThemeColor = palette.c1;
 
