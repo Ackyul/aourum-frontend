@@ -770,21 +770,28 @@ export default function BrandProfileClient({ initialBrand }) {
     );
   }
 
+  const { getBrandPalette } = useApp();
   const parsed = parseDescription(brand.description);
-  const themeColor = (parsed.theme_color && parsed.theme_color.startsWith('#')) ? parsed.theme_color : "#D4AF37";
-  const bannerStyle = !parsed.banner ? { background: "var(--gold-gradient)" } : {};
+  const palette = getBrandPalette ? getBrandPalette(parsed) : { c1: "#D4AF37", c2: "#EAB308", c3: "#F97316", c4: "#8B5CF6" };
+  const themeColor = palette.c1;
+  const bannerStyle = !parsed.banner ? { background: `linear-gradient(135deg, ${palette.c1}, ${palette.c2})` } : {};
 
   return (
     <div className="container" style={{ maxWidth: "1400px", padding: "0 1rem", paddingBottom: "3rem", position: "relative" }}>
-      {/* Resplandor de Ambiente de Marca en el Fondo */}
+      {/* Resplandor Multi-Color de Ambiente de Marca (Paleta de 4 Colores) */}
       <div 
         style={{ 
           position: "absolute", 
           top: "-20px", 
-          left: "5%", 
-          right: "5%", 
-          height: "520px", 
-          background: `radial-gradient(ellipse at 50% 10%, ${themeColor}18 0%, rgba(255,255,255,0) 75%)`, 
+          left: "2%", 
+          right: "2%", 
+          height: "560px", 
+          background: `
+            radial-gradient(circle at 15% 15%, ${palette.c1}22 0%, transparent 45%),
+            radial-gradient(circle at 85% 15%, ${palette.c2}22 0%, transparent 45%),
+            radial-gradient(circle at 50% 70%, ${palette.c3}18 0%, transparent 50%),
+            radial-gradient(circle at 50% 10%, ${palette.c4}18 0%, transparent 60%)
+          `, 
           pointerEvents: "none", 
           zIndex: 0 
         }} 
@@ -795,14 +802,14 @@ export default function BrandProfileClient({ initialBrand }) {
         <button 
           onClick={() => router.push("/brands")} 
           className="btn-outline-gold" 
-          style={{ padding: "0.5rem 1.2rem", fontSize: "0.85rem", borderRadius: "8px", border: "1.5px solid var(--gold-primary)", cursor: "pointer", transition: "var(--transition-smooth)", display: "flex", alignItems: "center", gap: "6px", background: "transparent" }}
+          style={{ padding: "0.5rem 1.2rem", fontSize: "0.85rem", borderRadius: "8px", border: `1.5px solid ${palette.c1}`, cursor: "pointer", transition: "var(--transition-smooth)", display: "flex", alignItems: "center", gap: "6px", background: "transparent", color: palette.c1 }}
         >
           <i className="fa-solid fa-arrow-left"></i> Volver a Marcas
         </button>
         <button 
           onClick={copyLink} 
           className="btn-outline-gold" 
-          style={{ padding: "0.5rem 1.2rem", fontSize: "0.85rem", borderRadius: "8px", border: "1.5px solid var(--gold-primary)", cursor: "pointer", transition: "var(--transition-smooth)", display: "flex", alignItems: "center", gap: "6px", background: "transparent" }} 
+          style={{ padding: "0.5rem 1.2rem", fontSize: "0.85rem", borderRadius: "8px", border: `1.5px solid ${palette.c1}`, cursor: "pointer", transition: "var(--transition-smooth)", display: "flex", alignItems: "center", gap: "6px", background: "transparent", color: palette.c1 }} 
           title="Copiar enlace de perfil"
         >
           <i className="fa-solid fa-share-nodes"></i> Compartir Perfil
@@ -817,7 +824,7 @@ export default function BrandProfileClient({ initialBrand }) {
           )}
         </div>
 
-        <div className="profile-avatar-wrapper" style={{ boxShadow: `0 10px 30px ${themeColor}25, 0 4px 12px rgba(0,0,0,0.08)` }}>
+        <div className="profile-avatar-wrapper" style={{ boxShadow: `0 10px 30px ${palette.c1}30, 0 4px 16px ${palette.c2}25, 0 0 40px ${palette.c4}20` }}>
           <img src={brand.logo} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
 
@@ -825,11 +832,11 @@ export default function BrandProfileClient({ initialBrand }) {
           <div className="profile-info-row">
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "0.8rem", color: themeColor, textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.08em", background: `${themeColor}15`, padding: "4px 12px", borderRadius: "20px", border: `1px solid ${themeColor}30` }}>
+                <span style={{ fontSize: "0.8rem", color: palette.c1, textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.08em", background: `${palette.c1}15`, padding: "4px 12px", borderRadius: "20px", border: `1px solid ${palette.c1}35` }}>
                   {brand.rubro_especifico || brand.rubro_general || brand.category}
                 </span>
-                <span style={{ fontSize: "0.72rem", color: themeColor, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "4px", background: `${themeColor}10`, padding: "4px 10px", borderRadius: "20px" }}>
-                  <i className="fa-solid fa-store" style={{ fontSize: "0.75rem" }}></i> Marca Aourum
+                <span style={{ fontSize: "0.72rem", color: palette.c2, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "4px", background: `${palette.c2}15`, padding: "4px 10px", borderRadius: "20px", border: `1px solid ${palette.c2}30` }}>
+                  <i className="fa-solid fa-store" style={{ fontSize: "0.75rem", color: palette.c3 }}></i> Marca Aourum
                 </span>
               </div>
               <h2 style={{ fontSize: "1.8rem", fontWeight: 800, marginTop: "0.8rem", letterSpacing: "-0.015em" }}>{brand.name}</h2>

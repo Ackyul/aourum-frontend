@@ -64,6 +64,7 @@ export default function ProductDetailPage() {
     products,
     brands,
     loading,
+    getBrandPalette,
     parseDescription,
     loadProducts,
     loadBrands,
@@ -145,24 +146,30 @@ export default function ProductDetailPage() {
 
   const brand = brands.find((b) => b.id === prod.brandId);
   const parsedBrand = brand ? parseDescription(brand.description) : null;
-  const brandThemeColor = (parsedBrand?.theme_color && parsedBrand.theme_color.startsWith('#')) 
-    ? parsedBrand.theme_color 
-    : "#D4AF37";
+  const palette = (brand && getBrandPalette) 
+    ? getBrandPalette(parsedBrand) 
+    : { c1: "#D4AF37", c2: "#EAB308", c3: "#F97316", c4: "#8B5CF6" };
+  const brandThemeColor = palette.c1;
 
   const whatsappNumber = brand?.whatsappNumber || "51999999999";
   const whatsappLink = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=Hola%20${brand ? encodeURIComponent(brand.name) : "Productor"}%20desde%20AOURUM,%20estoy%20interesado%20en%20el%20item%20"${encodeURIComponent(prod.name)}".`;
 
   return (
     <div className="product-details-container" style={{ position: "relative" }}>
-      {/* Resplandor de Ambiente de la Marca en la página de su producto */}
+      {/* Resplandor Multi-Color de Ambiente de la Marca en su producto */}
       <div 
         style={{ 
           position: "absolute", 
           top: "-20px", 
-          left: "5%", 
-          right: "5%", 
-          height: "450px", 
-          background: `radial-gradient(ellipse at 50% 10%, ${brandThemeColor}18 0%, rgba(255,255,255,0) 75%)`, 
+          left: "2%", 
+          right: "2%", 
+          height: "500px", 
+          background: `
+            radial-gradient(circle at 15% 15%, ${palette.c1}18 0%, transparent 45%),
+            radial-gradient(circle at 85% 15%, ${palette.c2}18 0%, transparent 45%),
+            radial-gradient(circle at 50% 60%, ${palette.c3}15 0%, transparent 50%),
+            radial-gradient(circle at 50% 10%, ${palette.c4}15 0%, transparent 60%)
+          `, 
           pointerEvents: "none", 
           zIndex: 0 
         }} 

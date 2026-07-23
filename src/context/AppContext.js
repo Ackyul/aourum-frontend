@@ -1493,12 +1493,31 @@ export function AppContextProvider({ children }) {
         openCreatePostModal,
         triggerNotification,
         logout,
-        parseDescription
+        parseDescription,
+        getBrandPalette
       }}
     >
       {children}
     </AppContext.Provider>
   );
+}
+
+export function getBrandPalette(description) {
+  const parsed = typeof description === "object" && description !== null ? description : parseDescription(description);
+  let rawColor = parsed?.theme_color || "";
+  let colors = rawColor.split(",").map(c => c.trim()).filter(c => c.startsWith("#"));
+
+  const defaultGold = "#D4AF37";
+  const defaultSecondary = "#EAB308";
+  const defaultAccent = "#F97316";
+  const defaultBg = "#8B5CF6";
+
+  const c1 = colors[0] || defaultGold;
+  const c2 = colors[1] || colors[0] || defaultSecondary;
+  const c3 = colors[2] || colors[1] || colors[0] || defaultAccent;
+  const c4 = colors[3] || colors[0] || defaultBg;
+
+  return { c1, c2, c3, c4, raw: rawColor, count: colors.length };
 }
 
 export function parseDescription(description) {

@@ -1749,115 +1749,159 @@ function AppLayoutShell({ children }) {
                     </div>
                   </div>
 
-                  {/* Accent Color / Tema */}
-                  <div className="form-group">
-                    <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Color de Acento (Tema)</label>
-                    <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "5px", alignItems: "center" }}>
-                      {[
-                        { name: "Dorado", color: "#D4AF37" },
-                        { name: "Esmeralda", color: "#0f766e" },
-                        { name: "Zafiro", color: "#1e3a8a" },
-                        { name: "Rubí", color: "#be123c" },
-                        { name: "Amatista", color: "#6d28d9" },
-                        { name: "Negro Obsidiana", color: "#1c1c1e" }
-                      ].map((theme) => (
-                        <button
-                          key={theme.color}
-                          type="button"
-                          onClick={() => setEditThemeColor(theme.color)}
-                          style={{
-                            width: "32px",
-                            height: "32px",
-                            borderRadius: "50%",
-                            background: theme.color,
-                            border: editThemeColor === theme.color ? "3px solid var(--text-gold)" : "2px solid #FFFFFF",
-                            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                            cursor: "pointer",
-                            transition: "transform 0.2s"
-                          }}
-                          title={theme.name}
-                        />
-                      ))}
-
-                      {/* Selector de Color Personalizado (Rueda/Gradiente) */}
-                      <div style={{ position: "relative", width: "32px", height: "32px" }}>
-                        <input 
-                          type="color"
-                          value={editThemeColor && editThemeColor.startsWith('#') && editThemeColor.length === 7 ? editThemeColor : "#D4AF37"}
-                          onChange={(e) => setEditThemeColor(e.target.value)}
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            opacity: 0,
-                            width: "100%",
-                            height: "100%",
-                            cursor: "pointer"
-                          }}
-                          title="Color Personalizado"
-                        />
-                        <div style={{
-                          width: "100%",
-                          height: "100%",
-                          borderRadius: "50%",
-                          background: !["#D4AF37", "#0f766e", "#1e3a8a", "#be123c", "#6d28d9", "#1c1c1e", ""].includes(editThemeColor) && editThemeColor.startsWith('#')
-                            ? editThemeColor
-                            : "linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff)",
-                          border: !["#D4AF37", "#0f766e", "#1e3a8a", "#be123c", "#6d28d9", "#1c1c1e", ""].includes(editThemeColor) ? "3px solid var(--text-gold)" : "2px solid #FFFFFF",
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          pointerEvents: "none"
-                        }}>
-                          <i className="fa-solid fa-eye-dropper" style={{ color: "#fff", fontSize: "0.75rem", textShadow: "0 1px 2px rgba(0,0,0,0.6)" }}></i>
-                        </div>
-                      </div>
-
+                  {/* Paleta de Identidad de Marca (Hasta 4 Colores) */}
+                  <div className="form-group" style={{ marginTop: "1.2rem" }}>
+                    <label style={{ fontSize: "0.82rem", fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span>🎨 Paleta de Identidad de Marca (4 Colores)</span>
                       {editThemeColor && (
                         <button 
                           type="button" 
-                          className="btn-outline-gold" 
-                          style={{ padding: "4px 10px", fontSize: "0.72rem", borderRadius: "20px", fontWeight: 700 }}
+                          style={{ background: "transparent", border: "none", color: "var(--text-gold)", fontSize: "0.75rem", cursor: "pointer", fontWeight: 700 }}
                           onClick={() => setEditThemeColor("")}
                         >
                           Restablecer
                         </button>
                       )}
-                    </div>
+                    </label>
+                    <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "2px 0 10px 0" }}>
+                      Define los 4 colores de tu marca. Se aplicarán en el resplandor de fondo, insignias y botones de tu perfil y productos.
+                    </p>
 
-                    {/* Input manual de código HEX */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "12px" }}>
-                      <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 600 }}>HEX:</span>
-                      <input 
-                        type="text"
-                        value={editThemeColor}
-                        onChange={(e) => {
-                          let val = e.target.value;
-                          if (val && !val.startsWith('#') && /^[0-9a-fA-F]+$/.test(val)) {
-                            val = '#' + val;
-                          }
-                          if (val.length <= 7) {
-                            setEditThemeColor(val);
-                          }
-                        }}
-                        placeholder="#D4AF37"
-                        style={{
-                          width: "90px",
-                          padding: "4px 8px",
-                          fontSize: "0.82rem",
-                          borderRadius: "6px",
-                          border: "1px solid var(--border-color)",
-                          background: "var(--bg-input)",
-                          color: "var(--text-primary)",
-                          fontFamily: "monospace",
-                          textAlign: "center"
-                        }}
-                      />
-                      <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
-                        o selecciona un color arriba.
-                      </span>
-                    </div>
+                    {/* Previsualización e Inputs de la Paleta */}
+                    {(() => {
+                      const colors = (editThemeColor || "").split(",").map(c => c.trim()).filter(c => c.startsWith("#"));
+                      const c1 = colors[0] || "#D4AF37";
+                      const c2 = colors[1] || c1;
+                      const c3 = colors[2] || c2;
+                      const c4 = colors[3] || c1;
+
+                      const updateColorAt = (idx, newColor) => {
+                        const arr = [c1, c2, c3, c4];
+                        arr[idx] = newColor;
+                        setEditThemeColor(arr.join(","));
+                      };
+
+                      const colorLabels = [
+                        { label: "1. Principal", hint: "Acentos y botones" },
+                        { label: "2. Secundario", hint: "Insignias y subtítulos" },
+                        { label: "3. Acento", hint: "Destacados e íconos" },
+                        { label: "4. Ambiente", hint: "Resplandor de fondo" }
+                      ];
+
+                      const presets = [
+                        { name: "Dorado & Ámbar", colors: ["#D4AF37", "#EAB308", "#F97316", "#8B5CF6"] },
+                        { name: "Cyberpunk", colors: ["#EC4899", "#8B5CF6", "#3B82F6", "#06B6D4"] },
+                        { name: "Fuego Pasión", colors: ["#EF4444", "#F97316", "#FACC15", "#991B1B"] },
+                        { name: "Bosque Esmeralda", colors: ["#10B981", "#059669", "#047857", "#064E3B"] },
+                        { name: "Zafiro Real", colors: ["#3B82F6", "#1D4ED8", "#1E40AF", "#60A5FA"] },
+                        { name: "Amatista Mística", colors: ["#A855F7", "#7E22CE", "#581C87", "#C084FC"] }
+                      ];
+
+                      return (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                          {/* Barra de Muestra de la Paleta */}
+                          <div 
+                            style={{ 
+                              height: "34px", 
+                              borderRadius: "10px", 
+                              background: `linear-gradient(90deg, ${c1}, ${c2}, ${c3}, ${c4})`, 
+                              boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-around",
+                              padding: "0 10px",
+                              border: "1px solid rgba(255,255,255,0.2)"
+                            }}
+                          >
+                            <span style={{ fontSize: "0.7rem", color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.8)", fontWeight: 800 }}>Principal</span>
+                            <span style={{ fontSize: "0.7rem", color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.8)", fontWeight: 800 }}>Secundario</span>
+                            <span style={{ fontSize: "0.7rem", color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.8)", fontWeight: 800 }}>Acento</span>
+                            <span style={{ fontSize: "0.7rem", color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.8)", fontWeight: 800 }}>Ambiente</span>
+                          </div>
+
+                          {/* 4 Controles de Color */}
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px" }}>
+                            {[c1, c2, c3, c4].map((colVal, idx) => (
+                              <div 
+                                key={idx} 
+                                style={{ 
+                                  background: "var(--bg-input)", 
+                                  border: "1px solid var(--border-color)", 
+                                  borderRadius: "10px", 
+                                  padding: "8px 10px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "8px"
+                                }}
+                              >
+                                <input 
+                                  type="color" 
+                                  value={colVal} 
+                                  onChange={(e) => updateColorAt(idx, e.target.value)} 
+                                  style={{ width: "28px", height: "28px", border: "none", background: "none", cursor: "pointer", padding: 0 }}
+                                />
+                                <div style={{ minWidth: 0, flex: 1 }}>
+                                  <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text-primary)" }}>
+                                    {colorLabels[idx].label}
+                                  </div>
+                                  <input 
+                                    type="text" 
+                                    value={colVal} 
+                                    onChange={(e) => {
+                                      let v = e.target.value;
+                                      if (v && !v.startsWith('#')) v = '#' + v;
+                                      updateColorAt(idx, v);
+                                    }}
+                                    style={{ 
+                                      width: "100%", 
+                                      background: "transparent", 
+                                      border: "none", 
+                                      fontSize: "0.72rem", 
+                                      color: "var(--text-muted)", 
+                                      fontFamily: "monospace" 
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Presets Recomendados */}
+                          <div>
+                            <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: "6px" }}>
+                              Combinaciones de 4 Colores:
+                            </span>
+                            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                              {presets.map((preset, pIdx) => (
+                                <button
+                                  key={pIdx}
+                                  type="button"
+                                  onClick={() => setEditThemeColor(preset.colors.join(","))}
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "5px",
+                                    background: "var(--bg-input)",
+                                    border: "1px solid var(--border-color)",
+                                    borderRadius: "16px",
+                                    padding: "4px 8px",
+                                    cursor: "pointer",
+                                    fontSize: "0.72rem"
+                                  }}
+                                >
+                                  <div style={{ display: "flex", gap: "2px" }}>
+                                    {preset.colors.map((c, ci) => (
+                                      <span key={ci} style={{ width: "8px", height: "8px", borderRadius: "50%", background: c }} />
+                                    ))}
+                                  </div>
+                                  <span>{preset.name}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Interests / Tags */}
