@@ -269,9 +269,7 @@ export default function OrganizerProfilePage() {
 
   const parsed = parseDescription(organizer.description);
   const themeColor = (parsed.theme_color && parsed.theme_color.startsWith('#')) ? parsed.theme_color : "#D4AF37";
-  const bannerStyle = parsed.banner 
-    ? { backgroundImage: `url(${parsed.banner})`, backgroundSize: "cover", backgroundPosition: "center", height: "200px" } 
-    : { background: "var(--gold-gradient)" };
+  const bannerStyle = !parsed.banner ? { background: "var(--gold-gradient)" } : {};
 
   return (
     <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>

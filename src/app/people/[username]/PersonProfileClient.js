@@ -241,9 +241,7 @@ export default function PersonProfileClient() {
     ? parseDescription(person.description) 
     : { text: person.description || "", tagline: "", theme_color: "", banner: "" };
   const themeColor = (parsed.theme_color && parsed.theme_color.startsWith('#')) ? parsed.theme_color : "#D4AF37";
-  const bannerStyle = parsed.banner 
-    ? { backgroundImage: `url(${parsed.banner})`, backgroundSize: "cover", backgroundPosition: "center", height: "200px" } 
-    : { background: "var(--gold-gradient)", opacity: 0.15, height: "130px" };
+  const bannerStyle = !parsed.banner ? { background: "var(--gold-gradient)", opacity: 0.15 } : {};
 
   return (
     <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
