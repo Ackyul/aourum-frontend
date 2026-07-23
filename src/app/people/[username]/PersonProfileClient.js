@@ -244,7 +244,7 @@ export default function PersonProfileClient() {
   const bannerStyle = !parsed.banner ? { background: "var(--gold-gradient)", opacity: 0.15 } : {};
 
   return (
-    <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
+    <div className="container" style={{ maxWidth: "1400px", padding: "0 1rem" }}>
       <div style={{ position: "relative", marginBottom: "2.5rem" }}>
         <button onClick={() => router.push("/")} className="profile-close-btn" style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>&times;</button>
         <button onClick={copyLink} className="profile-share-btn" style={{ position: "absolute", top: "15px", right: "60px", zIndex: 10 }} title="Copiar enlace de perfil">

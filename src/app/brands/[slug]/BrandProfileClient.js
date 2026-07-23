@@ -775,7 +775,7 @@ export default function BrandProfileClient({ initialBrand }) {
   const bannerStyle = !parsed.banner ? { background: "var(--gold-gradient)" } : {};
 
   return (
-    <div className="container" style={{ maxWidth: "1200px", padding: "0 1rem", paddingBottom: "3rem" }}>
+    <div className="container" style={{ maxWidth: "1400px", padding: "0 1rem", paddingBottom: "3rem" }}>
 
       {/* Botones de Navegación Superior */}
       <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>

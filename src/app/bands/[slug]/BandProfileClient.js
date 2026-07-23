@@ -388,7 +388,7 @@ export default function BandProfileClient({ initialBand }) {
 
 
   return (
-    <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
+    <div className="container" style={{ maxWidth: "1400px", padding: "0 1rem" }}>
       <head>
         <title>{`${band.name} | AOURUM`}</title>
         <meta name="description" content={band.description ? band.description.substring(0, 160) : `Conoce el perfil, integrantes y canciones de ${band.name} en AOURUM, el nodo central del talento local.`} />
