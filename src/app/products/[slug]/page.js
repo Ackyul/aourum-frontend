@@ -453,123 +453,187 @@ export default function ProductDetailPage() {
             Otros productos de <span style={{ color: "var(--gold-dark)" }}>{brand ? brand.name : "esta marca"}</span>
           </h3>
           <div className="grid-catalog">
-            {suggestedBrandProds.map((rp) => (
-              <div 
-                key={rp.id}
-                className="glass-panel product-card"
-                style={{ overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column" }}
-                onClick={() => router.push(`/products/${rp.slug || rp.id}`)}
-              >
-                <div className="card-img-container" style={{ position: "relative" }}>
-                  <img src={rp.image} alt={rp.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} className="card-img-hover" />
-                  {rp.suggestionType && (
-                    <div style={{
-                      position: "absolute",
-                      top: "8px",
-                      left: "8px",
-                      zIndex: 2,
-                      display: "flex",
-                      gap: "4px"
+            {suggestedBrandProds.map((rp) => {
+              const rpBrand = brands.find(b => b.id === rp.brandId);
+              const rpDesign = rpBrand?.brandDesign || {};
+              const rawCardBg = (rp.imgBgColor && rp.imgBgColor !== "transparent") 
+                ? rp.imgBgColor 
+                : (rpDesign.cardBgColor && rpDesign.cardBgColor !== "transparent" ? rpDesign.cardBgColor : null);
+
+              let cardBgStyle = {};
+              let isDarkBg = false;
+              let titleTextColor = "var(--text-primary)";
+              let priceTextColor = "var(--text-primary)";
+              let dividerBorder = "1px solid var(--border-color)";
+
+              if (rawCardBg) {
+                let finalColor = rawCardBg;
+                if (rawCardBg === "brand") finalColor = rpBrand?.color || "var(--gold-primary)";
+                else if (rawCardBg === "brand-soft") finalColor = "rgba(212, 175, 55, 0.12)";
+
+                if (finalColor.startsWith("#")) {
+                  const hex = finalColor.replace("#", "");
+                  if (hex.length === 6) {
+                    const r = parseInt(hex.substring(0, 2), 16) || 0;
+                    const g = parseInt(hex.substring(2, 4), 16) || 0;
+                    const b = parseInt(hex.substring(4, 6), 16) || 0;
+                    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+                    isDarkBg = brightness < 140;
+                  }
+                }
+
+                if (isDarkBg) {
+                  titleTextColor = "#FFFFFF";
+                  priceTextColor = "#FFFFFF";
+                  dividerBorder = "1px solid rgba(255,255,255,0.15)";
+                } else {
+                  titleTextColor = "#1C1C1E";
+                  priceTextColor = "#1C1C1E";
+                  dividerBorder = "1px solid rgba(0,0,0,0.08)";
+                }
+
+                cardBgStyle = {
+                  background: `${finalColor} !important`,
+                  border: `1px solid ${isDarkBg ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.08)"}`
+                };
+              }
+
+              return (
+                <div 
+                  key={rp.id}
+                  className="glass-panel product-card"
+                  style={{ overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column", ...cardBgStyle }}
+                  onClick={() => router.push(`/products/${rp.slug || rp.id}`)}
+                >
+                  <div 
+                    className="card-img-container" 
+                    style={{ 
+                      position: "relative",
+                      backgroundColor: (rp.imgBgColor && rp.imgBgColor !== "transparent") 
+                        ? (rp.imgBgColor === "brand" ? (rpBrand?.color || "var(--gold-primary)") : rp.imgBgColor)
+                        : "transparent"
+                    }}
+                  >
+                    <img 
+                      src={rp.image} 
+                      alt={rp.name} 
+                      style={{ 
+                        width: "100%", 
+                        height: "100%", 
+                        objectFit: rp.imgBgColor && rp.imgBgColor !== "transparent" ? "contain" : "cover",
+                        padding: rp.imgBgColor && rp.imgBgColor !== "transparent" ? "10px" : "0"
+                      }} 
+                      className="card-img-hover" 
+                    />
+                    {rp.suggestionType && (
+                      <div style={{
+                        position: "absolute",
+                        top: "8px",
+                        left: "8px",
+                        zIndex: 2,
+                        display: "flex",
+                        gap: "4px"
+                      }}>
+                        {rp.suggestionType === "popular" ? (
+                          <span style={{ 
+                            background: "rgba(229, 57, 53, 0.95)",
+                            color: "#FFFFFF", 
+                            fontSize: "0.62rem", 
+                            padding: "3px 8px", 
+                            borderRadius: "12px", 
+                            fontWeight: 700, 
+                            letterSpacing: "0.03em",
+                            textTransform: "uppercase",
+                            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "3px"
+                          }}>
+                            <i className="fa-solid fa-fire" style={{ fontSize: "0.7rem" }}></i> Popular
+                          </span>
+                        ) : (
+                          <span style={{ 
+                            background: "rgba(30, 144, 255, 0.95)",
+                            color: "#FFFFFF", 
+                            fontSize: "0.62rem", 
+                            padding: "3px 8px", 
+                            borderRadius: "12px", 
+                            fontWeight: 700, 
+                            letterSpacing: "0.03em",
+                            textTransform: "uppercase",
+                            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "3px"
+                          }}>
+                            <i className="fa-solid fa-wand-magic-sparkles" style={{ fontSize: "0.7rem" }}></i> Descubrir
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                    <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: titleTextColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {rp.name}
+                    </h4>
+                    
+                    <div style={{ 
+                      display: "flex", 
+                      justifyContent: "space-between", 
+                      alignItems: "center", 
+                      borderTop: dividerBorder, 
+                      paddingTop: "0.8rem", 
+                      marginTop: "auto" 
                     }}>
-                      {rp.suggestionType === "popular" ? (
-                        <span style={{ 
-                          background: "rgba(229, 57, 53, 0.95)",
-                          color: "#FFFFFF", 
-                          fontSize: "0.62rem", 
-                          padding: "3px 8px", 
-                          borderRadius: "12px", 
-                          fontWeight: 700, 
-                          letterSpacing: "0.03em",
-                          textTransform: "uppercase",
-                          boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "3px"
-                        }}>
-                          <i className="fa-solid fa-fire" style={{ fontSize: "0.7rem" }}></i> Popular
-                        </span>
-                      ) : (
-                        <span style={{ 
-                          background: "rgba(30, 144, 255, 0.95)",
-                          color: "#FFFFFF", 
-                          fontSize: "0.62rem", 
-                          padding: "3px 8px", 
-                          borderRadius: "12px", 
-                          fontWeight: 700, 
-                          letterSpacing: "0.03em",
-                          textTransform: "uppercase",
-                          boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "3px"
-                        }}>
-                          <i className="fa-solid fa-wand-magic-sparkles" style={{ fontSize: "0.7rem" }}></i> Descubrir
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                  <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {rp.name}
-                  </h4>
-                  
-                  <div style={{ 
-                    display: "flex", 
-                    justifyContent: "space-between", 
-                    alignItems: "center", 
-                    borderTop: "1px solid var(--border-color)", 
-                    paddingTop: "0.8rem", 
-                    marginTop: "auto" 
-                  }}>
-                    <div>
-                      {rp.priceAourum ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-                          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textDecoration: "line-through" }}>
+                      <div>
+                        {rp.priceAourum ? (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+                            <span style={{ fontSize: "0.75rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", textDecoration: "line-through" }}>
+                              S/ {rp.price.toLocaleString("es-PE")}
+                            </span>
+                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                              <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-gold)" }}>
+                                S/ {rp.priceAourum.toLocaleString("es-PE")}
+                              </span>
+                              <span style={{ fontSize: "0.55rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "bold", textTransform: "uppercase" }}>
+                                Aourum
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: "1.05rem", fontWeight: 800, color: priceTextColor }}>
                             S/ {rp.price.toLocaleString("es-PE")}
                           </span>
-                          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                            <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-gold)" }}>
-                              S/ {rp.priceAourum.toLocaleString("es-PE")}
-                            </span>
-                            <span style={{ fontSize: "0.55rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "bold", textTransform: "uppercase" }}>
-                              Aourum
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                        <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-primary)" }}>
-                          S/ {rp.price.toLocaleString("es-PE")}
+                        )}
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+                        <span className="card-type-label" style={{
+                          fontSize: "0.65rem",
+                          fontWeight: 700,
+                          textTransform: "uppercase",
+                          color: rp.type === "service" ? (isDarkBg ? "#93c5fd" : "#1e3a8a") : (isDarkBg ? "#fde68a" : "#78350f"),
+                          letterSpacing: "0.03em"
+                        }}>
+                          {rp.type === "service" ? "Servicio" : "Producto"}
                         </span>
-                      )}
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
-                      <span className="card-type-label" style={{
-                        fontSize: "0.65rem",
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                        color: rp.type === "service" ? "#1e3a8a" : "#78350f",
-                        letterSpacing: "0.03em"
-                      }}>
-                        {rp.type === "service" ? "Servicio" : "Producto"}
-                      </span>
-                      <span className="card-stock-label" style={{
-                        fontSize: "0.65rem",
-                        fontWeight: 700,
-                        padding: "2px 6px",
-                        borderRadius: "8px",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.02em",
-                        background: rp.type === "service" ? "#dbeafe" : (rp.stock == null || rp.stock > 0) ? "#dcfce7" : "#fee2e2",
-                        color: rp.type === "service" ? "#1e40af" : (rp.stock == null || rp.stock > 0) ? "#15803d" : "#b91c1c"
-                      }}>
-                        {rp.type === "service" ? "Agenda" : (rp.stock == null || rp.stock > 0) ? "Stock" : "Agotado"}
-                      </span>
+                        <span className="card-stock-label" style={{
+                          fontSize: "0.65rem",
+                          fontWeight: 700,
+                          padding: "2px 6px",
+                          borderRadius: "8px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.02em",
+                          background: rp.type === "service" ? "#dbeafe" : (rp.stock == null || rp.stock > 0) ? "#dcfce7" : "#fee2e2",
+                          color: rp.type === "service" ? "#1e40af" : (rp.stock == null || rp.stock > 0) ? "#15803d" : "#b91c1c"
+                        }}>
+                          {rp.type === "service" ? "Agenda" : (rp.stock == null || rp.stock > 0) ? "Stock" : "Agotado"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -581,123 +645,187 @@ export default function ProductDetailPage() {
             Productos recomendados en <span style={{ color: "var(--gold-dark)" }}>{prod.category || "esta categoría"}</span>
           </h3>
           <div className="grid-catalog">
-            {suggestedCategoryProds.map((rp) => (
-              <div 
-                key={rp.id}
-                className="glass-panel product-card"
-                style={{ overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column" }}
-                onClick={() => router.push(`/products/${rp.slug || rp.id}`)}
-              >
-                <div className="card-img-container" style={{ position: "relative" }}>
-                  <img src={rp.image} alt={rp.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} className="card-img-hover" />
-                  {rp.suggestionType && (
-                    <div style={{
-                      position: "absolute",
-                      top: "8px",
-                      left: "8px",
-                      zIndex: 2,
-                      display: "flex",
-                      gap: "4px"
+            {suggestedCategoryProds.map((rp) => {
+              const rpBrand = brands.find(b => b.id === rp.brandId);
+              const rpDesign = rpBrand?.brandDesign || {};
+              const rawCardBg = (rp.imgBgColor && rp.imgBgColor !== "transparent") 
+                ? rp.imgBgColor 
+                : (rpDesign.cardBgColor && rpDesign.cardBgColor !== "transparent" ? rpDesign.cardBgColor : null);
+
+              let cardBgStyle = {};
+              let isDarkBg = false;
+              let titleTextColor = "var(--text-primary)";
+              let priceTextColor = "var(--text-primary)";
+              let dividerBorder = "1px solid var(--border-color)";
+
+              if (rawCardBg) {
+                let finalColor = rawCardBg;
+                if (rawCardBg === "brand") finalColor = rpBrand?.color || "var(--gold-primary)";
+                else if (rawCardBg === "brand-soft") finalColor = "rgba(212, 175, 55, 0.12)";
+
+                if (finalColor.startsWith("#")) {
+                  const hex = finalColor.replace("#", "");
+                  if (hex.length === 6) {
+                    const r = parseInt(hex.substring(0, 2), 16) || 0;
+                    const g = parseInt(hex.substring(2, 4), 16) || 0;
+                    const b = parseInt(hex.substring(4, 6), 16) || 0;
+                    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+                    isDarkBg = brightness < 140;
+                  }
+                }
+
+                if (isDarkBg) {
+                  titleTextColor = "#FFFFFF";
+                  priceTextColor = "#FFFFFF";
+                  dividerBorder = "1px solid rgba(255,255,255,0.15)";
+                } else {
+                  titleTextColor = "#1C1C1E";
+                  priceTextColor = "#1C1C1E";
+                  dividerBorder = "1px solid rgba(0,0,0,0.08)";
+                }
+
+                cardBgStyle = {
+                  background: `${finalColor} !important`,
+                  border: `1px solid ${isDarkBg ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.08)"}`
+                };
+              }
+
+              return (
+                <div 
+                  key={rp.id}
+                  className="glass-panel product-card"
+                  style={{ overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column", ...cardBgStyle }}
+                  onClick={() => router.push(`/products/${rp.slug || rp.id}`)}
+                >
+                  <div 
+                    className="card-img-container" 
+                    style={{ 
+                      position: "relative",
+                      backgroundColor: (rp.imgBgColor && rp.imgBgColor !== "transparent") 
+                        ? (rp.imgBgColor === "brand" ? (rpBrand?.color || "var(--gold-primary)") : rp.imgBgColor)
+                        : "transparent"
+                    }}
+                  >
+                    <img 
+                      src={rp.image} 
+                      alt={rp.name} 
+                      style={{ 
+                        width: "100%", 
+                        height: "100%", 
+                        objectFit: rp.imgBgColor && rp.imgBgColor !== "transparent" ? "contain" : "cover",
+                        padding: rp.imgBgColor && rp.imgBgColor !== "transparent" ? "10px" : "0"
+                      }} 
+                      className="card-img-hover" 
+                    />
+                    {rp.suggestionType && (
+                      <div style={{
+                        position: "absolute",
+                        top: "8px",
+                        left: "8px",
+                        zIndex: 2,
+                        display: "flex",
+                        gap: "4px"
+                      }}>
+                        {rp.suggestionType === "popular" ? (
+                          <span style={{ 
+                            background: "rgba(229, 57, 53, 0.95)",
+                            color: "#FFFFFF", 
+                            fontSize: "0.62rem", 
+                            padding: "3px 8px", 
+                            borderRadius: "12px", 
+                            fontWeight: 700, 
+                            letterSpacing: "0.03em",
+                            textTransform: "uppercase",
+                            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "3px"
+                          }}>
+                            <i className="fa-solid fa-fire" style={{ fontSize: "0.7rem" }}></i> Popular
+                          </span>
+                        ) : (
+                          <span style={{ 
+                            background: "rgba(30, 144, 255, 0.95)",
+                            color: "#FFFFFF", 
+                            fontSize: "0.62rem", 
+                            padding: "3px 8px", 
+                            borderRadius: "12px", 
+                            fontWeight: 700, 
+                            letterSpacing: "0.03em",
+                            textTransform: "uppercase",
+                            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "3px"
+                          }}>
+                            <i className="fa-solid fa-wand-magic-sparkles" style={{ fontSize: "0.7rem" }}></i> Descubrir
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                    <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: titleTextColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {rp.name}
+                    </h4>
+                    
+                    <div style={{ 
+                      display: "flex", 
+                      justifyContent: "space-between", 
+                      alignItems: "center", 
+                      borderTop: dividerBorder, 
+                      paddingTop: "0.8rem", 
+                      marginTop: "auto" 
                     }}>
-                      {rp.suggestionType === "popular" ? (
-                        <span style={{ 
-                          background: "rgba(229, 57, 53, 0.95)",
-                          color: "#FFFFFF", 
-                          fontSize: "0.62rem", 
-                          padding: "3px 8px", 
-                          borderRadius: "12px", 
-                          fontWeight: 700, 
-                          letterSpacing: "0.03em",
-                          textTransform: "uppercase",
-                          boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "3px"
-                        }}>
-                          <i className="fa-solid fa-fire" style={{ fontSize: "0.7rem" }}></i> Popular
-                        </span>
-                      ) : (
-                        <span style={{ 
-                          background: "rgba(30, 144, 255, 0.95)",
-                          color: "#FFFFFF", 
-                          fontSize: "0.62rem", 
-                          padding: "3px 8px", 
-                          borderRadius: "12px", 
-                          fontWeight: 700, 
-                          letterSpacing: "0.03em",
-                          textTransform: "uppercase",
-                          boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "3px"
-                        }}>
-                          <i className="fa-solid fa-wand-magic-sparkles" style={{ fontSize: "0.7rem" }}></i> Descubrir
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                  <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {rp.name}
-                  </h4>
-                  
-                  <div style={{ 
-                    display: "flex", 
-                    justifyContent: "space-between", 
-                    alignItems: "center", 
-                    borderTop: "1px solid var(--border-color)", 
-                    paddingTop: "0.8rem", 
-                    marginTop: "auto" 
-                  }}>
-                    <div>
-                      {rp.priceAourum ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-                          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textDecoration: "line-through" }}>
+                      <div>
+                        {rp.priceAourum ? (
+                          <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+                            <span style={{ fontSize: "0.75rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", textDecoration: "line-through" }}>
+                              S/ {rp.price.toLocaleString("es-PE")}
+                            </span>
+                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                              <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-gold)" }}>
+                                S/ {rp.priceAourum.toLocaleString("es-PE")}
+                              </span>
+                              <span style={{ fontSize: "0.55rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "bold", textTransform: "uppercase" }}>
+                                Aourum
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <span style={{ fontSize: "1.05rem", fontWeight: 800, color: priceTextColor }}>
                             S/ {rp.price.toLocaleString("es-PE")}
                           </span>
-                          <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                            <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-gold)" }}>
-                              S/ {rp.priceAourum.toLocaleString("es-PE")}
-                            </span>
-                            <span style={{ fontSize: "0.55rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "bold", textTransform: "uppercase" }}>
-                              Aourum
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                        <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-primary)" }}>
-                          S/ {rp.price.toLocaleString("es-PE")}
+                        )}
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+                        <span className="card-type-label" style={{
+                          fontSize: "0.65rem",
+                          fontWeight: 700,
+                          textTransform: "uppercase",
+                          color: rp.type === "service" ? (isDarkBg ? "#93c5fd" : "#1e3a8a") : (isDarkBg ? "#fde68a" : "#78350f"),
+                          letterSpacing: "0.03em"
+                        }}>
+                          {rp.type === "service" ? "Servicio" : "Producto"}
                         </span>
-                      )}
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
-                      <span className="card-type-label" style={{
-                        fontSize: "0.65rem",
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                        color: rp.type === "service" ? "#1e3a8a" : "#78350f",
-                        letterSpacing: "0.03em"
-                      }}>
-                        {rp.type === "service" ? "Servicio" : "Producto"}
-                      </span>
-                      <span className="card-stock-label" style={{
-                        fontSize: "0.65rem",
-                        fontWeight: 700,
-                        padding: "2px 6px",
-                        borderRadius: "8px",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.02em",
-                        background: rp.type === "service" ? "#dbeafe" : (rp.stock == null || rp.stock > 0) ? "#dcfce7" : "#fee2e2",
-                        color: rp.type === "service" ? "#1e40af" : (rp.stock == null || rp.stock > 0) ? "#15803d" : "#b91c1c"
-                      }}>
-                        {rp.type === "service" ? "Agenda" : (rp.stock == null || rp.stock > 0) ? "Stock" : "Agotado"}
-                      </span>
+                        <span className="card-stock-label" style={{
+                          fontSize: "0.65rem",
+                          fontWeight: 700,
+                          padding: "2px 6px",
+                          borderRadius: "8px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.02em",
+                          background: rp.type === "service" ? "#dbeafe" : (rp.stock == null || rp.stock > 0) ? "#dcfce7" : "#fee2e2",
+                          color: rp.type === "service" ? "#1e40af" : (rp.stock == null || rp.stock > 0) ? "#15803d" : "#b91c1c"
+                        }}>
+                          {rp.type === "service" ? "Agenda" : (rp.stock == null || rp.stock > 0) ? "Stock" : "Agotado"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

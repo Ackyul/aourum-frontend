@@ -1985,7 +1985,7 @@ function AppLayoutShell({ children }) {
                             {/* Estilo de Tarjetas y Tipografía */}
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
                               <div className="form-group" style={{ margin: 0 }}>
-                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Tarjetas de Productos</label>
+                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Estilo de Tarjetas</label>
                                 <select 
                                   className="form-control" 
                                   value={design.cardStyle || "glass"} 
@@ -2000,21 +2000,48 @@ function AppLayoutShell({ children }) {
                               </div>
 
                               <div className="form-group" style={{ margin: 0 }}>
-                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Tipografía</label>
-                                <select 
-                                  className="form-control" 
-                                  value={design.fontFamily || "Inter"} 
-                                  onChange={(e) => updateDesignKey("fontFamily", e.target.value)}
-                                  style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
-                                >
-                                  <option value="Inter">Inter (Estándar AOURUM)</option>
-                                  <option value="Playfair Display">Playfair Display (Elegante Serif)</option>
-                                  <option value="Space Grotesk">Space Grotesk (Moderna Tech)</option>
-                                  <option value="Lora">Lora (Cálido y Artesanal)</option>
-                                  <option value="Montserrat">Montserrat (Limpio Premium)</option>
-                                  <option value="Bebas Neue">Bebas Neue (Titulares Impactantes)</option>
-                                </select>
+                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Color Fondo de Tarjetas</label>
+                                <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                                  <select 
+                                    className="form-control" 
+                                    value={design.cardBgColor || "transparent"} 
+                                    onChange={(e) => updateDesignKey("cardBgColor", e.target.value)}
+                                    style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem", flex: 1 }}
+                                  >
+                                    <option value="transparent">Glass / Predeterminado</option>
+                                    <option value="#FFFFFF">Blanco Puro (#FFFFFF)</option>
+                                    <option value="#FAF9F0">Crema Cálido (#FAF9F0)</option>
+                                    <option value="#F8FAFC">Gris Suave (#F8FAFC)</option>
+                                    <option value="brand">Color de Marca</option>
+                                    <option value="brand-soft">Tinta Suave de Marca</option>
+                                    <option value="#18181B">Oscuro Elegante (#18181B)</option>
+                                  </select>
+                                  <input 
+                                    type="color" 
+                                    value={design.cardBgColor && design.cardBgColor.startsWith("#") ? design.cardBgColor : "#FAF9F0"} 
+                                    onChange={(e) => updateDesignKey("cardBgColor", e.target.value)} 
+                                    style={{ width: "26px", height: "26px", border: "none", background: "none", cursor: "pointer", padding: 0 }} 
+                                    title="Personalizar Hex" 
+                                  />
+                                </div>
                               </div>
+                            </div>
+
+                            <div className="form-group" style={{ margin: 0 }}>
+                              <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Tipografía</label>
+                              <select 
+                                className="form-control" 
+                                value={design.fontFamily || "Inter"} 
+                                onChange={(e) => updateDesignKey("fontFamily", e.target.value)}
+                                style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                              >
+                                <option value="Inter">Inter (Estándar AOURUM)</option>
+                                <option value="Playfair Display">Playfair Display (Elegante Serif)</option>
+                                <option value="Space Grotesk">Space Grotesk (Moderna Tech)</option>
+                                <option value="Lora">Lora (Cálido y Artesanal)</option>
+                                <option value="Montserrat">Montserrat (Limpio Premium)</option>
+                                <option value="Bebas Neue">Bebas Neue (Titulares Impactantes)</option>
+                              </select>
                             </div>
 
                             {/* Intensidad del Resplandor y Animaciones */}

@@ -185,22 +185,90 @@ export default function FairProfileClient({ initialFair }) {
 
   function FairProductCard({ prod }) {
     const brandOfProd = brands.find(b => b.id === prod.brandId);
+    const brandDesign = brandOfProd?.brandDesign || {};
+    const rawCardBg = (prod.imgBgColor && prod.imgBgColor !== "transparent") 
+      ? prod.imgBgColor 
+      : (brandDesign.cardBgColor && brandDesign.cardBgColor !== "transparent" ? brandDesign.cardBgColor : null);
+
+    let cardBgStyle = {};
+    let isDarkBg = false;
+    let categoryTextColor = "var(--text-gold)";
+    let titleTextColor = "var(--text-primary)";
+    let priceTextColor = "var(--text-primary)";
+    let dividerBorder = "1px solid var(--border-color)";
+
+    if (rawCardBg) {
+      let finalColor = rawCardBg;
+      if (rawCardBg === "brand") finalColor = brandOfProd?.color || "var(--gold-primary)";
+      else if (rawCardBg === "brand-soft") finalColor = "rgba(212, 175, 55, 0.12)";
+
+      if (finalColor.startsWith("#")) {
+        const hex = finalColor.replace("#", "");
+        if (hex.length === 6) {
+          const r = parseInt(hex.substring(0, 2), 16) || 0;
+          const g = parseInt(hex.substring(2, 4), 16) || 0;
+          const b = parseInt(hex.substring(4, 6), 16) || 0;
+          const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+          isDarkBg = brightness < 140;
+        }
+      }
+
+      const upperHex = finalColor.toUpperCase();
+      if (upperHex === "#FAF9F0" || upperHex === "#FFFBEB") {
+        categoryTextColor = "#B8860B";
+        titleTextColor = "#1C1C1E";
+        priceTextColor = "#1C1C1E";
+        dividerBorder = "1px solid rgba(0,0,0,0.08)";
+      } else if (isDarkBg) {
+        categoryTextColor = "var(--text-gold)";
+        titleTextColor = "#FFFFFF";
+        priceTextColor = "#FFFFFF";
+        dividerBorder = "1px solid rgba(255,255,255,0.15)";
+      } else {
+        titleTextColor = "#1C1C1E";
+        priceTextColor = "#1C1C1E";
+        dividerBorder = "1px solid rgba(0,0,0,0.08)";
+      }
+
+      cardBgStyle = {
+        background: `${finalColor} !important`,
+        border: `1px solid ${isDarkBg ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.08)"}`
+      };
+    }
+
     return (
       <div 
         className="glass-panel product-card" 
-        style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer", height: "100%" }}
+        style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer", height: "100%", ...cardBgStyle }}
         onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
       >
-        <div className="card-img-container" style={{ position: "relative" }}>
-          <img src={prod.image} alt={prod.name} className="card-img-hover" />
+        <div 
+          className="card-img-container" 
+          style={{ 
+            position: "relative",
+            backgroundColor: (prod.imgBgColor && prod.imgBgColor !== "transparent") 
+              ? (prod.imgBgColor === "brand" ? (brandOfProd?.color || "var(--gold-primary)") : prod.imgBgColor)
+              : "transparent",
+            transition: "background-color 0.3s ease"
+          }}
+        >
+          <img 
+            src={prod.image} 
+            alt={prod.name} 
+            className="card-img-hover"
+            style={{ 
+              objectFit: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "contain" : "cover",
+              padding: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "10px" : "0"
+            }}
+          />
         </div>
         <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-          <span style={{ fontSize: "0.72rem", color: "var(--text-gold)", letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
+          <span style={{ fontSize: "0.72rem", color: categoryTextColor, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
             {prod.category}
           </span>
-          <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: "var(--text-primary)" }}>{prod.name}</h3>
+          <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: titleTextColor }}>{prod.name}</h3>
           {brandOfProd && (
-            <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px" }}>
+            <span style={{ fontSize: "0.75rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px" }}>
               <i className="fa-solid fa-store" style={{ fontSize: "0.7rem" }}></i> {brandOfProd.name}
             </span>
           )}
@@ -209,14 +277,14 @@ export default function FairProfileClient({ initialFair }) {
             display: "flex", 
             justifyContent: "space-between", 
             alignItems: "center", 
-            borderTop: "1px solid var(--border-color)", 
+            borderTop: dividerBorder, 
             paddingTop: "0.8rem", 
             marginTop: "auto" 
           }}>
             <div>
               {prod.priceAourum ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textDecoration: "line-through" }}>
+                  <span style={{ fontSize: "0.75rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", textDecoration: "line-through" }}>
                     S/ {prod.price.toLocaleString("es-PE")}
                   </span>
                   <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
@@ -229,7 +297,7 @@ export default function FairProfileClient({ initialFair }) {
                   </div>
                 </div>
               ) : (
-                <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-primary)" }}>
+                <span style={{ fontSize: "1.05rem", fontWeight: 800, color: priceTextColor }}>
                   S/ {prod.price.toLocaleString("es-PE")}
                 </span>
               )}
@@ -239,7 +307,7 @@ export default function FairProfileClient({ initialFair }) {
                 fontSize: "0.65rem",
                 fontWeight: 700,
                 textTransform: "uppercase",
-                color: prod.type === "service" ? "#1e3a8a" : "#78350f",
+                color: prod.type === "service" ? (isDarkBg ? "#93c5fd" : "#1e3a8a") : (isDarkBg ? "#fde68a" : "#78350f"),
                 letterSpacing: "0.03em"
               }}>
                 {prod.type === "service" ? "Servicio" : "Producto"}
