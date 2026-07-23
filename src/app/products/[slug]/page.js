@@ -172,6 +172,26 @@ export default function ProductDetailPage() {
           border: 1px solid ${palette.c1}25 !important;
           box-shadow: 0 8px 24px ${palette.c1}08 !important;
         }
+        header {
+          background: linear-gradient(180deg, ${palette.c1}18 0%, rgba(255, 255, 255, 0.96) 100%) !important;
+          border-bottom: 1.5px solid ${palette.c1}40 !important;
+          box-shadow: 0 4px 20px ${palette.c1}12 !important;
+        }
+        footer.site-footer {
+          background: linear-gradient(0deg, ${palette.c1}15 0%, ${palette.c4}08 50%, #FFFFFF 100%) !important;
+          border-top: 1.5px solid ${palette.c1}35 !important;
+        }
+        footer.site-footer a {
+          color: ${palette.c1} !important;
+        }
+        .product-theme-scope .product-card {
+          border: 1px solid ${palette.c1}30 !important;
+          box-shadow: 0 4px 16px ${palette.c1}08 !important;
+        }
+        .product-theme-scope .product-card:hover {
+          border-color: ${palette.c1} !important;
+          box-shadow: 0 12px 32px ${palette.c1}25 !important;
+        }
       `}</style>
 
       {/* Resplandor Multi-Color de Ambiente de la Marca en TODA la Página de su producto */}
@@ -218,8 +238,21 @@ export default function ProductDetailPage() {
       
       <div className="product-split-layout" style={{ position: "relative", zIndex: 1 }}>
         
-        <div className="product-image-box">
-          <img src={prod.image} alt={prod.name} />
+        <div 
+          className="product-image-box"
+          style={{
+            backgroundColor: prod.imgBgColor === "brand" ? palette.c1 : (prod.imgBgColor || "transparent"),
+            transition: "background-color 0.3s ease"
+          }}
+        >
+          <img 
+            src={prod.image} 
+            alt={prod.name} 
+            style={{
+              objectFit: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "contain" : "cover",
+              padding: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "16px" : "0"
+            }}
+          />
         </div>
 
         

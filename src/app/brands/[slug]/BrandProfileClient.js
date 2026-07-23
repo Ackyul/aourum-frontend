@@ -54,6 +54,8 @@ export default function BrandProfileClient({ initialBrand }) {
     setProdImage,
     prodImagePreview,
     setProdImagePreview,
+    prodImgBgColor,
+    setProdImgBgColor,
     uploadingProd,
     productSubmitLoading,
     setUploadingProd,
@@ -574,8 +576,23 @@ export default function BrandProfileClient({ initialBrand }) {
         style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer", height: "100%" }}
         onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
       >
-        <div className="card-img-container" style={{ position: "relative" }}>
-          <img src={prod.image} alt={prod.name} className="card-img-hover" />
+        <div 
+          className="card-img-container" 
+          style={{ 
+            position: "relative", 
+            backgroundColor: prod.imgBgColor === "brand" ? palette.c1 : (prod.imgBgColor || "transparent"),
+            transition: "background-color 0.3s ease"
+          }}
+        >
+          <img 
+            src={prod.image} 
+            alt={prod.name} 
+            className="card-img-hover" 
+            style={{ 
+              objectFit: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "contain" : "cover",
+              padding: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "10px" : "0"
+            }} 
+          />
         </div>
         <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           <span style={{ fontSize: "0.72rem", color: "var(--text-gold)", letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
@@ -809,6 +826,28 @@ export default function BrandProfileClient({ initialBrand }) {
         .brand-profile-theme-scope .product-card:hover {
           border-color: ${palette.c1}60 !important;
           box-shadow: 0 10px 30px ${palette.c1}20 !important;
+        }
+        header {
+          background: linear-gradient(180deg, ${palette.c1}18 0%, rgba(255, 255, 255, 0.96) 100%) !important;
+          border-bottom: 1.5px solid ${palette.c1}40 !important;
+          box-shadow: 0 4px 20px ${palette.c1}12 !important;
+        }
+        footer.site-footer {
+          background: linear-gradient(0deg, ${palette.c1}15 0%, ${palette.c4}08 50%, #FFFFFF 100%) !important;
+          border-top: 1.5px solid ${palette.c1}35 !important;
+        }
+        footer.site-footer a {
+          color: ${palette.c1} !important;
+        }
+        .brand-profile-theme-scope .product-card {
+          border: 1px solid ${palette.c1}30 !important;
+          box-shadow: 0 4px 16px ${palette.c1}08 !important;
+          transition: all 0.25s ease-in-out !important;
+        }
+        .brand-profile-theme-scope .product-card:hover {
+          border-color: ${palette.c1} !important;
+          box-shadow: 0 12px 32px ${palette.c1}25 !important;
+          transform: translateY(-4px) !important;
         }
       `}</style>
 
@@ -1373,6 +1412,56 @@ export default function BrandProfileClient({ initialBrand }) {
                       </div>
                     )}
                   </label>
+
+                  {/* Selector de Color de Fondo para la Imagen del Producto (PNGs Transparentes) */}
+                  <div style={{ marginTop: "1rem" }}>
+                    <label style={{ fontSize: "0.82rem", fontWeight: 700, display: "block", marginBottom: "0.4rem" }}>
+                      🎨 Color de Fondo del Producto (Ideal para imágenes PNG sin fondo):
+                    </label>
+                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+                      {[
+                        { label: "Transparente", val: "transparent", color: "transparent" },
+                        { label: "Blanco", val: "#FFFFFF", color: "#FFFFFF" },
+                        { label: "Gris Claro", val: "#F8FAFC", color: "#F8FAFC" },
+                        { label: "Negro", val: "#18181B", color: "#18181B" },
+                        { label: "Crema", val: "#FFFBEB", color: "#FFFBEB" },
+                        { label: "Color Marca", val: "brand", color: palette.c1 }
+                      ].map((preset) => (
+                        <button
+                          key={preset.val}
+                          type="button"
+                          onClick={() => setProdImgBgColor(preset.val)}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            padding: "4px 10px",
+                            borderRadius: "16px",
+                            fontSize: "0.75rem",
+                            fontWeight: 700,
+                            border: prodImgBgColor === preset.val ? "2px solid var(--text-gold)" : "1px solid var(--border-color)",
+                            background: "var(--bg-input)",
+                            cursor: "pointer"
+                          }}
+                        >
+                          <span style={{ width: "12px", height: "12px", borderRadius: "50%", background: preset.color === "transparent" ? "repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 8px 8px" : preset.color, border: "1px solid rgba(0,0,0,0.2)" }} />
+                          <span>{preset.label}</span>
+                        </button>
+                      ))}
+                      <div style={{ display: "flex", alignItems: "center", gap: "4px", marginLeft: "4px" }}>
+                        <input
+                          type="color"
+                          value={prodImgBgColor && prodImgBgColor.startsWith("#") ? prodImgBgColor : "#FFFFFF"}
+                          onChange={(e) => setProdImgBgColor(e.target.value)}
+                          style={{ width: "24px", height: "24px", border: "none", background: "none", cursor: "pointer", padding: 0 }}
+                          title="Color Personalizado"
+                        />
+                        <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontFamily: "monospace" }}>
+                          {prodImgBgColor}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                   <input 
                     id="prod-img-upload" 
                     type="file" 

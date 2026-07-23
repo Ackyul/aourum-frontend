@@ -211,6 +211,7 @@ export function AppContextProvider({ children }) {
   const [prodType, setProdType] = useState("product");
   const [prodImage, setProdImage] = useState("");
   const [prodImagePreview, setProdImagePreview] = useState("");
+  const [prodImgBgColor, setProdImgBgColor] = useState("transparent");
   const [uploadingProd, setUploadingProd] = useState(false);
   const [regLoading, setRegLoading] = useState(false);
   const [editProfileLoading, setEditProfileLoading] = useState(false);
@@ -529,7 +530,8 @@ export function AppContextProvider({ children }) {
       category: cleanCategory,
       brandId: Number(targetBrandId),
       type: prodType,
-      image: prodImage || undefined
+      image: prodImage || undefined,
+      imgBgColor: prodImgBgColor || "transparent"
     };
 
     try {
@@ -552,7 +554,7 @@ export function AppContextProvider({ children }) {
         triggerNotification(true, editingProdId ? "✨ Producto/Servicio actualizado exitosamente" : "✨ ¡Nuevo item añadido al catálogo!");
         setProdName(""); setProdDescription(""); setProdPrice(""); setProdPriceAourum("");
         setProdStock(""); setProdCategory(""); setProdType("product");
-        setProdImage(""); setProdImagePreview("");
+        setProdImage(""); setProdImagePreview(""); setProdImgBgColor("transparent");
         setProdFormOpen(false); setEditingProdId(null);
         fetchData();
       } else {
@@ -1420,6 +1422,7 @@ export function AppContextProvider({ children }) {
         prodType, setProdType,
         prodImage, setProdImage,
         prodImagePreview, setProdImagePreview,
+        prodImgBgColor, setProdImgBgColor,
         uploadingProd, setUploadingProd,
         regLoading, setRegLoading,
         editProfileLoading, setEditProfileLoading,
