@@ -126,16 +126,20 @@ export default function BrandProfileClient({ initialBrand }) {
   }, [loadBrands, loadProducts, loadPeople, loadFairs, loadInvitations]);
 
   const brand = useMemo(() => {
-    if (initialBrand) return initialBrand;
-    if (!brands || brands.length === 0) return null;
     const normSlug = slug ? slug.toString().toLowerCase() : "";
     const altSlug = normSlug.includes('_') ? normSlug.replace(/_/g, '-') : normSlug.replace(/-/g, '_');
-    return brands.find((b) => {
+    
+    // Buscar la versión más fresca del estado reactivo de AppContext
+    const updatedFromContext = (brands && brands.length > 0) ? brands.find((b) => {
       if (brandId && b.id === brandId) return true;
       if (isNumeric && b.id === Number(slug)) return true;
+      if (initialBrand && (b.id === initialBrand.id || (b.slug && initialBrand.slug && b.slug.toLowerCase() === initialBrand.slug.toLowerCase()))) return true;
       const bSlug = (b.slug || "").toLowerCase();
       return bSlug === normSlug || bSlug === altSlug || b.id.toString() === slug;
-    }) || null;
+    }) : null;
+
+    if (updatedFromContext) return updatedFromContext;
+    return initialBrand || null;
   }, [initialBrand, brands, brandId, isNumeric, slug]);
 
   useEffect(() => {

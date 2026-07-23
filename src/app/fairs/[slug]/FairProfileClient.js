@@ -117,16 +117,19 @@ export default function FairProfileClient({ initialFair }) {
   }, [loadFairs, loadBrands, loadBands, loadPeople, loadProducts]);
 
   const fair = useMemo(() => {
-    if (initialFair) return initialFair;
-    if (!fairs || fairs.length === 0) return null;
     const normSlug = slug ? slug.toString().toLowerCase() : "";
     const altSlug = normSlug.includes('_') ? normSlug.replace(/_/g, '-') : normSlug.replace(/-/g, '_');
-    return fairs.find((f) => {
+
+    const updatedFromContext = (fairs && fairs.length > 0) ? fairs.find((f) => {
       if (fairId && f.id === fairId) return true;
       if (isNumeric && f.id === Number(slug)) return true;
+      if (initialFair && (f.id === initialFair.id || (f.slug && initialFair.slug && f.slug.toLowerCase() === initialFair.slug.toLowerCase()))) return true;
       const fSlug = (f.slug || "").toLowerCase();
       return fSlug === normSlug || fSlug === altSlug || f.id.toString() === slug;
-    }) || null;
+    }) : null;
+
+    if (updatedFromContext) return updatedFromContext;
+    return initialFair || null;
   }, [initialFair, fairs, fairId, isNumeric, slug]);
 
   useEffect(() => {

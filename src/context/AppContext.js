@@ -1183,6 +1183,18 @@ export function AppContextProvider({ children }) {
         body: JSON.stringify(payload)
       });
       if (response.ok) {
+        const updatedItem = await response.json().catch(() => null);
+        if (updatedItem && updatedItem.id) {
+          if (effectiveType === "brand") {
+            setBrands(prev => prev.map(b => b.id === updatedItem.id ? updatedItem : b));
+          } else if (effectiveType === "fair" || effectiveType === "organizer") {
+            setOrganizers(prev => prev.map(o => o.id === updatedItem.id ? updatedItem : o));
+          } else if (effectiveType === "band") {
+            setBands(prev => prev.map(b => b.id === updatedItem.id ? updatedItem : b));
+          } else if (effectiveType === "person") {
+            setPeople(prev => prev.map(p => p.id === updatedItem.id ? updatedItem : p));
+          }
+        }
         triggerNotification(true, "✨ ¡Perfil actualizado exitosamente!");
         setEditProfileOpen(false);
         fetchData();

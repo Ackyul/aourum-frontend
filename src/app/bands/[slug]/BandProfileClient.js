@@ -86,13 +86,16 @@ export default function BandProfileClient({ initialBand }) {
   const isNumeric = /^\d+$/.test(slug);
   const [bandId, setBandId] = useState(null);
 
-  const band = initialBand || bands.find((b) => {
-    if (bandId) return b.id === bandId;
-    if (isNumeric) {
-      return b.id === Number(slug) || b.slug === slug;
-    }
-    return b.slug === slug;
-  });
+  const band = useMemo(() => {
+    const updatedFromContext = (bands && bands.length > 0) ? bands.find((b) => {
+      if (bandId && b.id === bandId) return true;
+      if (initialBand && (b.id === initialBand.id || (b.slug && initialBand.slug && b.slug.toLowerCase() === initialBand.slug.toLowerCase()))) return true;
+      if (isNumeric) return b.id === Number(slug) || b.slug === slug;
+      return b.slug === slug;
+    }) : null;
+    if (updatedFromContext) return updatedFromContext;
+    return initialBand || null;
+  }, [initialBand, bands, bandId, isNumeric, slug]);
 
   useEffect(() => {
     if (band && !bandId) {
