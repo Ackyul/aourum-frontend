@@ -978,12 +978,17 @@ header {
     font-size: 0.58rem !important;
   }
 
+  /* Product Card mobile price display */
   .product-card > div:last-child > div:last-child span[style*="line-through"] {
-    display: none !important; /* Hide Strikethrough original price */
+    display: inline-block !important;
+    font-size: 0.7rem !important;
+    color: var(--text-muted) !important;
+    text-decoration: line-through !important;
   }
 
   .product-card > div:last-child > div:last-child span[style*="var(--gold-gradient)"] {
-    display: none !important; /* Hide Aourum gold label */
+    display: inline-block !important;
+    font-size: 0.52rem !important;
   }
 }
 
