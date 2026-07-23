@@ -775,10 +775,23 @@ export default function BrandProfileClient({ initialBrand }) {
   const bannerStyle = !parsed.banner ? { background: "var(--gold-gradient)" } : {};
 
   return (
-    <div className="container" style={{ maxWidth: "1400px", padding: "0 1rem", paddingBottom: "3rem" }}>
+    <div className="container" style={{ maxWidth: "1400px", padding: "0 1rem", paddingBottom: "3rem", position: "relative" }}>
+      {/* Resplandor de Ambiente de Marca en el Fondo */}
+      <div 
+        style={{ 
+          position: "absolute", 
+          top: "-20px", 
+          left: "5%", 
+          right: "5%", 
+          height: "520px", 
+          background: `radial-gradient(ellipse at 50% 10%, ${themeColor}18 0%, rgba(255,255,255,0) 75%)`, 
+          pointerEvents: "none", 
+          zIndex: 0 
+        }} 
+      />
 
       {/* Botones de Navegación Superior */}
-      <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", zIndex: 1 }}>
         <button 
           onClick={() => router.push("/brands")} 
           className="btn-outline-gold" 
@@ -797,23 +810,28 @@ export default function BrandProfileClient({ initialBrand }) {
       </div>
 
       {/* Cabezal de Perfil Extremo a Extremo 1200x500 (Sin Cuadro Contenedor) */}
-      <div style={{ position: "relative", marginBottom: "2.5rem" }}>
+      <div style={{ position: "relative", marginBottom: "2.5rem", zIndex: 1 }}>
         <div className="profile-header-banner" style={bannerStyle}>
           {parsed.banner && (
             <img src={parsed.banner} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           )}
         </div>
 
-        <div className="profile-avatar-wrapper">
+        <div className="profile-avatar-wrapper" style={{ boxShadow: `0 10px 30px ${themeColor}25, 0 4px 12px rgba(0,0,0,0.08)` }}>
           <img src={brand.logo} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
 
         <div className="profile-body">
           <div className="profile-info-row">
             <div>
-              <span style={{ fontSize: "0.8rem", color: themeColor, textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.08em", background: `${themeColor}12`, padding: "4px 10px", borderRadius: "20px", border: `1px solid ${themeColor}25` }}>
-                {brand.rubro_especifico || brand.rubro_general || brand.category}
-              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                <span style={{ fontSize: "0.8rem", color: themeColor, textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.08em", background: `${themeColor}15`, padding: "4px 12px", borderRadius: "20px", border: `1px solid ${themeColor}30` }}>
+                  {brand.rubro_especifico || brand.rubro_general || brand.category}
+                </span>
+                <span style={{ fontSize: "0.72rem", color: themeColor, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "4px", background: `${themeColor}10`, padding: "4px 10px", borderRadius: "20px" }}>
+                  <i className="fa-solid fa-store" style={{ fontSize: "0.75rem" }}></i> Marca Aourum
+                </span>
+              </div>
               <h2 style={{ fontSize: "1.8rem", fontWeight: 800, marginTop: "0.8rem", letterSpacing: "-0.015em" }}>{brand.name}</h2>
               {parsed.tagline && (
                 <p style={{ fontSize: "1.0rem", color: "var(--text-muted)", fontStyle: "italic", marginTop: "0.4rem", marginBottom: "0.4rem" }}>

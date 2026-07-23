@@ -144,12 +144,30 @@ export default function ProductDetailPage() {
   }
 
   const brand = brands.find((b) => b.id === prod.brandId);
+  const parsedBrand = brand ? parseDescription(brand.description) : null;
+  const brandThemeColor = (parsedBrand?.theme_color && parsedBrand.theme_color.startsWith('#')) 
+    ? parsedBrand.theme_color 
+    : "#D4AF37";
 
   const whatsappNumber = brand?.whatsappNumber || "51999999999";
   const whatsappLink = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=Hola%20${brand ? encodeURIComponent(brand.name) : "Productor"}%20desde%20AOURUM,%20estoy%20interesado%20en%20el%20item%20"${encodeURIComponent(prod.name)}".`;
 
   return (
-    <div className="product-details-container">
+    <div className="product-details-container" style={{ position: "relative" }}>
+      {/* Resplandor de Ambiente de la Marca en la página de su producto */}
+      <div 
+        style={{ 
+          position: "absolute", 
+          top: "-20px", 
+          left: "5%", 
+          right: "5%", 
+          height: "450px", 
+          background: `radial-gradient(ellipse at 50% 10%, ${brandThemeColor}18 0%, rgba(255,255,255,0) 75%)`, 
+          pointerEvents: "none", 
+          zIndex: 0 
+        }} 
+      />
+
       <head>
         <title>{`${prod.name} | AOURUM`}</title>
         <meta name="description" content={prod.description ? prod.description.substring(0, 160) : `Compra ${prod.name} en AOURUM, el nodo central del talento local.`} />
@@ -159,7 +177,7 @@ export default function ProductDetailPage() {
         <link rel="canonical" href={`https://aourum.com/products/${prod.slug || prod.id}`} />
       </head>
       
-      <div style={{ marginBottom: "2rem" }}>
+      <div style={{ marginBottom: "2rem", position: "relative", zIndex: 1 }}>
         <button 
           onClick={() => router.push("/")} 
           className="btn-outline-gold" 
@@ -170,7 +188,7 @@ export default function ProductDetailPage() {
       </div>
 
       
-      <div className="product-split-layout">
+      <div className="product-split-layout" style={{ position: "relative", zIndex: 1 }}>
         
         <div className="product-image-box">
           <img src={prod.image} alt={prod.name} />
@@ -180,9 +198,9 @@ export default function ProductDetailPage() {
         <div>
           <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "0.5rem" }}>
             <span style={{
-              background: "rgba(214,175,55,0.1)",
-              border: "1px solid rgba(214,175,55,0.3)",
-              color: "var(--gold-dark)",
+              background: `${brandThemeColor}15`,
+              border: `1px solid ${brandThemeColor}35`,
+              color: brandThemeColor,
               padding: "0.25rem 0.6rem",
               borderRadius: "6px",
               fontSize: "0.72rem",
@@ -204,12 +222,37 @@ export default function ProductDetailPage() {
             </span>
           </div>
 
-          <h1 style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--text-primary)", lineHeight: 1.25, letterSpacing: "-0.015em", marginBottom: "0.4rem" }}>
+          <h1 style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--text-primary)", lineHeight: 1.25, letterSpacing: "-0.015em", marginBottom: "0.6rem" }}>
             {prod.name}
           </h1>
 
-          <div style={{ fontSize: "0.92rem", color: "var(--text-muted)", marginBottom: "1.5rem" }}>
-            Elaborado y vendido por: <strong style={{ color: "var(--text-primary)", textDecoration: "underline", cursor: "pointer" }} onClick={() => router.push(`/brands/${brand?.slug || prod.brandId}`)}>{brand ? brand.name : "Marca Local"}</strong>
+          {/* Insignia y Enlace a la Marca Personalizada */}
+          <div 
+            style={{ 
+              display: "inline-flex", 
+              alignItems: "center", 
+              gap: "10px", 
+              marginBottom: "1.5rem",
+              padding: "0.5rem 0.9rem",
+              borderRadius: "10px",
+              background: `${brandThemeColor}10`,
+              border: `1px solid ${brandThemeColor}28`,
+              cursor: "pointer",
+              transition: "transform 0.2s ease"
+            }}
+            onClick={() => router.push(`/brands/${brand?.slug || prod.brandId}`)}
+          >
+            {brand?.logo && (
+              <img 
+                src={brand.logo} 
+                alt={brand.name} 
+                style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `1.5px solid ${brandThemeColor}` }} 
+              />
+            )}
+            <span style={{ fontSize: "0.85rem", color: "var(--text-primary)" }}>
+              Elaborado y vendido por: <strong style={{ color: brandThemeColor }}>{brand ? brand.name : "Marca Local"}</strong>
+            </span>
+            <i className="fa-solid fa-chevron-right" style={{ fontSize: "0.75rem", color: brandThemeColor, marginLeft: "4px" }}></i>
           </div>
 
           <div style={{ background: "var(--bg-input)", padding: "1.2rem 1.5rem", borderRadius: "12px", border: "1px solid var(--border-color)", marginBottom: "1.8rem" }}>
@@ -602,12 +645,26 @@ export default function ProductDetailPage() {
       {brand && (
         <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "2.5rem", marginBottom: "3.5rem" }}>
           <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "1.2rem", color: "var(--text-primary)" }}>
-            <i className="fa-solid fa-user-tie" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Sobre la Marca / Productor
+            <i className="fa-solid fa-user-tie" style={{ color: brandThemeColor, marginRight: 8 }}></i> Sobre la Marca / Productor
           </h3>
-          <div className="brand-banner-card">
-            <img src={brand.logo} alt={brand.name} className="brand-banner-logo" />
+          <div 
+            className="brand-banner-card"
+            style={{ 
+              border: `1.5px solid ${brandThemeColor}35`,
+              background: `linear-gradient(135deg, ${brandThemeColor}0A 0%, var(--bg-card) 100%)`,
+              boxShadow: `0 8px 30px ${brandThemeColor}15`,
+              borderRadius: "16px",
+              padding: "1.5rem"
+            }}
+          >
+            <img 
+              src={brand.logo} 
+              alt={brand.name} 
+              className="brand-banner-logo"
+              style={{ border: `2px solid ${brandThemeColor}` }}
+            />
             <div style={{ flex: 1 }}>
-              <span style={{ fontSize: "0.78rem", color: "var(--text-gold)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>
+              <span style={{ fontSize: "0.78rem", color: brandThemeColor, textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>
                 {brand.category}
               </span>
               <h4 style={{ fontSize: "1.5rem", fontWeight: 800, margin: "2px 0 6px 0", letterSpacing: "-0.015em" }}>
