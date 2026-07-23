@@ -1421,22 +1421,27 @@ header {
 }
 
 .profile-header-banner {
-  height: 200px;
   width: 100%;
+  aspect-ratio: 1200 / 500;
+  max-height: 500px;
+  min-height: 220px;
   background: var(--gold-gradient);
   position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.07);
 }
 
 .profile-header-banner.banner-tall {
-  height: 260px;
+  aspect-ratio: 1200 / 500;
+  max-height: 500px;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .profile-header-banner {
-    height: 130px;
-  }
-  .profile-header-banner.banner-tall {
-    height: 160px;
+    aspect-ratio: 1200 / 500;
+    min-height: 180px;
+    border-radius: 12px;
   }
 }
 
@@ -1447,20 +1452,21 @@ header {
 }
 
 .profile-avatar-wrapper {
-  position: absolute;
-  bottom: -45px;
-  left: 3rem;
-  width: 110px;
-  height: 110px;
+  position: relative;
+  margin-top: -65px;
+  margin-left: 2rem;
+  width: 130px;
+  height: 130px;
   border-radius: 20px;
   background: #FFFFFF;
   border: 4px solid #FFFFFF;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2;
+  z-index: 5;
+  flex-shrink: 0;
 }
 
 .profile-avatar-wrapper img {
@@ -1471,27 +1477,28 @@ header {
 
 @media (max-width: 600px) {
   .profile-avatar-wrapper {
-    left: 1.2rem;
-    bottom: -32px;
-    width: 80px;
-    height: 80px;
-    border-radius: 14px;
+    margin-left: 0.8rem;
+    margin-top: -45px;
+    width: 90px;
+    height: 90px;
+    border-radius: 16px;
+    border-width: 3px;
   }
 }
 
 .profile-body {
-  padding: 4.5rem 3rem 3rem 3rem;
+  padding: 1.5rem 0.5rem 2.5rem 0.5rem;
 }
 
 @media (max-width: 768px) {
   .profile-body {
-    padding: 3.5rem 1.2rem 2rem 1.2rem;
+    padding: 1.2rem 0.25rem 2rem 0.25rem;
   }
 }
 
 @media (max-width: 480px) {
   .profile-body {
-    padding: 2.5rem 0.85rem 2rem 0.85rem;
+    padding: 1rem 0 1.5rem 0;
   }
 }
 

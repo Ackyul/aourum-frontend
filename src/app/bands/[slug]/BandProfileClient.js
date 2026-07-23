@@ -397,13 +397,17 @@ export default function BandProfileClient({ initialBand }) {
         <meta property="og:image" content={band.image || "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80"} />
         <link rel="canonical" href={`https://aourum.com/bands/${band.slug || band.id}`} />
       </head>
-      <div className="glass-panel" style={{ position: "relative", overflow: "hidden", borderRadius: "16px" }}>
+      <div style={{ position: "relative", marginBottom: "2.5rem" }}>
         <button onClick={() => router.push("/bands")} className="profile-close-btn" style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>&times;</button>
         <button onClick={copyLink} className="profile-share-btn" style={{ position: "absolute", top: "15px", right: "60px", zIndex: 10 }} title="Copiar enlace de la banda">
           <i className="fa-solid fa-share-nodes"></i>
         </button>
         
-        <div className="profile-header-banner banner-tall">
+        <div className="profile-header-banner">
+          <img src={band.image} alt={band.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        </div>
+
+        <div className="profile-avatar-wrapper">
           <img src={band.image} alt={band.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
 

@@ -282,9 +282,13 @@ export default function OrganizerProfilePage() {
         </button>
         
         <div className="profile-header-banner" style={bannerStyle}>
-          <div className="profile-avatar-wrapper">
-            <img src={organizer.logo || "https://placehold.co/150x150/d4af37/1C1C1E?text=P"} alt={organizer.name} />
-          </div>
+          {parsed.banner && (
+            <img src={parsed.banner} alt={organizer.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          )}
+        </div>
+
+        <div className="profile-avatar-wrapper">
+          <img src={organizer.logo || "https://placehold.co/150x150/d4af37/1C1C1E?text=P"} alt={organizer.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
 
         <div className="profile-body">

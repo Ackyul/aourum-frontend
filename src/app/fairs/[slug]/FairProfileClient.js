@@ -686,13 +686,13 @@ export default function FairProfileClient({ initialFair }) {
           100% { transform: scale(0.9); opacity: 0.6; }
         }
       `}</style>
-      <div className="glass-panel" style={{ position: "relative", overflow: "hidden", borderRadius: "16px" }}>
+      <div style={{ position: "relative", marginBottom: "2.5rem" }}>
         <button onClick={() => router.push("/fairs")} className="profile-close-btn" style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>&times;</button>
         <button onClick={copyLink} className="profile-share-btn" style={{ position: "absolute", top: "15px", right: "60px", zIndex: 10 }} title="Copiar enlace del evento">
           <i className="fa-solid fa-share-nodes"></i>
         </button>
         
-        <div className="profile-header-banner banner-tall">
+        <div className="profile-header-banner">
           <img src={fair.banner} alt={fair.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
 

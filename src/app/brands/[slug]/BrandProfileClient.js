@@ -798,11 +798,16 @@ export default function BrandProfileClient({ initialBrand }) {
         </button>
       </div>
 
-      <div className="glass-panel" style={{ position: "relative", overflow: "hidden", borderRadius: "16px", marginBottom: "2.5rem" }}>
+      {/* Cabezal de Perfil Extremo a Extremo 1200x500 (Sin Cuadro Contenedor) */}
+      <div style={{ position: "relative", marginBottom: "2.5rem" }}>
         <div className="profile-header-banner" style={bannerStyle}>
-          <div className="profile-avatar-wrapper">
-            <img src={brand.logo} alt={brand.name} />
-          </div>
+          {parsed.banner && (
+            <img src={parsed.banner} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          )}
+        </div>
+
+        <div className="profile-avatar-wrapper">
+          <img src={brand.logo} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
 
         <div className="profile-body">

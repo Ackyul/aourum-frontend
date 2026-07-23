@@ -247,13 +247,17 @@ export default function PersonProfileClient() {
 
   return (
     <div className="container" style={{ maxWidth: "1000px", padding: "0 1rem" }}>
-      <div className="glass-panel" style={{ position: "relative", overflow: "hidden", borderRadius: "16px" }}>
+      <div style={{ position: "relative", marginBottom: "2.5rem" }}>
         <button onClick={() => router.push("/")} className="profile-close-btn" style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>&times;</button>
         <button onClick={copyLink} className="profile-share-btn" style={{ position: "absolute", top: "15px", right: "60px", zIndex: 10 }} title="Copiar enlace de perfil">
           <i className="fa-solid fa-share-nodes"></i>
         </button>
         
-        <div className="profile-header-banner" style={bannerStyle}></div>
+        <div className="profile-header-banner" style={bannerStyle}>
+          {parsed.banner && (
+            <img src={parsed.banner} alt={person.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          )}
+        </div>
 
         <div className="profile-body person-profile-body-offset" style={{ position: "relative", zIndex: 1, padding: "0 2rem 2rem 2rem" }}>
           <div style={{ display: "flex", gap: "2rem", alignItems: "flex-end", flexWrap: "wrap", marginBottom: "2rem" }}>
