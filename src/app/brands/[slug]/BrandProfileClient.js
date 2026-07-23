@@ -777,20 +777,57 @@ export default function BrandProfileClient({ initialBrand }) {
   const bannerStyle = !parsed.banner ? { background: `linear-gradient(135deg, ${palette.c1}, ${palette.c2})` } : {};
 
   return (
-    <div className="container" style={{ maxWidth: "1400px", padding: "0 1rem", paddingBottom: "3rem", position: "relative" }}>
-      {/* Resplandor Multi-Color de Ambiente de Marca (Paleta de 4 Colores) */}
+    <div className="container brand-profile-theme-scope" style={{ maxWidth: "1400px", padding: "0 1rem", paddingBottom: "3rem", position: "relative", minHeight: "100vh" }}>
+      {/* Estilos dinámicos de la Paleta de Marca para toda la página */}
+      <style>{`
+        .brand-profile-theme-scope .aourum-tab-btn.active {
+          background: linear-gradient(135deg, ${palette.c1}, ${palette.c2}) !important;
+          color: #ffffff !important;
+          border-color: ${palette.c1} !important;
+          box-shadow: 0 4px 14px ${palette.c1}40 !important;
+        }
+        .brand-profile-theme-scope .aourum-tab-btn {
+          border-color: ${palette.c1}35 !important;
+        }
+        .brand-profile-theme-scope .btn-gold {
+          background: linear-gradient(135deg, ${palette.c1}, ${palette.c2}) !important;
+          color: #ffffff !important;
+          border: none !important;
+          box-shadow: 0 4px 14px ${palette.c1}35 !important;
+        }
+        .brand-profile-theme-scope .btn-outline-gold {
+          border-color: ${palette.c1} !important;
+          color: ${palette.c1} !important;
+        }
+        .brand-profile-theme-scope .btn-outline-gold:hover {
+          background: ${palette.c1}18 !important;
+        }
+        .brand-profile-theme-scope .glass-panel {
+          border: 1px solid ${palette.c1}25 !important;
+          box-shadow: 0 8px 24px ${palette.c1}08 !important;
+        }
+        .brand-profile-theme-scope .product-card:hover {
+          border-color: ${palette.c1}60 !important;
+          box-shadow: 0 10px 30px ${palette.c1}20 !important;
+        }
+      `}</style>
+
+      {/* Resplandor Multi-Color de Ambiente de Marca en TODA la Página (Paleta de 4 Colores) */}
       <div 
         style={{ 
           position: "absolute", 
-          top: "-20px", 
-          left: "2%", 
-          right: "2%", 
-          height: "560px", 
+          top: "-30px", 
+          left: "-50vw", 
+          right: "-50vw", 
+          bottom: "-3rem", 
           background: `
-            radial-gradient(circle at 15% 15%, ${palette.c1}22 0%, transparent 45%),
-            radial-gradient(circle at 85% 15%, ${palette.c2}22 0%, transparent 45%),
-            radial-gradient(circle at 50% 70%, ${palette.c3}18 0%, transparent 50%),
-            radial-gradient(circle at 50% 10%, ${palette.c4}18 0%, transparent 60%)
+            radial-gradient(ellipse at 15% 5%, ${palette.c1}25 0%, transparent 55%),
+            radial-gradient(ellipse at 85% 15%, ${palette.c2}25 0%, transparent 55%),
+            radial-gradient(ellipse at 20% 40%, ${palette.c3}20 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 65%, ${palette.c4}22 0%, transparent 50%),
+            radial-gradient(ellipse at 30% 88%, ${palette.c1}20 0%, transparent 50%),
+            radial-gradient(ellipse at 75% 95%, ${palette.c2}18 0%, transparent 50%),
+            linear-gradient(180deg, ${palette.c1}12 0%, ${palette.c2}08 25%, ${palette.c3}06 55%, ${palette.c4}10 85%, ${palette.c1}15 100%)
           `, 
           pointerEvents: "none", 
           zIndex: 0 

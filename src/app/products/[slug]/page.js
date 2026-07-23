@@ -155,20 +155,41 @@ export default function ProductDetailPage() {
   const whatsappLink = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=Hola%20${brand ? encodeURIComponent(brand.name) : "Productor"}%20desde%20AOURUM,%20estoy%20interesado%20en%20el%20item%20"${encodeURIComponent(prod.name)}".`;
 
   return (
-    <div className="product-details-container" style={{ position: "relative" }}>
-      {/* Resplandor Multi-Color de Ambiente de la Marca en su producto */}
+    <div className="product-details-container product-theme-scope" style={{ position: "relative", minHeight: "100vh" }}>
+      {/* Estilos dinámicos de la Paleta de Marca para la página de producto */}
+      <style>{`
+        .product-theme-scope .btn-gold {
+          background: linear-gradient(135deg, ${palette.c1}, ${palette.c2}) !important;
+          color: #ffffff !important;
+          border: none !important;
+          box-shadow: 0 4px 14px ${palette.c1}35 !important;
+        }
+        .product-theme-scope .btn-outline-gold {
+          border-color: ${palette.c1} !important;
+          color: ${palette.c1} !important;
+        }
+        .product-theme-scope .glass-panel {
+          border: 1px solid ${palette.c1}25 !important;
+          box-shadow: 0 8px 24px ${palette.c1}08 !important;
+        }
+      `}</style>
+
+      {/* Resplandor Multi-Color de Ambiente de la Marca en TODA la Página de su producto */}
       <div 
         style={{ 
           position: "absolute", 
-          top: "-20px", 
-          left: "2%", 
-          right: "2%", 
-          height: "500px", 
+          top: "-30px", 
+          left: "-50vw", 
+          right: "-50vw", 
+          bottom: "-3rem", 
           background: `
-            radial-gradient(circle at 15% 15%, ${palette.c1}18 0%, transparent 45%),
-            radial-gradient(circle at 85% 15%, ${palette.c2}18 0%, transparent 45%),
-            radial-gradient(circle at 50% 60%, ${palette.c3}15 0%, transparent 50%),
-            radial-gradient(circle at 50% 10%, ${palette.c4}15 0%, transparent 60%)
+            radial-gradient(ellipse at 15% 5%, ${palette.c1}25 0%, transparent 55%),
+            radial-gradient(ellipse at 85% 15%, ${palette.c2}25 0%, transparent 55%),
+            radial-gradient(ellipse at 20% 40%, ${palette.c3}20 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 65%, ${palette.c4}22 0%, transparent 50%),
+            radial-gradient(ellipse at 30% 88%, ${palette.c1}20 0%, transparent 50%),
+            radial-gradient(ellipse at 75% 95%, ${palette.c2}18 0%, transparent 50%),
+            linear-gradient(180deg, ${palette.c1}12 0%, ${palette.c2}08 25%, ${palette.c3}06 55%, ${palette.c4}10 85%, ${palette.c1}15 100%)
           `, 
           pointerEvents: "none", 
           zIndex: 0 
