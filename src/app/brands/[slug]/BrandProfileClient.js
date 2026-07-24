@@ -578,6 +578,8 @@ export default function BrandProfileClient({ initialBrand }) {
     const rawCardBg = (prod.imgBgColor && prod.imgBgColor !== "transparent") 
       ? prod.imgBgColor 
       : (design.cardBgColor && design.cardBgColor !== "transparent" ? design.cardBgColor : null);
+    const rawCardText = design.cardTextColor || "auto";
+    const rawCardBorder = design.cardBorderColor || "auto";
 
     let cardBgStyle = {};
     let isDarkBg = false;
@@ -620,9 +622,32 @@ export default function BrandProfileClient({ initialBrand }) {
       }
 
       cardBgStyle = {
-        background: `${finalColor} !important`,
+        backgroundColor: finalColor,
         border: `1px solid ${isDarkBg ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.08)"}`
       };
+    }
+
+    if (rawCardText === "brand") {
+      titleTextColor = palette.c1;
+      priceTextColor = palette.c1;
+    } else if (rawCardText === "#FFFFFF") {
+      titleTextColor = "#FFFFFF";
+      priceTextColor = "#FFFFFF";
+      categoryTextColor = "var(--text-gold)";
+    } else if (rawCardText === "#1C1C1E") {
+      titleTextColor = "#1C1C1E";
+      priceTextColor = "#1C1C1E";
+    } else if (rawCardText.startsWith("#")) {
+      titleTextColor = rawCardText;
+      priceTextColor = rawCardText;
+    }
+
+    if (rawCardBorder === "brand") {
+      cardBgStyle.border = `1.5px solid ${palette.c1}`;
+    } else if (rawCardBorder === "transparent") {
+      cardBgStyle.border = "none";
+    } else if (rawCardBorder.startsWith("#")) {
+      cardBgStyle.border = `1.5px solid ${rawCardBorder}`;
     }
 
     return (
@@ -889,33 +914,48 @@ export default function BrandProfileClient({ initialBrand }) {
     bgGradientCss = `linear-gradient(180deg, ${palette.c4}10 0%, ${palette.c1}08 100%)`;
   }
 
-  // Estilos de tarjetas según cardStyle
+  // Estilos de tarjetas según cardStyle, cardBgColor y cardBorderColor
   let cardCss = "";
-  if (cardStyle === "glass") {
-    cardCss = `
-      background: rgba(255, 255, 255, 0.75) !important;
-      backdrop-filter: blur(12px) !important;
-      border: 1px solid ${palette.c1}30 !important;
-      box-shadow: 0 4px 16px ${palette.c1}08 !important;
+  if (design.cardBgColor && design.cardBgColor !== "transparent") {
+    let resolvedBg = design.cardBgColor;
+    if (resolvedBg === "brand") resolvedBg = palette.c1;
+    else if (resolvedBg === "brand-soft") resolvedBg = `${palette.c1}20`;
+    cardCss += `background: ${resolvedBg} !important;`;
+  } else if (cardStyle === "glass") {
+    cardCss += `
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid ${palette.c1}30;
+      box-shadow: 0 4px 16px ${palette.c1}08;
     `;
   } else if (cardStyle === "flat") {
-    cardCss = `
-      background: #FFFFFF !important;
-      border: 1px solid var(--border-color) !important;
-      box-shadow: none !important;
+    cardCss += `
+      background: #FFFFFF;
+      border: 1px solid var(--border-color);
+      box-shadow: none;
     `;
   } else if (cardStyle === "elevated") {
-    cardCss = `
-      background: #FFFFFF !important;
-      border: none !important;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1) !important;
+    cardCss += `
+      background: #FFFFFF;
+      border: none;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
     `;
   } else if (cardStyle === "bordered") {
-    cardCss = `
-      background: #FFFFFF !important;
-      border: 2px solid ${palette.c1} !important;
-      box-shadow: 0 4px 14px ${palette.c1}15 !important;
+    cardCss += `
+      background: #FFFFFF;
+      border: 2px solid ${palette.c1};
+      box-shadow: 0 4px 14px ${palette.c1}15;
     `;
+  }
+
+  if (design.cardBorderColor && design.cardBorderColor !== "auto") {
+    if (design.cardBorderColor === "brand") {
+      cardCss += ` border: 1.5px solid ${palette.c1} !important;`;
+    } else if (design.cardBorderColor === "transparent") {
+      cardCss += ` border: none !important;`;
+    } else if (design.cardBorderColor.startsWith("#")) {
+      cardCss += ` border: 1.5px solid ${design.cardBorderColor} !important;`;
+    }
   }
 
   return (

@@ -2000,7 +2000,7 @@ function AppLayoutShell({ children }) {
                               </div>
 
                               <div className="form-group" style={{ margin: 0 }}>
-                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Color Fondo de Tarjetas</label>
+                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Fondo de Tarjetas</label>
                                 <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
                                   <select 
                                     className="form-control" 
@@ -2021,7 +2021,58 @@ function AppLayoutShell({ children }) {
                                     value={design.cardBgColor && design.cardBgColor.startsWith("#") ? design.cardBgColor : "#FAF9F0"} 
                                     onChange={(e) => updateDesignKey("cardBgColor", e.target.value)} 
                                     style={{ width: "26px", height: "26px", border: "none", background: "none", cursor: "pointer", padding: 0 }} 
-                                    title="Personalizar Hex" 
+                                    title="Personalizar Hex Fondo" 
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Color de Texto y Borde de Tarjetas */}
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                              <div className="form-group" style={{ margin: 0 }}>
+                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Texto de Tarjetas</label>
+                                <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                                  <select 
+                                    className="form-control" 
+                                    value={design.cardTextColor || "auto"} 
+                                    onChange={(e) => updateDesignKey("cardTextColor", e.target.value)}
+                                    style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem", flex: 1 }}
+                                  >
+                                    <option value="auto">Auto (según fondo)</option>
+                                    <option value="#1C1C1E">Oscuro (#1C1C1E)</option>
+                                    <option value="#FFFFFF">Blanco (#FFFFFF)</option>
+                                    <option value="brand">Color de Marca</option>
+                                  </select>
+                                  <input 
+                                    type="color" 
+                                    value={design.cardTextColor && design.cardTextColor.startsWith("#") ? design.cardTextColor : "#1C1C1E"} 
+                                    onChange={(e) => updateDesignKey("cardTextColor", e.target.value)} 
+                                    style={{ width: "26px", height: "26px", border: "none", background: "none", cursor: "pointer", padding: 0 }} 
+                                    title="Personalizar Hex Texto" 
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="form-group" style={{ margin: 0 }}>
+                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Borde de Tarjetas</label>
+                                <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                                  <select 
+                                    className="form-control" 
+                                    value={design.cardBorderColor || "auto"} 
+                                    onChange={(e) => updateDesignKey("cardBorderColor", e.target.value)}
+                                    style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem", flex: 1 }}
+                                  >
+                                    <option value="auto">Predeterminado / Sutil</option>
+                                    <option value="brand">Color de Marca</option>
+                                    <option value="transparent">Sin Borde</option>
+                                    <option value="#D4AF37">Dorado AOURUM</option>
+                                  </select>
+                                  <input 
+                                    type="color" 
+                                    value={design.cardBorderColor && design.cardBorderColor.startsWith("#") ? design.cardBorderColor : "#D4AF37"} 
+                                    onChange={(e) => updateDesignKey("cardBorderColor", e.target.value)} 
+                                    style={{ width: "26px", height: "26px", border: "none", background: "none", cursor: "pointer", padding: 0 }} 
+                                    title="Personalizar Hex Borde" 
                                   />
                                 </div>
                               </div>

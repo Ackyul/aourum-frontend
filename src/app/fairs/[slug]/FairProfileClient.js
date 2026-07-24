@@ -190,6 +190,9 @@ export default function FairProfileClient({ initialFair }) {
       ? prod.imgBgColor 
       : (brandDesign.cardBgColor && brandDesign.cardBgColor !== "transparent" ? brandDesign.cardBgColor : null);
 
+    const rawCardText = brandDesign.cardTextColor || "auto";
+    const rawCardBorder = brandDesign.cardBorderColor || "auto";
+
     let cardBgStyle = {};
     let isDarkBg = false;
     let categoryTextColor = "var(--text-gold)";
@@ -231,9 +234,32 @@ export default function FairProfileClient({ initialFair }) {
       }
 
       cardBgStyle = {
-        background: `${finalColor} !important`,
+        backgroundColor: finalColor,
         border: `1px solid ${isDarkBg ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.08)"}`
       };
+    }
+
+    if (rawCardText === "brand") {
+      titleTextColor = brandOfProd?.color || "var(--gold-primary)";
+      priceTextColor = brandOfProd?.color || "var(--gold-primary)";
+    } else if (rawCardText === "#FFFFFF") {
+      titleTextColor = "#FFFFFF";
+      priceTextColor = "#FFFFFF";
+      categoryTextColor = "var(--text-gold)";
+    } else if (rawCardText === "#1C1C1E") {
+      titleTextColor = "#1C1C1E";
+      priceTextColor = "#1C1C1E";
+    } else if (rawCardText.startsWith("#")) {
+      titleTextColor = rawCardText;
+      priceTextColor = rawCardText;
+    }
+
+    if (rawCardBorder === "brand") {
+      cardBgStyle.border = `1.5px solid ${brandOfProd?.color || "var(--gold-primary)"}`;
+    } else if (rawCardBorder === "transparent") {
+      cardBgStyle.border = "none";
+    } else if (rawCardBorder.startsWith("#")) {
+      cardBgStyle.border = `1.5px solid ${rawCardBorder}`;
     }
 
     return (
