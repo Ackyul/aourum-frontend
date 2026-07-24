@@ -287,60 +287,62 @@ export default function SocialFeedPublisher({ onPostCreated, defaultFairId = nul
 
               {/* Identity & Event Controls Bar */}
               <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center", background: "rgba(0,0,0,0.02)", padding: "8px 12px", borderRadius: "10px", border: "1px dashed var(--border-color)" }}>
-                {/* Author Type Selection */}
-                <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-                  <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--text-muted)" }}>Publicar como:</span>
-                  <button
-                    type="button"
-                    onClick={() => setAuthorType("person")}
-                    style={{
-                      padding: "3px 10px", borderRadius: "16px", fontSize: "0.76rem", fontWeight: 700,
-                      background: authorType === "person" ? "var(--gold-primary)" : "transparent",
-                      color: authorType === "person" ? "#1c1c1e" : "var(--text-primary)",
-                      border: authorType === "person" ? "none" : "1px solid var(--border-color)",
-                      cursor: "pointer"
-                    }}
-                  >
-                    👤 Persona
-                  </button>
-
-                  {availableBrands.length > 0 && (
+                {/* Author Type Selection (Only shown when not pre-specified by profile context) */}
+                {!defaultBrandId && defaultAuthorType !== "brand" && defaultAuthorType !== "person" && (
+                  <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                    <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--text-muted)" }}>Publicar como:</span>
                     <button
                       type="button"
-                      onClick={() => {
-                        setAuthorType("brand");
-                        if (!selectedBrandId && availableBrands.length > 0) {
-                          setSelectedBrandId(availableBrands[0].id.toString());
-                        }
-                      }}
+                      onClick={() => setAuthorType("person")}
                       style={{
                         padding: "3px 10px", borderRadius: "16px", fontSize: "0.76rem", fontWeight: 700,
-                        background: authorType === "brand" ? "var(--gold-primary)" : "transparent",
-                        color: authorType === "brand" ? "#1c1c1e" : "var(--text-primary)",
-                        border: authorType === "brand" ? "none" : "1px solid var(--border-color)",
+                        background: authorType === "person" ? "var(--gold-primary)" : "transparent",
+                        color: authorType === "person" ? "#1c1c1e" : "var(--text-primary)",
+                        border: authorType === "person" ? "none" : "1px solid var(--border-color)",
                         cursor: "pointer"
                       }}
                     >
-                      🏪 Marca
+                      👤 Persona
                     </button>
-                  )}
 
-                  {availableOrganizers.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setAuthorType("organizer")}
-                      style={{
-                        padding: "3px 10px", borderRadius: "16px", fontSize: "0.76rem", fontWeight: 700,
-                        background: authorType === "organizer" ? "var(--gold-primary)" : "transparent",
-                        color: authorType === "organizer" ? "#1c1c1e" : "var(--text-primary)",
-                        border: authorType === "organizer" ? "none" : "1px solid var(--border-color)",
-                        cursor: "pointer"
-                      }}
-                    >
-                      🎪 Productora
-                    </button>
-                  )}
-                </div>
+                    {availableBrands.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthorType("brand");
+                          if (!selectedBrandId && availableBrands.length > 0) {
+                            setSelectedBrandId(availableBrands[0].id.toString());
+                          }
+                        }}
+                        style={{
+                          padding: "3px 10px", borderRadius: "16px", fontSize: "0.76rem", fontWeight: 700,
+                          background: authorType === "brand" ? "var(--gold-primary)" : "transparent",
+                          color: authorType === "brand" ? "#1c1c1e" : "var(--text-primary)",
+                          border: authorType === "brand" ? "none" : "1px solid var(--border-color)",
+                          cursor: "pointer"
+                        }}
+                      >
+                        🏪 Marca
+                      </button>
+                    )}
+
+                    {availableOrganizers.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setAuthorType("organizer")}
+                        style={{
+                          padding: "3px 10px", borderRadius: "16px", fontSize: "0.76rem", fontWeight: 700,
+                          background: authorType === "organizer" ? "var(--gold-primary)" : "transparent",
+                          color: authorType === "organizer" ? "#1c1c1e" : "var(--text-primary)",
+                          border: authorType === "organizer" ? "none" : "1px solid var(--border-color)",
+                          cursor: "pointer"
+                        }}
+                      >
+                        🎪 Productora
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 {/* Sub-selector for specific brand */}
                 {authorType === "brand" && availableBrands.length > 1 && (

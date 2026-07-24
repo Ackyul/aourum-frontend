@@ -128,50 +128,52 @@ export default function CreatePostModal() {
 
         <form onSubmit={handleSubmit}>
           
-          {/* Identity Selection */}
-          <div className="form-group" style={{ marginBottom: "1.2rem" }}>
-            <label style={{ fontSize: "0.82rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-muted)", display: "block", marginBottom: "6px" }}>
-              Publicar Como:
-            </label>
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-              <button
-                type="button"
-                className={`btn-sm ${authorType === "person" ? "btn-gold" : "btn-outline"}`}
-                onClick={() => setAuthorType("person")}
-                style={{ borderRadius: "8px", padding: "0.45rem 0.8rem", fontSize: "0.82rem", fontWeight: 700 }}
-              >
-                <i className="fa-solid fa-user" style={{ marginRight: "6px" }}></i>
-                {currentPerson ? `${currentPerson.name}` : "Mi Perfil"}
-              </button>
-
-              {userBrands.length > 0 && (
+          {/* Identity Selection (Only shown when not pre-specified by profile context) */}
+          {(!postModalDefaultAuthorType && !postModalDefaultBrandId && (userBrands.length > 0 || userOrganizers.length > 0)) && (
+            <div className="form-group" style={{ marginBottom: "1.2rem" }}>
+              <label style={{ fontSize: "0.82rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-muted)", display: "block", marginBottom: "6px" }}>
+                Publicar Como:
+              </label>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                 <button
                   type="button"
-                  className={`btn-sm ${authorType === "brand" ? "btn-gold" : "btn-outline"}`}
-                  onClick={() => setAuthorType("brand")}
+                  className={`btn-sm ${authorType === "person" ? "btn-gold" : "btn-outline"}`}
+                  onClick={() => setAuthorType("person")}
                   style={{ borderRadius: "8px", padding: "0.45rem 0.8rem", fontSize: "0.82rem", fontWeight: 700 }}
                 >
-                  <i className="fa-solid fa-store" style={{ marginRight: "6px" }}></i>
-                  Marca
+                  <i className="fa-solid fa-user" style={{ marginRight: "6px" }}></i>
+                  {currentPerson ? `${currentPerson.name}` : "Mi Perfil"}
                 </button>
-              )}
 
-              {userOrganizers.length > 0 && (
-                <button
-                  type="button"
-                  className={`btn-sm ${authorType === "organizer" ? "btn-gold" : "btn-outline"}`}
-                  onClick={() => setAuthorType("organizer")}
-                  style={{ borderRadius: "8px", padding: "0.45rem 0.8rem", fontSize: "0.82rem", fontWeight: 700 }}
-                >
-                  <i className="fa-solid fa-calendar-star" style={{ marginRight: "6px" }}></i>
-                  Productora
-                </button>
-              )}
+                {userBrands.length > 0 && (
+                  <button
+                    type="button"
+                    className={`btn-sm ${authorType === "brand" ? "btn-gold" : "btn-outline"}`}
+                    onClick={() => setAuthorType("brand")}
+                    style={{ borderRadius: "8px", padding: "0.45rem 0.8rem", fontSize: "0.82rem", fontWeight: 700 }}
+                  >
+                    <i className="fa-solid fa-store" style={{ marginRight: "6px" }}></i>
+                    Marca
+                  </button>
+                )}
+
+                {userOrganizers.length > 0 && (
+                  <button
+                    type="button"
+                    className={`btn-sm ${authorType === "organizer" ? "btn-gold" : "btn-outline"}`}
+                    onClick={() => setAuthorType("organizer")}
+                    style={{ borderRadius: "8px", padding: "0.45rem 0.8rem", fontSize: "0.82rem", fontWeight: 700 }}
+                  >
+                    <i className="fa-solid fa-calendar-star" style={{ marginRight: "6px" }}></i>
+                    Productora
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Sub-selector for Brand */}
-          {authorType === "brand" && userBrands.length > 0 && (
+          {/* Sub-selector for Brand (Only shown if multiple brands and not pre-fixed) */}
+          {authorType === "brand" && !postModalDefaultBrandId && userBrands.length > 1 && (
             <div className="form-group" style={{ marginBottom: "1rem" }}>
               <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>Selecciona la Marca *</label>
               <select 
