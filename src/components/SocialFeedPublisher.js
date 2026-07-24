@@ -71,8 +71,8 @@ export default function SocialFeedPublisher({ onPostCreated, defaultFairId = nul
   const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 8 * 1024 * 1024) {
-      triggerNotification("La imagen no debe superar los 8MB", "error");
+    if (file.size > 15 * 1024 * 1024) {
+      triggerNotification("La imagen no debe superar los 15MB", "error");
       return;
     }
     const localUrl = URL.createObjectURL(file);

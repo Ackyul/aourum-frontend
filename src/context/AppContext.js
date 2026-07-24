@@ -517,7 +517,7 @@ export function AppContextProvider({ children }) {
 
   // Image upload helper
   const uploadImage = async (file, setUploading) => {
-    setUploading(true);
+    if (typeof setUploading === "function") setUploading(true);
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -526,14 +526,15 @@ export function AppContextProvider({ children }) {
         headers: authHeaders(null),
         body: formData,
       });
-      if (!res.ok) throw new Error("Upload fallido");
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Upload fallido");
       return data.url;
     } catch (err) {
-      triggerNotification(false, "No se pudo subir la imagen. Intenta de nuevo.");
+      console.error("Error en uploadImage:", err);
+      triggerNotification(err.message || "No se pudo subir la imagen. Intenta de nuevo.", "error");
       return null;
     } finally {
-      setUploading(false);
+      if (typeof setUploading === "function") setUploading(false);
     }
   };
 

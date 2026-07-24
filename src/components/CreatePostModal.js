@@ -57,8 +57,8 @@ export default function CreatePostModal() {
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      triggerNotification("La imagen no debe superar los 5MB", "error");
+    if (file.size > 15 * 1024 * 1024) {
+      triggerNotification("La imagen no debe superar los 15MB", "error");
       return;
     }
     const localUrl = URL.createObjectURL(file);
