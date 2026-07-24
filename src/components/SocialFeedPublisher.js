@@ -30,7 +30,8 @@ export default function SocialFeedPublisher({ onPostCreated, defaultFairId = nul
   const [imagePreview, setImagePreview] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
 
   if (!activePersonId) {
     return (
@@ -353,17 +354,17 @@ export default function SocialFeedPublisher({ onPostCreated, defaultFairId = nul
         paddingTop: "0.8rem",
         borderTop: "1px solid var(--border-color)"
       }}>
-        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          {/* Add Image Button */}
+        <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+          {/* Direct Camera Button (Opens mobile camera directly) */}
           <button
             type="button"
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => cameraInputRef.current?.click()}
             style={{
-              background: "transparent",
-              border: "none",
-              color: "var(--text-muted)",
-              fontSize: "0.84rem",
-              fontWeight: 600,
+              background: "rgba(239, 68, 68, 0.08)",
+              border: "1px solid rgba(239, 68, 68, 0.2)",
+              color: "#EF4444",
+              fontSize: "0.82rem",
+              fontWeight: 700,
               padding: "6px 12px",
               borderRadius: "20px",
               cursor: "pointer",
@@ -372,15 +373,48 @@ export default function SocialFeedPublisher({ onPostCreated, defaultFairId = nul
               gap: "6px",
               transition: "all 0.2s ease"
             }}
-            onMouseOver={(e) => { e.currentTarget.style.background = "var(--bg-input)"; e.currentTarget.style.color = "var(--gold-primary)"; }}
-            onMouseOut={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-muted)"; }}
           >
-            <i className="fa-regular fa-image" style={{ color: "#3B82F6", fontSize: "1.1rem" }}></i>
-            <span>Fotografía</span>
+            <i className="fa-solid fa-camera" style={{ fontSize: "0.95rem" }}></i>
+            <span>Tomar Foto</span>
           </button>
 
+          {/* Gallery Button (Opens photo gallery) */}
+          <button
+            type="button"
+            onClick={() => galleryInputRef.current?.click()}
+            style={{
+              background: "rgba(59, 130, 246, 0.08)",
+              border: "1px solid rgba(59, 130, 246, 0.2)",
+              color: "#3B82F6",
+              fontSize: "0.82rem",
+              fontWeight: 700,
+              padding: "6px 12px",
+              borderRadius: "20px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              transition: "all 0.2s ease"
+            }}
+          >
+            <i className="fa-regular fa-images" style={{ fontSize: "0.95rem" }}></i>
+            <span>Galería</span>
+          </button>
+
+          {/* Camera Direct Input (capture="environment") */}
           <input
-            ref={fileInputRef}
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleImageChange}
+            style={{ display: "none" }}
+            disabled={uploadingImage}
+          />
+
+          {/* Gallery Input */}
+          <input
+            ref={galleryInputRef}
             type="file"
             accept="image/*"
             onChange={handleImageChange}

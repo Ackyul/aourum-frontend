@@ -29,6 +29,8 @@ export default function CreatePostModal() {
   const [imagePreview, setImagePreview] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const modalCameraInputRef = useRef(null);
+  const modalGalleryInputRef = useRef(null);
 
   // Filter user owned/collaborated brands & organizers
   const currentPerson = getCurrentPerson();
@@ -237,14 +239,72 @@ export default function CreatePostModal() {
                 </button>
               </div>
             ) : (
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="form-control"
-                disabled={uploadingImage}
-                style={{ width: "100%", padding: "0.5rem" }}
-              />
+              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={() => modalCameraInputRef.current?.click()}
+                  style={{
+                    flex: 1,
+                    padding: "0.6rem 1rem",
+                    borderRadius: "10px",
+                    background: "rgba(239, 68, 68, 0.08)",
+                    border: "1px solid rgba(239, 68, 68, 0.25)",
+                    color: "#EF4444",
+                    fontWeight: 700,
+                    fontSize: "0.85rem",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px"
+                  }}
+                >
+                  <i className="fa-solid fa-camera" style={{ fontSize: "1rem" }}></i>
+                  Tomar Foto (Cámara)
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => modalGalleryInputRef.current?.click()}
+                  style={{
+                    flex: 1,
+                    padding: "0.6rem 1rem",
+                    borderRadius: "10px",
+                    background: "rgba(59, 130, 246, 0.08)",
+                    border: "1px solid rgba(59, 130, 246, 0.25)",
+                    color: "#3B82F6",
+                    fontWeight: 700,
+                    fontSize: "0.85rem",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "8px"
+                  }}
+                >
+                  <i className="fa-regular fa-images" style={{ fontSize: "1rem" }}></i>
+                  Elegir de Galería
+                </button>
+
+                <input
+                  ref={modalCameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleImageChange}
+                  style={{ display: "none" }}
+                  disabled={uploadingImage}
+                />
+
+                <input
+                  ref={modalGalleryInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  style={{ display: "none" }}
+                  disabled={uploadingImage}
+                />
+              </div>
             )}
             {uploadingImage && (
               <span style={{ fontSize: "0.78rem", color: "var(--text-gold)", display: "block", marginTop: "4px" }}>
