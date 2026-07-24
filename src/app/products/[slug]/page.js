@@ -151,11 +151,68 @@ export default function ProductDetailPage() {
     : { c1: "#D4AF37", c2: "#EAB308", c3: "#F97316", c4: "#8B5CF6" };
   const brandThemeColor = palette.c1;
 
+  const brandDesign = brand?.brandDesign || {};
+  const bgStyle = brandDesign.bgStyle || "solid";
+  const customBgColor = brandDesign.customBgColor || "#FAF9F0";
+  const bgImage = brandDesign.bgImage || "";
+  const bgImageFit = brandDesign.bgImageFit || "cover";
+  const fontFamily = brandDesign.fontFamily || "Inter";
+
+  let pageBgCss = {};
+  if (bgStyle === "image" && bgImage) {
+    pageBgCss = {
+      backgroundImage: `url(${bgImage})`,
+      backgroundSize: bgImageFit === "repeat" ? "auto" : bgImageFit,
+      backgroundRepeat: bgImageFit === "repeat" ? "repeat" : "no-repeat",
+      backgroundPosition: "center top"
+    };
+  } else if (bgStyle === "solid") {
+    let resolvedColor = customBgColor;
+    if (resolvedColor === "brand") resolvedColor = palette.c1;
+    else if (resolvedColor === "brand-soft") resolvedColor = `${palette.c1}15`;
+    pageBgCss = {
+      background: resolvedColor
+    };
+  } else if (bgStyle === "gradient") {
+    pageBgCss = {
+      background: `
+        radial-gradient(ellipse at 15% 5%, ${palette.c1}25 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 15%, ${palette.c2}25 0%, transparent 55%),
+        radial-gradient(ellipse at 20% 40%, ${palette.c3}20 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 65%, ${palette.c4}22 0%, transparent 50%),
+        linear-gradient(180deg, ${palette.c1}12 0%, ${palette.c2}08 25%, ${palette.c3}06 55%, ${palette.c4}10 85%, ${palette.c1}15 100%)
+      `
+    };
+  } else if (bgStyle === "mesh") {
+    pageBgCss = {
+      background: `
+        radial-gradient(at 0% 0%, ${palette.c1}30 0px, transparent 50%),
+        radial-gradient(at 100% 0%, ${palette.c2}30 0px, transparent 50%),
+        radial-gradient(at 100% 100%, ${palette.c3}25 0px, transparent 50%),
+        radial-gradient(at 0% 100%, ${palette.c4}30 0px, transparent 50%)
+      `
+    };
+  } else if (bgStyle === "dots") {
+    pageBgCss = {
+      background: `radial-gradient(${palette.c1}35 1px, transparent 1px)`,
+      backgroundSize: "20px 20px"
+    };
+  } else if (bgStyle === "none") {
+    pageBgCss = {
+      background: "#FFFFFF"
+    };
+  }
+
   const whatsappNumber = brand?.whatsappNumber || "51999999999";
   const whatsappLink = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=Hola%20${brand ? encodeURIComponent(brand.name) : "Productor"}%20desde%20AOURUM,%20estoy%20interesado%20en%20el%20item%20"${encodeURIComponent(prod.name)}".`;
 
   return (
-    <div className="product-details-container product-theme-scope" style={{ position: "relative", minHeight: "100vh" }}>
+    <div className="product-details-container product-theme-scope" style={{ position: "relative", minHeight: "100vh", fontFamily: fontFamily !== "Inter" ? `"${fontFamily}", sans-serif` : "inherit" }}>
+      {/* Import de la fuente de Google seleccionada si no es Inter */}
+      {fontFamily !== "Inter" && (
+        <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400;600;700;800&display=swap`} />
+      )}
+
       {/* Estilos dinámicos de la Paleta de Marca para la página de producto */}
       <style>{`
         .product-theme-scope .btn-gold {
@@ -194,27 +251,21 @@ export default function ProductDetailPage() {
         }
       `}</style>
 
-      {/* Resplandor Multi-Color de Ambiente de la Marca en TODA la Página de su producto */}
-      <div 
-        style={{ 
-          position: "absolute", 
-          top: "-30px", 
-          left: "-50vw", 
-          right: "-50vw", 
-          bottom: "-3rem", 
-          background: `
-            radial-gradient(ellipse at 15% 5%, ${palette.c1}25 0%, transparent 55%),
-            radial-gradient(ellipse at 85% 15%, ${palette.c2}25 0%, transparent 55%),
-            radial-gradient(ellipse at 20% 40%, ${palette.c3}20 0%, transparent 50%),
-            radial-gradient(ellipse at 80% 65%, ${palette.c4}22 0%, transparent 50%),
-            radial-gradient(ellipse at 30% 88%, ${palette.c1}20 0%, transparent 50%),
-            radial-gradient(ellipse at 75% 95%, ${palette.c2}18 0%, transparent 50%),
-            linear-gradient(180deg, ${palette.c1}12 0%, ${palette.c2}08 25%, ${palette.c3}06 55%, ${palette.c4}10 85%, ${palette.c1}15 100%)
-          `, 
-          pointerEvents: "none", 
-          zIndex: 0 
-        }} 
-      />
+      {/* Fondo de la Marca en la Página de su Producto */}
+      {bgStyle !== "none" && (
+        <div 
+          style={{ 
+            position: "absolute", 
+            top: "-30px", 
+            left: "-50vw", 
+            right: "-50vw", 
+            bottom: "-3rem", 
+            pointerEvents: "none", 
+            zIndex: 0,
+            ...pageBgCss
+          }} 
+        />
+      )}
 
       <head>
         <title>{`${prod.name} | AOURUM`}</title>

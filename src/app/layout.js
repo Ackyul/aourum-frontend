@@ -1750,10 +1750,10 @@ function AppLayoutShell({ children }) {
                     </div>
                   </div>
 
-                  {/* Paleta de Identidad de Marca (Hasta 4 Colores) */}
+                  {/* Color Principal de Detalles y Acentos de la Marca */}
                   <div className="form-group" style={{ marginTop: "1.2rem" }}>
                     <label style={{ fontSize: "0.82rem", fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <span>🎨 Paleta de Identidad de Marca (4 Colores)</span>
+                      <span>🎨 Color de Detalles y Acentos de Marca</span>
                       {editThemeColor && (
                         <button 
                           type="button" 
@@ -1765,124 +1765,81 @@ function AppLayoutShell({ children }) {
                       )}
                     </label>
                     <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "2px 0 10px 0" }}>
-                      Define los 4 colores de tu marca. Se aplicarán en el resplandor de fondo, insignias y botones de tu perfil y productos.
+                      Este color principal se aplicará en botones, insignias, resaltados y acentos de tu tienda y en la vista de tus productos.
                     </p>
 
-                    {/* Previsualización e Inputs de la Paleta */}
                     {(() => {
-                      const colors = (editThemeColor || "").split(",").map(c => c.trim()).filter(c => c.startsWith("#"));
-                      const c1 = colors[0] || "#D4AF37";
-                      const c2 = colors[1] || c1;
-                      const c3 = colors[2] || c2;
-                      const c4 = colors[3] || c1;
-
-                      const updateColorAt = (idx, newColor) => {
-                        const arr = [c1, c2, c3, c4];
-                        arr[idx] = newColor;
-                        setEditThemeColor(arr.join(","));
+                      const primaryCol = (editThemeColor || "").split(",")[0]?.trim() || "#D4AF37";
+                      const setSingleColor = (col) => {
+                        setEditThemeColor(col);
                       };
 
-                      const colorLabels = [
-                        { label: "1. Principal", hint: "Acentos y botones" },
-                        { label: "2. Secundario", hint: "Insignias y subtítulos" },
-                        { label: "3. Acento", hint: "Destacados e íconos" },
-                        { label: "4. Ambiente", hint: "Resplandor de fondo" }
-                      ];
-
-                      const presets = [
-                        { name: "Dorado & Ámbar", colors: ["#D4AF37", "#EAB308", "#F97316", "#8B5CF6"] },
-                        { name: "Cyberpunk", colors: ["#EC4899", "#8B5CF6", "#3B82F6", "#06B6D4"] },
-                        { name: "Fuego Pasión", colors: ["#EF4444", "#F97316", "#FACC15", "#991B1B"] },
-                        { name: "Bosque Esmeralda", colors: ["#10B981", "#059669", "#047857", "#064E3B"] },
-                        { name: "Zafiro Real", colors: ["#3B82F6", "#1D4ED8", "#1E40AF", "#60A5FA"] },
-                        { name: "Amatista Mística", colors: ["#A855F7", "#7E22CE", "#581C87", "#C084FC"] }
+                      const accentPresets = [
+                        { name: "Dorado AOURUM", color: "#D4AF37" },
+                        { name: "Esmeralda", color: "#10B981" },
+                        { name: "Zafiro Real", color: "#3B82F6" },
+                        { name: "Carmesí", color: "#EF4444" },
+                        { name: "Amatista", color: "#A855F7" },
+                        { name: "Ámbar Cálido", color: "#F59E0B" }
                       ];
 
                       return (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                          {/* Barra de Muestra de la Paleta */}
-                          <div 
-                            style={{ 
-                              height: "34px", 
-                              borderRadius: "10px", 
-                              background: `linear-gradient(90deg, ${c1}, ${c2}, ${c3}, ${c4})`, 
-                              boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-around",
-                              padding: "0 10px",
-                              border: "1px solid rgba(255,255,255,0.2)"
-                            }}
-                          >
-                            <span style={{ fontSize: "0.7rem", color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.8)", fontWeight: 800 }}>Principal</span>
-                            <span style={{ fontSize: "0.7rem", color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.8)", fontWeight: 800 }}>Secundario</span>
-                            <span style={{ fontSize: "0.7rem", color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.8)", fontWeight: 800 }}>Acento</span>
-                            <span style={{ fontSize: "0.7rem", color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.8)", fontWeight: 800 }}>Ambiente</span>
-                          </div>
-
-                          {/* 4 Controles de Color */}
-                          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "10px" }}>
-                            {[c1, c2, c3, c4].map((colVal, idx) => (
-                              <div 
-                                key={idx} 
-                                style={{ 
-                                  background: "var(--bg-input)", 
-                                  border: "1px solid var(--border-color)", 
-                                  borderRadius: "10px", 
-                                  padding: "8px 10px",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "8px"
+                        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                          <div style={{ display: "flex", gap: "10px", alignItems: "center", background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: "10px", padding: "8px 12px" }}>
+                            <input 
+                              type="color" 
+                              value={primaryCol.startsWith("#") ? primaryCol : "#D4AF37"} 
+                              onChange={(e) => setSingleColor(e.target.value)} 
+                              style={{ width: "32px", height: "32px", border: "none", background: "none", cursor: "pointer", padding: 0 }}
+                            />
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: "0.75rem", fontWeight: 700 }}>Color de Detalles / Botones</div>
+                              <input 
+                                type="text" 
+                                value={primaryCol} 
+                                onChange={(e) => {
+                                  let v = e.target.value;
+                                  if (v && !v.startsWith('#')) v = '#' + v;
+                                  setSingleColor(v);
                                 }}
-                              >
-                                <input 
-                                  type="color" 
-                                  value={colVal} 
-                                  onChange={(e) => updateColorAt(idx, e.target.value)} 
-                                  style={{ width: "28px", height: "28px", border: "none", background: "none", cursor: "pointer", padding: 0 }}
-                                />
-                                <div style={{ minWidth: 0, flex: 1 }}>
-                                  <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text-primary)" }}>
-                                    {colorLabels[idx].label}
-                                  </div>
-                                  <input 
-                                    type="text" 
-                                    value={colVal} 
-                                    onChange={(e) => {
-                                      let v = e.target.value;
-                                      if (v && !v.startsWith('#')) v = '#' + v;
-                                      updateColorAt(idx, v);
-                                    }}
-                                    style={{ 
-                                      width: "100%", 
-                                      background: "transparent", 
-                                      border: "none", 
-                                      fontSize: "0.72rem", 
-                                      color: "var(--text-muted)", 
-                                      fontFamily: "monospace" 
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            ))}
+                                style={{ width: "100%", background: "transparent", border: "none", fontSize: "0.78rem", color: "var(--text-muted)", fontFamily: "monospace" }}
+                              />
+                            </div>
                           </div>
 
-                          {/* Presets Recomendados */}
                           <div>
                             <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: "6px" }}>
-                              Combinaciones de 4 Colores:
+                              Tonos sugeridos:
                             </span>
                             <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                              {presets.map((preset, pIdx) => (
+                              {accentPresets.map((preset, idx) => (
                                 <button
-                                  key={pIdx}
+                                  key={idx}
                                   type="button"
-                                  onClick={() => setEditThemeColor(preset.colors.join(","))}
+                                  onClick={() => setSingleColor(preset.color)}
                                   style={{
                                     display: "flex",
                                     alignItems: "center",
-                                    gap: "5px",
+                                    gap: "6px",
                                     background: "var(--bg-input)",
+                                    border: primaryCol.toLowerCase() === preset.color.toLowerCase() ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                    borderRadius: "16px",
+                                    padding: "4px 10px",
+                                    cursor: "pointer",
+                                    fontSize: "0.74rem",
+                                    fontWeight: 600
+                                  }}
+                                >
+                                  <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: preset.color }} />
+                                  <span>{preset.name}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>r(--bg-input)",
                                     border: "1px solid var(--border-color)",
                                     borderRadius: "16px",
                                     padding: "4px 8px",
