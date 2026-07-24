@@ -1391,7 +1391,7 @@ export default function BrandProfileClient({ initialBrand }) {
 
       {activeBrandTab === "muro" ? (
         <div style={{ marginTop: "1.5rem" }}>
-          {canEditBrand && (
+          {isCollaborator && (
             <SocialFeedPublisher
               defaultAuthorType="brand"
               defaultBrandId={brand?.id}

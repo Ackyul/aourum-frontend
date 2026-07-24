@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useApp } from "../context/AppContext";
 
 export default function SocialFeedPublisher({ onPostCreated, defaultFairId = null, defaultBrandId = null, defaultAuthorType = "person" }) {
   const {
     activePersonId,
     getCurrentPerson,
-    brands,
-    organizers,
-    fairs,
+    brands = [],
+    organizers = [],
+    fairs = [],
     createPost,
     uploadImage,
     removeBgAi,
@@ -17,19 +17,55 @@ export default function SocialFeedPublisher({ onPostCreated, defaultFairId = nul
   } = useApp();
 
   const currentPerson = getCurrentPerson();
-  const userBrands = (brands || []).filter(b => Number(b.personId) === Number(activePersonId) || (b.personIds && b.personIds.includes(Number(activePersonId))));
-  const userOrganizers = (organizers || []).filter(o => Number(o.personId) === Number(activePersonId) || (o.personIds && o.personIds.includes(Number(activePersonId))));
+
+  // Compute available brands for the active user (plus defaultBrandId if passed)
+  const availableBrands = useMemo(() => {
+    const pId = Number(activePersonId);
+    let list = (brands || []).filter(b => {
+      if (!b) return false;
+      const isOwner = Number(b.personId) === pId;
+      const isCollab = Array.isArray(b.personIds) && b.personIds.map(Number).includes(pId);
+      const isCollabAlt = Array.isArray(b.collaborators) && b.collaborators.some(c => Number(c.personId) === pId);
+      return isOwner || isCollab || isCollabAlt;
+    });
+
+    if (defaultBrandId) {
+      const defB = (brands || []).find(b => Number(b.id) === Number(defaultBrandId));
+      if (defB && !list.some(b => Number(b.id) === Number(defB.id))) {
+        list.push(defB);
+      }
+    }
+    return list;
+  }, [brands, activePersonId, defaultBrandId]);
+
+  // Compute available organizers for the active user
+  const availableOrganizers = useMemo(() => {
+    const pId = Number(activePersonId);
+    return (organizers || []).filter(o => {
+      if (!o) return false;
+      const isOwner = Number(o.personId) === pId;
+      const isCollab = Array.isArray(o.personIds) && o.personIds.map(Number).includes(pId);
+      const isCollabAlt = Array.isArray(o.collaborators) && o.collaborators.some(c => Number(c.personId) === pId);
+      return isOwner || isCollab || isCollabAlt;
+    });
+  }, [organizers, activePersonId]);
 
   const [expanded, setExpanded] = useState(false);
   const [authorType, setAuthorType] = useState(defaultAuthorType);
-  const [selectedBrandId, setSelectedBrandId] = useState(defaultBrandId ? defaultBrandId.toString() : (userBrands[0]?.id?.toString() || ""));
-  const [selectedOrganizerId, setSelectedOrganizerId] = useState(userOrganizers[0]?.id?.toString() || "");
+
+  const initialBrandId = defaultBrandId ? defaultBrandId.toString() : (availableBrands[0]?.id?.toString() || "");
+  const initialOrgId = availableOrganizers[0]?.id?.toString() || "";
+
+  const [selectedBrandId, setSelectedBrandId] = useState(initialBrandId);
+  const [selectedOrganizerId, setSelectedOrganizerId] = useState(initialOrgId);
   const [selectedFairId, setSelectedFairId] = useState(defaultFairId ? defaultFairId.toString() : "");
+
   const [content, setContent] = useState("");
   const [image, setImage] = useState("");
   const [imagePreview, setImagePreview] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
   const cameraInputRef = useRef(null);
   const galleryInputRef = useRef(null);
 
@@ -55,16 +91,17 @@ export default function SocialFeedPublisher({ onPostCreated, defaultFairId = nul
   let activeName = currentPerson ? `${currentPerson.name}` : "Mi Perfil";
 
   if (authorType === "brand") {
-    const b = (brands || []).find(item => Number(item.id) === Number(selectedBrandId));
+    const targetId = selectedBrandId || defaultBrandId;
+    const b = (brands || []).find(item => Number(item.id) === Number(targetId));
     if (b) {
       activeAvatar = b.logo || activeAvatar;
-      activeName = b.name;
+      activeName = b.name || activeName;
     }
   } else if (authorType === "organizer") {
     const o = (organizers || []).find(item => Number(item.id) === Number(selectedOrganizerId));
     if (o) {
       activeAvatar = o.logo || activeAvatar;
-      activeName = o.name;
+      activeName = o.name || activeName;
     }
   }
 
@@ -132,11 +169,12 @@ export default function SocialFeedPublisher({ onPostCreated, defaultFairId = nul
     }
     setSubmitting(true);
     try {
+      const effectiveBrandId = authorType === "brand" ? (selectedBrandId || defaultBrandId) : null;
       const created = await createPost({
         content: content.trim(),
         image: image || null,
         fairId: selectedFairId ? Number(selectedFairId) : null,
-        brandId: authorType === "brand" ? Number(selectedBrandId) : null,
+        brandId: effectiveBrandId ? Number(effectiveBrandId) : null,
         organizerId: authorType === "organizer" ? Number(selectedOrganizerId) : null,
         authorType
       });
@@ -266,10 +304,15 @@ export default function SocialFeedPublisher({ onPostCreated, defaultFairId = nul
                     👤 Persona
                   </button>
 
-                  {userBrands.length > 0 && (
+                  {availableBrands.length > 0 && (
                     <button
                       type="button"
-                      onClick={() => setAuthorType("brand")}
+                      onClick={() => {
+                        setAuthorType("brand");
+                        if (!selectedBrandId && availableBrands.length > 0) {
+                          setSelectedBrandId(availableBrands[0].id.toString());
+                        }
+                      }}
                       style={{
                         padding: "3px 10px", borderRadius: "16px", fontSize: "0.76rem", fontWeight: 700,
                         background: authorType === "brand" ? "var(--gold-primary)" : "transparent",
@@ -282,7 +325,7 @@ export default function SocialFeedPublisher({ onPostCreated, defaultFairId = nul
                     </button>
                   )}
 
-                  {userOrganizers.length > 0 && (
+                  {availableOrganizers.length > 0 && (
                     <button
                       type="button"
                       onClick={() => setAuthorType("organizer")}
@@ -300,26 +343,26 @@ export default function SocialFeedPublisher({ onPostCreated, defaultFairId = nul
                 </div>
 
                 {/* Sub-selector for specific brand */}
-                {authorType === "brand" && userBrands.length > 0 && (
+                {authorType === "brand" && availableBrands.length > 1 && (
                   <select
-                    value={selectedBrandId}
+                    value={selectedBrandId || defaultBrandId}
                     onChange={(e) => setSelectedBrandId(e.target.value)}
                     style={{ fontSize: "0.76rem", padding: "3px 8px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "var(--bg-card)" }}
                   >
-                    {userBrands.map(b => (
+                    {availableBrands.map(b => (
                       <option key={b.id} value={b.id}>{b.name}</option>
                     ))}
                   </select>
                 )}
 
                 {/* Sub-selector for specific organizer */}
-                {authorType === "organizer" && userOrganizers.length > 0 && (
+                {authorType === "organizer" && availableOrganizers.length > 1 && (
                   <select
                     value={selectedOrganizerId}
                     onChange={(e) => setSelectedOrganizerId(e.target.value)}
                     style={{ fontSize: "0.76rem", padding: "3px 8px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "var(--bg-card)" }}
                   >
-                    {userOrganizers.map(o => (
+                    {availableOrganizers.map(o => (
                       <option key={o.id} value={o.id}>{o.name}</option>
                     ))}
                   </select>
@@ -348,7 +391,7 @@ export default function SocialFeedPublisher({ onPostCreated, defaultFairId = nul
       {/* Bottom Actions Bar */}
       <div style={{
         display: "flex",
-        justifyContent: "space-between",
+        justify: "space-between",
         alignItems: "center",
         marginTop: "0.9rem",
         paddingTop: "0.8rem",
