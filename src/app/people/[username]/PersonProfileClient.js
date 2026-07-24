@@ -530,10 +530,10 @@ export default function PersonProfileClient() {
               <div>
                 <h3 style={{ fontSize: "1.15rem", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
                   <i className="fa-solid fa-camera-retro" style={{ color: "var(--gold-primary)" }}></i>
-                  Publicaciones en Ferias
+                  Publicaciones
                 </h3>
                 <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: "4px 0 0 0" }}>
-                  Experiencias, fotos y momentos compartidos por {person.name} en ferias.
+                  Experiencias, novedades y momentos compartidos por {person.name}.
                 </p>
               </div>
 
@@ -544,7 +544,7 @@ export default function PersonProfileClient() {
                   className="btn-gold"
                   style={{ padding: "0.45rem 1rem", fontSize: "0.82rem", borderRadius: "8px", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "6px" }}
                 >
-                  <i className="fa-solid fa-plus"></i> Publicar en Feria
+                  <i className="fa-solid fa-plus"></i> Crear Publicación
                 </button>
               )}
             </div>
@@ -552,7 +552,7 @@ export default function PersonProfileClient() {
             <PostList
               posts={personPosts}
               loading={personPostsLoading}
-              emptyMessage={`${person.name} aún no ha publicado fotos ni vivencias de ferias.`}
+              emptyMessage={`${person.name} aún no ha realizado ninguna publicación.`}
               onPostDeleted={(id) => setPersonPosts(prev => prev.filter(p => p.id !== id))}
             />
           </div>

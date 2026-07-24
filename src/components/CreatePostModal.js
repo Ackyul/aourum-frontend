@@ -40,7 +40,7 @@ export default function CreatePostModal() {
   useEffect(() => {
     if (showCreatePostModal && !prevShowRef.current) {
       setAuthorType(postModalDefaultAuthorType || "person");
-      setSelectedFairId(postModalDefaultFairId || (fairs.length > 0 ? fairs[0].id.toString() : ""));
+      setSelectedFairId(postModalDefaultFairId ? postModalDefaultFairId.toString() : "");
       setSelectedBrandId(postModalDefaultBrandId || (userBrands.length > 0 ? userBrands[0].id.toString() : ""));
       setSelectedOrganizerId(userOrganizers.length > 0 ? userOrganizers[0].id.toString() : "");
       setContent("");
@@ -80,10 +80,7 @@ export default function CreatePostModal() {
       triggerNotification("Por favor ingresa un mensaje para la publicación.", "error");
       return;
     }
-    if (authorType === "person" && !selectedFairId) {
-      triggerNotification("Para publicar en tu perfil, debes seleccionar una feria activa relacionada.", "error");
-      return;
-    }
+
     if (authorType === "brand" && !selectedBrandId) {
       triggerNotification("Selecciona la marca con la que deseas publicar.", "error");
       return;
@@ -188,30 +185,23 @@ export default function CreatePostModal() {
             </div>
           )}
 
-          {/* Fair Selector (Mandatory for Person posts!) */}
-          <div className="form-group" style={{ marginBottom: "1.2rem", background: authorType === "person" ? "rgba(212,175,55,0.06)" : "transparent", padding: authorType === "person" ? "0.8rem" : "0", borderRadius: "10px", border: authorType === "person" ? "1px solid rgba(212,175,55,0.25)" : "none" }}>
-            <label style={{ fontSize: "0.82rem", fontWeight: 700, color: authorType === "person" ? "var(--text-gold)" : "var(--text-primary)", display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
+          {/* Fair Selector (Optional) */}
+          <div className="form-group" style={{ marginBottom: "1.2rem" }}>
+            <label style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
               <i className="fa-solid fa-calendar-days"></i>
-              Feria Relacionada {authorType === "person" ? "*" : "(Opcional)"}
+              Feria Relacionada (Opcional)
             </label>
             <select
               className="form-control"
               value={selectedFairId}
               onChange={(e) => setSelectedFairId(e.target.value)}
               style={{ width: "100%", borderRadius: "8px", padding: "0.55rem", fontSize: "0.88rem" }}
-              required={authorType === "person"}
             >
-              <option value="">-- {authorType === "person" ? "Selecciona una feria activa *" : "Ninguna (Post General)"} --</option>
+              <option value="">-- Ninguna (Post General) --</option>
               {fairs.map(f => (
                 <option key={f.id} value={f.id}>📍 {f.name} ({f.location})</option>
               ))}
             </select>
-            {authorType === "person" && (
-              <span style={{ fontSize: "0.74rem", color: "var(--text-muted)", display: "block", marginTop: "4px" }}>
-                <i className="fa-solid fa-circle-info" style={{ marginRight: 4 }}></i>
-                Los posts de personas deben estar asociados a una feria activa.
-              </span>
-            )}
           </div>
 
           {/* Post Content */}
