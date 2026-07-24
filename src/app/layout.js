@@ -1894,16 +1894,20 @@ function AppLayoutShell({ children }) {
                                 <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
                                   <select 
                                     className="form-control" 
-                                    value={design.customBgColor || "#FAF9F0"} 
-                                    onChange={(e) => updateDesignKey("customBgColor", e.target.value)}
+                                    value={design.customBgColor && design.customBgColor.startsWith("#") && design.customBgColor !== "#FFFFFF" ? "custom" : (design.customBgColor || "brand-soft")} 
+                                    onChange={(e) => {
+                                      const val = e.target.value;
+                                      if (val === "custom") {
+                                        updateDesignKey("customBgColor", "#FAF9F0");
+                                      } else {
+                                        updateDesignKey("customBgColor", val);
+                                      }
+                                    }}
                                     style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem", flex: 1 }}
                                   >
-                                    <option value="#FAF9F0">Crema Cálido (#FAF9F0)</option>
-                                    <option value="#FFFFFF">Blanco Puro (#FFFFFF)</option>
-                                    <option value="#F8FAFC">Gris Suave (#F8FAFC)</option>
-                                    <option value="brand">Color de Marca</option>
                                     <option value="brand-soft">Tinta Suave de Marca</option>
-                                    <option value="#18181B">Oscuro Elegante (#18181B)</option>
+                                    <option value="#FFFFFF">Blanco Puro (#FFFFFF)</option>
+                                    <option value="custom">Color Personalizado (Hex)</option>
                                   </select>
                                   <input 
                                     type="color" 
