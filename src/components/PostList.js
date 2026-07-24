@@ -217,20 +217,35 @@ function SocialPostCard({ post, activePersonId, deletePost, togglePostLike, addP
       {post.image && (
         <div
           onClick={() => setLightboxOpen(true)}
+          className="post-card-image-wrapper"
           style={{
             borderRadius: "12px",
             overflow: "hidden",
             border: "1px solid var(--border-color)",
             marginBottom: "0.8rem",
             cursor: "pointer",
-            position: "relative"
+            position: "relative",
+            background: "var(--bg-input)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            maxHeight: "480px"
           }}
         >
           <img
             src={post.image}
             alt="Publicación"
-            style={{ width: "100%", maxHeight: "420px", objectFit: "cover", display: "block", transition: "transform 0.3s ease" }}
-            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            style={{
+              maxWidth: "100%",
+              maxHeight: "480px",
+              width: "auto",
+              height: "auto",
+              objectFit: "contain",
+              display: "block",
+              margin: "0 auto"
+            }}
+            onError={(e) => { e.currentTarget.parentElement.style.display = 'none'; }}
           />
         </div>
       )}

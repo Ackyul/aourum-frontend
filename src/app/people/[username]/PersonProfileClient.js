@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 import PostList from "../../../components/PostList";
+import SocialFeedPublisher from "../../../components/SocialFeedPublisher";
 
 export default function PersonProfileClient() {
   const routeParams = useParams();
@@ -524,30 +525,14 @@ export default function PersonProfileClient() {
             </div>
           )}
 
-          {/* ── PUBLICACIONES EN FERIAS DE LA PERSONA ── */}
-          <div className="glass-panel" style={{ padding: "1.8rem", marginTop: "2rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem", flexWrap: "wrap", gap: "10px" }}>
-              <div>
-                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-                  <i className="fa-solid fa-camera-retro" style={{ color: "var(--gold-primary)" }}></i>
-                  Publicaciones
-                </h3>
-                <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: "4px 0 0 0" }}>
-                  Experiencias, novedades y momentos compartidos por {person.name}.
-                </p>
-              </div>
-
-              {isOwner && (
-                <button
-                  type="button"
-                  onClick={() => openCreatePostModal && openCreatePostModal({ authorType: "person" })}
-                  className="btn-gold"
-                  style={{ padding: "0.45rem 1rem", fontSize: "0.82rem", borderRadius: "8px", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "6px" }}
-                >
-                  <i className="fa-solid fa-plus"></i> Crear Publicación
-                </button>
-              )}
-            </div>
+          {/* ── PUBLICACIONES DE LA PERSONA ── */}
+          <div style={{ marginTop: "2rem" }}>
+            {isOwner && (
+              <SocialFeedPublisher
+                defaultAuthorType="person"
+                onPostCreated={(newPost) => setPersonPosts(prev => [newPost, ...prev])}
+              />
+            )}
 
             <PostList
               posts={personPosts}

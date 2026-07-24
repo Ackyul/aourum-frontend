@@ -2413,6 +2413,13 @@ header {
   .publisher-fair-select-wrapper select {
     width: 100% !important;
   }
+
+  .post-card-image-wrapper {
+    max-height: 360px !important;
+  }
+  .post-card-image-wrapper img {
+    max-height: 360px !important;
+  }
 }
 
 
