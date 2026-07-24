@@ -5,6 +5,7 @@ import { useApp } from "../../../context/AppContext";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import PostList from "../../../components/PostList";
+import SocialFeedPublisher from "../../../components/SocialFeedPublisher";
 
 // Stable deterministic views generator based on hash of name + id
 const getItemViews = (name, id) => {
@@ -1390,6 +1391,14 @@ export default function BrandProfileClient({ initialBrand }) {
 
       {activeBrandTab === "muro" ? (
         <div style={{ marginTop: "1.5rem" }}>
+          {canEditBrand && (
+            <SocialFeedPublisher
+              defaultAuthorType="brand"
+              defaultBrandId={brand?.id}
+              onPostCreated={(newPost) => setBrandPosts(prev => [newPost, ...prev])}
+            />
+          )}
+
           <PostList
             posts={brandPosts}
             loading={brandPostsLoading}

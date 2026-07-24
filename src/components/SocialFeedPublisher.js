@@ -55,13 +55,13 @@ export default function SocialFeedPublisher({ onPostCreated, defaultFairId = nul
   let activeName = currentPerson ? `${currentPerson.name}` : "Mi Perfil";
 
   if (authorType === "brand") {
-    const b = userBrands.find(item => item.id.toString() === selectedBrandId);
+    const b = (brands || []).find(item => Number(item.id) === Number(selectedBrandId));
     if (b) {
       activeAvatar = b.logo || activeAvatar;
       activeName = b.name;
     }
   } else if (authorType === "organizer") {
-    const o = userOrganizers.find(item => item.id.toString() === selectedOrganizerId);
+    const o = (organizers || []).find(item => Number(item.id) === Number(selectedOrganizerId));
     if (o) {
       activeAvatar = o.logo || activeAvatar;
       activeName = o.name;
