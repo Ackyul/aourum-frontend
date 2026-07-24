@@ -97,6 +97,9 @@ export default function BrandProfileClient({ initialBrand }) {
     setEditThemeColor,
     setEditTagline,
     setEditInterests,
+    editBrandDesign,
+    editProfileOpen,
+    editProfileId,
     setEditBrandDesign,
     parseDescription,
     handleDeleteBrand,
@@ -878,8 +881,11 @@ export default function BrandProfileClient({ initialBrand }) {
   const themeColor = palette.c1;
   const bannerStyle = !parsed.banner ? { background: `linear-gradient(135deg, ${palette.c1}, ${palette.c2})` } : {};
 
-  // Opciones avanzadas de personalización visual (brandDesign)
-  const design = brand.brandDesign || {};
+  // Opciones avanzadas de personalización visual (brandDesign) con Vista Previa en Vivo
+  const isEditingThisBrand = editProfileOpen && editProfileId === brand?.id;
+  const design = (isEditingThisBrand && editBrandDesign && Object.keys(editBrandDesign).length > 0)
+    ? editBrandDesign
+    : (brand.brandDesign || {});
   const bgStyle = design.bgStyle || "solid";
   const customBgColor = design.customBgColor || "#FAF9F0";
   const bgImage = design.bgImage || "";
