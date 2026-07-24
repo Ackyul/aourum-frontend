@@ -525,87 +525,16 @@ export default function Home() {
     const brandRubro = brand ? (brand.rubro_especifico || brand.rubro_general || brand.category) : "Marca Local";
     const views = getProductViews(prod);
 
-    const brandDesign = brand?.brandDesign || {};
-    const rawCardBg = (prod.imgBgColor && prod.imgBgColor !== "transparent") 
-      ? prod.imgBgColor 
-      : (brandDesign.cardBgColor && brandDesign.cardBgColor !== "transparent" ? brandDesign.cardBgColor : null);
-
-    const rawCardText = brandDesign.cardTextColor || "auto";
-    const rawCardBorder = brandDesign.cardBorderColor || "auto";
-
-    let cardBgStyle = {};
-    let isDarkBg = false;
-    let categoryTextColor = "var(--text-gold)";
-    let titleTextColor = "var(--text-primary)";
-    let priceTextColor = "var(--text-primary)";
-    let dividerBorder = "1px solid var(--border-color)";
-
-    if (rawCardBg) {
-      let finalColor = rawCardBg;
-      if (rawCardBg === "brand") finalColor = brand?.color || "var(--gold-primary)";
-      else if (rawCardBg === "brand-soft") finalColor = "rgba(212, 175, 55, 0.12)";
-
-      if (finalColor.startsWith("#")) {
-        const hex = finalColor.replace("#", "");
-        if (hex.length === 6) {
-          const r = parseInt(hex.substring(0, 2), 16) || 0;
-          const g = parseInt(hex.substring(2, 4), 16) || 0;
-          const b = parseInt(hex.substring(4, 6), 16) || 0;
-          const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-          isDarkBg = brightness < 140;
-        }
-      }
-
-      const upperHex = finalColor.toUpperCase();
-      if (upperHex === "#FAF9F0" || upperHex === "#FFFBEB") {
-        categoryTextColor = "#B8860B";
-        titleTextColor = "#1C1C1E";
-        priceTextColor = "#1C1C1E";
-        dividerBorder = "1px solid rgba(0,0,0,0.08)";
-      } else if (isDarkBg) {
-        categoryTextColor = "var(--text-gold)";
-        titleTextColor = "#FFFFFF";
-        priceTextColor = "#FFFFFF";
-        dividerBorder = "1px solid rgba(255,255,255,0.15)";
-      } else {
-        titleTextColor = "#1C1C1E";
-        priceTextColor = "#1C1C1E";
-        dividerBorder = "1px solid rgba(0,0,0,0.08)";
-      }
-
-      cardBgStyle = {
-        backgroundColor: finalColor,
-        border: `1px solid ${isDarkBg ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.08)"}`
-      };
-    }
-
-    if (rawCardText === "brand") {
-      titleTextColor = brand?.color || "var(--gold-primary)";
-      priceTextColor = brand?.color || "var(--gold-primary)";
-    } else if (rawCardText === "#FFFFFF") {
-      titleTextColor = "#FFFFFF";
-      priceTextColor = "#FFFFFF";
-      categoryTextColor = "var(--text-gold)";
-    } else if (rawCardText === "#1C1C1E") {
-      titleTextColor = "#1C1C1E";
-      priceTextColor = "#1C1C1E";
-    } else if (rawCardText.startsWith("#")) {
-      titleTextColor = rawCardText;
-      priceTextColor = rawCardText;
-    }
-
-    if (rawCardBorder === "brand") {
-      cardBgStyle.border = `1.5px solid ${brand?.color || "var(--gold-primary)"}`;
-    } else if (rawCardBorder === "transparent") {
-      cardBgStyle.border = "none";
-    } else if (rawCardBorder.startsWith("#")) {
-      cardBgStyle.border = `1.5px solid ${rawCardBorder}`;
-    }
+    const categoryTextColor = "var(--text-gold)";
+    const titleTextColor = "var(--text-primary)";
+    const priceTextColor = "var(--text-primary)";
+    const dividerBorder = "1px solid var(--border-color)";
+    const isDarkBg = false;
 
     return (
       <div 
         className="glass-panel product-card" 
-        style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer", height: "100%", ...cardBgStyle }}
+        style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer", height: "100%" }}
         onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
       >
         <div 
