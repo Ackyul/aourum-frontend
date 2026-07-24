@@ -1839,27 +1839,6 @@ function AppLayoutShell({ children }) {
                         </div>
                       );
                     })()}
-                  </div>r(--bg-input)",
-                                    border: "1px solid var(--border-color)",
-                                    borderRadius: "16px",
-                                    padding: "4px 8px",
-                                    cursor: "pointer",
-                                    fontSize: "0.72rem"
-                                  }}
-                                >
-                                  <div style={{ display: "flex", gap: "2px" }}>
-                                    {preset.colors.map((c, ci) => (
-                                      <span key={ci} style={{ width: "8px", height: "8px", borderRadius: "50%", background: c }} />
-                                    ))}
-                                  </div>
-                                  <span>{preset.name}</span>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })()}
                   </div>
 
                   {/* Interests / Tags */}
