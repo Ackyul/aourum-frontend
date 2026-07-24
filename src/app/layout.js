@@ -2204,9 +2204,9 @@ function AppLayoutShell({ children }) {
 
               {editProfileType === "person" && activeEditTab === "configuracion" && (() => {
                 const person = getCurrentPerson();
-                const hasPassword = person && person.hasPassword;
-                const isGoogleLinked = person && person.googleId;
-                const isFacebookLinked = person && person.facebookId;
+                const hasPassword = !!(person && (person.hasPassword || person.passwordHash));
+                const isGoogleLinked = !!(person && (person.googleId || person.hasGoogleLinked));
+                const isFacebookLinked = !!(person && (person.facebookId || person.hasFacebookLinked));
 
                 return (
                   <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>

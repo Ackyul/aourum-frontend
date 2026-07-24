@@ -328,7 +328,9 @@ export function AppContextProvider({ children }) {
     if (people.length > 0 && !force) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/people`).then((r) => r.json());
+      const res = await fetch(`${API_URL}/api/people`, {
+        headers: authHeaders(null)
+      }).then((r) => r.json());
       if (Array.isArray(res)) {
         setPeople(res);
         // Validar sesión si el rol es "person"
@@ -945,8 +947,11 @@ export function AppContextProvider({ children }) {
       });
       const data = await response.json();
       if (response.ok) {
+        if (data.person) {
+          setPeople(prev => prev.map(p => p.id === data.person.id ? data.person : p));
+        }
         triggerNotification(true, "✅ Cuenta de Google vinculada correctamente.");
-        fetchData();
+        loadPeople(true);
         return { success: true };
       } else {
         triggerNotification(false, data.error || "No se pudo vincular la cuenta.");
@@ -970,8 +975,11 @@ export function AppContextProvider({ children }) {
       });
       const data = await response.json();
       if (response.ok) {
+        if (data.person) {
+          setPeople(prev => prev.map(p => p.id === data.person.id ? data.person : p));
+        }
         triggerNotification(true, "✅ Cuenta de Google desvinculada.");
-        fetchData();
+        loadPeople(true);
         return { success: true };
       } else {
         triggerNotification(false, data.error || "No se pudo desvincular.");
@@ -997,8 +1005,11 @@ export function AppContextProvider({ children }) {
       });
       const data = await response.json();
       if (response.ok) {
+        if (data.person) {
+          setPeople(prev => prev.map(p => p.id === data.person.id ? data.person : p));
+        }
         triggerNotification(true, "✅ Cuenta de Facebook vinculada correctamente.");
-        fetchData();
+        loadPeople(true);
         return { success: true };
       } else {
         triggerNotification(false, data.error || "No se pudo vincular la cuenta.");
@@ -1022,8 +1033,11 @@ export function AppContextProvider({ children }) {
       });
       const data = await response.json();
       if (response.ok) {
+        if (data.person) {
+          setPeople(prev => prev.map(p => p.id === data.person.id ? data.person : p));
+        }
         triggerNotification(true, "✅ Cuenta de Facebook desvinculada.");
-        fetchData();
+        loadPeople(true);
         return { success: true };
       } else {
         triggerNotification(false, data.error || "No se pudo desvincular.");
