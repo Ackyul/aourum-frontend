@@ -2345,4 +2345,74 @@ header {
   border-bottom: 1.5px solid var(--gold-primary) !important;
 }
 
+/* ── COMPREHENSIVE MOBILE RESPONSIVE POLISH ──────────────── */
+
+@media (max-width: 640px) {
+  /* Social Publisher Mobile Optimization */
+  .social-publisher-card {
+    padding: 0.95rem 0.9rem !important;
+    border-radius: 14px !important;
+    margin-bottom: 1.2rem !important;
+  }
+
+  .social-publisher-card textarea {
+    font-size: 16px !important; /* Prevents auto-zoom on iOS */
+    padding: 0.6rem 0.8rem !important;
+  }
+
+  /* Social Post Cards Mobile Optimization */
+  .social-post-card {
+    padding: 0.95rem 0.9rem !important;
+    border-radius: 14px !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .social-post-card-header {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  /* Dual Tabs Mobile Horizontal Scroll */
+  .aourum-tabs-container {
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .aourum-tab-btn {
+    padding: 0.55rem 1rem !important;
+    font-size: 0.85rem !important;
+    flex-shrink: 0 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Ultra Small Screen Adjustments */
+  .social-publisher-card img {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .social-post-card img {
+    max-height: 320px !important;
+  }
+
+  .feed-action-btn {
+    padding: 4px 8px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .publisher-fair-select-wrapper {
+    margin-left: 0 !important;
+    width: 100% !important;
+    margin-top: 4px !important;
+  }
+
+  .publisher-fair-select-wrapper select {
+    width: 100% !important;
+  }
+}
+
 

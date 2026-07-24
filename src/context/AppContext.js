@@ -419,6 +419,52 @@ export function AppContextProvider({ children }) {
     }
   };
 
+  const togglePostLike = async (postId) => {
+    try {
+      const res = await fetch(`${API_URL}/api/posts/${postId}/like`, {
+        method: "POST",
+        headers: authHeaders()
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al actualizar Me Gusta");
+      return data;
+    } catch (err) {
+      triggerNotification(err.message, "error");
+      throw err;
+    }
+  };
+
+  const addPostComment = async (postId, content) => {
+    try {
+      const res = await fetch(`${API_URL}/api/posts/${postId}/comments`, {
+        method: "POST",
+        headers: authHeaders("application/json"),
+        body: JSON.stringify({ content })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al agregar comentario");
+      return data;
+    } catch (err) {
+      triggerNotification(err.message, "error");
+      throw err;
+    }
+  };
+
+  const deletePostComment = async (postId, commentId) => {
+    try {
+      const res = await fetch(`${API_URL}/api/posts/${postId}/comments/${commentId}`, {
+        method: "DELETE",
+        headers: authHeaders()
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al eliminar comentario");
+      return data;
+    } catch (err) {
+      triggerNotification(err.message, "error");
+      throw err;
+    }
+  };
+
   const openCreatePostModal = (options = {}) => {
     setPostModalDefaultFairId(options.fairId || "");
     setPostModalDefaultBrandId(options.brandId || "");
@@ -1518,6 +1564,9 @@ export function AppContextProvider({ children }) {
         loadPosts,
         createPost,
         deletePost,
+        togglePostLike,
+        addPostComment,
+        deletePostComment,
         showCreatePostModal,
         setShowCreatePostModal,
         postModalDefaultFairId,
