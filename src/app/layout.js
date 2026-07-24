@@ -1938,17 +1938,102 @@ function AppLayoutShell({ children }) {
                               <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Fondo de Perfil</label>
                               <select 
                                 className="form-control" 
-                                value={design.bgStyle || "gradient"} 
+                                value={design.bgStyle || "solid"} 
                                 onChange={(e) => updateDesignKey("bgStyle", e.target.value)}
                                 style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
                               >
-                                <option value="gradient">Resplandor Gradiente Multi-Radial (Por Defecto)</option>
-                                <option value="solid">Sólido Suavizado</option>
+                                <option value="solid">Color Sólido Personalizado (Por Defecto)</option>
+                                <option value="image">Subir Imagen de Fondo Personalizada</option>
+                                <option value="gradient">Resplandor Gradiente Multi-Radial (Opcional)</option>
                                 <option value="mesh">Malla de Gradientes Fluidos (Mesh)</option>
                                 <option value="dots">Patrón de Puntos Sutiles</option>
                                 <option value="none">Blanco Limpio Mínimo</option>
                               </select>
                             </div>
+
+                            {/* Opciones según tipo de fondo elegido */}
+                            {(design.bgStyle === "solid" || !design.bgStyle) && (
+                              <div className="form-group" style={{ margin: 0 }}>
+                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Color de Fondo del Perfil</label>
+                                <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                                  <select 
+                                    className="form-control" 
+                                    value={design.customBgColor || "#FAF9F0"} 
+                                    onChange={(e) => updateDesignKey("customBgColor", e.target.value)}
+                                    style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem", flex: 1 }}
+                                  >
+                                    <option value="#FAF9F0">Crema Cálido (#FAF9F0)</option>
+                                    <option value="#FFFFFF">Blanco Puro (#FFFFFF)</option>
+                                    <option value="#F8FAFC">Gris Suave (#F8FAFC)</option>
+                                    <option value="brand">Color de Marca</option>
+                                    <option value="brand-soft">Tinta Suave de Marca</option>
+                                    <option value="#18181B">Oscuro Elegante (#18181B)</option>
+                                  </select>
+                                  <input 
+                                    type="color" 
+                                    value={design.customBgColor && design.customBgColor.startsWith("#") ? design.customBgColor : "#FAF9F0"} 
+                                    onChange={(e) => updateDesignKey("customBgColor", e.target.value)} 
+                                    style={{ width: "26px", height: "26px", border: "none", background: "none", cursor: "pointer", padding: 0 }} 
+                                    title="Personalizar Hex Fondo Perfil" 
+                                  />
+                                </div>
+                              </div>
+                            )}
+
+                            {design.bgStyle === "image" && (
+                              <div style={{ display: "flex", flexDirection: "column", gap: "8px", background: "rgba(0,0,0,0.03)", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
+                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Subir Imagen de Fondo</label>
+                                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                                  <label 
+                                    htmlFor="brand-bg-image-upload" 
+                                    className="btn-outline-gold" 
+                                    style={{ padding: "0.35rem 0.8rem", fontSize: "0.78rem", borderRadius: "6px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}
+                                  >
+                                    <i className="fa-solid fa-upload"></i> Seleccionar Imagen
+                                  </label>
+                                  <input 
+                                    id="brand-bg-image-upload" 
+                                    type="file" 
+                                    accept="image/*" 
+                                    style={{ display: "none" }} 
+                                    onChange={async (e) => {
+                                      const file = e.target.files?.[0];
+                                      if (!file) return;
+                                      const url = await uploadImage(file, setUploadingEdit);
+                                      if (url) updateDesignKey("bgImage", url);
+                                    }}
+                                  />
+                                  {design.bgImage && (
+                                    <button 
+                                      type="button" 
+                                      onClick={() => updateDesignKey("bgImage", "")}
+                                      style={{ background: "none", border: "none", color: "#ef4444", fontSize: "0.75rem", cursor: "pointer", fontWeight: 700 }}
+                                    >
+                                      Quitar
+                                    </button>
+                                  )}
+                                </div>
+
+                                {design.bgImage && (
+                                  <div style={{ marginTop: "4px" }}>
+                                    <img src={design.bgImage} alt="Fondo" style={{ width: "100%", height: "60px", objectFit: "cover", borderRadius: "6px", border: "1px solid var(--border-color)" }} />
+                                    <div style={{ marginTop: "6px", display: "flex", gap: "8px", alignItems: "center" }}>
+                                      <label style={{ fontSize: "0.72rem", fontWeight: 700 }}>Ajuste:</label>
+                                      <select 
+                                        className="form-control" 
+                                        value={design.bgImageFit || "cover"} 
+                                        onChange={(e) => updateDesignKey("bgImageFit", e.target.value)}
+                                        style={{ fontSize: "0.75rem", padding: "0.2rem 0.4rem" }}
+                                      >
+                                        <option value="cover">Ajustar a Pantalla (Cover)</option>
+                                        <option value="repeat">Patrón Repetido (Repeat)</option>
+                                        <option value="contain">Centrado (Contain)</option>
+                                      </select>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
 
                             {/* Forma del Logo y Overlay del Banner */}
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>

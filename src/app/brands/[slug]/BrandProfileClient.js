@@ -880,7 +880,10 @@ export default function BrandProfileClient({ initialBrand }) {
 
   // Opciones avanzadas de personalización visual (brandDesign)
   const design = brand.brandDesign || {};
-  const bgStyle = design.bgStyle || "gradient";
+  const bgStyle = design.bgStyle || "solid";
+  const customBgColor = design.customBgColor || "#FAF9F0";
+  const bgImage = design.bgImage || "";
+  const bgImageFit = design.bgImageFit || "cover";
   const logoShape = design.logoShape || "circle";
   const bannerOverlay = design.bannerOverlay || "none";
   const cardStyle = design.cardStyle || "glass";
@@ -891,27 +894,50 @@ export default function BrandProfileClient({ initialBrand }) {
   // Calculo de estilos derivados
   const logoBorderRadius = logoShape === "square" ? "0px" : logoShape === "rounded" ? "24px" : "50%";
   
-  let bgGradientCss = "";
-  if (bgStyle === "gradient") {
-    bgGradientCss = `
-      radial-gradient(ellipse at 15% 5%, ${palette.c1}${Math.round(40 * glowIntensity).toString(16).padStart(2, '0')} 0%, transparent 55%),
-      radial-gradient(ellipse at 85% 15%, ${palette.c2}${Math.round(40 * glowIntensity).toString(16).padStart(2, '0')} 0%, transparent 55%),
-      radial-gradient(ellipse at 20% 40%, ${palette.c3}${Math.round(35 * glowIntensity).toString(16).padStart(2, '0')} 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 65%, ${palette.c4}${Math.round(35 * glowIntensity).toString(16).padStart(2, '0')} 0%, transparent 50%),
-      radial-gradient(ellipse at 30% 88%, ${palette.c1}${Math.round(30 * glowIntensity).toString(16).padStart(2, '0')} 0%, transparent 50%),
-      linear-gradient(180deg, ${palette.c1}12 0%, ${palette.c2}08 25%, ${palette.c3}06 55%, ${palette.c4}10 85%, ${palette.c1}15 100%)
-    `;
-  } else if (bgStyle === "mesh") {
-    bgGradientCss = `
-      radial-gradient(at 0% 0%, ${palette.c1}30 0px, transparent 50%),
-      radial-gradient(at 100% 0%, ${palette.c2}30 0px, transparent 50%),
-      radial-gradient(at 100% 100%, ${palette.c3}25 0px, transparent 50%),
-      radial-gradient(at 0% 100%, ${palette.c4}30 0px, transparent 50%)
-    `;
-  } else if (bgStyle === "dots") {
-    bgGradientCss = `radial-gradient(${palette.c1}35 1px, transparent 1px)`;
+  let profileBgCss = {};
+  if (bgStyle === "image" && bgImage) {
+    profileBgCss = {
+      backgroundImage: `url(${bgImage})`,
+      backgroundSize: bgImageFit === "repeat" ? "auto" : bgImageFit,
+      backgroundRepeat: bgImageFit === "repeat" ? "repeat" : "no-repeat",
+      backgroundPosition: "center top"
+    };
   } else if (bgStyle === "solid") {
-    bgGradientCss = `linear-gradient(180deg, ${palette.c4}10 0%, ${palette.c1}08 100%)`;
+    let resolvedColor = customBgColor;
+    if (resolvedColor === "brand") resolvedColor = palette.c1;
+    else if (resolvedColor === "brand-soft") resolvedColor = `${palette.c1}15`;
+    profileBgCss = {
+      background: resolvedColor
+    };
+  } else if (bgStyle === "gradient") {
+    profileBgCss = {
+      background: `
+        radial-gradient(ellipse at 15% 5%, ${palette.c1}${Math.round(40 * glowIntensity).toString(16).padStart(2, '0')} 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 15%, ${palette.c2}${Math.round(40 * glowIntensity).toString(16).padStart(2, '0')} 0%, transparent 55%),
+        radial-gradient(ellipse at 20% 40%, ${palette.c3}${Math.round(35 * glowIntensity).toString(16).padStart(2, '0')} 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 65%, ${palette.c4}${Math.round(35 * glowIntensity).toString(16).padStart(2, '0')} 0%, transparent 50%),
+        radial-gradient(ellipse at 30% 88%, ${palette.c1}${Math.round(30 * glowIntensity).toString(16).padStart(2, '0')} 0%, transparent 50%),
+        linear-gradient(180deg, ${palette.c1}12 0%, ${palette.c2}08 25%, ${palette.c3}06 55%, ${palette.c4}10 85%, ${palette.c1}15 100%)
+      `
+    };
+  } else if (bgStyle === "mesh") {
+    profileBgCss = {
+      background: `
+        radial-gradient(at 0% 0%, ${palette.c1}30 0px, transparent 50%),
+        radial-gradient(at 100% 0%, ${palette.c2}30 0px, transparent 50%),
+        radial-gradient(at 100% 100%, ${palette.c3}25 0px, transparent 50%),
+        radial-gradient(at 0% 100%, ${palette.c4}30 0px, transparent 50%)
+      `
+    };
+  } else if (bgStyle === "dots") {
+    profileBgCss = {
+      background: `radial-gradient(${palette.c1}35 1px, transparent 1px)`,
+      backgroundSize: "20px 20px"
+    };
+  } else if (bgStyle === "none") {
+    profileBgCss = {
+      background: "#FFFFFF"
+    };
   }
 
   // Estilos de tarjetas según cardStyle, cardBgColor y cardBorderColor
@@ -1035,10 +1061,9 @@ export default function BrandProfileClient({ initialBrand }) {
             left: "-50vw", 
             right: "-50vw", 
             bottom: "-3rem", 
-            background: bgGradientCss,
-            backgroundSize: bgStyle === "dots" ? "20px 20px" : "auto",
             pointerEvents: "none", 
-            zIndex: 0 
+            zIndex: 0,
+            ...profileBgCss
           }} 
         />
       )}
