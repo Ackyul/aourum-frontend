@@ -526,10 +526,9 @@ export default function ProductDetailPage() {
             {suggestedBrandProds.map((rp) => {
               const rpBrand = brands.find(b => b.id === rp.brandId);
               const rpDesign = rpBrand?.brandDesign || {};
-              const rawCardBg = (rp.imgBgColor && rp.imgBgColor !== "transparent") 
-                ? rp.imgBgColor 
-                : (rpDesign.cardBgColor && rpDesign.cardBgColor !== "transparent" ? rpDesign.cardBgColor : null);
+              const rpBrandColor = rpBrand ? (getBrandPalette ? getBrandPalette(null, rpBrand).c1 : "#D4AF37") : "#D4AF37";
 
+              const rawCardBg = (rpDesign.cardBgColor && rpDesign.cardBgColor !== "transparent") ? rpDesign.cardBgColor : null;
               const rawCardText = rpDesign.cardTextColor || "auto";
               const rawCardBorder = rpDesign.cardBorderColor || "auto";
 
@@ -541,8 +540,8 @@ export default function ProductDetailPage() {
 
               if (rawCardBg) {
                 let finalColor = rawCardBg;
-                if (rawCardBg === "brand") finalColor = rpBrand?.color || "var(--gold-primary)";
-                else if (rawCardBg === "brand-soft") finalColor = "rgba(212, 175, 55, 0.12)";
+                if (rawCardBg === "brand") finalColor = rpBrandColor;
+                else if (rawCardBg === "brand-soft") finalColor = `${rpBrandColor}18`;
 
                 if (finalColor.startsWith("#")) {
                   const hex = finalColor.replace("#", "");
@@ -572,8 +571,8 @@ export default function ProductDetailPage() {
               }
 
               if (rawCardText === "brand") {
-                titleTextColor = rpBrand?.color || "var(--gold-primary)";
-                priceTextColor = rpBrand?.color || "var(--gold-primary)";
+                titleTextColor = rpBrandColor;
+                priceTextColor = rpBrandColor;
               } else if (rawCardText === "#FFFFFF") {
                 titleTextColor = "#FFFFFF";
                 priceTextColor = "#FFFFFF";
@@ -586,7 +585,7 @@ export default function ProductDetailPage() {
               }
 
               if (rawCardBorder === "brand") {
-                cardBgStyle.border = `1.5px solid ${rpBrand?.color || "var(--gold-primary)"}`;
+                cardBgStyle.border = `1.5px solid ${rpBrandColor}`;
               } else if (rawCardBorder === "transparent") {
                 cardBgStyle.border = "none";
               } else if (rawCardBorder.startsWith("#")) {
@@ -607,7 +606,7 @@ export default function ProductDetailPage() {
                     style={{ 
                       position: "relative",
                       backgroundColor: (rp.imgBgColor && rp.imgBgColor !== "transparent") 
-                        ? (rp.imgBgColor === "brand" ? (rpBrand?.color || "var(--gold-primary)") : rp.imgBgColor)
+                        ? (rp.imgBgColor === "brand" ? rpBrandColor : rp.imgBgColor)
                         : "transparent"
                     }}
                   >
@@ -750,10 +749,9 @@ export default function ProductDetailPage() {
             {suggestedCategoryProds.map((rp) => {
               const rpBrand = brands.find(b => b.id === rp.brandId);
               const rpDesign = rpBrand?.brandDesign || {};
-              const rawCardBg = (rp.imgBgColor && rp.imgBgColor !== "transparent") 
-                ? rp.imgBgColor 
-                : (rpDesign.cardBgColor && rpDesign.cardBgColor !== "transparent" ? rpDesign.cardBgColor : null);
+              const rpBrandColor = rpBrand ? (getBrandPalette ? getBrandPalette(null, rpBrand).c1 : "#D4AF37") : "#D4AF37";
 
+              const rawCardBg = (rpDesign.cardBgColor && rpDesign.cardBgColor !== "transparent") ? rpDesign.cardBgColor : null;
               const rawCardText = rpDesign.cardTextColor || "auto";
               const rawCardBorder = rpDesign.cardBorderColor || "auto";
 
@@ -765,8 +763,8 @@ export default function ProductDetailPage() {
 
               if (rawCardBg) {
                 let finalColor = rawCardBg;
-                if (rawCardBg === "brand") finalColor = rpBrand?.color || "var(--gold-primary)";
-                else if (rawCardBg === "brand-soft") finalColor = "rgba(212, 175, 55, 0.12)";
+                if (rawCardBg === "brand") finalColor = rpBrandColor;
+                else if (rawCardBg === "brand-soft") finalColor = `${rpBrandColor}18`;
 
                 if (finalColor.startsWith("#")) {
                   const hex = finalColor.replace("#", "");
@@ -796,8 +794,8 @@ export default function ProductDetailPage() {
               }
 
               if (rawCardText === "brand") {
-                titleTextColor = rpBrand?.color || "var(--gold-primary)";
-                priceTextColor = rpBrand?.color || "var(--gold-primary)";
+                titleTextColor = rpBrandColor;
+                priceTextColor = rpBrandColor;
               } else if (rawCardText === "#FFFFFF") {
                 titleTextColor = "#FFFFFF";
                 priceTextColor = "#FFFFFF";
@@ -810,7 +808,7 @@ export default function ProductDetailPage() {
               }
 
               if (rawCardBorder === "brand") {
-                cardBgStyle.border = `1.5px solid ${rpBrand?.color || "var(--gold-primary)"}`;
+                cardBgStyle.border = `1.5px solid ${rpBrandColor}`;
               } else if (rawCardBorder === "transparent") {
                 cardBgStyle.border = "none";
               } else if (rawCardBorder.startsWith("#")) {
@@ -831,7 +829,7 @@ export default function ProductDetailPage() {
                     style={{ 
                       position: "relative",
                       backgroundColor: (rp.imgBgColor && rp.imgBgColor !== "transparent") 
-                        ? (rp.imgBgColor === "brand" ? (rpBrand?.color || "var(--gold-primary)") : rp.imgBgColor)
+                        ? (rp.imgBgColor === "brand" ? rpBrandColor : rp.imgBgColor)
                         : "transparent"
                     }}
                   >
