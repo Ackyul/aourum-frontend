@@ -1442,7 +1442,10 @@ function AppLayoutShell({ children }) {
               {activeEditTab === "basic" && (
                 <div className="fade-in">
                   <div className="form-group">
-                    <label>Foto de Perfil / Logotipo</label>
+                    <label style={{ fontSize: "0.85rem", fontWeight: 800, display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                      <span>{editProfileType === "person" ? "Foto de Perfil" : editProfileType === "brand" ? "Logotipo de Marca" : editProfileType === "band" ? "Foto / Logo de la Banda" : "Foto / Logo del Organizador"}</span>
+                      <span style={{ fontSize: "0.72rem", color: "var(--text-gold)", fontWeight: 700 }}>📐 Recomendado: 400 × 400 px (1:1)</span>
+                    </label>
                     <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: "10px", padding: "1rem" }}>
                       <div style={{ position: "relative", flexShrink: 0 }}>
                         <img 
@@ -1711,7 +1714,10 @@ function AppLayoutShell({ children }) {
 
                   {/* Banner / Foto de Portada */}
                   <div className="form-group">
-                    <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Foto de Portada / Banner</label>
+                    <label style={{ fontSize: "0.78rem", fontWeight: 700, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span>Foto de Portada / Banner</span>
+                      <span style={{ fontSize: "0.72rem", color: "var(--text-gold)", fontWeight: 700 }}>📐 Recomendado: 1400 × 350 px (4:1)</span>
+                    </label>
                     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                       {editBannerPreview ? (
                         <div style={{ width: "100%", height: "120px", position: "relative", borderRadius: "8px", overflow: "hidden", border: "1px solid var(--border-color)" }}>
@@ -2129,7 +2135,10 @@ function AppLayoutShell({ children }) {
 
                               {design.bgStyle === "image" && (
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px", background: "rgba(212,175,55,0.05)", padding: "10px", borderRadius: "10px", marginTop: "10px" }}>
-                                  <label style={{ fontSize: "0.76rem", fontWeight: 700 }}>Imagen de Fondo de Tienda</label>
+                                  <label style={{ fontSize: "0.76rem", fontWeight: 700, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                    <span>{isBrand ? "Imagen de Fondo de Tienda" : "Imagen de Fondo de Perfil"}</span>
+                                    <span style={{ fontSize: "0.72rem", color: "var(--text-gold)", fontWeight: 700 }}>📐 Recomendado: 1920 × 1080 px (16:9 o textura continua)</span>
+                                  </label>
                                   <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                                     <label 
                                       htmlFor="brand-bg-image-upload" 
