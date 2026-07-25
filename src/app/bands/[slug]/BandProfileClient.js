@@ -39,6 +39,10 @@ export default function BandProfileClient({ initialBand }) {
     setEditFacebook,
     setEditTiktok,
     setEditWebsite,
+    editProfileOpen,
+    editProfileId,
+    editBrandDesign,
+    setEditBrandDesign,
     parseDescription,
     handleDeleteBand,
     loadBands,
@@ -246,6 +250,13 @@ export default function BandProfileClient({ initialBand }) {
     setEditFacebook(parsed.facebook);
     setEditTiktok(parsed.tiktok);
     setEditWebsite(parsed.website);
+    if (setEditBrandDesign) {
+      setEditBrandDesign(parsed.brandDesign || {
+        customBgColor: parsed.customBgColor || "",
+        bgStyle: parsed.bgStyle || "solid",
+        bgImage: parsed.bgImage || ""
+      });
+    }
     setEditProfileOpen(true);
   };
 
@@ -390,8 +401,39 @@ export default function BandProfileClient({ initialBand }) {
   };
 
 
+  const parsed = parseDescription(band.description);
+
+  // Live preview & persisted background design
+  const isEditingThisBand = editProfileOpen && editProfileId === band?.id;
+  const design = (isEditingThisBand && editBrandDesign && Object.keys(editBrandDesign).length > 0)
+    ? editBrandDesign
+    : (parsed.brandDesign || { customBgColor: parsed.customBgColor, bgStyle: parsed.bgStyle, bgImage: parsed.bgImage });
+
+  const customBgColor = design.customBgColor || "";
+  const bgStyle = design.bgStyle || "solid";
+  const bgImage = design.bgImage || "";
+
+  let containerStyle = {
+    maxWidth: "1400px",
+    borderRadius: "20px",
+    padding: "1.5rem",
+    position: "relative",
+    minHeight: "100vh",
+    transition: "all 0.3s ease"
+  };
+
+  if (bgStyle === "image" && bgImage) {
+    containerStyle.backgroundImage = `url(${bgImage})`;
+    containerStyle.backgroundSize = "cover";
+    containerStyle.backgroundPosition = "center";
+  } else if (bgStyle === "gradient" && customBgColor) {
+    containerStyle.background = `linear-gradient(135deg, ${customBgColor}, #FFFFFF)`;
+  } else if (customBgColor && customBgColor !== "transparent" && bgStyle !== "none") {
+    containerStyle.background = customBgColor;
+  }
+
   return (
-    <div className="container" style={{ maxWidth: "1400px" }}>
+    <div className="container" style={containerStyle}>
       <div style={{ position: "relative", marginBottom: "2.5rem" }}>
         <button onClick={() => router.push("/bands")} className="profile-close-btn" style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>&times;</button>
         <button onClick={copyLink} className="profile-share-btn" style={{ position: "absolute", top: "15px", right: "60px", zIndex: 10 }} title="Copiar enlace de la banda">

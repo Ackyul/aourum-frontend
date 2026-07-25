@@ -1204,7 +1204,11 @@ export function AppContextProvider({ children }) {
       banner: editBanner,
       theme_color: editThemeColor,
       tagline: editTagline,
-      interests: editInterests
+      interests: editInterests,
+      customBgColor: editBrandDesign?.customBgColor || "",
+      bgStyle: editBrandDesign?.bgStyle || "solid",
+      bgImage: editBrandDesign?.bgImage || "",
+      brandDesign: editBrandDesign || {}
     });
 
     if (effectiveType === "brand") {
@@ -1630,13 +1634,22 @@ export function parseDescription(description) {
     theme_color: "",
     tagline: "",
     interests: "",
-    fair_type: "both"
+    fair_type: "both",
+    customBgColor: "",
+    bgStyle: "solid",
+    bgImage: "",
+    brandDesign: {}
   };
   if (!description) return defaultVal;
   const trimmed = description.trim();
   if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
     try {
       const parsed = JSON.parse(description);
+      const bDesign = parsed.brandDesign || {
+        customBgColor: parsed.customBgColor || "",
+        bgStyle: parsed.bgStyle || "solid",
+        bgImage: parsed.bgImage || ""
+      };
       return {
         text: parsed.text || "",
         instagram: parsed.instagram || "",
@@ -1654,7 +1667,11 @@ export function parseDescription(description) {
         theme_color: parsed.theme_color || "",
         tagline: parsed.tagline || "",
         interests: parsed.interests || "",
-        fair_type: parsed.fair_type || "both"
+        fair_type: parsed.fair_type || "both",
+        customBgColor: parsed.customBgColor || bDesign.customBgColor || "",
+        bgStyle: parsed.bgStyle || bDesign.bgStyle || "solid",
+        bgImage: parsed.bgImage || bDesign.bgImage || "",
+        brandDesign: bDesign
       };
     } catch (e) {
       return defaultVal;

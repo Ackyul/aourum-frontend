@@ -61,6 +61,10 @@ export default function OrganizerProfilePage() {
     setEditThemeColor,
     setEditTagline,
     setEditInterests,
+    editProfileOpen,
+    editProfileId,
+    editBrandDesign,
+    setEditBrandDesign,
     setEditProfileOpen
   } = useApp();
 
@@ -230,6 +234,13 @@ export default function OrganizerProfilePage() {
     setEditThemeColor(parsed.theme_color || "");
     setEditTagline(parsed.tagline || "");
     setEditInterests(parsed.interests || "");
+    if (setEditBrandDesign) {
+      setEditBrandDesign(parsed.brandDesign || {
+        customBgColor: parsed.customBgColor || "",
+        bgStyle: parsed.bgStyle || "solid",
+        bgImage: parsed.bgImage || ""
+      });
+    }
     setEditProfileOpen(true);
   };
 
@@ -271,8 +282,37 @@ export default function OrganizerProfilePage() {
   const themeColor = (parsed.theme_color && parsed.theme_color.startsWith('#')) ? parsed.theme_color : "#D4AF37";
   const bannerStyle = !parsed.banner ? { background: "var(--gold-gradient)" } : {};
 
+  // Live preview & persisted background design
+  const isEditingThisOrganizer = editProfileOpen && editProfileId === organizer?.id;
+  const design = (isEditingThisOrganizer && editBrandDesign && Object.keys(editBrandDesign).length > 0)
+    ? editBrandDesign
+    : (parsed.brandDesign || { customBgColor: parsed.customBgColor, bgStyle: parsed.bgStyle, bgImage: parsed.bgImage });
+
+  const customBgColor = design.customBgColor || "";
+  const bgStyle = design.bgStyle || "solid";
+  const bgImage = design.bgImage || "";
+
+  let containerStyle = {
+    maxWidth: "1400px",
+    borderRadius: "20px",
+    padding: "1.5rem",
+    position: "relative",
+    minHeight: "100vh",
+    transition: "all 0.3s ease"
+  };
+
+  if (bgStyle === "image" && bgImage) {
+    containerStyle.backgroundImage = `url(${bgImage})`;
+    containerStyle.backgroundSize = "cover";
+    containerStyle.backgroundPosition = "center";
+  } else if (bgStyle === "gradient" && customBgColor) {
+    containerStyle.background = `linear-gradient(135deg, ${customBgColor}, #FFFFFF)`;
+  } else if (customBgColor && customBgColor !== "transparent" && bgStyle !== "none") {
+    containerStyle.background = customBgColor;
+  }
+
   return (
-    <div className="container" style={{ maxWidth: "1400px" }}>
+    <div className="container" style={containerStyle}>
       <div style={{ position: "relative" }}>
         <button onClick={() => router.push("/")} className="profile-close-btn" style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>&times;</button>
         <button onClick={copyLink} className="profile-share-btn" style={{ position: "absolute", top: "15px", right: "60px", zIndex: 10 }} title="Copiar enlace de perfil">

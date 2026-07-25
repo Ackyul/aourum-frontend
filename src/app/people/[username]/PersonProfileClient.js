@@ -35,9 +35,10 @@ export default function PersonProfileClient() {
     setEditOrganizerIds,
     setEditBandIds,
     setEditProfileType,
-    setEditProfileId,
-    setEditProfileOpen,
-    setActiveEditTab,
+    editProfileOpen,
+    editProfileId,
+    editBrandDesign,
+    setEditBrandDesign,
     setEditInstagram,
     setEditFacebook,
     setEditTiktok,
@@ -198,6 +199,13 @@ export default function PersonProfileClient() {
     if (setEditThemeColor) setEditThemeColor(parsed.theme_color || "");
     if (setEditTagline) setEditTagline(parsed.tagline || "");
     if (setEditInterests) setEditInterests(parsed.interests || "");
+    if (setEditBrandDesign) {
+      setEditBrandDesign(parsed.brandDesign || {
+        customBgColor: parsed.customBgColor || "",
+        bgStyle: parsed.bgStyle || "solid",
+        bgImage: parsed.bgImage || ""
+      });
+    }
     if (setEditProfileType) setEditProfileType("person");
     if (setEditProfileId) setEditProfileId(person.id);
     if (setActiveEditTab) setActiveEditTab("basic");
@@ -232,6 +240,13 @@ export default function PersonProfileClient() {
     if (setEditThemeColor) setEditThemeColor(parsed.theme_color || "");
     if (setEditTagline) setEditTagline(parsed.tagline || "");
     if (setEditInterests) setEditInterests(parsed.interests || "");
+    if (setEditBrandDesign) {
+      setEditBrandDesign(parsed.brandDesign || {
+        customBgColor: parsed.customBgColor || "",
+        bgStyle: parsed.bgStyle || "solid",
+        bgImage: parsed.bgImage || ""
+      });
+    }
     if (setEditProfileType) setEditProfileType("person");
     if (setEditProfileId) setEditProfileId(person.id);
     if (setActiveEditTab) setActiveEditTab("configuracion");
@@ -245,8 +260,55 @@ export default function PersonProfileClient() {
   const themeColor = (primaryThemeColor && primaryThemeColor.startsWith('#')) ? primaryThemeColor : "#D4AF37";
   const bannerStyle = !parsed.banner ? { background: "var(--gold-gradient)", opacity: 0.15 } : {};
 
+  // Live preview & persisted background design
+  const isEditingThisPerson = editProfileOpen && editProfileId === person?.id;
+  const design = (isEditingThisPerson && editBrandDesign && Object.keys(editBrandDesign).length > 0)
+    ? editBrandDesign
+    : (parsed.brandDesign || { customBgColor: parsed.customBgColor, bgStyle: parsed.bgStyle, bgImage: parsed.bgImage });
+
+  const customBgColor = design.customBgColor || "";
+  const bgStyle = design.bgStyle || "solid";
+  const bgImage = design.bgImage || "";
+
+  const getBgBrightness = (colorStr, fallbackColor = "#FAF9F0") => {
+    let target = colorStr || fallbackColor;
+    if (typeof target !== "string" || !target.startsWith("#")) return 240;
+    let hex = target.replace("#", "").substring(0, 6);
+    if (hex.length === 3) hex = hex.split("").map(c => c + c).join("");
+    if (hex.length !== 6) return 240;
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+    return (r * 299 + g * 587 + b * 114) / 1000;
+  };
+
+  const isBgDark = customBgColor && customBgColor !== "transparent" ? getBgBrightness(customBgColor) < 140 : false;
+
+  let containerStyle = {
+    maxWidth: "1400px",
+    borderRadius: "20px",
+    padding: "1.5rem",
+    position: "relative",
+    minHeight: "100vh",
+    transition: "all 0.3s ease"
+  };
+
+  if (bgStyle === "image" && bgImage) {
+    containerStyle.backgroundImage = `url(${bgImage})`;
+    containerStyle.backgroundSize = "cover";
+    containerStyle.backgroundPosition = "center";
+  } else if (bgStyle === "gradient" && customBgColor) {
+    containerStyle.background = `linear-gradient(135deg, ${customBgColor}, #FFFFFF)`;
+  } else if (customBgColor && customBgColor !== "transparent" && bgStyle !== "none") {
+    containerStyle.background = customBgColor;
+  }
+
+  const textColorMain = isBgDark ? "#FFFFFF" : "var(--text-primary)";
+  const textColorMuted = isBgDark ? "#A1A1AA" : "var(--text-muted)";
+  const bioBoxBg = isBgDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.01)";
+
   return (
-    <div className="container" style={{ maxWidth: "1400px" }}>
+    <div className="container" style={containerStyle}>
       <div style={{ position: "relative", marginBottom: "2.5rem" }}>
         <button onClick={() => router.push("/")} className="profile-close-btn" style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>&times;</button>
         <button onClick={copyLink} className="profile-share-btn" style={{ position: "absolute", top: "15px", right: "60px", zIndex: 10 }} title="Copiar enlace de perfil">
@@ -274,9 +336,9 @@ export default function PersonProfileClient() {
                     {person.occupation}
                   </span>
                 )}
-                <h2 className="person-name-heading" style={{ fontSize: "2.2rem", fontWeight: 800, marginTop: person.occupation ? "0.8rem" : "0", letterSpacing: "-0.02em" }}>{person.name} {person.lastName || ""}</h2>
+                <h2 className="person-name-heading" style={{ fontSize: "2.2rem", fontWeight: 800, color: textColorMain, marginTop: person.occupation ? "0.8rem" : "0", letterSpacing: "-0.02em" }}>{person.name} {person.lastName || ""}</h2>
                 {parsed.tagline && (
-                  <p style={{ fontSize: "1.0rem", color: "var(--text-muted)", fontStyle: "italic", marginTop: "0.4rem", marginBottom: "0.4rem" }}>
+                  <p style={{ fontSize: "1.0rem", color: textColorMuted, fontStyle: "italic", marginTop: "0.4rem", marginBottom: "0.4rem" }}>
                     &ldquo;{parsed.tagline}&rdquo;
                   </p>
                 )}
@@ -320,9 +382,9 @@ export default function PersonProfileClient() {
             </div>
           </div>
 
-          <div style={{ background: "rgba(0,0,0,0.01)", border: "1px solid var(--border-color)", borderRadius: "12px", padding: "1.5rem", marginBottom: "2.5rem" }}>
-            <h3 style={{ fontSize: "1.0rem", fontWeight: 800, marginBottom: "0.6rem", color: "var(--text-primary)" }}>Biografía / Propuesta</h3>
-            <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", lineHeight: 1.65, margin: 0 }}>
+          <div style={{ background: bioBoxBg, border: isBgDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid var(--border-color)", borderRadius: "12px", padding: "1.5rem", marginBottom: "2.5rem" }}>
+            <h3 style={{ fontSize: "1.0rem", fontWeight: 800, marginBottom: "0.6rem", color: textColorMain }}>Biografía / Propuesta</h3>
+            <p style={{ fontSize: "0.95rem", color: textColorMain, lineHeight: 1.65, margin: 0 }}>
               {parsed.text || "Esta persona no ha escrito una biografía todavía."}
             </p>
 
