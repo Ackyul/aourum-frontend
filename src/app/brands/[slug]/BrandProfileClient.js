@@ -606,12 +606,19 @@ export default function BrandProfileClient({ initialBrand }) {
     const storeLuminance = getBgBrightness(customBgColor, "#FAF9F0");
     const isStoreBgLight = storeLuminance >= 130;
 
-    // 2. Guaranteed solid card background
+    // 2. Determine card background color from DB brand design settings
     let cardBg = rawCardBg;
-    if (!cardBg || cardBg === "brand-soft" || cardBg === "transparent") {
-      cardBg = isStoreBgLight ? "#FFFFFF" : "#18181B";
+    if (!cardBg) {
+      if (cardStyle === "flat" || cardStyle === "elevated" || cardStyle === "bordered") {
+        cardBg = "#FFFFFF";
+      } else {
+        // default glass style with soft brand tint
+        cardBg = isStoreBgLight ? `${palette.c1}18` : "rgba(24, 24, 27, 0.88)";
+      }
     } else if (cardBg === "brand") {
       cardBg = palette.c1;
+    } else if (cardBg === "brand-soft") {
+      cardBg = `${palette.c1}20`;
     }
 
     // 3. Determine brightness of card background
@@ -619,10 +626,10 @@ export default function BrandProfileClient({ initialBrand }) {
     const isCardDark = cardLuminance < 140;
 
     // 4. Text and badge color schemes
-    let categoryTextColor = isCardDark ? "#FDE68A" : "#854D0E";
+    let categoryTextColor = isCardDark ? "var(--text-gold)" : "#854D0E";
     let titleTextColor = isCardDark ? "#FFFFFF" : "#1C1C1E";
     let priceTextColor = isCardDark ? "#FFFFFF" : "#1C1C1E";
-    let dividerBorder = isCardDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.08)";
+    let dividerBorder = isCardDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.1)";
 
     if (rawCardText === "brand") {
       titleTextColor = palette.c1;
@@ -656,19 +663,24 @@ export default function BrandProfileClient({ initialBrand }) {
       height: "100%",
       minHeight: "360px",
       cursor: "pointer",
-      border: isCardDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.12)",
-      boxShadow: isCardDark ? "0 8px 24px rgba(0,0,0,0.3)" : "0 6px 20px rgba(0,0,0,0.07)",
-      transition: "transform 0.25s ease, box-shadow 0.25s ease"
+      boxShadow: cardStyle === "elevated" ? "0 12px 30px rgba(0,0,0,0.1)" : "0 4px 16px rgba(0,0,0,0.06)",
+      transition: "all 0.25s ease-in-out"
     };
 
     if (rawCardBorder === "brand") {
       cardStyleObj.border = `1.5px solid ${palette.c1}`;
+    } else if (rawCardBorder === "transparent") {
+      cardStyleObj.border = "none";
     } else if (rawCardBorder && rawCardBorder !== "auto" && rawCardBorder.startsWith("#")) {
       cardStyleObj.border = `1.5px solid ${rawCardBorder}`;
     } else if (cardStyle === "bordered") {
       cardStyleObj.border = `2px solid ${palette.c1}`;
+    } else {
+      cardStyleObj.border = isCardDark ? "1px solid rgba(255,255,255,0.15)" : `1px solid ${palette.c1}30`;
     }
 
+    const views = getProductViews(prod);
+    const isPopular = views > 600;
     const formattedPrice = (prod.price != null && !isNaN(Number(prod.price))) ? Number(prod.price).toLocaleString("es-PE") : "0";
     const formattedPriceAourum = (prod.priceAourum != null && !isNaN(Number(prod.priceAourum))) ? Number(prod.priceAourum).toLocaleString("es-PE") : null;
 
@@ -678,7 +690,7 @@ export default function BrandProfileClient({ initialBrand }) {
         style={cardStyleObj}
         onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
       >
-        {/* Top Image Box */}
+        {/* Top Image Box with Badge Overlays */}
         <div 
           className="card-img-container" 
           style={{ 
@@ -703,22 +715,31 @@ export default function BrandProfileClient({ initialBrand }) {
               padding: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "10px" : "0"
             }} 
           />
+
+          {/* Badges on Image top-left */}
+          <div style={{ position: "absolute", top: "10px", left: "10px", display: "flex", flexDirection: "column", gap: "6px", zIndex: 3 }}>
+            {isPopular ? (
+              <span style={{ background: "linear-gradient(135deg, #ef4444, #f97316)", color: "#FFFFFF", fontSize: "0.62rem", padding: "3px 8px", borderRadius: "12px", fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", boxShadow: "0 2px 6px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", gap: "3px" }}>
+                <i className="fa-solid fa-fire" style={{ fontSize: "0.7rem" }}></i> Popular
+              </span>
+            ) : (
+              <span style={{ background: "linear-gradient(135deg, #0284c7, #2563eb)", color: "#FFFFFF", fontSize: "0.62rem", padding: "3px 8px", borderRadius: "12px", fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", boxShadow: "0 2px 6px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", gap: "3px" }}>
+                <i className="fa-solid fa-wand-magic-sparkles" style={{ fontSize: "0.7rem" }}></i> Descubrir
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Bottom Details Container */}
-        <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem", backgroundColor: cardBg }}>
+        {/* Bottom Details Body */}
+        <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
           <span style={{ 
             fontSize: "0.72rem", 
             color: categoryTextColor, 
             letterSpacing: "0.05em", 
             textTransform: "uppercase", 
-            fontWeight: 800,
-            background: isCardDark ? "rgba(253,230,138,0.12)" : "#FEF3C7",
-            padding: "2px 8px",
-            borderRadius: "6px",
-            width: "fit-content"
+            fontWeight: 800
           }}>
-            {prod.category || brand.rubro_general || "General"}
+            {prod.category || brand?.rubro_general || "General"}
           </span>
 
           <h3 style={{ 
@@ -726,7 +747,7 @@ export default function BrandProfileClient({ initialBrand }) {
             fontWeight: 800, 
             lineHeight: 1.35, 
             color: titleTextColor, 
-            margin: "0.2rem 0 0 0",
+            margin: "0.1rem 0 0 0",
             display: "-webkit-box",
             WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
@@ -734,6 +755,13 @@ export default function BrandProfileClient({ initialBrand }) {
           }}>
             {prod.name}
           </h3>
+
+          <div style={{ fontSize: "0.8rem", color: isCardDark ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}>
+            <span>Por:</span>
+            <strong style={{ color: titleTextColor, textDecoration: "underline" }}>
+              {brand?.name || "Marca Local"}
+            </strong>
+          </div>
           
           <div style={{ 
             display: "flex", 
