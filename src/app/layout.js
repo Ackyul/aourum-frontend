@@ -2019,10 +2019,13 @@ function AppLayoutShell({ children }) {
 
                   {/* 🖼️ Estilo Visual Personalizado (Exclusivo Marcas) */}
                   {editProfileType === "brand" && (
-                    <div style={{ marginTop: "1.5rem", paddingTop: "1.2rem", borderTop: "1px dashed var(--border-color)" }}>
-                      <h4 style={{ fontSize: "0.88rem", fontWeight: 800, marginBottom: "0.8rem", color: "var(--gold-primary)", display: "flex", alignItems: "center", gap: "6px" }}>
-                        🖼️ Estilo Visual de la Página de Marca
+                    <div style={{ marginTop: "1.8rem", paddingTop: "1.4rem", borderTop: "1px dashed var(--border-color)" }}>
+                      <h4 style={{ fontSize: "0.95rem", fontWeight: 800, marginBottom: "0.4rem", color: "var(--gold-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
+                        ✨ Estilo Visual y Diseño de la Tienda
                       </h4>
+                      <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "1.2rem" }}>
+                        Personaliza la apariencia visual de tu galería y tarjetas con previsualización interactiva en tiempo real.
+                      </p>
 
                       {(() => {
                         const design = editBrandDesign || {};
@@ -2030,69 +2033,93 @@ function AppLayoutShell({ children }) {
                           setEditBrandDesign(prev => ({ ...(prev || {}), [key]: val }));
                         };
 
+                        const colorParts = (editThemeColor || "").split(",").map(c => c.trim()).filter(Boolean);
+                        const primaryCol = colorParts[0] || "#D4AF37";
+                        const generalBgCol = design.customBgColor || "#FAF9F0";
+                        const fontFam = design.fontFamily || "Inter";
+                        const logoShp = design.logoShape || "circle";
+                        const cardStl = design.cardStyle || "glass";
+
+                        const logoRadius = logoShp === "square" ? "4px" : logoShp === "rounded" ? "14px" : "50%";
+
                         return (
-                          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                            {/* Estilo de Fondo */}
-                            <div className="form-group" style={{ margin: 0 }}>
-                              <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Fondo de Perfil</label>
-                              <select 
-                                className="form-control" 
-                                value={design.bgStyle || "solid"} 
-                                onChange={(e) => updateDesignKey("bgStyle", e.target.value)}
-                                style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
-                              >
-                                <option value="solid">Color Sólido Personalizado (Por Defecto)</option>
-                                <option value="image">Subir Imagen de Fondo Personalizada</option>
-                                <option value="gradient">Resplandor Gradiente Multi-Radial (Opcional)</option>
-                                <option value="mesh">Malla de Gradientes Fluidos (Mesh)</option>
-                                <option value="dots">Patrón de Puntos Sutiles</option>
-                                <option value="none">Blanco Limpio Mínimo</option>
-                              </select>
+                          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                            {/* 📱 VISTA PREVIA EN VIVO */}
+                            <div style={{
+                              background: generalBgCol.startsWith("#") ? generalBgCol : "#FAF9F0",
+                              border: "1px solid var(--border-color)",
+                              borderRadius: "16px",
+                              padding: "1rem",
+                              boxShadow: "0 8px 24px rgba(0,0,0,0.06)",
+                              position: "relative",
+                              overflow: "hidden"
+                            }}>
+                              <div style={{ fontSize: "0.68rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)", marginBottom: "8px", display: "flex", alignItems: "center", gap: "5px" }}>
+                                <i className="fa-solid fa-eye" style={{ color: "var(--gold-primary)" }}></i> Vista Previa en Tiempo Real
+                              </div>
+                              <div style={{ display: "flex", gap: "12px", alignItems: "center", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", padding: "10px 14px", borderRadius: "12px", border: `1.5px solid ${primaryCol}40` }}>
+                                <div style={{ width: "38px", height: "38px", borderRadius: logoRadius, background: primaryCol, display: "flex", alignItems: "center", justifyContent: "center", color: "#FFFFFF", fontWeight: 800, fontSize: "1rem", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}>
+                                  M
+                                </div>
+                                <div style={{ flex: 1, fontFamily: fontFam !== "Inter" ? `"${fontFam}", sans-serif` : "inherit" }}>
+                                  <div style={{ fontSize: "0.88rem", fontWeight: 800, color: "#1C1C1E" }}>{editName || "Tu Marca"}</div>
+                                  <div style={{ fontSize: "0.7rem", color: primaryCol, fontWeight: 700 }}>Estilo: {cardStl.toUpperCase()} | {fontFam}</div>
+                                </div>
+                                <button type="button" style={{ background: primaryCol, color: "#FFFFFF", border: "none", borderRadius: "8px", padding: "4px 10px", fontSize: "0.72rem", fontWeight: 700 }}>
+                                  Ver Catálogo
+                                </button>
+                              </div>
                             </div>
 
-                            {/* Opciones según tipo de fondo elegido */}
-                            {(design.bgStyle === "solid" || !design.bgStyle) && (
-                              <div className="form-group" style={{ margin: 0 }}>
-                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Color de Fondo del Perfil</label>
-                                <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
-                                  <select 
-                                    className="form-control" 
-                                    value={design.customBgColor && design.customBgColor.startsWith("#") && design.customBgColor !== "#FFFFFF" ? "custom" : (design.customBgColor || "brand-soft")} 
-                                    onChange={(e) => {
-                                      const val = e.target.value;
-                                      if (val === "custom") {
-                                        updateDesignKey("customBgColor", "#FAF9F0");
-                                      } else {
-                                        updateDesignKey("customBgColor", val);
-                                      }
+                            {/* 1. ESTILO DE FONDO DE PERFIL */}
+                            <div className="form-group" style={{ margin: 0 }}>
+                              <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "6px", display: "block" }}>Fondo del Perfil</label>
+                              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                                {[
+                                  { id: "solid", label: "Sólido", icon: "fa-palette" },
+                                  { id: "gradient", label: "Gradiente", icon: "fa-circle-half-stroke" },
+                                  { id: "mesh", label: "Malla Mesh", icon: "fa-braille" },
+                                  { id: "dots", label: "Puntos", icon: "fa-grip" },
+                                  { id: "image", label: "Imagen", icon: "fa-image" },
+                                  { id: "none", label: "Blanco", icon: "fa-sun" }
+                                ].map((item) => (
+                                  <button
+                                    key={item.id}
+                                    type="button"
+                                    onClick={() => updateDesignKey("bgStyle", item.id)}
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "5px",
+                                      background: (design.bgStyle || "solid") === item.id ? "var(--bg-card)" : "var(--bg-input)",
+                                      border: (design.bgStyle || "solid") === item.id ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                      color: (design.bgStyle || "solid") === item.id ? "var(--gold-dark)" : "var(--text-primary)",
+                                      borderRadius: "10px",
+                                      padding: "5px 10px",
+                                      cursor: "pointer",
+                                      fontSize: "0.75rem",
+                                      fontWeight: (design.bgStyle || "solid") === item.id ? 700 : 500,
+                                      boxShadow: (design.bgStyle || "solid") === item.id ? "0 2px 8px rgba(212,175,55,0.15)" : "none"
                                     }}
-                                    style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem", flex: 1 }}
                                   >
-                                    <option value="brand-soft">Tinta Suave de Marca</option>
-                                    <option value="#FFFFFF">Blanco Puro (#FFFFFF)</option>
-                                    <option value="custom">Color Personalizado (Hex)</option>
-                                  </select>
-                                  <input 
-                                    type="color" 
-                                    value={design.customBgColor && design.customBgColor.startsWith("#") ? design.customBgColor : "#FAF9F0"} 
-                                    onChange={(e) => updateDesignKey("customBgColor", e.target.value)} 
-                                    style={{ width: "26px", height: "26px", border: "none", background: "none", cursor: "pointer", padding: 0 }} 
-                                    title="Personalizar Hex Fondo Perfil" 
-                                  />
-                                </div>
+                                    <i className={`fa-solid ${item.icon}`} style={{ fontSize: "0.75rem" }}></i>
+                                    <span>{item.label}</span>
+                                  </button>
+                                ))}
                               </div>
-                            )}
+                            </div>
 
+                            {/* Subir imagen de fondo si seleccionó 'image' */}
                             {design.bgStyle === "image" && (
-                              <div style={{ display: "flex", flexDirection: "column", gap: "8px", background: "rgba(0,0,0,0.03)", padding: "10px", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
-                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Subir Imagen de Fondo</label>
+                              <div style={{ display: "flex", flexDirection: "column", gap: "8px", background: "rgba(212,175,55,0.05)", padding: "12px", borderRadius: "12px", border: "1px solid var(--border-color)" }}>
+                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Imagen de Fondo de Tienda</label>
                                 <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                                   <label 
                                     htmlFor="brand-bg-image-upload" 
                                     className="btn-outline-gold" 
-                                    style={{ padding: "0.35rem 0.8rem", fontSize: "0.78rem", borderRadius: "6px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}
+                                    style={{ padding: "0.4rem 0.9rem", fontSize: "0.78rem", borderRadius: "8px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}
                                   >
-                                    <i className="fa-solid fa-upload"></i> Seleccionar Imagen
+                                    <i className="fa-solid fa-upload"></i> Subir Imagen de Fondo
                                   </label>
                                   <input 
                                     id="brand-bg-image-upload" 
@@ -2116,51 +2143,52 @@ function AppLayoutShell({ children }) {
                                     </button>
                                   )}
                                 </div>
-
-                                {design.bgImage && (
-                                  <div style={{ marginTop: "4px" }}>
-                                    <img src={design.bgImage} alt="Fondo" style={{ width: "100%", height: "60px", objectFit: "cover", borderRadius: "6px", border: "1px solid var(--border-color)" }} />
-                                    <div style={{ marginTop: "6px", display: "flex", gap: "8px", alignItems: "center" }}>
-                                      <label style={{ fontSize: "0.72rem", fontWeight: 700 }}>Ajuste:</label>
-                                      <select 
-                                        className="form-control" 
-                                        value={design.bgImageFit || "cover"} 
-                                        onChange={(e) => updateDesignKey("bgImageFit", e.target.value)}
-                                        style={{ fontSize: "0.75rem", padding: "0.2rem 0.4rem" }}
-                                      >
-                                        <option value="cover">Ajustar a Pantalla (Cover)</option>
-                                        <option value="repeat">Patrón Repetido (Repeat)</option>
-                                        <option value="contain">Centrado (Contain)</option>
-                                      </select>
-                                    </div>
-                                  </div>
-                                )}
                               </div>
                             )}
 
-                            {/* Forma del Logo y Overlay del Banner */}
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                            {/* 2. FORMA DEL LOGO Y OVERLAY */}
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                               <div className="form-group" style={{ margin: 0 }}>
-                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Forma del Logo</label>
-                                <select 
-                                  className="form-control" 
-                                  value={design.logoShape || "circle"} 
-                                  onChange={(e) => updateDesignKey("logoShape", e.target.value)}
-                                  style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
-                                >
-                                  <option value="circle">Circular (Actual)</option>
-                                  <option value="square">Cuadrado Recto</option>
-                                  <option value="rounded">Cuadrado Redondeado</option>
-                                </select>
+                                <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "6px", display: "block" }}>Forma del Logo</label>
+                                <div style={{ display: "flex", gap: "4px" }}>
+                                  {[
+                                    { id: "circle", label: "Círculo", shape: "50%" },
+                                    { id: "rounded", label: "Redondeado", shape: "8px" },
+                                    { id: "square", label: "Cuadrado", shape: "2px" }
+                                  ].map((sh) => (
+                                    <button
+                                      key={sh.id}
+                                      type="button"
+                                      onClick={() => updateDesignKey("logoShape", sh.id)}
+                                      style={{
+                                        flex: 1,
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        gap: "3px",
+                                        background: logoShp === sh.id ? "var(--bg-card)" : "var(--bg-input)",
+                                        border: logoShp === sh.id ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                        borderRadius: "8px",
+                                        padding: "6px 2px",
+                                        cursor: "pointer",
+                                        fontSize: "0.7rem",
+                                        fontWeight: logoShp === sh.id ? 700 : 500
+                                      }}
+                                    >
+                                      <span style={{ width: "16px", height: "16px", borderRadius: sh.shape, border: "1.5px solid var(--gold-primary)", background: primaryCol }} />
+                                      <span>{sh.label}</span>
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
 
                               <div className="form-group" style={{ margin: 0 }}>
-                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Efecto sobre Banner</label>
+                                <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "4px", display: "block" }}>Efecto Banner</label>
                                 <select 
                                   className="form-control" 
                                   value={design.bannerOverlay || "none"} 
                                   onChange={(e) => updateDesignKey("bannerOverlay", e.target.value)}
-                                  style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                                  style={{ fontSize: "0.8rem", padding: "0.45rem 0.6rem", borderRadius: "8px" }}
                                 >
                                   <option value="none">Sin Filtro</option>
                                   <option value="gradient">Sombra Gradiente</option>
@@ -2170,15 +2198,15 @@ function AppLayoutShell({ children }) {
                               </div>
                             </div>
 
-                            {/* Estilo de Tarjetas y Tipografía */}
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                            {/* 3. ESTILO Y BORDES DE TARJETAS */}
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                               <div className="form-group" style={{ margin: 0 }}>
-                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Estilo de Tarjetas</label>
+                                <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "4px", display: "block" }}>Estilo de Tarjetas</label>
                                 <select 
                                   className="form-control" 
                                   value={design.cardStyle || "glass"} 
                                   onChange={(e) => updateDesignKey("cardStyle", e.target.value)}
-                                  style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
+                                  style={{ fontSize: "0.8rem", padding: "0.45rem 0.6rem", borderRadius: "8px" }}
                                 >
                                   <option value="glass">Glassmorphism Transparente</option>
                                   <option value="flat">Plano Fino</option>
@@ -2188,107 +2216,71 @@ function AppLayoutShell({ children }) {
                               </div>
 
                               <div className="form-group" style={{ margin: 0 }}>
-                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Fondo de Tarjetas</label>
-                                <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
-                                  <select 
-                                    className="form-control" 
-                                    value={design.cardBgColor || "transparent"} 
-                                    onChange={(e) => updateDesignKey("cardBgColor", e.target.value)}
-                                    style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem", flex: 1 }}
-                                  >
-                                    <option value="transparent">Glass / Predeterminado</option>
-                                    <option value="#FFFFFF">Blanco Puro (#FFFFFF)</option>
-                                    <option value="#FAF9F0">Crema Cálido (#FAF9F0)</option>
-                                    <option value="#F8FAFC">Gris Suave (#F8FAFC)</option>
-                                    <option value="brand">Color de Marca</option>
-                                    <option value="brand-soft">Tinta Suave de Marca</option>
-                                    <option value="#18181B">Oscuro Elegante (#18181B)</option>
-                                  </select>
-                                  <input 
-                                    type="color" 
-                                    value={design.cardBgColor && design.cardBgColor.startsWith("#") ? design.cardBgColor : "#FAF9F0"} 
-                                    onChange={(e) => updateDesignKey("cardBgColor", e.target.value)} 
-                                    style={{ width: "26px", height: "26px", border: "none", background: "none", cursor: "pointer", padding: 0 }} 
-                                    title="Personalizar Hex Fondo" 
-                                  />
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Color de Texto y Borde de Tarjetas */}
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                              <div className="form-group" style={{ margin: 0 }}>
-                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Texto de Tarjetas</label>
-                                <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
-                                  <select 
-                                    className="form-control" 
-                                    value={design.cardTextColor || "auto"} 
-                                    onChange={(e) => updateDesignKey("cardTextColor", e.target.value)}
-                                    style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem", flex: 1 }}
-                                  >
-                                    <option value="auto">Auto (según fondo)</option>
-                                    <option value="#1C1C1E">Oscuro (#1C1C1E)</option>
-                                    <option value="#FFFFFF">Blanco (#FFFFFF)</option>
-                                    <option value="brand">Color de Marca</option>
-                                  </select>
-                                  <input 
-                                    type="color" 
-                                    value={design.cardTextColor && design.cardTextColor.startsWith("#") ? design.cardTextColor : "#1C1C1E"} 
-                                    onChange={(e) => updateDesignKey("cardTextColor", e.target.value)} 
-                                    style={{ width: "26px", height: "26px", border: "none", background: "none", cursor: "pointer", padding: 0 }} 
-                                    title="Personalizar Hex Texto" 
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="form-group" style={{ margin: 0 }}>
-                                <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Borde de Tarjetas</label>
-                                <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                                <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "4px", display: "block" }}>Borde de Tarjetas</label>
+                                <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
                                   <select 
                                     className="form-control" 
                                     value={design.cardBorderColor || "auto"} 
                                     onChange={(e) => updateDesignKey("cardBorderColor", e.target.value)}
-                                    style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem", flex: 1 }}
+                                    style={{ fontSize: "0.8rem", padding: "0.45rem 0.6rem", borderRadius: "8px", flex: 1 }}
                                   >
-                                    <option value="auto">Predeterminado / Sutil</option>
+                                    <option value="auto">Predeterminado Sutil</option>
                                     <option value="brand">Color de Marca</option>
                                     <option value="transparent">Sin Borde</option>
                                     <option value="#D4AF37">Dorado AOURUM</option>
                                   </select>
                                   <input 
                                     type="color" 
-                                    value={design.cardBorderColor && design.cardBorderColor.startsWith("#") ? design.cardBorderColor : "#D4AF37"} 
+                                    value={design.cardBorderColor && design.cardBorderColor.startsWith("#") ? design.cardBorderColor : primaryCol} 
                                     onChange={(e) => updateDesignKey("cardBorderColor", e.target.value)} 
-                                    style={{ width: "26px", height: "26px", border: "none", background: "none", cursor: "pointer", padding: 0 }} 
-                                    title="Personalizar Hex Borde" 
+                                    style={{ width: "30px", height: "30px", border: "none", background: "none", cursor: "pointer", padding: 0 }} 
+                                    title="Hex Borde" 
                                   />
                                 </div>
                               </div>
                             </div>
 
+                            {/* 4. TIPOGRAFÍA PREMIUM CON VISTA EN VIVO */}
                             <div className="form-group" style={{ margin: 0 }}>
-                              <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Tipografía</label>
-                              <select 
-                                className="form-control" 
-                                value={design.fontFamily || "Inter"} 
-                                onChange={(e) => updateDesignKey("fontFamily", e.target.value)}
-                                style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
-                              >
-                                <option value="Inter">Inter (Estándar AOURUM)</option>
-                                <option value="Playfair Display">Playfair Display (Elegante Serif)</option>
-                                <option value="Space Grotesk">Space Grotesk (Moderna Tech)</option>
-                                <option value="Lora">Lora (Cálido y Artesanal)</option>
-                                <option value="Montserrat">Montserrat (Limpio Premium)</option>
-                                <option value="Bebas Neue">Bebas Neue (Titulares Impactantes)</option>
-                              </select>
+                              <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "6px", display: "block" }}>Tipografía de Tienda</label>
+                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "6px" }}>
+                                {[
+                                  { id: "Inter", name: "Inter (Estándar)" },
+                                  { id: "Montserrat", name: "Montserrat (Limpio)" },
+                                  { id: "Playfair Display", name: "Playfair (Elegante)" },
+                                  { id: "Space Grotesk", name: "Space (Tech)" },
+                                  { id: "Lora", name: "Lora (Artesanal)" },
+                                  { id: "Bebas Neue", name: "Bebas (Titulares)" }
+                                ].map((f) => (
+                                  <button
+                                    key={f.id}
+                                    type="button"
+                                    onClick={() => updateDesignKey("fontFamily", f.id)}
+                                    style={{
+                                      background: fontFam === f.id ? "var(--bg-card)" : "var(--bg-input)",
+                                      border: fontFam === f.id ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                      color: fontFam === f.id ? "var(--gold-dark)" : "var(--text-primary)",
+                                      borderRadius: "8px",
+                                      padding: "6px 8px",
+                                      cursor: "pointer",
+                                      fontSize: "0.74rem",
+                                      fontWeight: fontFam === f.id ? 700 : 500,
+                                      fontFamily: `"${f.id}", sans-serif`,
+                                      textAlign: "center"
+                                    }}
+                                  >
+                                    {f.name}
+                                  </button>
+                                ))}
+                              </div>
                             </div>
 
-                            {/* Intensidad del Resplandor y Animaciones */}
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", alignItems: "center" }}>
+                            {/* 5. RESPLANDOR Y ANIMACIONES */}
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", alignItems: "center", background: "var(--bg-input)", padding: "10px 14px", borderRadius: "10px", border: "1px solid var(--border-color)" }}>
                               <div className="form-group" style={{ margin: 0 }}>
-                                <label style={{ fontSize: "0.78rem", fontWeight: 700, display: "flex", justifyContent: "space-between" }}>
+                                <label style={{ fontSize: "0.75rem", fontWeight: 700, display: "flex", justifyContent: "space-between" }}>
                                   <span>Intensidad de Resplandor</span>
-                                  <span>{design.glowIntensity !== undefined ? design.glowIntensity : 70}%</span>
+                                  <span style={{ color: "var(--gold-dark)" }}>{design.glowIntensity !== undefined ? design.glowIntensity : 70}%</span>
                                 </label>
                                 <input 
                                   type="range" 
@@ -2300,7 +2292,7 @@ function AppLayoutShell({ children }) {
                                 />
                               </div>
 
-                              <div className="form-group" style={{ margin: 0, display: "flex", alignItems: "center", gap: "8px", paddingTop: "14px" }}>
+                              <div className="form-group" style={{ margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
                                 <input 
                                   type="checkbox" 
                                   id="brandAnimCheck"
