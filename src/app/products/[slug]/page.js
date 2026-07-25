@@ -249,121 +249,140 @@ export default function ProductDetailPage() {
   const renderSuggestedCard = (rp) => {
     const rpBrand = brands.find((b) => b.id === rp.brandId);
     const rpDesign = rpBrand?.brandDesign || {};
-    const rpBrandColor = rpBrand
-      ? (getBrandPalette ? getBrandPalette(null, rpBrand).c1 : "#D4AF37")
-      : "#D4AF37";
+    const rpParsedBrand = rpBrand ? parseDescription(rpBrand.description) : null;
+    const rpPalette = (rpBrand && getBrandPalette)
+      ? getBrandPalette(rpParsedBrand, rpBrand)
+      : { c1: "#D4AF37", c2: "#EAB308", c3: "#F97316", c4: "#8B5CF6" };
 
-    const rawCardBg =
-      rpDesign.cardBgColor && rpDesign.cardBgColor !== "transparent"
-        ? rpDesign.cardBgColor
-        : null;
+    const rpCardStyle = rpDesign.cardStyle || "glass";
+    const rawCardBg = (rpDesign.cardBgColor && rpDesign.cardBgColor !== "transparent") ? rpDesign.cardBgColor : null;
     const rawCardText = rpDesign.cardTextColor || "auto";
     const rawCardBorder = rpDesign.cardBorderColor || "auto";
 
-    let cardBgStyle = { backgroundColor: "#FFFFFF" };
-    let isDarkBg = false;
-    let categoryTextColor = "var(--text-gold)";
-    let titleTextColor = "var(--text-primary)";
-    let priceTextColor = "var(--text-primary)";
-    let dividerBorder = "1px solid var(--border-color)";
+    const getBgBrightness = (colorStr, fallbackColor = "#FAF9F0") => {
+      let target = colorStr || fallbackColor;
+      if (target === "brand") target = rpPalette.c1;
+      else if (target === "brand-soft") target = rpPalette.c1 ? `${rpPalette.c1}15` : fallbackColor;
+      if (typeof target !== "string" || !target.startsWith("#")) return 240;
 
-    if (rawCardBg) {
-      let finalColor = rawCardBg;
-      if (rawCardBg === "brand") finalColor = rpBrandColor;
-      else if (rawCardBg === "brand-soft") finalColor = `${rpBrandColor}18`;
-
-      if (finalColor.startsWith("#")) {
-        const hex = finalColor.replace("#", "");
-        if (hex.length === 6) {
-          const r = parseInt(hex.substring(0, 2), 16) || 0;
-          const g = parseInt(hex.substring(2, 4), 16) || 0;
-          const b = parseInt(hex.substring(4, 6), 16) || 0;
-          const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-          isDarkBg = brightness < 140;
-        }
+      let hex = target.replace("#", "").substring(0, 6);
+      if (hex.length === 3) {
+        hex = hex.split("").map(c => c + c).join("");
       }
+      if (hex.length !== 6) return 240;
 
-      if (isDarkBg) {
-        categoryTextColor = "#FDE68A";
-        titleTextColor = "#FFFFFF";
-        priceTextColor = "#FFFFFF";
-        dividerBorder = "1px solid rgba(255,255,255,0.15)";
+      const r = parseInt(hex.substring(0, 2), 16) || 0;
+      const g = parseInt(hex.substring(2, 4), 16) || 0;
+      const b = parseInt(hex.substring(4, 6), 16) || 0;
+      return (r * 299 + g * 587 + b * 114) / 1000;
+    };
+
+    const storeLuminance = getBgBrightness(customBgColor, "#FAF9F0");
+    const isStoreBgLight = storeLuminance >= 130;
+
+    let cardBg = rawCardBg;
+    if (!cardBg) {
+      if (rpCardStyle === "flat" || rpCardStyle === "elevated" || rpCardStyle === "bordered") {
+        cardBg = "#FFFFFF";
       } else {
-        categoryTextColor = "var(--text-gold)";
-        titleTextColor = "#1C1C1E";
-        priceTextColor = "#1C1C1E";
-        dividerBorder = "1px solid rgba(0,0,0,0.08)";
+        cardBg = isStoreBgLight ? `${rpPalette.c1}18` : "rgba(24, 24, 27, 0.88)";
       }
-
-      cardBgStyle = {
-        backgroundColor: finalColor,
-        border: `1px solid ${isDarkBg ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.08)"}`
-      };
+    } else if (cardBg === "brand") {
+      cardBg = rpPalette.c1;
+    } else if (cardBg === "brand-soft") {
+      cardBg = `${rpPalette.c1}20`;
     }
+
+    const cardLuminance = getBgBrightness(cardBg, isStoreBgLight ? "#FFFFFF" : "#18181B");
+    const isCardDark = cardLuminance < 140;
+
+    let categoryTextColor = isCardDark ? "var(--text-gold)" : "#854D0E";
+    let titleTextColor = isCardDark ? "#FFFFFF" : "#1C1C1E";
+    let priceTextColor = isCardDark ? "#FFFFFF" : "#1C1C1E";
+    let dividerBorder = isCardDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.1)";
 
     if (rawCardText === "brand") {
-      titleTextColor = rpBrandColor;
-      priceTextColor = rpBrandColor;
-    } else if (rawCardText === "#FFFFFF") {
-      titleTextColor = "#FFFFFF";
-      priceTextColor = "#FFFFFF";
-      categoryTextColor = "#FDE68A";
-    } else if (rawCardText === "#1C1C1E") {
-      titleTextColor = "#1C1C1E";
-      priceTextColor = "#1C1C1E";
-    } else if (rawCardText && rawCardText.startsWith("#")) {
-      titleTextColor = rawCardText;
-      priceTextColor = rawCardText;
+      titleTextColor = rpPalette.c1;
+      priceTextColor = rpPalette.c1;
+    } else if (rawCardText && rawCardText !== "auto" && rawCardText.startsWith("#")) {
+      const textLuminance = getBgBrightness(rawCardText, "#1C1C1E");
+      if ((isCardDark && textLuminance > 120) || (!isCardDark && textLuminance < 150)) {
+        titleTextColor = rawCardText;
+        priceTextColor = rawCardText;
+      }
     }
+
+    if (!isCardDark) {
+      const titleLuminance = getBgBrightness(titleTextColor, "#1C1C1E");
+      if (titleLuminance > 180) {
+        titleTextColor = "#1C1C1E";
+        priceTextColor = "#1C1C1E";
+        categoryTextColor = "#854D0E";
+      }
+    }
+
+    let cardStyleObj = {
+      backgroundColor: cardBg,
+      color: titleTextColor,
+      borderRadius: "16px",
+      overflow: "hidden",
+      display: "flex",
+      flexDirection: "column",
+      height: "100%",
+      cursor: "pointer",
+      boxShadow: rpCardStyle === "elevated" ? "0 12px 30px rgba(0,0,0,0.1)" : "0 4px 16px rgba(0,0,0,0.06)",
+      transition: "all 0.25s ease-in-out"
+    };
 
     if (rawCardBorder === "brand") {
-      cardBgStyle.border = `1.5px solid ${rpBrandColor}`;
+      cardStyleObj.border = `1.5px solid ${rpPalette.c1}`;
     } else if (rawCardBorder === "transparent") {
-      cardBgStyle.border = "none";
-    } else if (rawCardBorder && rawCardBorder.startsWith("#")) {
-      cardBgStyle.border = `1.5px solid ${rawCardBorder}`;
+      cardStyleObj.border = "none";
+    } else if (rawCardBorder && rawCardBorder !== "auto" && rawCardBorder.startsWith("#")) {
+      cardStyleObj.border = `1.5px solid ${rawCardBorder}`;
+    } else if (rpCardStyle === "bordered") {
+      cardStyleObj.border = `2px solid ${rpPalette.c1}`;
+    } else {
+      cardStyleObj.border = isCardDark ? "1px solid rgba(255,255,255,0.15)" : `1px solid ${rpPalette.c1}30`;
     }
 
+    const views = getProductViews(rp);
+    const isPopular = views > 600;
+    const formattedPrice = (rp.price != null && !isNaN(Number(rp.price))) ? Number(rp.price).toLocaleString("es-PE") : "0";
+    const formattedPriceAourum = (rp.priceAourum != null && !isNaN(Number(rp.priceAourum))) ? Number(rp.priceAourum).toLocaleString("es-PE") : null;
+
     return (
-      <div
+      <div 
         key={rp.id}
-        className="glass-panel product-card"
-        style={{
-          overflow: "hidden",
-          cursor: "pointer",
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-          minHeight: "320px",
-          ...cardBgStyle
-        }}
+        className="product-card glass-panel" 
+        style={cardStyleObj}
         onClick={() => router.push(`/products/${rp.slug || rp.id}`)}
       >
-        <div
-          className="card-img-container"
-          style={{
-            position: "relative",
-            backgroundColor:
-              rp.imgBgColor && rp.imgBgColor !== "transparent"
-                ? rp.imgBgColor === "brand"
-                  ? rpBrandColor
-                  : rp.imgBgColor
-                : "transparent"
+        {/* Top Image Box with Badge Overlays */}
+        <div 
+          className="card-img-container" 
+          style={{ 
+            width: "100%",
+            aspectRatio: "4 / 3",
+            position: "relative", 
+            backgroundColor: (rp.imgBgColor && rp.imgBgColor !== "transparent") 
+              ? (rp.imgBgColor === "brand" ? rpPalette.c1 : rp.imgBgColor)
+              : (isCardDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)"),
+            transition: "background-color 0.3s ease",
+            overflow: "hidden"
           }}
         >
           {rp.image ? (
-            <img
-              src={rp.image}
-              alt={rp.name}
-              style={{
-                objectFit:
-                  rp.imgBgColor && rp.imgBgColor !== "transparent"
-                    ? "contain"
-                    : "cover",
-                padding:
-                  rp.imgBgColor && rp.imgBgColor !== "transparent" ? "10px" : "0"
-              }}
-              className="card-img-hover"
+            <img 
+              src={rp.image} 
+              alt={rp.name} 
+              className="card-img-hover" 
+              style={{ 
+                width: "100%",
+                height: "100%",
+                objectFit: rp.imgBgColor && rp.imgBgColor !== "transparent" ? "contain" : "cover",
+                padding: rp.imgBgColor && rp.imgBgColor !== "transparent" ? "10px" : "0"
+              }} 
             />
           ) : (
             <div
@@ -372,248 +391,112 @@ export default function ProductDetailPage() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "var(--text-muted)",
+                color: isCardDark ? "#A1A1AA" : "var(--text-muted)",
                 fontSize: "2rem"
               }}
             >
               <i className="fa-solid fa-box-open"></i>
             </div>
           )}
-          {rp.suggestionType && (
-            <div
-              style={{
-                position: "absolute",
-                top: "8px",
-                left: "8px",
-                zIndex: 2,
-                display: "flex",
-                gap: "4px"
-              }}
-            >
-              {rp.suggestionType === "popular" ? (
-                <span
-                  style={{
-                    background: "rgba(229, 57, 53, 0.95)",
-                    color: "#FFFFFF",
-                    fontSize: "0.62rem",
-                    padding: "3px 8px",
-                    borderRadius: "12px",
-                    fontWeight: 700,
-                    letterSpacing: "0.03em",
-                    textTransform: "uppercase",
-                    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "3px"
-                  }}
-                >
-                  <i
-                    className="fa-solid fa-fire"
-                    style={{ fontSize: "0.7rem" }}
-                  ></i>{" "}
-                  Popular
-                </span>
-              ) : (
-                <span
-                  style={{
-                    background: "rgba(30, 144, 255, 0.95)",
-                    color: "#FFFFFF",
-                    fontSize: "0.62rem",
-                    padding: "3px 8px",
-                    borderRadius: "12px",
-                    fontWeight: 700,
-                    letterSpacing: "0.03em",
-                    textTransform: "uppercase",
-                    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "3px"
-                  }}
-                >
-                  <i
-                    className="fa-solid fa-wand-magic-sparkles"
-                    style={{ fontSize: "0.7rem" }}
-                  ></i>{" "}
-                  Descubrir
-                </span>
-              )}
-            </div>
-          )}
+
+          {/* Badges on Image top-left */}
+          <div style={{ position: "absolute", top: "10px", left: "10px", display: "flex", flexDirection: "column", gap: "6px", zIndex: 3 }}>
+            {isPopular ? (
+              <span style={{ background: "linear-gradient(135deg, #ef4444, #f97316)", color: "#FFFFFF", fontSize: "0.62rem", padding: "3px 8px", borderRadius: "12px", fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", boxShadow: "0 2px 6px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", gap: "3px" }}>
+                <i className="fa-solid fa-fire" style={{ fontSize: "0.7rem" }}></i> Popular
+              </span>
+            ) : (
+              <span style={{ background: "linear-gradient(135deg, #0284c7, #2563eb)", color: "#FFFFFF", fontSize: "0.62rem", padding: "3px 8px", borderRadius: "12px", fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", boxShadow: "0 2px 6px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", gap: "3px" }}>
+                <i className="fa-solid fa-wand-magic-sparkles" style={{ fontSize: "0.7rem" }}></i> Descubrir
+              </span>
+            )}
+          </div>
         </div>
-        <div
-          style={{
-            padding: "1rem 1.2rem",
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.5rem"
-          }}
-        >
-          <span
-            style={{
-              fontSize: "0.72rem",
-              color: categoryTextColor,
-              letterSpacing: "0.05em",
-              textTransform: "uppercase",
-              fontWeight: 700
-            }}
-          >
-            {rp.category || "General"}
+
+        {/* Bottom Details Body */}
+        <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+          <span style={{ 
+            fontSize: "0.72rem", 
+            color: categoryTextColor, 
+            letterSpacing: "0.05em", 
+            textTransform: "uppercase", 
+            fontWeight: 800
+          }}>
+            {rp.category || rpBrand?.rubro_general || "General"}
           </span>
-          <h3
-            style={{
-              fontSize: "1.05rem",
-              fontWeight: 800,
-              lineHeight: 1.35,
-              color: titleTextColor,
-              margin: 0
-            }}
-          >
+
+          <h3 style={{ 
+            fontSize: "1.02rem", 
+            fontWeight: 800, 
+            lineHeight: 1.35, 
+            color: titleTextColor, 
+            margin: "0.1rem 0 0 0",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden"
+          }}>
             {rp.name}
           </h3>
-          <div
-            style={{
-              fontSize: "0.8rem",
-              color: isDarkBg ? "#A1A1AA" : "var(--text-muted)",
-              display: "flex",
-              alignItems: "center",
-              gap: "5px"
-            }}
-          >
+
+          <div style={{ fontSize: "0.8rem", color: isCardDark ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}>
             <span>Por:</span>
-            <strong
-              style={{ color: titleTextColor, textDecoration: "underline" }}
-            >
-              {rpBrand ? rpBrand.name : "Marca Local"}
+            <strong style={{ color: titleTextColor, textDecoration: "underline" }}>
+              {rpBrand?.name || "Marca Local"}
             </strong>
           </div>
-
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              borderTop: dividerBorder,
-              paddingTop: "0.5rem",
-              marginTop: "auto"
-            }}
-          >
+          
+          <div style={{ 
+            display: "flex", 
+            justifyContent: "space-between", 
+            alignItems: "center", 
+            borderTop: dividerBorder, 
+            paddingTop: "0.5rem", 
+            marginTop: "auto" 
+          }}>
             <div>
-              {rp.priceAourum ? (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "2px"
-                  }}
-                >
+              {formattedPriceAourum ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <span
-                      style={{
-                        fontSize: "0.68rem",
-                        color: isDarkBg ? "#A1A1AA" : "var(--text-muted)",
-                        textDecoration: "line-through",
-                        lineHeight: 1
-                      }}
-                    >
-                      S/ {formatPrice(rp.price)}
+                    <span style={{ fontSize: "0.68rem", color: isCardDark ? "#A1A1AA" : "#71717A", textDecoration: "line-through", lineHeight: 1 }}>
+                      S/ {formattedPrice}
                     </span>
-                    <span
-                      style={{
-                        fontSize: "0.5rem",
-                        background: "var(--gold-gradient)",
-                        color: "#1C1C1E",
-                        padding: "1px 4px",
-                        borderRadius: "3px",
-                        fontWeight: "800",
-                        textTransform: "uppercase",
-                        whiteSpace: "nowrap",
-                        lineHeight: 1
-                      }}
-                    >
+                    <span style={{ fontSize: "0.5rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "800", textTransform: "uppercase", whiteSpace: "nowrap", lineHeight: 1 }}>
                       Aourum
                     </span>
                   </div>
-                  <span
-                    className="card-price-main"
-                    style={{
-                      fontSize: "1.02rem",
-                      fontWeight: 800,
-                      color: "var(--text-gold)",
-                      lineHeight: 1
-                    }}
-                  >
-                    S/ {formatPrice(rp.priceAourum)}
+                  <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: "var(--text-gold)", lineHeight: 1 }}>
+                    S/ {formattedPriceAourum}
                   </span>
                 </div>
               ) : (
-                <span
-                  className="card-price-main"
-                  style={{
-                    fontSize: "1.02rem",
-                    fontWeight: 800,
-                    color: priceTextColor
-                  }}
-                >
-                  S/ {formatPrice(rp.price)}
+                <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: priceTextColor }}>
+                  S/ {formattedPrice}
                 </span>
               )}
             </div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-end",
-                gap: "2px"
-              }}
-            >
-              <span
-                className="card-type-label"
-                style={{
-                  fontSize: "0.65rem",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  color:
-                    rp.type === "service"
-                      ? isDarkBg
-                        ? "#93c5fd"
-                        : "#1e3a8a"
-                      : isDarkBg
-                      ? "#fde68a"
-                      : "#78350f",
-                  letterSpacing: "0.03em"
-                }}
-              >
+
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+              <span className="card-type-label" style={{
+                fontSize: "0.65rem",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                color: rp.type === "service" ? (isCardDark ? "#93c5fd" : "#1e3a8a") : (isCardDark ? "#fde68a" : "#78350f"),
+                letterSpacing: "0.03em"
+              }}>
                 {rp.type === "service" ? "Servicio" : "Producto"}
               </span>
-              <span
-                className="card-stock-label"
-                style={{
-                  fontSize: "0.65rem",
-                  fontWeight: 700,
-                  padding: "2px 6px",
-                  borderRadius: "8px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.02em",
-                  background:
-                    rp.type === "service"
-                      ? "#dbeafe"
-                      : rp.stock == null || rp.stock > 0
-                      ? "#dcfce7"
-                      : "#fee2e2",
-                  color:
-                    rp.type === "service"
-                      ? "#1e40af"
-                      : rp.stock == null || rp.stock > 0
-                      ? "#15803d"
-                      : "#b91c1c"
-                }}
-              >
-                {rp.type === "service"
-                  ? "Agenda"
-                  : rp.stock == null || rp.stock > 0
-                  ? "Stock"
-                  : "Agotado"}
+              <span className="card-stock-label" style={{
+                fontSize: "0.65rem",
+                fontWeight: 700,
+                padding: "2px 6px",
+                borderRadius: "8px",
+                textTransform: "uppercase",
+                letterSpacing: "0.02em",
+                background: rp.type === "service" ? "#dbeafe" : (rp.stock == null || rp.stock > 0 ? "#dcfce7" : "#fee2e2"),
+                color: rp.type === "service" ? "#1e40af" : (rp.stock == null || rp.stock > 0 ? "#15803d" : "#b91c1c")
+              }}>
+                {rp.type === "service" ? "Agenda" : (rp.stock == null || rp.stock > 0 ? "Stock" : "Agotado")}
               </span>
             </div>
           </div>
@@ -657,13 +540,41 @@ export default function ProductDetailPage() {
         footer.site-footer a {
           color: ${palette.c1} !important;
         }
+        .product-theme-scope .grid-catalog .product-card,
         .product-theme-scope .product-card {
-          border: 1px solid ${palette.c1}30 !important;
-          box-shadow: 0 4px 16px ${palette.c1}08 !important;
+          border-radius: 16px !important;
+          overflow: hidden !important;
+          position: relative !important;
+          z-index: 2 !important;
+          transition: all 0.25s ease-in-out !important;
+        }
+        @media (min-width: 641px) {
+          .product-theme-scope .product-card {
+            min-height: 350px !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .product-theme-scope .product-card {
+            min-height: auto !important;
+          }
+          .product-theme-scope .product-card > div:last-child {
+            padding: 0.65rem 0.6rem !important;
+            gap: 0.2rem !important;
+          }
+          .product-theme-scope .product-card h3 {
+            font-size: 0.82rem !important;
+            line-height: 1.25 !important;
+            height: 2.5em !important;
+            margin: 0 !important;
+          }
+          .product-theme-scope .product-card .card-price-main {
+            font-size: 0.88rem !important;
+          }
         }
         .product-theme-scope .product-card:hover {
           border-color: ${palette.c1} !important;
           box-shadow: 0 12px 32px ${palette.c1}25 !important;
+          transform: translateY(-4px) !important;
         }
       `}</style>
 
