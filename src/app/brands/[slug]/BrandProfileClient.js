@@ -583,22 +583,28 @@ export default function BrandProfileClient({ initialBrand }) {
     const rawCardText = design.cardTextColor || "auto";
     const rawCardBorder = design.cardBorderColor || "auto";
 
-    // 1. Calculate overall store background luminance
-    let isStoreBgLight = true;
-    let resolvedStoreBg = customBgColor || "#FAF9F0";
-    if (resolvedStoreBg === "brand") resolvedStoreBg = palette.c1;
-    else if (resolvedStoreBg === "brand-soft") resolvedStoreBg = `${palette.c1}15`;
+    // Helper to safely calculate luminance for hex colors (including #RRGGBBAA and 3-digit hex)
+    const getBgBrightness = (colorStr, fallbackColor = "#FAF9F0") => {
+      let target = colorStr || fallbackColor;
+      if (target === "brand") target = palette.c1;
+      else if (target === "brand-soft") target = palette.c1 ? `${palette.c1}15` : fallbackColor;
+      if (typeof target !== "string" || !target.startsWith("#")) return 240;
 
-    if (resolvedStoreBg && resolvedStoreBg.startsWith("#")) {
-      const c = resolvedStoreBg.replace("#", "");
-      if (c.length === 6) {
-        const r = parseInt(c.substring(0, 2), 16) || 0;
-        const g = parseInt(c.substring(2, 4), 16) || 0;
-        const b = parseInt(c.substring(4, 6), 16) || 0;
-        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-        isStoreBgLight = brightness >= 130;
+      let hex = target.replace("#", "").substring(0, 6);
+      if (hex.length === 3) {
+        hex = hex.split("").map(c => c + c).join("");
       }
-    }
+      if (hex.length !== 6) return 240;
+
+      const r = parseInt(hex.substring(0, 2), 16) || 0;
+      const g = parseInt(hex.substring(2, 4), 16) || 0;
+      const b = parseInt(hex.substring(4, 6), 16) || 0;
+      return (r * 299 + g * 587 + b * 114) / 1000;
+    };
+
+    // 1. Calculate overall store background luminance
+    const storeLuminance = getBgBrightness(customBgColor, "#FAF9F0");
+    const isStoreBgLight = storeLuminance >= 130;
 
     // 2. Calculate card background
     let cardBg = rawCardBg;
@@ -612,17 +618,8 @@ export default function BrandProfileClient({ initialBrand }) {
     }
 
     // 3. Determine brightness of the actual card background
-    let isCardDark = !isStoreBgLight;
-    if (cardBg && cardBg.startsWith("#")) {
-      const c = cardBg.replace("#", "");
-      if (c.length === 6) {
-        const r = parseInt(c.substring(0, 2), 16) || 0;
-        const g = parseInt(c.substring(2, 4), 16) || 0;
-        const b = parseInt(c.substring(4, 6), 16) || 0;
-        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-        isCardDark = brightness < 140;
-      }
-    }
+    const cardLuminance = getBgBrightness(cardBg, isStoreBgLight ? "#FFFFFF" : "#18181B");
+    const isCardDark = cardLuminance < 140;
 
     // 4. Default high-contrast text colors based on card brightness
     let categoryTextColor = isCardDark ? "var(--text-gold)" : "#854D0E";
@@ -970,14 +967,17 @@ export default function BrandProfileClient({ initialBrand }) {
   let isStoreBgLight = true;
   let resolvedBgForScope = customBgColor || "#FAF9F0";
   if (resolvedBgForScope === "brand") resolvedBgForScope = palette.c1;
-  else if (resolvedBgForScope === "brand-soft") resolvedBgForScope = `${palette.c1}15`;
+  else if (resolvedBgForScope === "brand-soft") resolvedBgForScope = palette.c1 ? `${palette.c1}15` : "#FAF9F0";
 
-  if (resolvedBgForScope && resolvedBgForScope.startsWith("#")) {
-    const c = resolvedBgForScope.replace("#", "");
-    if (c.length === 6) {
-      const r = parseInt(c.substring(0, 2), 16) || 0;
-      const g = parseInt(c.substring(2, 4), 16) || 0;
-      const b = parseInt(c.substring(4, 6), 16) || 0;
+  if (resolvedBgForScope && typeof resolvedBgForScope === "string" && resolvedBgForScope.startsWith("#")) {
+    let hex = resolvedBgForScope.replace("#", "").substring(0, 6);
+    if (hex.length === 3) {
+      hex = hex.split("").map(c => c + c).join("");
+    }
+    if (hex.length === 6) {
+      const r = parseInt(hex.substring(0, 2), 16) || 0;
+      const g = parseInt(hex.substring(2, 4), 16) || 0;
+      const b = parseInt(hex.substring(4, 6), 16) || 0;
       const brightness = (r * 299 + g * 587 + b * 114) / 1000;
       isStoreBgLight = brightness >= 130;
     }
