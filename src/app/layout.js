@@ -1752,26 +1752,12 @@ function AppLayoutShell({ children }) {
 
                   {/* Paleta de Colores: Color Principal -> Fondo (con versión clara sugerida) -> Detalles */}
                   <div className="form-group" style={{ marginTop: "1.2rem" }}>
-                    <label style={{ fontSize: "0.85rem", fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
-                      <span>🎨 Personalización de Colores de Marca</span>
-                      {(editThemeColor || (editBrandDesign && editBrandDesign.customBgColor)) && (
-                        <button 
-                          type="button" 
-                          style={{ background: "transparent", border: "none", color: "var(--text-gold)", fontSize: "0.75rem", cursor: "pointer", fontWeight: 700 }}
-                          onClick={() => {
-                            setEditThemeColor("");
-                            setEditBrandDesign(prev => ({ ...(prev || {}), customBgColor: "" }));
-                          }}
-                        >
-                          Restablecer
-                        </button>
-                      )}
-                    </label>
-                    <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "0 0 12px 0" }}>
-                      Define primero tu color principal. El sistema sugerirá automáticamente una versión clara del color principal para el fondo de tu tienda y productos.
-                    </p>
-
                     {(() => {
+                      const isBrand = editProfileType === "brand";
+                      const isPerson = editProfileType === "person";
+                      const isBand = editProfileType === "band";
+                      const isOrganizer = editProfileType === "organizer" || editProfileType === "fair";
+
                       const colorParts = (editThemeColor || "").split(",").map(c => c.trim()).filter(Boolean);
                       const primaryCol = colorParts[0] || "#D4AF37";
                       const secondaryCol = colorParts[1] || "#EAB308";
@@ -1827,149 +1813,210 @@ function AppLayoutShell({ children }) {
                         { name: "Oscuro Elegante", color: "#1C1C1E" }
                       ];
 
+                      const sectionTitle = isPerson
+                        ? "🎨 Personalización de Colores de Perfil"
+                        : isBand
+                        ? "🎨 Personalización de Colores de la Banda"
+                        : isOrganizer
+                        ? "🎨 Personalización de Colores del Organizador"
+                        : "🎨 Personalización de Colores de Marca";
+
+                      const sectionSubtitle = isPerson
+                        ? "Define tu color principal de acento. El sistema sugerirá automáticamente una versión clara para el fondo de tu perfil personal."
+                        : isBand
+                        ? "Define tu color principal. El sistema sugerirá automáticamente una versión clara para el fondo del perfil de tu banda."
+                        : isOrganizer
+                        ? "Define tu color principal. El sistema sugerirá automáticamente una versión clara para el fondo del perfil."
+                        : "Define primero tu color principal. El sistema sugerirá automáticamente una versión clara del color principal para el fondo de tu tienda y productos.";
+
+                      const primaryLabel = isPerson
+                        ? "1. Color Principal (Acentos, Botones y Perfil)"
+                        : isBand
+                        ? "1. Color Principal (Banda, Botones y Acentos)"
+                        : isOrganizer
+                        ? "1. Color Principal (Organizador, Botones y Acentos)"
+                        : "1. Color Principal (Marca, Botones y Acentos Primarios)";
+
+                      const backgroundLabel = isPerson
+                        ? "2. Color de Fondo (Perfil Personal)"
+                        : isBand
+                        ? "2. Color de Fondo (Perfil de Banda)"
+                        : isOrganizer
+                        ? "2. Color de Fondo (Perfil de Organizador)"
+                        : "2. Color de Fondo (Tienda y Productos)";
+
+                      const lightPresetLabel = isPerson
+                        ? `✨ Versión Clara del Perfil (${primaryLightTint})`
+                        : isBand
+                        ? `✨ Versión Clara de la Banda (${primaryLightTint})`
+                        : isOrganizer
+                        ? `✨ Versión Clara de Organizador (${primaryLightTint})`
+                        : `✨ Versión Clara de Marca (${primaryLightTint})`;
+
                       return (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-                          {/* 1. COLOR PRINCIPAL */}
-                          <div style={{ background: "rgba(212,175,55,0.06)", border: "1.5px solid var(--gold-primary)", borderRadius: "12px", padding: "12px 14px" }}>
-                            <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
-                              <i className="fa-solid fa-crown" style={{ color: "var(--gold-primary)" }}></i>
-                              <span>1. Color Principal (Marca, Botones y Acentos Primarios)</span>
-                            </div>
-                            <div style={{ display: "flex", gap: "10px", alignItems: "center", background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: "10px", padding: "8px 12px" }}>
-                              <input 
-                                type="color" 
-                                value={primaryCol.startsWith("#") ? primaryCol : "#D4AF37"} 
-                                onChange={(e) => setPrimaryColor(e.target.value)} 
-                                style={{ width: "32px", height: "32px", border: "none", background: "none", cursor: "pointer", padding: 0 }}
-                              />
-                              <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: "0.75rem", fontWeight: 700 }}>Color Principal</div>
+                        <>
+                          <label style={{ fontSize: "0.85rem", fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "4px" }}>
+                            <span>{sectionTitle}</span>
+                            {(editThemeColor || (editBrandDesign && editBrandDesign.customBgColor)) && (
+                              <button 
+                                type="button" 
+                                style={{ background: "transparent", border: "none", color: "var(--text-gold)", fontSize: "0.75rem", cursor: "pointer", fontWeight: 700 }}
+                                onClick={() => {
+                                  setEditThemeColor("");
+                                  setEditBrandDesign(prev => ({ ...(prev || {}), customBgColor: "" }));
+                                }}
+                              >
+                                Restablecer
+                              </button>
+                            )}
+                          </label>
+                          <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "0 0 12px 0" }}>
+                            {sectionSubtitle}
+                          </p>
+
+                          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                            {/* 1. COLOR PRINCIPAL */}
+                            <div style={{ background: "rgba(212,175,55,0.06)", border: "1.5px solid var(--gold-primary)", borderRadius: "12px", padding: "12px 14px" }}>
+                              <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
+                                <i className="fa-solid fa-crown" style={{ color: "var(--gold-primary)" }}></i>
+                                <span>{primaryLabel}</span>
+                              </div>
+                              <div style={{ display: "flex", gap: "10px", alignItems: "center", background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: "10px", padding: "8px 12px" }}>
                                 <input 
-                                  type="text" 
-                                  value={primaryCol} 
-                                  onChange={(e) => {
-                                    let v = e.target.value;
-                                    if (v && !v.startsWith('#')) v = '#' + v;
-                                    setPrimaryColor(v);
-                                  }}
-                                  style={{ width: "100%", background: "transparent", border: "none", fontSize: "0.78rem", color: "var(--text-muted)", fontFamily: "monospace" }}
+                                  type="color" 
+                                  value={primaryCol.startsWith("#") ? primaryCol : "#D4AF37"} 
+                                  onChange={(e) => setPrimaryColor(e.target.value)} 
+                                  style={{ width: "32px", height: "32px", border: "none", background: "none", cursor: "pointer", padding: 0 }}
                                 />
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: "0.75rem", fontWeight: 700 }}>Color Principal</div>
+                                  <input 
+                                    type="text" 
+                                    value={primaryCol} 
+                                    onChange={(e) => {
+                                      let v = e.target.value;
+                                      if (v && !v.startsWith('#')) v = '#' + v;
+                                      setPrimaryColor(v);
+                                    }}
+                                    style={{ width: "100%", background: "transparent", border: "none", fontSize: "0.78rem", color: "var(--text-muted)", fontFamily: "monospace" }}
+                                  />
+                                </div>
+                              </div>
+
+                              <div style={{ marginTop: "8px" }}>
+                                <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
+                                  Tonos principales sugeridos:
+                                </span>
+                                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                                  {accentPresets.map((preset, idx) => (
+                                    <button
+                                      key={idx}
+                                      type="button"
+                                      onClick={() => setPrimaryColor(preset.color)}
+                                      style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "5px",
+                                        background: "var(--bg-input)",
+                                        border: primaryCol.toLowerCase() === preset.color.toLowerCase() ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                        borderRadius: "14px",
+                                        padding: "3px 8px",
+                                        cursor: "pointer",
+                                        fontSize: "0.72rem",
+                                        fontWeight: 600
+                                      }}
+                                    >
+                                      <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: preset.color }} />
+                                      <span>{preset.name}</span>
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
                             </div>
 
-                            <div style={{ marginTop: "8px" }}>
-                              <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
-                                Tonos principales sugeridos:
-                              </span>
-                              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                                {accentPresets.map((preset, idx) => (
+                            {/* 2. COLOR DE FONDO */}
+                            <div style={{ background: "rgba(212,175,55,0.04)", border: "1px solid var(--border-color)", borderRadius: "12px", padding: "12px 14px" }}>
+                              <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
+                                <i className="fa-solid fa-fill-drip" style={{ color: "var(--gold-primary)" }}></i>
+                                <span>{backgroundLabel}</span>
+                              </div>
+                              <div style={{ display: "flex", gap: "10px", alignItems: "center", background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: "10px", padding: "8px 12px" }}>
+                                <input 
+                                  type="color" 
+                                  value={generalBgCol.startsWith("#") ? generalBgCol : primaryLightTint} 
+                                  onChange={(e) => setGeneralBgColor(e.target.value)} 
+                                  style={{ width: "32px", height: "32px", border: "none", background: "none", cursor: "pointer", padding: 0 }}
+                                />
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: "0.75rem", fontWeight: 700 }}>Color de Fondo Personalizado</div>
+                                  <input 
+                                    type="text" 
+                                    value={generalBgCol} 
+                                    onChange={(e) => {
+                                      let v = e.target.value;
+                                      if (v && !v.startsWith('#')) v = '#' + v;
+                                      setGeneralBgColor(v);
+                                    }}
+                                    style={{ width: "100%", background: "transparent", border: "none", fontSize: "0.78rem", color: "var(--text-muted)", fontFamily: "monospace" }}
+                                  />
+                                </div>
+                              </div>
+
+                              <div style={{ marginTop: "10px" }}>
+                                <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: "6px" }}>
+                                  Fondos sugeridos:
+                                </span>
+                                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                                   <button
-                                    key={idx}
                                     type="button"
-                                    onClick={() => setPrimaryColor(preset.color)}
+                                    onClick={() => setGeneralBgColor(primaryLightTint)}
                                     style={{
                                       display: "flex",
                                       alignItems: "center",
-                                      gap: "5px",
-                                      background: "var(--bg-input)",
-                                      border: primaryCol.toLowerCase() === preset.color.toLowerCase() ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                      gap: "6px",
+                                      background: primaryLightTint,
+                                      color: "#1C1C1E",
+                                      border: generalBgCol.toLowerCase() === primaryLightTint.toLowerCase() ? "2px solid var(--gold-primary)" : "1.5px solid rgba(0,0,0,0.15)",
                                       borderRadius: "14px",
-                                      padding: "3px 8px",
+                                      padding: "4px 10px",
                                       cursor: "pointer",
-                                      fontSize: "0.72rem",
-                                      fontWeight: 600
+                                      fontSize: "0.74rem",
+                                      fontWeight: 700,
+                                      boxShadow: "0 2px 6px rgba(0,0,0,0.06)"
                                     }}
+                                    title={`Usar versión clara derivada del color principal (${primaryLightTint})`}
                                   >
-                                    <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: preset.color }} />
-                                    <span>{preset.name}</span>
+                                    <span style={{ width: "12px", height: "12px", borderRadius: "50%", background: primaryLightTint, border: "1.5px solid " + primaryCol }} />
+                                    <span>{lightPresetLabel}</span>
                                   </button>
-                                ))}
+
+                                  {generalPresets.map((preset, idx) => (
+                                    <button
+                                      key={idx}
+                                      type="button"
+                                      onClick={() => setGeneralBgColor(preset.color)}
+                                      style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "5px",
+                                        background: "var(--bg-input)",
+                                        border: generalBgCol.toLowerCase() === preset.color.toLowerCase() ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                        borderRadius: "14px",
+                                        padding: "3px 8px",
+                                        cursor: "pointer",
+                                        fontSize: "0.72rem",
+                                        fontWeight: 600
+                                      }}
+                                    >
+                                      <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: preset.color, border: "1px solid rgba(0,0,0,0.15)" }} />
+                                      <span>{preset.name}</span>
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
                             </div>
                           </div>
-
-                          {/* 2. COLOR DE FONDO */}
-                          <div style={{ background: "rgba(212,175,55,0.04)", border: "1px solid var(--border-color)", borderRadius: "12px", padding: "12px 14px" }}>
-                            <div style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "6px", display: "flex", alignItems: "center", gap: "6px" }}>
-                              <i className="fa-solid fa-fill-drip" style={{ color: "var(--gold-primary)" }}></i>
-                              <span>2. Color de Fondo (Tienda y Productos)</span>
-                            </div>
-                            <div style={{ display: "flex", gap: "10px", alignItems: "center", background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: "10px", padding: "8px 12px" }}>
-                              <input 
-                                type="color" 
-                                value={generalBgCol.startsWith("#") ? generalBgCol : primaryLightTint} 
-                                onChange={(e) => setGeneralBgColor(e.target.value)} 
-                                style={{ width: "32px", height: "32px", border: "none", background: "none", cursor: "pointer", padding: 0 }}
-                              />
-                              <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: "0.75rem", fontWeight: 700 }}>Color de Fondo Personalizado</div>
-                                <input 
-                                  type="text" 
-                                  value={generalBgCol} 
-                                  onChange={(e) => {
-                                    let v = e.target.value;
-                                    if (v && !v.startsWith('#')) v = '#' + v;
-                                    setGeneralBgColor(v);
-                                  }}
-                                  style={{ width: "100%", background: "transparent", border: "none", fontSize: "0.78rem", color: "var(--text-muted)", fontFamily: "monospace" }}
-                                />
-                              </div>
-                            </div>
-
-                            <div style={{ marginTop: "10px" }}>
-                              <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: "6px" }}>
-                                Fondos sugeridos:
-                              </span>
-                              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                                <button
-                                  type="button"
-                                  onClick={() => setGeneralBgColor(primaryLightTint)}
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "6px",
-                                    background: primaryLightTint,
-                                    color: "#1C1C1E",
-                                    border: generalBgCol.toLowerCase() === primaryLightTint.toLowerCase() ? "2px solid var(--gold-primary)" : "1.5px solid rgba(0,0,0,0.15)",
-                                    borderRadius: "14px",
-                                    padding: "4px 10px",
-                                    cursor: "pointer",
-                                    fontSize: "0.74rem",
-                                    fontWeight: 700,
-                                    boxShadow: "0 2px 6px rgba(0,0,0,0.06)"
-                                  }}
-                                  title={`Usar versión clara derivada del color principal (${primaryLightTint})`}
-                                >
-                                  <span style={{ width: "12px", height: "12px", borderRadius: "50%", background: primaryLightTint, border: "1.5px solid " + primaryCol }} />
-                                  <span>✨ Versión Clara de Marca ({primaryLightTint})</span>
-                                </button>
-
-                                {generalPresets.map((preset, idx) => (
-                                  <button
-                                    key={idx}
-                                    type="button"
-                                    onClick={() => setGeneralBgColor(preset.color)}
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "5px",
-                                      background: "var(--bg-input)",
-                                      border: generalBgCol.toLowerCase() === preset.color.toLowerCase() ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
-                                      borderRadius: "14px",
-                                      padding: "3px 8px",
-                                      cursor: "pointer",
-                                      fontSize: "0.72rem",
-                                      fontWeight: 600
-                                    }}
-                                  >
-                                    <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: preset.color, border: "1px solid rgba(0,0,0,0.15)" }} />
-                                    <span>{preset.name}</span>
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                        </>
                       );
                     })()}
                   </div>

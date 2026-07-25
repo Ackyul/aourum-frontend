@@ -241,7 +241,8 @@ export default function PersonProfileClient() {
   const parsed = (parseDescription && typeof parseDescription === "function") 
     ? parseDescription(person.description) 
     : { text: person.description || "", tagline: "", theme_color: "", banner: "" };
-  const themeColor = (parsed.theme_color && parsed.theme_color.startsWith('#')) ? parsed.theme_color : "#D4AF37";
+  const primaryThemeColor = (parsed.theme_color || "").split(",")[0]?.trim() || "#D4AF37";
+  const themeColor = (primaryThemeColor && primaryThemeColor.startsWith('#')) ? primaryThemeColor : "#D4AF37";
   const bannerStyle = !parsed.banner ? { background: "var(--gold-gradient)", opacity: 0.15 } : {};
 
   return (
