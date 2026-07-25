@@ -583,52 +583,58 @@ export default function BrandProfileClient({ initialBrand }) {
     const rawCardText = design.cardTextColor || "auto";
     const rawCardBorder = design.cardBorderColor || "auto";
 
-    let cardBgStyle = {};
-    let isDarkBg = false;
-    let categoryTextColor = "var(--text-gold)";
-    let titleTextColor = "var(--text-primary)";
-    let priceTextColor = "var(--text-primary)";
-    let dividerBorder = "1px solid var(--border-color)";
+    // 1. Calculate overall store background luminance
+    let isStoreBgLight = true;
+    let resolvedStoreBg = customBgColor || "#FAF9F0";
+    if (resolvedStoreBg === "brand") resolvedStoreBg = palette.c1;
+    else if (resolvedStoreBg === "brand-soft") resolvedStoreBg = `${palette.c1}15`;
 
-    if (rawCardBg) {
-      let finalColor = rawCardBg;
-      if (rawCardBg === "brand") finalColor = palette.c1;
-      else if (rawCardBg === "brand-soft") finalColor = `${palette.c1}20`;
-
-      if (finalColor.startsWith("#")) {
-        const hex = finalColor.replace("#", "");
-        if (hex.length === 6) {
-          const r = parseInt(hex.substring(0, 2), 16) || 0;
-          const g = parseInt(hex.substring(2, 4), 16) || 0;
-          const b = parseInt(hex.substring(4, 6), 16) || 0;
-          const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-          isDarkBg = brightness < 140;
-        }
+    if (resolvedStoreBg && resolvedStoreBg.startsWith("#")) {
+      const c = resolvedStoreBg.replace("#", "");
+      if (c.length === 6) {
+        const r = parseInt(c.substring(0, 2), 16) || 0;
+        const g = parseInt(c.substring(2, 4), 16) || 0;
+        const b = parseInt(c.substring(4, 6), 16) || 0;
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        isStoreBgLight = brightness >= 130;
       }
-
-      const upperHex = finalColor.toUpperCase();
-      if (upperHex === "#FAF9F0" || upperHex === "#FFFBEB") {
-        categoryTextColor = "#B8860B";
-        titleTextColor = "#1C1C1E";
-        priceTextColor = "#1C1C1E";
-        dividerBorder = "1px solid rgba(0,0,0,0.08)";
-      } else if (isDarkBg) {
-        categoryTextColor = "var(--text-gold)";
-        titleTextColor = "#FFFFFF";
-        priceTextColor = "#FFFFFF";
-        dividerBorder = "1px solid rgba(255,255,255,0.15)";
-      } else {
-        titleTextColor = "#1C1C1E";
-        priceTextColor = "#1C1C1E";
-        dividerBorder = "1px solid rgba(0,0,0,0.08)";
-      }
-
-      cardBgStyle = {
-        backgroundColor: finalColor,
-        border: `1px solid ${isDarkBg ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.08)"}`
-      };
     }
 
+    // 2. Calculate card background
+    let cardBg = rawCardBg;
+    if (!cardBg) {
+      if (cardStyle === "flat" || cardStyle === "elevated" || cardStyle === "bordered") {
+        cardBg = "#FFFFFF";
+      } else {
+        // default glass background with soft opacity for optimal contrast
+        cardBg = isStoreBgLight ? "rgba(255, 255, 255, 0.92)" : "rgba(24, 24, 27, 0.88)";
+      }
+    } else if (cardBg === "brand") {
+      cardBg = palette.c1;
+    } else if (cardBg === "brand-soft") {
+      cardBg = `${palette.c1}20`;
+    }
+
+    // 3. Determine brightness of the actual card background
+    let isCardDark = !isStoreBgLight;
+    if (cardBg && cardBg.startsWith("#")) {
+      const c = cardBg.replace("#", "");
+      if (c.length === 6) {
+        const r = parseInt(c.substring(0, 2), 16) || 0;
+        const g = parseInt(c.substring(2, 4), 16) || 0;
+        const b = parseInt(c.substring(4, 6), 16) || 0;
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        isCardDark = brightness < 140;
+      }
+    }
+
+    // 4. Default high-contrast text colors based on card brightness
+    let categoryTextColor = isCardDark ? "var(--text-gold)" : "#854D0E";
+    let titleTextColor = isCardDark ? "#FFFFFF" : "#1C1C1E";
+    let priceTextColor = isCardDark ? "#FFFFFF" : "#1C1C1E";
+    let dividerBorder = isCardDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.1)";
+
+    // 5. Allow user explicit overrides if specified
     if (rawCardText === "brand") {
       titleTextColor = palette.c1;
       priceTextColor = palette.c1;
@@ -639,23 +645,42 @@ export default function BrandProfileClient({ initialBrand }) {
     } else if (rawCardText === "#1C1C1E") {
       titleTextColor = "#1C1C1E";
       priceTextColor = "#1C1C1E";
-    } else if (rawCardText.startsWith("#")) {
+      categoryTextColor = "#854D0E";
+    } else if (rawCardText && rawCardText !== "auto" && rawCardText.startsWith("#")) {
       titleTextColor = rawCardText;
       priceTextColor = rawCardText;
     }
 
+    // 6. Assemble card container styles
+    let cardStyleObj = {
+      backgroundColor: cardBg,
+      color: titleTextColor,
+      borderRadius: "14px",
+      overflow: "hidden",
+      display: "flex",
+      flexDirection: "column",
+      height: "100%",
+      minHeight: "320px",
+      cursor: "pointer",
+      boxShadow: cardStyle === "elevated" ? "0 12px 30px rgba(0,0,0,0.1)" : "0 4px 16px rgba(0,0,0,0.06)"
+    };
+
     if (rawCardBorder === "brand") {
-      cardBgStyle.border = `1.5px solid ${palette.c1}`;
+      cardStyleObj.border = `1.5px solid ${palette.c1}`;
     } else if (rawCardBorder === "transparent") {
-      cardBgStyle.border = "none";
-    } else if (rawCardBorder.startsWith("#")) {
-      cardBgStyle.border = `1.5px solid ${rawCardBorder}`;
+      cardStyleObj.border = "none";
+    } else if (rawCardBorder && rawCardBorder !== "auto" && rawCardBorder.startsWith("#")) {
+      cardStyleObj.border = `1.5px solid ${rawCardBorder}`;
+    } else if (cardStyle === "bordered") {
+      cardStyleObj.border = `2px solid ${palette.c1}`;
+    } else {
+      cardStyleObj.border = isCardDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.1)";
     }
 
     return (
       <div 
         className="glass-panel product-card" 
-        style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer", height: "100%", ...cardBgStyle }}
+        style={cardStyleObj}
         onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
       >
         <div 
@@ -678,11 +703,11 @@ export default function BrandProfileClient({ initialBrand }) {
             }} 
           />
         </div>
-        <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-          <span style={{ fontSize: "0.72rem", color: categoryTextColor, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
-            {prod.category}
+        <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+          <span style={{ fontSize: "0.72rem", color: categoryTextColor, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 800 }}>
+            {prod.category || "General"}
           </span>
-          <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: titleTextColor }}>{prod.name}</h3>
+          <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: titleTextColor, margin: 0 }}>{prod.name}</h3>
           
           <div style={{ 
             display: "flex", 
@@ -695,7 +720,7 @@ export default function BrandProfileClient({ initialBrand }) {
             <div>
               {prod.priceAourum ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-                  <span style={{ fontSize: "0.75rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", textDecoration: "line-through" }}>
+                  <span style={{ fontSize: "0.75rem", color: isCardDark ? "#A1A1AA" : "#71717A", textDecoration: "line-through" }}>
                     S/ {prod.price.toLocaleString("es-PE")}
                   </span>
                   <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
@@ -709,7 +734,7 @@ export default function BrandProfileClient({ initialBrand }) {
                 </div>
               ) : (
                 <span style={{ fontSize: "1.05rem", fontWeight: 800, color: priceTextColor }}>
-                  S/ {prod.price.toLocaleString("es-PE")}
+                  S/ {(prod.price || 0).toLocaleString("es-PE")}
                 </span>
               )}
             </div>
@@ -718,7 +743,7 @@ export default function BrandProfileClient({ initialBrand }) {
                 fontSize: "0.65rem",
                 fontWeight: 700,
                 textTransform: "uppercase",
-                color: prod.type === "service" ? (isDarkBg ? "#93c5fd" : "#1e3a8a") : (isDarkBg ? "#fde68a" : "#78350f"),
+                color: prod.type === "service" ? (isCardDark ? "#93c5fd" : "#1e3a8a") : (isCardDark ? "#fde68a" : "#78350f"),
                 letterSpacing: "0.03em"
               }}>
                 {prod.type === "service" ? "Servicio" : "Producto"}
