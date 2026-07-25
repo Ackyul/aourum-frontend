@@ -641,5 +641,6 @@ export default function OrganizerProfilePage() {
         </div>
       )}
     </div>
-  );
+  </>
+);
 }
