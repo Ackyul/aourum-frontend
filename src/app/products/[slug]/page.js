@@ -322,7 +322,7 @@ export default function ProductDetailPage() {
     }
 
     let cardStyleObj = {
-      backgroundColor: cardBg,
+      background: cardBg,
       color: titleTextColor,
       borderRadius: "16px",
       overflow: "hidden",
@@ -343,7 +343,7 @@ export default function ProductDetailPage() {
     } else if (rpCardStyle === "bordered") {
       cardStyleObj.border = `2px solid ${rpPalette.c1}`;
     } else {
-      cardStyleObj.border = isCardDark ? "1px solid rgba(255,255,255,0.15)" : `1px solid ${rpPalette.c1}30`;
+      cardStyleObj.border = isCardDark ? "1px solid rgba(255,255,255,0.15)" : (isStoreBgLight ? "1px solid rgba(0, 0, 0, 0.12)" : `1px solid ${rpPalette.c1}30`);
     }
 
     const views = getProductViews(rp);
@@ -365,7 +365,7 @@ export default function ProductDetailPage() {
             width: "100%",
             aspectRatio: "4 / 3",
             position: "relative", 
-            backgroundColor: (rp.imgBgColor && rp.imgBgColor !== "transparent") 
+            background: (rp.imgBgColor && rp.imgBgColor !== "transparent") 
               ? (rp.imgBgColor === "brand" ? rpPalette.c1 : rp.imgBgColor)
               : (isCardDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)"),
             transition: "background-color 0.3s ease",
@@ -493,10 +493,10 @@ export default function ProductDetailPage() {
                 borderRadius: "8px",
                 textTransform: "uppercase",
                 letterSpacing: "0.02em",
-                background: rp.type === "service" ? "#dbeafe" : (rp.stock == null || rp.stock > 0 ? "#dcfce7" : "#fee2e2"),
-                color: rp.type === "service" ? "#1e40af" : (rp.stock == null || rp.stock > 0 ? "#15803d" : "#b91c1c")
+                background: rp.type === "service" ? "#dbeafe" : (rp.stock == null || rp.stock > 0) ? "#dcfce7" : "#fee2e2",
+                color: rp.type === "service" ? "#1e40af" : (rp.stock == null || rp.stock > 0) ? "#15803d" : "#b91c1c"
               }}>
-                {rp.type === "service" ? "Agenda" : (rp.stock == null || rp.stock > 0 ? "Stock" : "Agotado")}
+                {rp.type === "service" ? "Agenda" : (rp.stock == null || rp.stock > 0) ? "Stock" : "Agotado"}
               </span>
             </div>
           </div>
@@ -524,7 +524,7 @@ export default function ProductDetailPage() {
           border-color: ${palette.c1} !important;
           color: ${palette.c1} !important;
         }
-        .product-theme-scope .glass-panel {
+        .product-theme-scope .glass-panel:not(.product-card) {
           border: 1px solid ${palette.c1}25 !important;
           box-shadow: 0 8px 24px ${palette.c1}08 !important;
         }
