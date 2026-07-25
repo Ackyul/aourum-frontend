@@ -494,7 +494,7 @@ export default function ProductDetailPage() {
               justifyContent: "space-between",
               alignItems: "center",
               borderTop: dividerBorder,
-              paddingTop: "0.8rem",
+              paddingTop: "0.5rem",
               marginTop: "auto"
             }}
           >
@@ -504,53 +504,53 @@ export default function ProductDetailPage() {
                   style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: "1px"
+                    gap: "2px"
                   }}
                 >
-                  <span
-                    style={{
-                      fontSize: "0.75rem",
-                      color: isDarkBg ? "#A1A1AA" : "var(--text-muted)",
-                      textDecoration: "line-through"
-                    }}
-                  >
-                    S/ {formatPrice(rp.price)}
-                  </span>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "4px"
-                    }}
-                  >
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                     <span
                       style={{
-                        fontSize: "1.05rem",
-                        fontWeight: 800,
-                        color: "var(--text-gold)"
+                        fontSize: "0.68rem",
+                        color: isDarkBg ? "#A1A1AA" : "var(--text-muted)",
+                        textDecoration: "line-through",
+                        lineHeight: 1
                       }}
                     >
-                      S/ {formatPrice(rp.priceAourum)}
+                      S/ {formatPrice(rp.price)}
                     </span>
                     <span
                       style={{
-                        fontSize: "0.55rem",
+                        fontSize: "0.5rem",
                         background: "var(--gold-gradient)",
                         color: "#1C1C1E",
                         padding: "1px 4px",
                         borderRadius: "3px",
-                        fontWeight: "bold",
-                        textTransform: "uppercase"
+                        fontWeight: "800",
+                        textTransform: "uppercase",
+                        whiteSpace: "nowrap",
+                        lineHeight: 1
                       }}
                     >
                       Aourum
                     </span>
                   </div>
+                  <span
+                    className="card-price-main"
+                    style={{
+                      fontSize: "1.02rem",
+                      fontWeight: 800,
+                      color: "var(--text-gold)",
+                      lineHeight: 1
+                    }}
+                  >
+                    S/ {formatPrice(rp.priceAourum)}
+                  </span>
                 </div>
               ) : (
                 <span
+                  className="card-price-main"
                   style={{
-                    fontSize: "1.05rem",
+                    fontSize: "1.02rem",
                     fontWeight: 800,
                     color: priceTextColor
                   }}

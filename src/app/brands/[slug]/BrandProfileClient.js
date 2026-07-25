@@ -772,18 +772,18 @@ export default function BrandProfileClient({ initialBrand }) {
           }}>
             <div>
               {formattedPriceAourum ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-                  <span style={{ fontSize: "0.7rem", color: isCardDark ? "#A1A1AA" : "#71717A", textDecoration: "line-through", lineHeight: 1.1 }}>
-                    S/ {formattedPrice}
-                  </span>
-                  <div style={{ display: "flex", alignItems: "center", gap: "3px", flexWrap: "nowrap" }}>
-                    <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: "var(--text-gold)", lineHeight: 1 }}>
-                      S/ {formattedPriceAourum}
+                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <span style={{ fontSize: "0.68rem", color: isCardDark ? "#A1A1AA" : "#71717A", textDecoration: "line-through", lineHeight: 1 }}>
+                      S/ {formattedPrice}
                     </span>
-                    <span style={{ fontSize: "0.52rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "800", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+                    <span style={{ fontSize: "0.5rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "800", textTransform: "uppercase", whiteSpace: "nowrap", lineHeight: 1 }}>
                       Aourum
                     </span>
                   </div>
+                  <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: "var(--text-gold)", lineHeight: 1 }}>
+                    S/ {formattedPriceAourum}
+                  </span>
                 </div>
               ) : (
                 <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: priceTextColor }}>

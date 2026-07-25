@@ -589,21 +589,21 @@ export default function Home() {
           }}>
             <div>
               {prod.priceAourum ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-                  <span style={{ fontSize: "0.75rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", textDecoration: "line-through" }}>
-                    S/ {prod.price.toLocaleString("es-PE")}
-                  </span>
+                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-gold)" }}>
-                      S/ {prod.priceAourum.toLocaleString("es-PE")}
+                    <span style={{ fontSize: "0.68rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", textDecoration: "line-through", lineHeight: 1 }}>
+                      S/ {prod.price.toLocaleString("es-PE")}
                     </span>
-                    <span style={{ fontSize: "0.55rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "bold", textTransform: "uppercase" }}>
+                    <span style={{ fontSize: "0.5rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "800", textTransform: "uppercase", whiteSpace: "nowrap", lineHeight: 1 }}>
                       Aourum
                     </span>
                   </div>
+                  <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: "var(--text-gold)", lineHeight: 1 }}>
+                    S/ {prod.priceAourum.toLocaleString("es-PE")}
+                  </span>
                 </div>
               ) : (
-                <span style={{ fontSize: "1.05rem", fontWeight: 800, color: priceTextColor }}>
+                <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: priceTextColor }}>
                   S/ {prod.price.toLocaleString("es-PE")}
                 </span>
               )}
