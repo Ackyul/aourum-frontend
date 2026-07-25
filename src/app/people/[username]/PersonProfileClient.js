@@ -623,6 +623,7 @@ export default function PersonProfileClient() {
           </div>
         </div>
       </div>
-    </>
+    </div>
+  </>
   );
 }
