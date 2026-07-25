@@ -533,7 +533,7 @@ export default function ProductDetailPage() {
               const rawCardText = rpDesign.cardTextColor || "auto";
               const rawCardBorder = rpDesign.cardBorderColor || "auto";
 
-              let cardBgStyle = {};
+              let cardBgStyle = { backgroundColor: "#FFFFFF" };
               let isDarkBg = false;
               let titleTextColor = "var(--text-primary)";
               let priceTextColor = "var(--text-primary)";
@@ -593,11 +593,13 @@ export default function ProductDetailPage() {
                 cardBgStyle.border = `1.5px solid ${rawCardBorder}`;
               }
 
+              let categoryTextColor = isDarkBg ? "#FDE68A" : "var(--text-gold)";
+
               return (
                 <div 
                   key={rp.id}
                   className="glass-panel product-card"
-                  style={{ overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column", ...cardBgStyle }}
+                  style={{ overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column", height: "100%", ...cardBgStyle }}
                   onClick={() => router.push(`/products/${rp.slug || rp.id}`)}
                 >
                   <div 
@@ -613,8 +615,6 @@ export default function ProductDetailPage() {
                       src={rp.image} 
                       alt={rp.name} 
                       style={{ 
-                        width: "100%", 
-                        height: "100%", 
                         objectFit: rp.imgBgColor && rp.imgBgColor !== "transparent" ? "contain" : "cover",
                         padding: rp.imgBgColor && rp.imgBgColor !== "transparent" ? "10px" : "0"
                       }} 
@@ -668,9 +668,16 @@ export default function ProductDetailPage() {
                     )}
                   </div>
                   <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                    <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: titleTextColor, margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <span style={{ fontSize: "0.72rem", color: categoryTextColor, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
+                      {rp.category}
+                    </span>
+                    <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: titleTextColor, margin: 0 }}>
                       {rp.name}
-                    </h4>
+                    </h3>
+                    <div style={{ fontSize: "0.8rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}>
+                      <span>Por:</span>
+                      <strong style={{ color: titleTextColor, textDecoration: "underline" }}>{rpBrand ? rpBrand.name : "Marca Local"}</strong>
+                    </div>
                     
                     <div style={{ 
                       display: "flex", 
@@ -750,7 +757,7 @@ export default function ProductDetailPage() {
               const rawCardText = rpDesign.cardTextColor || "auto";
               const rawCardBorder = rpDesign.cardBorderColor || "auto";
 
-              let cardBgStyle = {};
+              let cardBgStyle = { backgroundColor: "#FFFFFF" };
               let isDarkBg = false;
               let titleTextColor = "var(--text-primary)";
               let priceTextColor = "var(--text-primary)";
@@ -810,11 +817,13 @@ export default function ProductDetailPage() {
                 cardBgStyle.border = `1.5px solid ${rawCardBorder}`;
               }
 
+              let categoryTextColor = isDarkBg ? "#FDE68A" : "var(--text-gold)";
+
               return (
                 <div 
                   key={rp.id}
                   className="glass-panel product-card"
-                  style={{ overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column", ...cardBgStyle }}
+                  style={{ overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column", height: "100%", ...cardBgStyle }}
                   onClick={() => router.push(`/products/${rp.slug || rp.id}`)}
                 >
                   <div 
@@ -830,8 +839,6 @@ export default function ProductDetailPage() {
                       src={rp.image} 
                       alt={rp.name} 
                       style={{ 
-                        width: "100%", 
-                        height: "100%", 
                         objectFit: rp.imgBgColor && rp.imgBgColor !== "transparent" ? "contain" : "cover",
                         padding: rp.imgBgColor && rp.imgBgColor !== "transparent" ? "10px" : "0"
                       }} 
@@ -885,9 +892,16 @@ export default function ProductDetailPage() {
                     )}
                   </div>
                   <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                    <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: titleTextColor, margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <span style={{ fontSize: "0.72rem", color: categoryTextColor, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
+                      {rp.category}
+                    </span>
+                    <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: titleTextColor, margin: 0 }}>
                       {rp.name}
-                    </h4>
+                    </h3>
+                    <div style={{ fontSize: "0.8rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}>
+                      <span>Por:</span>
+                      <strong style={{ color: titleTextColor, textDecoration: "underline" }}>{rpBrand ? rpBrand.name : "Marca Local"}</strong>
+                    </div>
                     
                     <div style={{ 
                       display: "flex", 
