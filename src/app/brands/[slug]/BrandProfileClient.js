@@ -1022,26 +1022,7 @@ export default function BrandProfileClient({ initialBrand }) {
   if (design.cardBgColor && design.cardBgColor !== "transparent") {
     let resolvedBg = design.cardBgColor;
     if (resolvedBg === "brand") resolvedBg = palette.c1;
-    else if (resolvedBg === "brand-soft") resolvedBg = `${palette.c1}18`;
     cardCss += `background: ${resolvedBg} !important;`;
-  } else if (cardStyle === "flat") {
-    cardCss += `
-      background: #FFFFFF !important;
-      border: 1px solid var(--border-color) !important;
-      box-shadow: none !important;
-    `;
-  } else if (cardStyle === "elevated") {
-    cardCss += `
-      background: #FFFFFF !important;
-      border: none !important;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1) !important;
-    `;
-  } else if (cardStyle === "bordered") {
-    cardCss += `
-      background: #FFFFFF !important;
-      border: 2px solid ${palette.c1} !important;
-      box-shadow: 0 4px 14px ${palette.c1}15 !important;
-    `;
   }
 
   if (design.cardBorderColor && design.cardBorderColor !== "auto") {
@@ -1107,8 +1088,8 @@ export default function BrandProfileClient({ initialBrand }) {
           background: ${palette.c1}18 !important;
         }
         .brand-profile-theme-scope .glass-panel {
-          border: 1px solid ${palette.c1}25 !important;
-          box-shadow: 0 8px 24px ${palette.c1}08 !important;
+          border: ${isStoreBgLight ? "1px solid rgba(0,0,0,0.12)" : `1px solid ${palette.c1}25`} !important;
+          box-shadow: ${isStoreBgLight ? "0 4px 16px rgba(0,0,0,0.06)" : `0 8px 24px ${palette.c1}08`} !important;
         }
         header {
           background: linear-gradient(180deg, ${palette.c1}18 0%, rgba(255, 255, 255, 0.96) 100%) !important;
@@ -1123,8 +1104,21 @@ export default function BrandProfileClient({ initialBrand }) {
           color: ${palette.c1} !important;
         }
         .brand-profile-theme-scope .product-card {
+          background-color: ${isStoreBgLight ? "#FFFFFF" : "#18181B"} !important;
+          border: ${isStoreBgLight ? "1px solid rgba(0, 0, 0, 0.12)" : "1px solid rgba(255, 255, 255, 0.15)"} !important;
+          box-shadow: ${isStoreBgLight ? "0 6px 20px rgba(0, 0, 0, 0.07)" : "0 8px 24px rgba(0, 0, 0, 0.3)"} !important;
+          border-radius: 16px !important;
+          overflow: hidden !important;
+          position: relative !important;
+          z-index: 2 !important;
           ${cardCss}
           ${enableAnimations ? 'transition: all 0.25s ease-in-out !important;' : ''}
+        }
+        .brand-profile-theme-scope .product-card h3 {
+          color: ${isStoreBgLight ? "#1C1C1E" : "#FFFFFF"} !important;
+        }
+        .brand-profile-theme-scope .product-card .card-text-container {
+          background-color: ${isStoreBgLight ? "#FFFFFF" : "#18181B"} !important;
         }
         ${enableAnimations ? `
           .brand-profile-theme-scope .product-card:hover {
@@ -1141,17 +1135,17 @@ export default function BrandProfileClient({ initialBrand }) {
         }
       `}</style>
 
-      {/* Resplandor / Fondo Personalizado de Ambiente de Marca */}
+      {/* Resplandor / Fondo Personalizado de Ambiente de Marca (Atrás de todo con zIndex -1) */}
       {bgStyle !== "none" && (
         <div 
           style={{ 
-            position: "absolute", 
-            top: "-30px", 
-            left: "-50vw", 
-            right: "-50vw", 
-            bottom: "-3rem", 
+            position: "fixed", 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0, 
             pointerEvents: "none", 
-            zIndex: 0,
+            zIndex: -1,
             ...profileBgCss
           }} 
         />
