@@ -1468,10 +1468,13 @@ export default function BrandProfileClient({ initialBrand }) {
           </div>
         ) : (
           <div style={{ marginTop: "2rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
-              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", margin: 0 }}>
-                Catálogo de la Marca
+            <div style={{ marginBottom: "2rem" }}>
+              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", margin: 0, color: isStoreBgLight ? "#1C1C1E" : "#FFFFFF" }}>
+                🛍️ Catálogo de la Marca
               </h2>
+              <p style={{ fontSize: "0.88rem", color: isStoreBgLight ? "#4B5563" : "#9CA3AF", margin: "4px 0 0 0" }}>
+                Explora todas las colecciones, servicios y productos de {brand.name}
+              </p>
             </div>
 
           {/* 1. Carrusel de Productos Destacados de la Marca */}
@@ -1493,10 +1496,15 @@ export default function BrandProfileClient({ initialBrand }) {
           ))}
 
           {/* 3. Grilla General de Todos los Productos */}
-          <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "3rem", marginTop: "2rem" }}>
-            <h2 style={{ fontSize: "1.5rem", fontWeight: 800, marginBottom: "1.5rem" }}>
-              Vitrina de Productos
-            </h2>
+          <div style={{ borderTop: isStoreBgLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.1)", paddingTop: "2.5rem", marginTop: "2rem" }}>
+            <div style={{ marginBottom: "1.5rem" }}>
+              <h2 style={{ fontSize: "1.5rem", fontWeight: 800, margin: 0, color: isStoreBgLight ? "#1C1C1E" : "#FFFFFF" }}>
+                ✨ Vitrina Completa de Productos ({brandProducts.length})
+              </h2>
+              <p style={{ fontSize: "0.85rem", color: isStoreBgLight ? "#4B5563" : "#9CA3AF", margin: "4px 0 0 0" }}>
+                Todos los artículos disponibles en {brand.name}
+              </p>
+            </div>
             <div className="grid-catalog">
               {brandProducts.slice(0, visibleCount).map((prod) => (
                 <BrandProductCard key={prod.id} prod={prod} />
