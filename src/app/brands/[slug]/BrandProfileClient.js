@@ -606,40 +606,36 @@ export default function BrandProfileClient({ initialBrand }) {
     const storeLuminance = getBgBrightness(customBgColor, "#FAF9F0");
     const isStoreBgLight = storeLuminance >= 130;
 
-    // 2. Calculate card background
+    // 2. Guaranteed solid card background
     let cardBg = rawCardBg;
-    if (!cardBg) {
-      // Default to explicit white background on light store themes, or dark zinc on dark store themes
+    if (!cardBg || cardBg === "brand-soft" || cardBg === "transparent") {
       cardBg = isStoreBgLight ? "#FFFFFF" : "#18181B";
     } else if (cardBg === "brand") {
       cardBg = palette.c1;
-    } else if (cardBg === "brand-soft") {
-      cardBg = `${palette.c1}20`;
     }
 
-    // 3. Determine brightness of the actual card background
+    // 3. Determine brightness of card background
     const cardLuminance = getBgBrightness(cardBg, isStoreBgLight ? "#FFFFFF" : "#18181B");
     const isCardDark = cardLuminance < 140;
 
-    // 5. High-contrast text colors based on card brightness
-    let categoryTextColor = isCardDark ? "var(--text-gold)" : "#854D0E";
+    // 4. Text and badge color schemes
+    let categoryTextColor = isCardDark ? "#FDE68A" : "#854D0E";
     let titleTextColor = isCardDark ? "#FFFFFF" : "#1C1C1E";
     let priceTextColor = isCardDark ? "#FFFFFF" : "#1C1C1E";
-    let dividerBorder = isCardDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.1)";
+    let dividerBorder = isCardDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.08)";
 
     if (rawCardText === "brand") {
       titleTextColor = palette.c1;
       priceTextColor = palette.c1;
     } else if (rawCardText && rawCardText !== "auto" && rawCardText.startsWith("#")) {
       const textLuminance = getBgBrightness(rawCardText, "#1C1C1E");
-      // Only apply explicit custom text color if it has sufficient contrast against the card background
       if ((isCardDark && textLuminance > 120) || (!isCardDark && textLuminance < 150)) {
         titleTextColor = rawCardText;
         priceTextColor = rawCardText;
       }
     }
 
-    // Safety Override Guard: Never allow white or near-white text on light card backgrounds
+    // Safety guard: Never allow white text on light card backgrounds
     if (!isCardDark) {
       const titleLuminance = getBgBrightness(titleTextColor, "#1C1C1E");
       if (titleLuminance > 180) {
@@ -649,46 +645,51 @@ export default function BrandProfileClient({ initialBrand }) {
       }
     }
 
-    // 6. Assemble card container styles with guaranteed solid/glass background & border
+    // 5. Complete unified card container style
     let cardStyleObj = {
       backgroundColor: cardBg,
       color: titleTextColor,
-      borderRadius: "14px",
+      borderRadius: "16px",
       overflow: "hidden",
       display: "flex",
       flexDirection: "column",
       height: "100%",
-      minHeight: "330px",
+      minHeight: "360px",
       cursor: "pointer",
-      boxShadow: cardStyle === "elevated" ? "0 12px 30px rgba(0,0,0,0.1)" : "0 4px 16px rgba(0,0,0,0.06)"
+      border: isCardDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.12)",
+      boxShadow: isCardDark ? "0 8px 24px rgba(0,0,0,0.3)" : "0 6px 20px rgba(0,0,0,0.07)",
+      transition: "transform 0.25s ease, box-shadow 0.25s ease"
     };
 
     if (rawCardBorder === "brand") {
       cardStyleObj.border = `1.5px solid ${palette.c1}`;
-    } else if (rawCardBorder === "transparent") {
-      cardStyleObj.border = "none";
     } else if (rawCardBorder && rawCardBorder !== "auto" && rawCardBorder.startsWith("#")) {
       cardStyleObj.border = `1.5px solid ${rawCardBorder}`;
     } else if (cardStyle === "bordered") {
       cardStyleObj.border = `2px solid ${palette.c1}`;
-    } else {
-      cardStyleObj.border = isCardDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.12)";
     }
+
+    const formattedPrice = (prod.price != null && !isNaN(Number(prod.price))) ? Number(prod.price).toLocaleString("es-PE") : "0";
+    const formattedPriceAourum = (prod.priceAourum != null && !isNaN(Number(prod.priceAourum))) ? Number(prod.priceAourum).toLocaleString("es-PE") : null;
 
     return (
       <div 
-        className="glass-panel product-card" 
+        className="product-card glass-panel" 
         style={cardStyleObj}
         onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
       >
+        {/* Top Image Box */}
         <div 
           className="card-img-container" 
           style={{ 
+            width: "100%",
+            aspectRatio: "4 / 3",
             position: "relative", 
             backgroundColor: (prod.imgBgColor && prod.imgBgColor !== "transparent") 
               ? (prod.imgBgColor === "brand" ? palette.c1 : prod.imgBgColor)
-              : (isCardDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"),
-            transition: "background-color 0.3s ease"
+              : (isCardDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)"),
+            transition: "background-color 0.3s ease",
+            overflow: "hidden"
           }}
         >
           <img 
@@ -696,16 +697,43 @@ export default function BrandProfileClient({ initialBrand }) {
             alt={prod.name} 
             className="card-img-hover" 
             style={{ 
+              width: "100%",
+              height: "100%",
               objectFit: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "contain" : "cover",
               padding: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "10px" : "0"
             }} 
           />
         </div>
-        <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem", background: cardBg }}>
-          <span style={{ fontSize: "0.72rem", color: categoryTextColor, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 800 }}>
-            {prod.category || "General"}
+
+        {/* Bottom Details Container */}
+        <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem", backgroundColor: cardBg }}>
+          <span style={{ 
+            fontSize: "0.72rem", 
+            color: categoryTextColor, 
+            letterSpacing: "0.05em", 
+            textTransform: "uppercase", 
+            fontWeight: 800,
+            background: isCardDark ? "rgba(253,230,138,0.12)" : "#FEF3C7",
+            padding: "2px 8px",
+            borderRadius: "6px",
+            width: "fit-content"
+          }}>
+            {prod.category || brand.rubro_general || "General"}
           </span>
-          <h3 style={{ fontSize: "1.02rem", fontWeight: 800, lineHeight: 1.35, color: titleTextColor, margin: 0 }}>{prod.name}</h3>
+
+          <h3 style={{ 
+            fontSize: "1.02rem", 
+            fontWeight: 800, 
+            lineHeight: 1.35, 
+            color: titleTextColor, 
+            margin: "0.2rem 0 0 0",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden"
+          }}>
+            {prod.name}
+          </h3>
           
           <div style={{ 
             display: "flex", 
@@ -716,14 +744,14 @@ export default function BrandProfileClient({ initialBrand }) {
             marginTop: "auto" 
           }}>
             <div>
-              {prod.priceAourum ? (
+              {formattedPriceAourum ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
                   <span style={{ fontSize: "0.75rem", color: isCardDark ? "#A1A1AA" : "#71717A", textDecoration: "line-through" }}>
-                    S/ {prod.price.toLocaleString("es-PE")}
+                    S/ {formattedPrice}
                   </span>
                   <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                     <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-gold)" }}>
-                      S/ {prod.priceAourum.toLocaleString("es-PE")}
+                      S/ {formattedPriceAourum}
                     </span>
                     <span style={{ fontSize: "0.55rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "bold", textTransform: "uppercase" }}>
                       Aourum
@@ -732,10 +760,11 @@ export default function BrandProfileClient({ initialBrand }) {
                 </div>
               ) : (
                 <span style={{ fontSize: "1.05rem", fontWeight: 800, color: priceTextColor }}>
-                  S/ {(prod.price || 0).toLocaleString("es-PE")}
+                  S/ {formattedPrice}
                 </span>
               )}
             </div>
+
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
               <span className="card-type-label" style={{
                 fontSize: "0.65rem",
