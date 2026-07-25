@@ -639,7 +639,7 @@ export default function OrganizerProfilePage() {
             </form>
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 }
