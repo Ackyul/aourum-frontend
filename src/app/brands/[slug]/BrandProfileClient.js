@@ -621,27 +621,32 @@ export default function BrandProfileClient({ initialBrand }) {
     const cardLuminance = getBgBrightness(cardBg, isStoreBgLight ? "#FFFFFF" : "#18181B");
     const isCardDark = cardLuminance < 140;
 
-    // 4. Default high-contrast text colors based on card brightness
+    // 5. High-contrast text colors based on card brightness
     let categoryTextColor = isCardDark ? "var(--text-gold)" : "#854D0E";
     let titleTextColor = isCardDark ? "#FFFFFF" : "#1C1C1E";
     let priceTextColor = isCardDark ? "#FFFFFF" : "#1C1C1E";
     let dividerBorder = isCardDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.1)";
 
-    // 5. Allow user explicit overrides if specified
     if (rawCardText === "brand") {
       titleTextColor = palette.c1;
       priceTextColor = palette.c1;
-    } else if (rawCardText === "#FFFFFF") {
-      titleTextColor = "#FFFFFF";
-      priceTextColor = "#FFFFFF";
-      categoryTextColor = "var(--text-gold)";
-    } else if (rawCardText === "#1C1C1E") {
-      titleTextColor = "#1C1C1E";
-      priceTextColor = "#1C1C1E";
-      categoryTextColor = "#854D0E";
     } else if (rawCardText && rawCardText !== "auto" && rawCardText.startsWith("#")) {
-      titleTextColor = rawCardText;
-      priceTextColor = rawCardText;
+      const textLuminance = getBgBrightness(rawCardText, "#1C1C1E");
+      // Only apply explicit custom text color if it has sufficient contrast against the card background
+      if ((isCardDark && textLuminance > 120) || (!isCardDark && textLuminance < 150)) {
+        titleTextColor = rawCardText;
+        priceTextColor = rawCardText;
+      }
+    }
+
+    // Safety Override Guard: Never allow white or near-white text on light card backgrounds
+    if (!isCardDark) {
+      const titleLuminance = getBgBrightness(titleTextColor, "#1C1C1E");
+      if (titleLuminance > 180) {
+        titleTextColor = "#1C1C1E";
+        priceTextColor = "#1C1C1E";
+        categoryTextColor = "#854D0E";
+      }
     }
 
     // 6. Assemble card container styles with guaranteed solid/glass background & border
