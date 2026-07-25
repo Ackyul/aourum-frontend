@@ -2104,10 +2104,8 @@ function AppLayoutShell({ children }) {
                                 {[
                                   { id: "solid", label: "Sólido", icon: "fa-palette" },
                                   { id: "gradient", label: "Gradiente", icon: "fa-circle-half-stroke" },
-                                  { id: "mesh", label: "Malla Mesh", icon: "fa-braille" },
-                                  { id: "dots", label: "Puntos", icon: "fa-grip" },
-                                  { id: "image", label: "Imagen", icon: "fa-image" },
-                                  { id: "none", label: "Blanco", icon: "fa-sun" }
+                                  { id: "none", label: "Blanco", icon: "fa-sun" },
+                                  { id: "image", label: "Imagen", icon: "fa-image" }
                                 ].map((item) => (
                                   <button
                                     key={item.id}
