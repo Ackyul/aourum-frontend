@@ -2198,8 +2198,8 @@ function AppLayoutShell({ children }) {
                               </div>
                             </div>
 
-                            {/* 3. ESTILO Y BORDES DE TARJETAS */}
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                            {/* 3. ESTILO, FONDO Y BORDES DE TARJETAS DE PRODUCTO */}
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
                               <div className="form-group" style={{ margin: 0 }}>
                                 <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "4px", display: "block" }}>Estilo de Tarjetas</label>
                                 <select 
@@ -2213,6 +2213,31 @@ function AppLayoutShell({ children }) {
                                   <option value="elevated">Sombra Elevada</option>
                                   <option value="bordered">Borde de Marca</option>
                                 </select>
+                              </div>
+
+                              <div className="form-group" style={{ margin: 0 }}>
+                                <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "4px", display: "block" }}>Fondo de Tarjetas</label>
+                                <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                                  <select 
+                                    className="form-control" 
+                                    value={design.cardBgColor || "auto"} 
+                                    onChange={(e) => updateDesignKey("cardBgColor", e.target.value)}
+                                    style={{ fontSize: "0.8rem", padding: "0.45rem 0.6rem", borderRadius: "8px", flex: 1 }}
+                                  >
+                                    <option value="auto">Predeterminado</option>
+                                    <option value="brand">Color de Marca</option>
+                                    <option value="brand-soft">Tinte Suave de Marca</option>
+                                    <option value="#FFFFFF">Blanco Sólido</option>
+                                    <option value="#18181B">Oscuro Zinc</option>
+                                  </select>
+                                  <input 
+                                    type="color" 
+                                    value={design.cardBgColor && design.cardBgColor.startsWith("#") ? design.cardBgColor : "#FFFFFF"} 
+                                    onChange={(e) => updateDesignKey("cardBgColor", e.target.value)} 
+                                    style={{ width: "30px", height: "30px", border: "none", background: "none", cursor: "pointer", padding: 0 }} 
+                                    title="Hex Fondo Tarjeta" 
+                                  />
+                                </div>
                               </div>
 
                               <div className="form-group" style={{ margin: 0 }}>
