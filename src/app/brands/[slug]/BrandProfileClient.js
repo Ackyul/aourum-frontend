@@ -767,26 +767,26 @@ export default function BrandProfileClient({ initialBrand }) {
             justifyContent: "space-between", 
             alignItems: "center", 
             borderTop: dividerBorder, 
-            paddingTop: "0.8rem", 
+            paddingTop: "0.5rem", 
             marginTop: "auto" 
           }}>
             <div>
               {formattedPriceAourum ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-                  <span style={{ fontSize: "0.75rem", color: isCardDark ? "#A1A1AA" : "#71717A", textDecoration: "line-through" }}>
+                  <span style={{ fontSize: "0.7rem", color: isCardDark ? "#A1A1AA" : "#71717A", textDecoration: "line-through", lineHeight: 1.1 }}>
                     S/ {formattedPrice}
                   </span>
-                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-gold)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "3px", flexWrap: "nowrap" }}>
+                    <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: "var(--text-gold)", lineHeight: 1 }}>
                       S/ {formattedPriceAourum}
                     </span>
-                    <span style={{ fontSize: "0.55rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "bold", textTransform: "uppercase" }}>
+                    <span style={{ fontSize: "0.52rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "800", textTransform: "uppercase", whiteSpace: "nowrap" }}>
                       Aourum
                     </span>
                   </div>
                 </div>
               ) : (
-                <span style={{ fontSize: "1.05rem", fontWeight: 800, color: priceTextColor }}>
+                <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: priceTextColor }}>
                   S/ {formattedPrice}
                 </span>
               )}
@@ -1168,14 +1168,17 @@ export default function BrandProfileClient({ initialBrand }) {
             min-height: auto !important;
           }
           .brand-profile-theme-scope .product-card > div:last-child {
-            padding: 0.75rem !important;
-            gap: 0.25rem !important;
+            padding: 0.65rem 0.6rem !important;
+            gap: 0.2rem !important;
           }
           .brand-profile-theme-scope .product-card h3 {
             font-size: 0.82rem !important;
-            line-height: 1.3 !important;
-            height: 2.6em !important;
+            line-height: 1.25 !important;
+            height: 2.5em !important;
             margin: 0 !important;
+          }
+          .brand-profile-theme-scope .product-card .card-price-main {
+            font-size: 0.88rem !important;
           }
         }
         .brand-profile-theme-scope .product-card h3 {
