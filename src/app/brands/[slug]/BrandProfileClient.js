@@ -990,35 +990,15 @@ export default function BrandProfileClient({ initialBrand }) {
 
   // Estilos de tarjetas según cardStyle, cardBgColor y cardBorderColor
   let cardCss = "";
-  if (design.cardBgColor && design.cardBgColor !== "transparent") {
+  if (design.cardBgColor && design.cardBgColor !== "transparent" && design.cardBgColor !== "brand-soft") {
     let resolvedBg = design.cardBgColor;
     if (resolvedBg === "brand") resolvedBg = palette.c1;
-    else if (resolvedBg === "brand-soft") resolvedBg = `${palette.c1}20`;
     cardCss += `background: ${resolvedBg} !important;`;
-  } else if (cardStyle === "glass") {
-    cardCss += `
-      background: ${isStoreBgLight ? "rgba(255, 255, 255, 0.92)" : "rgba(24, 24, 27, 0.88)"} !important;
-      backdrop-filter: blur(12px);
-      border: 1px solid ${palette.c1}30;
-      box-shadow: 0 4px 16px ${palette.c1}08;
-    `;
-  } else if (cardStyle === "flat") {
+  } else if (cardStyle === "flat" || cardStyle === "elevated" || cardStyle === "bordered") {
     cardCss += `
       background: #FFFFFF !important;
-      border: 1px solid var(--border-color) !important;
-      box-shadow: none !important;
-    `;
-  } else if (cardStyle === "elevated") {
-    cardCss += `
-      background: #FFFFFF !important;
-      border: none !important;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1) !important;
-    `;
-  } else if (cardStyle === "bordered") {
-    cardCss += `
-      background: #FFFFFF !important;
-      border: 2px solid ${palette.c1} !important;
-      box-shadow: 0 4px 14px ${palette.c1}15 !important;
+      border: 1px solid rgba(0, 0, 0, 0.12) !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
     `;
   }
 
@@ -1080,8 +1060,8 @@ export default function BrandProfileClient({ initialBrand }) {
           background: ${palette.c1}18 !important;
         }
         .brand-profile-theme-scope .glass-panel {
-          border: 1px solid ${palette.c1}25 !important;
-          box-shadow: 0 8px 24px ${palette.c1}08 !important;
+          border: ${isStoreBgLight ? "1px solid rgba(0,0,0,0.12)" : `1px solid ${palette.c1}25`} !important;
+          box-shadow: ${isStoreBgLight ? "0 4px 16px rgba(0,0,0,0.06)" : `0 8px 24px ${palette.c1}08`} !important;
         }
         header {
           background: linear-gradient(180deg, ${palette.c1}18 0%, rgba(255, 255, 255, 0.96) 100%) !important;
@@ -1096,11 +1076,19 @@ export default function BrandProfileClient({ initialBrand }) {
           color: ${palette.c1} !important;
         }
         .brand-profile-theme-scope .product-card {
-          background: ${isStoreBgLight ? "rgba(255, 255, 255, 0.92)" : "rgba(24, 24, 27, 0.88)"} !important;
-          border: 1px solid ${isStoreBgLight ? "rgba(0, 0, 0, 0.1)" : "rgba(255, 255, 255, 0.15)"} !important;
-          box-shadow: 0 4px 16px ${isStoreBgLight ? "rgba(0,0,0,0.06)" : "rgba(0,0,0,0.3)"} !important;
+          background-color: ${isStoreBgLight ? "#FFFFFF" : "#18181B"} !important;
+          border: ${isStoreBgLight ? "1px solid rgba(0, 0, 0, 0.12)" : "1px solid rgba(255, 255, 255, 0.15)"} !important;
+          box-shadow: ${isStoreBgLight ? "0 4px 16px rgba(0,0,0,0.06)" : "0 4px 16px rgba(0,0,0,0.3)"} !important;
+          border-radius: 14px !important;
+          overflow: hidden !important;
           ${cardCss}
           ${enableAnimations ? 'transition: all 0.25s ease-in-out !important;' : ''}
+        }
+        .brand-profile-theme-scope .product-card h3 {
+          color: ${isStoreBgLight ? "#1C1C1E" : "#FFFFFF"} !important;
+        }
+        .brand-profile-theme-scope .product-card .card-text-container {
+          background-color: ${isStoreBgLight ? "#FFFFFF" : "#18181B"} !important;
         }
         ${enableAnimations ? `
           .brand-profile-theme-scope .product-card:hover {
