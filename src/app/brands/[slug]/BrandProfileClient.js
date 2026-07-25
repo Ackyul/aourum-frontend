@@ -1791,56 +1791,6 @@ export default function BrandProfileClient({ initialBrand }) {
                       </div>
                     )}
                   </label>
-
-                  {/* Selector de Color de Fondo para la Tarjeta / Producto */}
-                  <div style={{ marginTop: "1rem" }}>
-                    <label style={{ fontSize: "0.82rem", fontWeight: 700, display: "block", marginBottom: "0.4rem" }}>
-                      🎨 Color de Tarjeta / Fondo del Producto:
-                    </label>
-                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
-                      {[
-                        { label: "Transparente", val: "transparent", color: "transparent" },
-                        { label: "Crema Cálido", val: "#FAF9F0", color: "#FAF9F0" },
-                        { label: "Blanco", val: "#FFFFFF", color: "#FFFFFF" },
-                        { label: "Gris Suave", val: "#F8FAFC", color: "#F8FAFC" },
-                        { label: "Oscuro", val: "#18181B", color: "#18181B" },
-                        { label: "Color Marca", val: "brand", color: palette.c1 }
-                      ].map((preset) => (
-                        <button
-                          key={preset.val}
-                          type="button"
-                          onClick={() => setProdImgBgColor(preset.val)}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "6px",
-                            padding: "4px 10px",
-                            borderRadius: "16px",
-                            fontSize: "0.75rem",
-                            fontWeight: 700,
-                            border: prodImgBgColor === preset.val ? "2px solid var(--text-gold)" : "1px solid var(--border-color)",
-                            background: "var(--bg-input)",
-                            cursor: "pointer"
-                          }}
-                        >
-                          <span style={{ width: "12px", height: "12px", borderRadius: "50%", background: preset.color === "transparent" ? "repeating-conic-gradient(#ccc 0% 25%, #fff 0% 50%) 50% / 8px 8px" : preset.color, border: "1px solid rgba(0,0,0,0.2)" }} />
-                          <span>{preset.label}</span>
-                        </button>
-                      ))}
-                      <div style={{ display: "flex", alignItems: "center", gap: "4px", marginLeft: "4px" }}>
-                        <input
-                          type="color"
-                          value={prodImgBgColor && prodImgBgColor.startsWith("#") ? prodImgBgColor : "#FFFFFF"}
-                          onChange={(e) => setProdImgBgColor(e.target.value)}
-                          style={{ width: "24px", height: "24px", border: "none", background: "none", cursor: "pointer", padding: 0 }}
-                          title="Color Personalizado"
-                        />
-                        <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontFamily: "monospace" }}>
-                          {prodImgBgColor}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
                   <input 
                     id="prod-img-upload" 
                     type="file" 
