@@ -104,12 +104,24 @@ export default function ProductDetailPage() {
   const prod = useMemo(() => {
     if (!products || !products.length) return null;
     const target = slugParam.toLowerCase().trim();
+    const normTarget = target.replace(/-/g, "_");
+
     const bySlug = products.find((p) => {
       if (!p) return false;
       const pSlug = p.slug ? p.slug.toLowerCase().trim() : "";
       const pNameSlug = p.name ? slugify(p.name) : "";
-      return pSlug === target || pNameSlug === target || String(p.id) === target;
+      const normSlug = pSlug.replace(/-/g, "_");
+      const normNameSlug = pNameSlug.replace(/-/g, "_");
+
+      return (
+        pSlug === target ||
+        pNameSlug === target ||
+        normSlug === normTarget ||
+        normNameSlug === normTarget ||
+        String(p.id) === target
+      );
     });
+
     if (bySlug) return bySlug;
     const numId = Number(slugParam);
     if (!isNaN(numId)) return products.find((p) => p.id === numId);
@@ -165,8 +177,9 @@ export default function ProductDetailPage() {
   if (!prod) {
     return (
       <div className="container" style={{ textAlign: "center", padding: "4rem 0" }}>
-        <h3>Producto o servicio no encontrado</h3>
-        <button onClick={() => router.push("/")} className="btn-gold" style={{ marginTop: "1rem" }}>Volver al Catálogo</button>
+        <h3 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "1rem" }}>Producto o servicio no encontrado</h3>
+        <p style={{ color: "var(--text-muted)", marginBottom: "1.5rem" }}>El ítem que buscas no existe o fue movido.</p>
+        <button onClick={() => router.push("/")} className="btn-gold" style={{ padding: "0.75rem 1.8rem", cursor: "pointer" }}>Volver al Catálogo</button>
       </div>
     );
   }
@@ -233,6 +246,382 @@ export default function ProductDetailPage() {
   const whatsappNumber = brand?.whatsappNumber || "51999999999";
   const whatsappLink = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=Hola%20${brand ? encodeURIComponent(brand.name) : "Productor"}%20desde%20AOURUM,%20estoy%20interesado%20en%20el%20item%20"${encodeURIComponent(prod.name)}".`;
 
+  const renderSuggestedCard = (rp) => {
+    const rpBrand = brands.find((b) => b.id === rp.brandId);
+    const rpDesign = rpBrand?.brandDesign || {};
+    const rpBrandColor = rpBrand
+      ? (getBrandPalette ? getBrandPalette(null, rpBrand).c1 : "#D4AF37")
+      : "#D4AF37";
+
+    const rawCardBg =
+      rpDesign.cardBgColor && rpDesign.cardBgColor !== "transparent"
+        ? rpDesign.cardBgColor
+        : null;
+    const rawCardText = rpDesign.cardTextColor || "auto";
+    const rawCardBorder = rpDesign.cardBorderColor || "auto";
+
+    let cardBgStyle = { backgroundColor: "#FFFFFF" };
+    let isDarkBg = false;
+    let categoryTextColor = "var(--text-gold)";
+    let titleTextColor = "var(--text-primary)";
+    let priceTextColor = "var(--text-primary)";
+    let dividerBorder = "1px solid var(--border-color)";
+
+    if (rawCardBg) {
+      let finalColor = rawCardBg;
+      if (rawCardBg === "brand") finalColor = rpBrandColor;
+      else if (rawCardBg === "brand-soft") finalColor = `${rpBrandColor}18`;
+
+      if (finalColor.startsWith("#")) {
+        const hex = finalColor.replace("#", "");
+        if (hex.length === 6) {
+          const r = parseInt(hex.substring(0, 2), 16) || 0;
+          const g = parseInt(hex.substring(2, 4), 16) || 0;
+          const b = parseInt(hex.substring(4, 6), 16) || 0;
+          const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+          isDarkBg = brightness < 140;
+        }
+      }
+
+      if (isDarkBg) {
+        categoryTextColor = "#FDE68A";
+        titleTextColor = "#FFFFFF";
+        priceTextColor = "#FFFFFF";
+        dividerBorder = "1px solid rgba(255,255,255,0.15)";
+      } else {
+        categoryTextColor = "var(--text-gold)";
+        titleTextColor = "#1C1C1E";
+        priceTextColor = "#1C1C1E";
+        dividerBorder = "1px solid rgba(0,0,0,0.08)";
+      }
+
+      cardBgStyle = {
+        backgroundColor: finalColor,
+        border: `1px solid ${isDarkBg ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.08)"}`
+      };
+    }
+
+    if (rawCardText === "brand") {
+      titleTextColor = rpBrandColor;
+      priceTextColor = rpBrandColor;
+    } else if (rawCardText === "#FFFFFF") {
+      titleTextColor = "#FFFFFF";
+      priceTextColor = "#FFFFFF";
+      categoryTextColor = "#FDE68A";
+    } else if (rawCardText === "#1C1C1E") {
+      titleTextColor = "#1C1C1E";
+      priceTextColor = "#1C1C1E";
+    } else if (rawCardText && rawCardText.startsWith("#")) {
+      titleTextColor = rawCardText;
+      priceTextColor = rawCardText;
+    }
+
+    if (rawCardBorder === "brand") {
+      cardBgStyle.border = `1.5px solid ${rpBrandColor}`;
+    } else if (rawCardBorder === "transparent") {
+      cardBgStyle.border = "none";
+    } else if (rawCardBorder && rawCardBorder.startsWith("#")) {
+      cardBgStyle.border = `1.5px solid ${rawCardBorder}`;
+    }
+
+    return (
+      <div
+        key={rp.id}
+        className="glass-panel product-card"
+        style={{
+          overflow: "hidden",
+          cursor: "pointer",
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          minHeight: "320px",
+          ...cardBgStyle
+        }}
+        onClick={() => router.push(`/products/${rp.slug || rp.id}`)}
+      >
+        <div
+          className="card-img-container"
+          style={{
+            position: "relative",
+            backgroundColor:
+              rp.imgBgColor && rp.imgBgColor !== "transparent"
+                ? rp.imgBgColor === "brand"
+                  ? rpBrandColor
+                  : rp.imgBgColor
+                : "transparent"
+          }}
+        >
+          {rp.image ? (
+            <img
+              src={rp.image}
+              alt={rp.name}
+              style={{
+                objectFit:
+                  rp.imgBgColor && rp.imgBgColor !== "transparent"
+                    ? "contain"
+                    : "cover",
+                padding:
+                  rp.imgBgColor && rp.imgBgColor !== "transparent" ? "10px" : "0"
+              }}
+              className="card-img-hover"
+            />
+          ) : (
+            <div
+              style={{
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--text-muted)",
+                fontSize: "2rem"
+              }}
+            >
+              <i className="fa-solid fa-box-open"></i>
+            </div>
+          )}
+          {rp.suggestionType && (
+            <div
+              style={{
+                position: "absolute",
+                top: "8px",
+                left: "8px",
+                zIndex: 2,
+                display: "flex",
+                gap: "4px"
+              }}
+            >
+              {rp.suggestionType === "popular" ? (
+                <span
+                  style={{
+                    background: "rgba(229, 57, 53, 0.95)",
+                    color: "#FFFFFF",
+                    fontSize: "0.62rem",
+                    padding: "3px 8px",
+                    borderRadius: "12px",
+                    fontWeight: 700,
+                    letterSpacing: "0.03em",
+                    textTransform: "uppercase",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "3px"
+                  }}
+                >
+                  <i
+                    className="fa-solid fa-fire"
+                    style={{ fontSize: "0.7rem" }}
+                  ></i>{" "}
+                  Popular
+                </span>
+              ) : (
+                <span
+                  style={{
+                    background: "rgba(30, 144, 255, 0.95)",
+                    color: "#FFFFFF",
+                    fontSize: "0.62rem",
+                    padding: "3px 8px",
+                    borderRadius: "12px",
+                    fontWeight: 700,
+                    letterSpacing: "0.03em",
+                    textTransform: "uppercase",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "3px"
+                  }}
+                >
+                  <i
+                    className="fa-solid fa-wand-magic-sparkles"
+                    style={{ fontSize: "0.7rem" }}
+                  ></i>{" "}
+                  Descubrir
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+        <div
+          style={{
+            padding: "1rem 1.2rem",
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.5rem"
+          }}
+        >
+          <span
+            style={{
+              fontSize: "0.72rem",
+              color: categoryTextColor,
+              letterSpacing: "0.05em",
+              textTransform: "uppercase",
+              fontWeight: 700
+            }}
+          >
+            {rp.category || "General"}
+          </span>
+          <h3
+            style={{
+              fontSize: "1.05rem",
+              fontWeight: 800,
+              lineHeight: 1.35,
+              color: titleTextColor,
+              margin: 0
+            }}
+          >
+            {rp.name}
+          </h3>
+          <div
+            style={{
+              fontSize: "0.8rem",
+              color: isDarkBg ? "#A1A1AA" : "var(--text-muted)",
+              display: "flex",
+              alignItems: "center",
+              gap: "5px"
+            }}
+          >
+            <span>Por:</span>
+            <strong
+              style={{ color: titleTextColor, textDecoration: "underline" }}
+            >
+              {rpBrand ? rpBrand.name : "Marca Local"}
+            </strong>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              borderTop: dividerBorder,
+              paddingTop: "0.8rem",
+              marginTop: "auto"
+            }}
+          >
+            <div>
+              {rp.priceAourum ? (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "1px"
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "0.75rem",
+                      color: isDarkBg ? "#A1A1AA" : "var(--text-muted)",
+                      textDecoration: "line-through"
+                    }}
+                  >
+                    S/ {formatPrice(rp.price)}
+                  </span>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px"
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "1.05rem",
+                        fontWeight: 800,
+                        color: "var(--text-gold)"
+                      }}
+                    >
+                      S/ {formatPrice(rp.priceAourum)}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "0.55rem",
+                        background: "var(--gold-gradient)",
+                        color: "#1C1C1E",
+                        padding: "1px 4px",
+                        borderRadius: "3px",
+                        fontWeight: "bold",
+                        textTransform: "uppercase"
+                      }}
+                    >
+                      Aourum
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <span
+                  style={{
+                    fontSize: "1.05rem",
+                    fontWeight: 800,
+                    color: priceTextColor
+                  }}
+                >
+                  S/ {formatPrice(rp.price)}
+                </span>
+              )}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                gap: "2px"
+              }}
+            >
+              <span
+                className="card-type-label"
+                style={{
+                  fontSize: "0.65rem",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  color:
+                    rp.type === "service"
+                      ? isDarkBg
+                        ? "#93c5fd"
+                        : "#1e3a8a"
+                      : isDarkBg
+                      ? "#fde68a"
+                      : "#78350f",
+                  letterSpacing: "0.03em"
+                }}
+              >
+                {rp.type === "service" ? "Servicio" : "Producto"}
+              </span>
+              <span
+                className="card-stock-label"
+                style={{
+                  fontSize: "0.65rem",
+                  fontWeight: 700,
+                  padding: "2px 6px",
+                  borderRadius: "8px",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.02em",
+                  background:
+                    rp.type === "service"
+                      ? "#dbeafe"
+                      : rp.stock == null || rp.stock > 0
+                      ? "#dcfce7"
+                      : "#fee2e2",
+                  color:
+                    rp.type === "service"
+                      ? "#1e40af"
+                      : rp.stock == null || rp.stock > 0
+                      ? "#15803d"
+                      : "#b91c1c"
+                }}
+              >
+                {rp.type === "service"
+                  ? "Agenda"
+                  : rp.stock == null || rp.stock > 0
+                  ? "Stock"
+                  : "Agotado"}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="product-details-container product-theme-scope" style={{ position: "relative", minHeight: "100vh", fontFamily: fontFamily !== "Inter" ? `"${fontFamily}", sans-serif` : "inherit" }}>
       {/* Import de la fuente de Google seleccionada si no es Inter */}
@@ -295,7 +684,8 @@ export default function ProductDetailPage() {
         />
       )}
 
-      <div style={{ marginBottom: "2rem", position: "relative", zIndex: 1 }}>
+      {/* Botón Volver */}
+      <div style={{ marginBottom: "2rem", position: "relative", zIndex: 1, paddingTop: "1rem" }}>
         <button 
           onClick={() => router.push("/")} 
           className="btn-outline-gold" 
@@ -305,9 +695,9 @@ export default function ProductDetailPage() {
         </button>
       </div>
 
-      
+      {/* Vista Principal del Producto */}
       <div className="product-split-layout" style={{ position: "relative", zIndex: 1 }}>
-        
+        {/* Imagen del Producto */}
         <div 
           className="product-image-box"
           style={{
@@ -315,17 +705,24 @@ export default function ProductDetailPage() {
             transition: "background-color 0.3s ease"
           }}
         >
-          <img 
-            src={prod.image} 
-            alt={prod.name} 
-            style={{
-              objectFit: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "contain" : "cover",
-              padding: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "16px" : "0"
-            }}
-          />
+          {prod.image ? (
+            <img 
+              src={prod.image} 
+              alt={prod.name} 
+              style={{
+                objectFit: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "contain" : "cover",
+                padding: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "16px" : "0"
+              }}
+            />
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "350px", color: "var(--text-muted)" }}>
+              <i className="fa-solid fa-image" style={{ fontSize: "4rem", marginBottom: "1rem", opacity: 0.5 }}></i>
+              <p>Sin imagen disponible</p>
+            </div>
+          )}
         </div>
 
-        
+        {/* Detalles e Información del Producto */}
         <div>
           <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "0.5rem" }}>
             <span style={{
@@ -338,7 +735,7 @@ export default function ProductDetailPage() {
               fontWeight: 700,
               textTransform: "uppercase"
             }}>
-              {prod.category}
+              {prod.category || "General"}
             </span>
             <span style={{
               background: prod.type === "service" ? "#2563eb" : "#d97706",
@@ -386,6 +783,7 @@ export default function ProductDetailPage() {
             <i className="fa-solid fa-chevron-right" style={{ fontSize: "0.75rem", color: brandThemeColor, marginLeft: "4px" }}></i>
           </div>
 
+          {/* Sección de Precio */}
           <div style={{ background: "var(--bg-input)", padding: "1.2rem 1.5rem", borderRadius: "12px", border: "1px solid var(--border-color)", marginBottom: "1.8rem" }}>
             <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "block", marginBottom: "2px", fontWeight: 500 }}>
               {prod.priceAourum ? "Oferta Especial AOURUM" : "Precio Exclusivo"}
@@ -416,7 +814,7 @@ export default function ProductDetailPage() {
             </div>
           </div>
 
-          
+          {/* Tabla de Especificaciones */}
           <div style={{ marginBottom: "2rem" }}>
             <h3 style={{ fontSize: "1.05rem", fontWeight: 700, borderBottom: "1.5px solid var(--border-color)", paddingBottom: "0.4rem", marginBottom: "0.8rem", color: "var(--text-primary)" }}>
               <i className="fa-solid fa-list-check" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Especificaciones Técnicas
@@ -425,7 +823,7 @@ export default function ProductDetailPage() {
               <tbody>
                 <tr>
                   <td className="label">Rubro o Categoría</td>
-                  <td className="value">{prod.category}</td>
+                  <td className="value">{prod.category || "General"}</td>
                 </tr>
                 <tr>
                   <td className="label">Tipo de Catálogo</td>
@@ -438,28 +836,27 @@ export default function ProductDetailPage() {
                     <td className="value" style={{ color: "#2563eb", fontWeight: 700 }}>Por Agenda / Cita</td>
                   </tr>
                 )}
-                {prod.type !== "service" && prod.stock != null && (
+                {prod.type !== "service" && (
                   <tr>
                     <td className="label">Disponibilidad</td>
-                    <td className="value" style={{ color: prod.stock > 0 ? "var(--text-primary)" : "#ef4444", fontWeight: 700 }}>
-                      {prod.stock > 0 ? `En Stock (${prod.stock} unidades)` : "Agotado Temporalmente"}
+                    <td className="value" style={{ color: (prod.stock == null || prod.stock > 0) ? "var(--text-primary)" : "#ef4444", fontWeight: 700 }}>
+                      {prod.stock == null ? "En Stock (Disponibilidad continua)" : prod.stock > 0 ? `En Stock (${prod.stock} unidades)` : "Agotado Temporalmente"}
                     </td>
                   </tr>
                 )}
-
               </tbody>
             </table>
           </div>
 
-          
+          {/* Aviso informativo */}
           <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: "12px", padding: "1.2rem", marginBottom: "1.8rem" }}>
-            <p style={{ fontSize: "0.85rem", color: "var(--gold-dark)", lineHeight: 1.5, display: "flex", gap: "8px" }}>
+            <p style={{ fontSize: "0.85rem", color: "var(--gold-dark)", lineHeight: 1.5, display: "flex", gap: "8px", margin: 0 }}>
               <i className="fa-solid fa-circle-info" style={{ marginTop: "3px", fontSize: "0.95rem" }}></i>
               <span>Este es un catálogo virtual de economía circular y cultural. No realizamos transacciones de pago directo. Para comprar o agendar, coordina directamente con el productor.</span>
             </p>
           </div>
 
-          
+          {/* Botones de Acción */}
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {brand?.whatsappNumber ? (
               activeRole ? (
@@ -468,7 +865,7 @@ export default function ProductDetailPage() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn-gold"
-                  style={{ width: "100%", textDecoration: "none", fontSize: "0.95rem" }}
+                  style={{ width: "100%", textDecoration: "none", fontSize: "0.95rem", padding: "0.8rem", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
                 >
                   <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.2rem" }}></i> Coordinar Adquisición vía WhatsApp
                 </a>
@@ -479,7 +876,7 @@ export default function ProductDetailPage() {
                     setShowLoginModal(true);
                   }}
                   className="btn-gold"
-                  style={{ width: "100%", fontSize: "0.95rem", cursor: "pointer" }}
+                  style={{ width: "100%", fontSize: "0.95rem", cursor: "pointer", padding: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
                 >
                   <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.2rem" }}></i> Coordinar Adquisición vía WhatsApp
                 </button>
@@ -499,472 +896,53 @@ export default function ProductDetailPage() {
             <button 
               onClick={() => router.push(`/brands/${brand?.slug || prod.brandId}`)}
               className="btn-outline-gold"
-              style={{ width: "100%", fontSize: "0.95rem" }}
+              style={{ width: "100%", fontSize: "0.95rem", padding: "0.8rem" }}
             >
-              <i className="fa-solid fa-store"></i> Visitar Galería de la Marca
+              <i className="fa-solid fa-store" style={{ marginRight: 6 }}></i> Visitar Galería de la Marca
             </button>
           </div>
         </div>
       </div>
 
-      
-      <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "2.5rem", marginBottom: "3.5rem" }}>
-        <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)" }}>Descripción Detallada</h3>
-        <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", lineHeight: 1.7, whiteSpace: "pre-line" }}>
-          {prod.description}
-        </p>
-      </div>
+      {/* Descripción Detallada */}
+      {prod.description && (
+        <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
+          <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)" }}>Descripción Detallada</h3>
+          <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", lineHeight: 1.7, whiteSpace: "pre-line" }}>
+            {prod.description}
+          </p>
+        </div>
+      )}
 
-      
+      {/* Sugerencias de la misma marca */}
       {suggestedBrandProds.length > 0 && (
-        <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "2.5rem", marginBottom: "3.5rem" }}>
+        <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
           <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "1.5rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
             <i className="fa-solid fa-boxes-stacked" style={{ color: "var(--gold-primary)" }}></i>
             Otros productos de <span style={{ color: "var(--gold-dark)" }}>{brand ? brand.name : "esta marca"}</span>
           </h3>
           <div className="grid-catalog">
-            {suggestedBrandProds.map((rp) => {
-              const rpBrand = brands.find(b => b.id === rp.brandId);
-              const rpDesign = rpBrand?.brandDesign || {};
-              const rpBrandColor = rpBrand ? (getBrandPalette ? getBrandPalette(null, rpBrand).c1 : "#D4AF37") : "#D4AF37";
-
-              const rawCardBg = (rpDesign.cardBgColor && rpDesign.cardBgColor !== "transparent") ? rpDesign.cardBgColor : null;
-              const rawCardText = rpDesign.cardTextColor || "auto";
-              const rawCardBorder = rpDesign.cardBorderColor || "auto";
-
-              let cardBgStyle = { backgroundColor: "#FFFFFF" };
-              let isDarkBg = false;
-              let titleTextColor = "var(--text-primary)";
-              let priceTextColor = "var(--text-primary)";
-              let dividerBorder = "1px solid var(--border-color)";
-
-              if (rawCardBg) {
-                let finalColor = rawCardBg;
-                if (rawCardBg === "brand") finalColor = rpBrandColor;
-                else if (rawCardBg === "brand-soft") finalColor = `${rpBrandColor}18`;
-
-                if (finalColor.startsWith("#")) {
-                  const hex = finalColor.replace("#", "");
-                  if (hex.length === 6) {
-                    const r = parseInt(hex.substring(0, 2), 16) || 0;
-                    const g = parseInt(hex.substring(2, 4), 16) || 0;
-                    const b = parseInt(hex.substring(4, 6), 16) || 0;
-                    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-                    isDarkBg = brightness < 140;
-                  }
-                }
-
-                if (isDarkBg) {
-                  titleTextColor = "#FFFFFF";
-                  priceTextColor = "#FFFFFF";
-                  dividerBorder = "1px solid rgba(255,255,255,0.15)";
-                } else {
-                  titleTextColor = "#1C1C1E";
-                  priceTextColor = "#1C1C1E";
-                  dividerBorder = "1px solid rgba(0,0,0,0.08)";
-                }
-
-                cardBgStyle = {
-                  backgroundColor: finalColor,
-                  border: `1px solid ${isDarkBg ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.08)"}`
-                };
-              }
-
-              if (rawCardText === "brand") {
-                titleTextColor = rpBrandColor;
-                priceTextColor = rpBrandColor;
-              } else if (rawCardText === "#FFFFFF") {
-                titleTextColor = "#FFFFFF";
-                priceTextColor = "#FFFFFF";
-              } else if (rawCardText === "#1C1C1E") {
-                titleTextColor = "#1C1C1E";
-                priceTextColor = "#1C1C1E";
-              } else if (rawCardText.startsWith("#")) {
-                titleTextColor = rawCardText;
-                priceTextColor = rawCardText;
-              }
-
-              if (rawCardBorder === "brand") {
-                cardBgStyle.border = `1.5px solid ${rpBrandColor}`;
-              } else if (rawCardBorder === "transparent") {
-                cardBgStyle.border = "none";
-              } else if (rawCardBorder.startsWith("#")) {
-                cardBgStyle.border = `1.5px solid ${rawCardBorder}`;
-              }
-
-              let categoryTextColor = isDarkBg ? "#FDE68A" : "var(--text-gold)";
-
-              return (
-                <div 
-                  key={rp.id}
-                  className="glass-panel product-card"
-                  style={{ overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column", height: "100%", ...cardBgStyle }}
-                  onClick={() => router.push(`/products/${rp.slug || rp.id}`)}
-                >
-                  <div 
-                    className="card-img-container" 
-                    style={{ 
-                      position: "relative",
-                      backgroundColor: (rp.imgBgColor && rp.imgBgColor !== "transparent") 
-                        ? (rp.imgBgColor === "brand" ? rpBrandColor : rp.imgBgColor)
-                        : "transparent"
-                    }}
-                  >
-                    <img 
-                      src={rp.image} 
-                      alt={rp.name} 
-                      style={{ 
-                        objectFit: rp.imgBgColor && rp.imgBgColor !== "transparent" ? "contain" : "cover",
-                        padding: rp.imgBgColor && rp.imgBgColor !== "transparent" ? "10px" : "0"
-                      }} 
-                      className="card-img-hover" 
-                    />
-                    {rp.suggestionType && (
-                      <div style={{
-                        position: "absolute",
-                        top: "8px",
-                        left: "8px",
-                        zIndex: 2,
-                        display: "flex",
-                        gap: "4px"
-                      }}>
-                        {rp.suggestionType === "popular" ? (
-                          <span style={{ 
-                            background: "rgba(229, 57, 53, 0.95)",
-                            color: "#FFFFFF", 
-                            fontSize: "0.62rem", 
-                            padding: "3px 8px", 
-                            borderRadius: "12px", 
-                            fontWeight: 700, 
-                            letterSpacing: "0.03em",
-                            textTransform: "uppercase",
-                            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "3px"
-                          }}>
-                            <i className="fa-solid fa-fire" style={{ fontSize: "0.7rem" }}></i> Popular
-                          </span>
-                        ) : (
-                          <span style={{ 
-                            background: "rgba(30, 144, 255, 0.95)",
-                            color: "#FFFFFF", 
-                            fontSize: "0.62rem", 
-                            padding: "3px 8px", 
-                            borderRadius: "12px", 
-                            fontWeight: 700, 
-                            letterSpacing: "0.03em",
-                            textTransform: "uppercase",
-                            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "3px"
-                          }}>
-                            <i className="fa-solid fa-wand-magic-sparkles" style={{ fontSize: "0.7rem" }}></i> Descubrir
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                    <span style={{ fontSize: "0.72rem", color: categoryTextColor, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
-                      {rp.category}
-                    </span>
-                    <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: titleTextColor, margin: 0 }}>
-                      {rp.name}
-                    </h3>
-                    <div style={{ fontSize: "0.8rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}>
-                      <span>Por:</span>
-                      <strong style={{ color: titleTextColor, textDecoration: "underline" }}>{rpBrand ? rpBrand.name : "Marca Local"}</strong>
-                    </div>
-                    
-                    <div style={{ 
-                      display: "flex", 
-                      justifyContent: "space-between", 
-                      alignItems: "center", 
-                      borderTop: dividerBorder, 
-                      paddingTop: "0.8rem", 
-                      marginTop: "auto" 
-                    }}>
-                      <div>
-                        {rp.priceAourum ? (
-                          <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-                            <span style={{ fontSize: "0.75rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", textDecoration: "line-through" }}>
-                              S/ {formatPrice(rp.price)}
-                            </span>
-                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                              <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-gold)" }}>
-                                S/ {formatPrice(rp.priceAourum)}
-                              </span>
-                              <span style={{ fontSize: "0.55rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "bold", textTransform: "uppercase" }}>
-                                Aourum
-                              </span>
-                            </div>
-                          </div>
-                        ) : (
-                          <span style={{ fontSize: "1.05rem", fontWeight: 800, color: priceTextColor }}>
-                            S/ {formatPrice(rp.price)}
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
-                        <span className="card-type-label" style={{
-                          fontSize: "0.65rem",
-                          fontWeight: 700,
-                          textTransform: "uppercase",
-                          color: rp.type === "service" ? (isDarkBg ? "#93c5fd" : "#1e3a8a") : (isDarkBg ? "#fde68a" : "#78350f"),
-                          letterSpacing: "0.03em"
-                        }}>
-                          {rp.type === "service" ? "Servicio" : "Producto"}
-                        </span>
-                        <span className="card-stock-label" style={{
-                          fontSize: "0.65rem",
-                          fontWeight: 700,
-                          padding: "2px 6px",
-                          borderRadius: "8px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.02em",
-                          background: rp.type === "service" ? "#dbeafe" : (rp.stock == null || rp.stock > 0) ? "#dcfce7" : "#fee2e2",
-                          color: rp.type === "service" ? "#1e40af" : (rp.stock == null || rp.stock > 0) ? "#15803d" : "#b91c1c"
-                        }}>
-                          {rp.type === "service" ? "Agenda" : (rp.stock == null || rp.stock > 0) ? "Stock" : "Agotado"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {suggestedBrandProds.map(renderSuggestedCard)}
           </div>
         </div>
       )}
 
+      {/* Sugerencias de la misma categoría */}
       {suggestedCategoryProds.length > 0 && (
-        <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "2.5rem", marginBottom: "3.5rem" }}>
+        <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
           <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "1.5rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
             <i className="fa-solid fa-tags" style={{ color: "var(--gold-primary)" }}></i>
             Productos recomendados en <span style={{ color: "var(--gold-dark)" }}>{prod.category || "esta categoría"}</span>
           </h3>
           <div className="grid-catalog">
-            {suggestedCategoryProds.map((rp) => {
-              const rpBrand = brands.find(b => b.id === rp.brandId);
-              const rpDesign = rpBrand?.brandDesign || {};
-              const rpBrandColor = rpBrand ? (getBrandPalette ? getBrandPalette(null, rpBrand).c1 : "#D4AF37") : "#D4AF37";
-
-              const rawCardBg = (rpDesign.cardBgColor && rpDesign.cardBgColor !== "transparent") ? rpDesign.cardBgColor : null;
-              const rawCardText = rpDesign.cardTextColor || "auto";
-              const rawCardBorder = rpDesign.cardBorderColor || "auto";
-
-              let cardBgStyle = { backgroundColor: "#FFFFFF" };
-              let isDarkBg = false;
-              let titleTextColor = "var(--text-primary)";
-              let priceTextColor = "var(--text-primary)";
-              let dividerBorder = "1px solid var(--border-color)";
-
-              if (rawCardBg) {
-                let finalColor = rawCardBg;
-                if (rawCardBg === "brand") finalColor = rpBrandColor;
-                else if (rawCardBg === "brand-soft") finalColor = `${rpBrandColor}18`;
-
-                if (finalColor.startsWith("#")) {
-                  const hex = finalColor.replace("#", "");
-                  if (hex.length === 6) {
-                    const r = parseInt(hex.substring(0, 2), 16) || 0;
-                    const g = parseInt(hex.substring(2, 4), 16) || 0;
-                    const b = parseInt(hex.substring(4, 6), 16) || 0;
-                    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-                    isDarkBg = brightness < 140;
-                  }
-                }
-
-                if (isDarkBg) {
-                  titleTextColor = "#FFFFFF";
-                  priceTextColor = "#FFFFFF";
-                  dividerBorder = "1px solid rgba(255,255,255,0.15)";
-                } else {
-                  titleTextColor = "#1C1C1E";
-                  priceTextColor = "#1C1C1E";
-                  dividerBorder = "1px solid rgba(0,0,0,0.08)";
-                }
-
-                cardBgStyle = {
-                  backgroundColor: finalColor,
-                  border: `1px solid ${isDarkBg ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.08)"}`
-                };
-              }
-
-              if (rawCardText === "brand") {
-                titleTextColor = rpBrandColor;
-                priceTextColor = rpBrandColor;
-              } else if (rawCardText === "#FFFFFF") {
-                titleTextColor = "#FFFFFF";
-                priceTextColor = "#FFFFFF";
-              } else if (rawCardText === "#1C1C1E") {
-                titleTextColor = "#1C1C1E";
-                priceTextColor = "#1C1C1E";
-              } else if (rawCardText.startsWith("#")) {
-                titleTextColor = rawCardText;
-                priceTextColor = rawCardText;
-              }
-
-              if (rawCardBorder === "brand") {
-                cardBgStyle.border = `1.5px solid ${rpBrandColor}`;
-              } else if (rawCardBorder === "transparent") {
-                cardBgStyle.border = "none";
-              } else if (rawCardBorder.startsWith("#")) {
-                cardBgStyle.border = `1.5px solid ${rawCardBorder}`;
-              }
-
-              let categoryTextColor = isDarkBg ? "#FDE68A" : "var(--text-gold)";
-
-              return (
-                <div 
-                  key={rp.id}
-                  className="glass-panel product-card"
-                  style={{ overflow: "hidden", cursor: "pointer", display: "flex", flexDirection: "column", height: "100%", ...cardBgStyle }}
-                  onClick={() => router.push(`/products/${rp.slug || rp.id}`)}
-                >
-                  <div 
-                    className="card-img-container" 
-                    style={{ 
-                      position: "relative",
-                      backgroundColor: (rp.imgBgColor && rp.imgBgColor !== "transparent") 
-                        ? (rp.imgBgColor === "brand" ? rpBrandColor : rp.imgBgColor)
-                        : "transparent"
-                    }}
-                  >
-                    <img 
-                      src={rp.image} 
-                      alt={rp.name} 
-                      style={{ 
-                        objectFit: rp.imgBgColor && rp.imgBgColor !== "transparent" ? "contain" : "cover",
-                        padding: rp.imgBgColor && rp.imgBgColor !== "transparent" ? "10px" : "0"
-                      }} 
-                      className="card-img-hover" 
-                    />
-                    {rp.suggestionType && (
-                      <div style={{
-                        position: "absolute",
-                        top: "8px",
-                        left: "8px",
-                        zIndex: 2,
-                        display: "flex",
-                        gap: "4px"
-                      }}>
-                        {rp.suggestionType === "popular" ? (
-                          <span style={{ 
-                            background: "rgba(229, 57, 53, 0.95)",
-                            color: "#FFFFFF", 
-                            fontSize: "0.62rem", 
-                            padding: "3px 8px", 
-                            borderRadius: "12px", 
-                            fontWeight: 700, 
-                            letterSpacing: "0.03em",
-                            textTransform: "uppercase",
-                            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "3px"
-                          }}>
-                            <i className="fa-solid fa-fire" style={{ fontSize: "0.7rem" }}></i> Popular
-                          </span>
-                        ) : (
-                          <span style={{ 
-                            background: "rgba(30, 144, 255, 0.95)",
-                            color: "#FFFFFF", 
-                            fontSize: "0.62rem", 
-                            padding: "3px 8px", 
-                            borderRadius: "12px", 
-                            fontWeight: 700, 
-                            letterSpacing: "0.03em",
-                            textTransform: "uppercase",
-                            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "3px"
-                          }}>
-                            <i className="fa-solid fa-wand-magic-sparkles" style={{ fontSize: "0.7rem" }}></i> Descubrir
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                    <span style={{ fontSize: "0.72rem", color: categoryTextColor, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
-                      {rp.category}
-                    </span>
-                    <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: titleTextColor, margin: 0 }}>
-                      {rp.name}
-                    </h3>
-                    <div style={{ fontSize: "0.8rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}>
-                      <span>Por:</span>
-                      <strong style={{ color: titleTextColor, textDecoration: "underline" }}>{rpBrand ? rpBrand.name : "Marca Local"}</strong>
-                    </div>
-                    
-                    <div style={{ 
-                      display: "flex", 
-                      justifyContent: "space-between", 
-                      alignItems: "center", 
-                      borderTop: dividerBorder, 
-                      paddingTop: "0.8rem", 
-                      marginTop: "auto" 
-                    }}>
-                      <div>
-                        {rp.priceAourum ? (
-                          <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-                            <span style={{ fontSize: "0.75rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", textDecoration: "line-through" }}>
-                              S/ {formatPrice(rp.price)}
-                            </span>
-                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                              <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-gold)" }}>
-                                S/ {formatPrice(rp.priceAourum)}
-                              </span>
-                              <span style={{ fontSize: "0.55rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "bold", textTransform: "uppercase" }}>
-                                Aourum
-                              </span>
-                            </div>
-                          </div>
-                        ) : (
-                          <span style={{ fontSize: "1.05rem", fontWeight: 800, color: priceTextColor }}>
-                            S/ {formatPrice(rp.price)}
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
-                        <span className="card-type-label" style={{
-                          fontSize: "0.65rem",
-                          fontWeight: 700,
-                          textTransform: "uppercase",
-                          color: rp.type === "service" ? (isDarkBg ? "#93c5fd" : "#1e3a8a") : (isDarkBg ? "#fde68a" : "#78350f"),
-                          letterSpacing: "0.03em"
-                        }}>
-                          {rp.type === "service" ? "Servicio" : "Producto"}
-                        </span>
-                        <span className="card-stock-label" style={{
-                          fontSize: "0.65rem",
-                          fontWeight: 700,
-                          padding: "2px 6px",
-                          borderRadius: "8px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.02em",
-                          background: rp.type === "service" ? "#dbeafe" : (rp.stock == null || rp.stock > 0) ? "#dcfce7" : "#fee2e2",
-                          color: rp.type === "service" ? "#1e40af" : (rp.stock == null || rp.stock > 0) ? "#15803d" : "#b91c1c"
-                        }}>
-                          {rp.type === "service" ? "Agenda" : (rp.stock == null || rp.stock > 0) ? "Stock" : "Agotado"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {suggestedCategoryProds.map(renderSuggestedCard)}
           </div>
         </div>
       )}
 
-      
+      {/* Banner de la Marca */}
       {brand && (
-        <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "2.5rem", marginBottom: "3.5rem" }}>
+        <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
           <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "1.2rem", color: "var(--text-primary)" }}>
             <i className="fa-solid fa-user-tie" style={{ color: brandThemeColor, marginRight: 8 }}></i> Sobre la Marca / Productor
           </h3>
@@ -978,22 +956,26 @@ export default function ProductDetailPage() {
               padding: "1.5rem"
             }}
           >
-            <img 
-              src={brand.logo} 
-              alt={brand.name} 
-              className="brand-banner-logo"
-              style={{ border: `2px solid ${brandThemeColor}` }}
-            />
+            {brand.logo && (
+              <img 
+                src={brand.logo} 
+                alt={brand.name} 
+                className="brand-banner-logo"
+                style={{ border: `2px solid ${brandThemeColor}`, width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover" }}
+              />
+            )}
             <div style={{ flex: 1 }}>
               <span style={{ fontSize: "0.78rem", color: brandThemeColor, textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>
-                {brand.category}
+                {brand.category || "Marca Local"}
               </span>
               <h4 style={{ fontSize: "1.5rem", fontWeight: 800, margin: "2px 0 6px 0", letterSpacing: "-0.015em" }}>
                 {brand.name}
               </h4>
-              <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: "0.8rem" }}>
-                <i className="fa-solid fa-user-tag" style={{ marginRight: 6 }}></i> Fundador: <strong>{brand.owner}</strong>
-              </p>
+              {brand.owner && (
+                <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: "0.8rem" }}>
+                  <i className="fa-solid fa-user-tag" style={{ marginRight: 6 }}></i> Fundador: <strong>{brand.owner}</strong>
+                </p>
+              )}
               {brand.whatsappNumber && (
                 <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: 6 }}>
                   <i className="fa-brands fa-whatsapp" style={{ color: "#25d366", fontSize: "1rem" }}></i>
@@ -1023,13 +1005,15 @@ export default function ProductDetailPage() {
                   )}
                 </p>
               )}
-              <p style={{ fontSize: "0.88rem", color: "var(--text-primary)", lineHeight: 1.55, marginBottom: "1.2rem" }}>
-                {parseDescription(brand.description).text}
-              </p>
+              {brand.description && (
+                <p style={{ fontSize: "0.88rem", color: "var(--text-primary)", lineHeight: 1.55, marginBottom: "1.2rem" }}>
+                  {parseDescription(brand.description).text}
+                </p>
+              )}
               <button 
                 onClick={() => router.push(`/brands/${brand.slug || brand.id}`)}
                 className="btn-outline-gold"
-                style={{ padding: "0.45rem 1.2rem", fontSize: "0.82rem", borderRadius: "6px" }}
+                style={{ padding: "0.45rem 1.2rem", fontSize: "0.82rem", borderRadius: "6px", cursor: "pointer" }}
               >
                 Ver Catálogo Completo de {brand.name}
               </button>
