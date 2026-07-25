@@ -970,6 +970,23 @@ export default function BrandProfileClient({ initialBrand }) {
     };
   }
 
+  // Store background luminance determination for high contrast styling
+  let isStoreBgLight = true;
+  let resolvedBgForScope = customBgColor || "#FAF9F0";
+  if (resolvedBgForScope === "brand") resolvedBgForScope = palette.c1;
+  else if (resolvedBgForScope === "brand-soft") resolvedBgForScope = `${palette.c1}15`;
+
+  if (resolvedBgForScope && resolvedBgForScope.startsWith("#")) {
+    const c = resolvedBgForScope.replace("#", "");
+    if (c.length === 6) {
+      const r = parseInt(c.substring(0, 2), 16) || 0;
+      const g = parseInt(c.substring(2, 4), 16) || 0;
+      const b = parseInt(c.substring(4, 6), 16) || 0;
+      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+      isStoreBgLight = brightness >= 130;
+    }
+  }
+
   // Estilos de tarjetas según cardStyle, cardBgColor y cardBorderColor
   let cardCss = "";
   if (design.cardBgColor && design.cardBgColor !== "transparent") {
@@ -979,28 +996,28 @@ export default function BrandProfileClient({ initialBrand }) {
     cardCss += `background: ${resolvedBg} !important;`;
   } else if (cardStyle === "glass") {
     cardCss += `
-      background: rgba(255, 255, 255, 0.75);
+      background: ${isStoreBgLight ? "rgba(255, 255, 255, 0.92)" : "rgba(24, 24, 27, 0.88)"} !important;
       backdrop-filter: blur(12px);
       border: 1px solid ${palette.c1}30;
       box-shadow: 0 4px 16px ${palette.c1}08;
     `;
   } else if (cardStyle === "flat") {
     cardCss += `
-      background: #FFFFFF;
-      border: 1px solid var(--border-color);
-      box-shadow: none;
+      background: #FFFFFF !important;
+      border: 1px solid var(--border-color) !important;
+      box-shadow: none !important;
     `;
   } else if (cardStyle === "elevated") {
     cardCss += `
-      background: #FFFFFF;
-      border: none;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+      background: #FFFFFF !important;
+      border: none !important;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1) !important;
     `;
   } else if (cardStyle === "bordered") {
     cardCss += `
-      background: #FFFFFF;
-      border: 2px solid ${palette.c1};
-      box-shadow: 0 4px 14px ${palette.c1}15;
+      background: #FFFFFF !important;
+      border: 2px solid ${palette.c1} !important;
+      box-shadow: 0 4px 14px ${palette.c1}15 !important;
     `;
   }
 
@@ -1015,7 +1032,7 @@ export default function BrandProfileClient({ initialBrand }) {
   }
 
   return (
-    <div className="container brand-profile-theme-scope" style={{ maxWidth: "1400px", padding: "0 1rem", paddingBottom: "3rem", position: "relative", minHeight: "100vh", fontFamily: fontFamily !== "Inter" ? `"${fontFamily}", sans-serif` : "inherit" }}>
+    <div className="container brand-profile-theme-scope" style={{ maxWidth: "1400px", padding: "1.5rem 1rem 3rem 1rem", position: "relative", minHeight: "100vh", fontFamily: fontFamily !== "Inter" ? `"${fontFamily}", sans-serif` : "inherit" }}>
       {/* Import de la fuente de Google seleccionada si no es Inter */}
       {fontFamily !== "Inter" && (
         <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400;600;700;800&display=swap`} />
@@ -1023,6 +1040,19 @@ export default function BrandProfileClient({ initialBrand }) {
 
       {/* Estilos dinámicos de la Paleta de Marca para toda la página */}
       <style>{`
+        .brand-profile-theme-scope h1,
+        .brand-profile-theme-scope h2,
+        .brand-profile-theme-scope h3,
+        .brand-profile-theme-scope h4,
+        .brand-profile-theme-scope h5,
+        .brand-profile-theme-scope h6,
+        .brand-profile-theme-scope .carousel-title {
+          color: ${isStoreBgLight ? "#1C1C1E" : "#FFFFFF"} !important;
+        }
+        .brand-profile-theme-scope .carousel-subtitle,
+        .brand-profile-theme-scope p {
+          color: ${isStoreBgLight ? "#4B5563" : "#9CA3AF"} !important;
+        }
         .brand-profile-theme-scope .aourum-tab-btn.active {
           background: linear-gradient(135deg, ${palette.c1}, ${palette.c2}) !important;
           color: #ffffff !important;
@@ -1031,6 +1061,7 @@ export default function BrandProfileClient({ initialBrand }) {
         }
         .brand-profile-theme-scope .aourum-tab-btn {
           border-color: ${palette.c1}35 !important;
+          color: ${isStoreBgLight ? "#1C1C1E" : "#FFFFFF"} !important;
         }
         .brand-profile-theme-scope .btn-gold {
           background: linear-gradient(135deg, ${palette.c1}, ${palette.c2}) !important;
@@ -1064,6 +1095,9 @@ export default function BrandProfileClient({ initialBrand }) {
           color: ${palette.c1} !important;
         }
         .brand-profile-theme-scope .product-card {
+          background: ${isStoreBgLight ? "rgba(255, 255, 255, 0.92)" : "rgba(24, 24, 27, 0.88)"} !important;
+          border: 1px solid ${isStoreBgLight ? "rgba(0, 0, 0, 0.1)" : "rgba(255, 255, 255, 0.15)"} !important;
+          box-shadow: 0 4px 16px ${isStoreBgLight ? "rgba(0,0,0,0.06)" : "rgba(0,0,0,0.3)"} !important;
           ${cardCss}
           ${enableAnimations ? 'transition: all 0.25s ease-in-out !important;' : ''}
         }
