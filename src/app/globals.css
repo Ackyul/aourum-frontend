@@ -902,20 +902,27 @@ header {
 
 /* Mobile card layout adjustments */
 @media (max-width: 640px) {
+  .product-card {
+    min-height: auto !important;
+  }
+
   .grid-catalog .card-img-container,
-  .carousel-item .card-img-container {
+  .carousel-item .card-img-container,
+  .product-card .card-img-container {
     height: unset !important;
     aspect-ratio: 4 / 3 !important;
   }
 
   .grid-catalog .glass-panel > div:last-child,
-  .carousel-item .glass-panel > div:last-child {
+  .carousel-item .glass-panel > div:last-child,
+  .product-card > div:last-child {
     padding: 0.7rem !important;
     gap: 0.25rem !important;
   }
 
   .grid-catalog h3,
-  .carousel-item h3 {
+  .carousel-item h3,
+  .product-card h3 {
     font-size: 0.82rem !important;
     line-height: 1.3;
     display: -webkit-box !important;

@@ -661,7 +661,6 @@ export default function BrandProfileClient({ initialBrand }) {
       display: "flex",
       flexDirection: "column",
       height: "100%",
-      minHeight: "360px",
       cursor: "pointer",
       boxShadow: cardStyle === "elevated" ? "0 12px 30px rgba(0,0,0,0.1)" : "0 4px 16px rgba(0,0,0,0.06)",
       transition: "all 0.25s ease-in-out"
@@ -1156,9 +1155,28 @@ export default function BrandProfileClient({ initialBrand }) {
           overflow: hidden !important;
           position: relative !important;
           z-index: 2 !important;
-          min-height: 360px !important;
           ${cardCss}
           ${enableAnimations ? 'transition: all 0.25s ease-in-out !important;' : ''}
+        }
+        @media (min-width: 641px) {
+          .brand-profile-theme-scope .product-card {
+            min-height: 350px !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .brand-profile-theme-scope .product-card {
+            min-height: auto !important;
+          }
+          .brand-profile-theme-scope .product-card > div:last-child {
+            padding: 0.75rem !important;
+            gap: 0.25rem !important;
+          }
+          .brand-profile-theme-scope .product-card h3 {
+            font-size: 0.82rem !important;
+            line-height: 1.3 !important;
+            height: 2.6em !important;
+            margin: 0 !important;
+          }
         }
         .brand-profile-theme-scope .product-card h3 {
           color: ${resolvedCardTextColor || (isStoreBgLight ? "#1C1C1E" : "#FFFFFF")} !important;
