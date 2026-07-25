@@ -542,7 +542,17 @@ export default function BrandProfileClient({ initialBrand }) {
   }, [brandProducts, adminSearchQuery]);
 
   const trackRefs = useRef({});
-  const [visibleCount, setVisibleCount] = useState(12);
+  const [visibleCount, setVisibleCount] = useState(15);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (window.innerWidth <= 640) {
+        setVisibleCount(12);
+      } else {
+        setVisibleCount(15);
+      }
+    }
+  }, []);
 
   const scrollTrack = (id, direction) => {
     const track = trackRefs.current[id];
@@ -1604,7 +1614,7 @@ export default function BrandProfileClient({ initialBrand }) {
             {brandProducts.length > visibleCount && (
               <div style={{ display: "flex", justifyContent: "center", marginTop: "3rem" }}>
                 <button 
-                  onClick={() => setVisibleCount((prev) => prev + 12)}
+                  onClick={() => setVisibleCount((prev) => prev + (typeof window !== "undefined" && window.innerWidth <= 640 ? 12 : 15))}
                   className="btn-outline-gold"
                   style={{
                     borderRadius: "30px",

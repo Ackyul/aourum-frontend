@@ -142,7 +142,7 @@ export default function ProductDetailPage() {
     const brandCandidates = products.filter(
       (p) => p.brandId === prod.brandId && p.id !== prod.id
     );
-    return getBalancedSuggestions(brandCandidates, 5);
+    return getBalancedSuggestions(brandCandidates, 6);
   }, [prod, products]);
 
   const suggestedCategoryProds = useMemo(() => {
@@ -162,7 +162,7 @@ export default function ProductDetailPage() {
                  p.category.trim().toLowerCase() === prod.category.trim().toLowerCase() && 
                  p.id !== prod.id
         );
-    return getBalancedSuggestions(finalCandidates, 5);
+    return getBalancedSuggestions(finalCandidates, 6);
   }, [prod, products]);
 
   if (loading) {
@@ -552,10 +552,16 @@ export default function ProductDetailPage() {
           .product-theme-scope .product-card {
             min-height: 350px !important;
           }
+          .product-theme-scope .grid-catalog > div:nth-child(n+6) {
+            display: none !important;
+          }
         }
         @media (max-width: 640px) {
           .product-theme-scope .product-card {
             min-height: auto !important;
+          }
+          .product-theme-scope .grid-catalog > div:nth-child(n+6) {
+            display: flex !important;
           }
           .product-theme-scope .product-card > div:last-child {
             padding: 0.65rem 0.6rem !important;
