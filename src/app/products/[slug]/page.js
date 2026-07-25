@@ -4,6 +4,26 @@ import { useMemo, useEffect } from "react";
 import { useApp } from "../../../context/AppContext";
 import { useRouter, useParams } from "next/navigation";
 
+// Helper for URL slug generation
+const slugify = (text) => {
+  if (!text) return "";
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9 -]/g, "")
+    .replace(/\s+/g, "_")
+    .replace(/-+/g, "_");
+};
+
+// Safe price formatter
+const formatPrice = (val) => {
+  if (val == null || val === "" || isNaN(Number(val))) return "0";
+  return Number(val).toLocaleString("es-PE");
+};
+
 // Stable deterministic views generator based on hash of name + id
 const getItemViews = (name, id) => {
   if (!name) return 0;
@@ -58,7 +78,8 @@ const getBalancedSuggestions = (candidates, limit = 5) => {
 
 export default function ProductDetailPage() {
   const routeParams = useParams();
-  const slugParam = routeParams?.slug || "";
+  const rawParam = routeParams?.slug || "";
+  const slugParam = typeof rawParam === "string" ? decodeURIComponent(rawParam) : "";
 
   const {
     products,
@@ -81,8 +102,14 @@ export default function ProductDetailPage() {
   }, [loadProducts, loadBrands]);
 
   const prod = useMemo(() => {
-    if (!products.length) return null;
-    const bySlug = products.find((p) => p.slug === slugParam);
+    if (!products || !products.length) return null;
+    const target = slugParam.toLowerCase().trim();
+    const bySlug = products.find((p) => {
+      if (!p) return false;
+      const pSlug = p.slug ? p.slug.toLowerCase().trim() : "";
+      const pNameSlug = p.name ? slugify(p.name) : "";
+      return pSlug === target || pNameSlug === target || String(p.id) === target;
+    });
     if (bySlug) return bySlug;
     const numId = Number(slugParam);
     if (!isNaN(numId)) return products.find((p) => p.id === numId);
@@ -257,26 +284,16 @@ export default function ProductDetailPage() {
           style={{ 
             position: "absolute", 
             top: "-30px", 
-            left: "-50vw", 
-            right: "-50vw", 
+            left: "50%", 
+            transform: "translateX(-50%)",
+            width: "100vw", 
             bottom: "-3rem", 
             pointerEvents: "none", 
             zIndex: 0,
             ...pageBgCss
           }} 
         />
-      )}
-
-      <head>
-        <title>{`${prod.name} | AOURUM`}</title>
-        <meta name="description" content={prod.description ? prod.description.substring(0, 160) : `Compra ${prod.name} en AOURUM, el nodo central del talento local.`} />
-        <meta property="og:title" content={`${prod.name} | AOURUM`} />
-        <meta property="og:description" content={prod.description ? prod.description.substring(0, 160) : `Compra ${prod.name} en AOURUM.`} />
-        <meta property="og:image" content={prod.image || "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1200&q=80"} />
-        <link rel="canonical" href={`https://aourum.com/products/${prod.slug || prod.id}`} />
-      </head>
-      
-      <div style={{ marginBottom: "2rem", position: "relative", zIndex: 1 }}>
+            <div style={{ marginBottom: "2rem", position: "relative", zIndex: 1 }}>
         <button 
           onClick={() => router.push("/")} 
           className="btn-outline-gold" 
@@ -375,10 +392,10 @@ export default function ProductDetailPage() {
               {prod.priceAourum ? (
                 <>
                   <span style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--text-gold)", letterSpacing: "-0.02em" }}>
-                    S/ {prod.priceAourum.toLocaleString("es-PE")}
+                    S/ {formatPrice(prod.priceAourum)}
                   </span>
                   <span style={{ fontSize: "1.3rem", color: "var(--text-muted)", textDecoration: "line-through", fontWeight: 500 }}>
-                    S/ {prod.price.toLocaleString("es-PE")}
+                    S/ {formatPrice(prod.price)}
                   </span>
                   <span style={{ fontSize: "0.85rem", color: "var(--text-gold)", fontWeight: 700 }}>
                     <i className="fa-solid fa-gift"></i> Precio Especial
@@ -387,7 +404,7 @@ export default function ProductDetailPage() {
               ) : (
                 <>
                   <span style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
-                    S/ {prod.price.toLocaleString("es-PE")}
+                    S/ {formatPrice(prod.price)}
                   </span>
                   <span style={{ fontSize: "0.85rem", color: "var(--text-gold)", fontWeight: 700 }}>
                     <i className="fa-solid fa-shield-halved"></i> Precio Justo Local
@@ -395,7 +412,7 @@ export default function ProductDetailPage() {
                 </>
               )}
             </div>
-          </div>
+          </div>       </div>
 
           
           <div style={{ marginBottom: "2rem" }}>
@@ -649,7 +666,7 @@ export default function ProductDetailPage() {
                     )}
                   </div>
                   <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                    <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: titleTextColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: titleTextColor, margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {rp.name}
                     </h4>
                     
@@ -665,11 +682,11 @@ export default function ProductDetailPage() {
                         {rp.priceAourum ? (
                           <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
                             <span style={{ fontSize: "0.75rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", textDecoration: "line-through" }}>
-                              S/ {rp.price.toLocaleString("es-PE")}
+                              S/ {formatPrice(rp.price)}
                             </span>
                             <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                               <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-gold)" }}>
-                                S/ {rp.priceAourum.toLocaleString("es-PE")}
+                                S/ {formatPrice(rp.priceAourum)}
                               </span>
                               <span style={{ fontSize: "0.55rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "bold", textTransform: "uppercase" }}>
                                 Aourum
@@ -678,7 +695,7 @@ export default function ProductDetailPage() {
                           </div>
                         ) : (
                           <span style={{ fontSize: "1.05rem", fontWeight: 800, color: priceTextColor }}>
-                            S/ {rp.price.toLocaleString("es-PE")}
+                            S/ {formatPrice(rp.price)}
                           </span>
                         )}
                       </div>
@@ -866,7 +883,7 @@ export default function ProductDetailPage() {
                     )}
                   </div>
                   <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                    <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: titleTextColor, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <h4 style={{ fontSize: "1.05rem", fontWeight: 800, color: titleTextColor, margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {rp.name}
                     </h4>
                     
@@ -882,11 +899,11 @@ export default function ProductDetailPage() {
                         {rp.priceAourum ? (
                           <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
                             <span style={{ fontSize: "0.75rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", textDecoration: "line-through" }}>
-                              S/ {rp.price.toLocaleString("es-PE")}
+                              S/ {formatPrice(rp.price)}
                             </span>
                             <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                               <span style={{ fontSize: "1.05rem", fontWeight: 800, color: "var(--text-gold)" }}>
-                                S/ {rp.priceAourum.toLocaleString("es-PE")}
+                                S/ {formatPrice(rp.priceAourum)}
                               </span>
                               <span style={{ fontSize: "0.55rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "bold", textTransform: "uppercase" }}>
                                 Aourum
@@ -895,7 +912,7 @@ export default function ProductDetailPage() {
                           </div>
                         ) : (
                           <span style={{ fontSize: "1.05rem", fontWeight: 800, color: priceTextColor }}>
-                            S/ {rp.price.toLocaleString("es-PE")}
+                            S/ {formatPrice(rp.price)}
                           </span>
                         )}
                       </div>
