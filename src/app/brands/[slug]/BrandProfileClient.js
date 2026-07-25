@@ -579,9 +579,7 @@ export default function BrandProfileClient({ initialBrand }) {
   }, [brandProducts]);
 
   function BrandProductCard({ prod }) {
-    const rawCardBg = (prod.imgBgColor && prod.imgBgColor !== "transparent") 
-      ? prod.imgBgColor 
-      : (design.cardBgColor && design.cardBgColor !== "transparent" ? design.cardBgColor : null);
+    const rawCardBg = (design.cardBgColor && design.cardBgColor !== "transparent") ? design.cardBgColor : null;
     const rawCardText = design.cardTextColor || "auto";
     const rawCardBorder = design.cardBorderColor || "auto";
 
