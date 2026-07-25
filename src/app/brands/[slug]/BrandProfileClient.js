@@ -603,12 +603,8 @@ export default function BrandProfileClient({ initialBrand }) {
     // 2. Calculate card background
     let cardBg = rawCardBg;
     if (!cardBg) {
-      if (cardStyle === "flat" || cardStyle === "elevated" || cardStyle === "bordered") {
-        cardBg = "#FFFFFF";
-      } else {
-        // default glass background with soft opacity for optimal contrast
-        cardBg = isStoreBgLight ? "rgba(255, 255, 255, 0.92)" : "rgba(24, 24, 27, 0.88)";
-      }
+      // Default to explicit white background on light store themes, or dark zinc on dark store themes
+      cardBg = isStoreBgLight ? "#FFFFFF" : "#18181B";
     } else if (cardBg === "brand") {
       cardBg = palette.c1;
     } else if (cardBg === "brand-soft") {
@@ -651,7 +647,7 @@ export default function BrandProfileClient({ initialBrand }) {
       priceTextColor = rawCardText;
     }
 
-    // 6. Assemble card container styles
+    // 6. Assemble card container styles with guaranteed solid/glass background & border
     let cardStyleObj = {
       backgroundColor: cardBg,
       color: titleTextColor,
@@ -660,7 +656,7 @@ export default function BrandProfileClient({ initialBrand }) {
       display: "flex",
       flexDirection: "column",
       height: "100%",
-      minHeight: "320px",
+      minHeight: "330px",
       cursor: "pointer",
       boxShadow: cardStyle === "elevated" ? "0 12px 30px rgba(0,0,0,0.1)" : "0 4px 16px rgba(0,0,0,0.06)"
     };
@@ -674,7 +670,7 @@ export default function BrandProfileClient({ initialBrand }) {
     } else if (cardStyle === "bordered") {
       cardStyleObj.border = `2px solid ${palette.c1}`;
     } else {
-      cardStyleObj.border = isCardDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.1)";
+      cardStyleObj.border = isCardDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.12)";
     }
 
     return (
@@ -689,7 +685,7 @@ export default function BrandProfileClient({ initialBrand }) {
             position: "relative", 
             backgroundColor: (prod.imgBgColor && prod.imgBgColor !== "transparent") 
               ? (prod.imgBgColor === "brand" ? palette.c1 : prod.imgBgColor)
-              : "transparent",
+              : (isCardDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"),
             transition: "background-color 0.3s ease"
           }}
         >
@@ -703,11 +699,11 @@ export default function BrandProfileClient({ initialBrand }) {
             }} 
           />
         </div>
-        <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+        <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem", background: cardBg }}>
           <span style={{ fontSize: "0.72rem", color: categoryTextColor, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 800 }}>
             {prod.category || "General"}
           </span>
-          <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: titleTextColor, margin: 0 }}>{prod.name}</h3>
+          <h3 style={{ fontSize: "1.02rem", fontWeight: 800, lineHeight: 1.35, color: titleTextColor, margin: 0 }}>{prod.name}</h3>
           
           <div style={{ 
             display: "flex", 
@@ -774,8 +770,8 @@ export default function BrandProfileClient({ initialBrand }) {
       <div key={id} className="carousel-container fade-in" style={{ marginBottom: "2.5rem" }}>
         <div className="carousel-header" style={{ marginBottom: "1.0rem" }}>
           <div className="carousel-title-group">
-            <h3 className="carousel-title" style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0 }}>{title}</h3>
-            {subtitle && <p className="carousel-subtitle" style={{ fontSize: "0.85rem", color: "var(--text-muted)", margin: "4px 0 0 0" }}>{subtitle}</p>}
+            <h3 className="carousel-title" style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0, color: isStoreBgLight ? "#1C1C1E" : "#FFFFFF" }}>{title}</h3>
+            {subtitle && <p className="carousel-subtitle" style={{ fontSize: "0.85rem", color: isStoreBgLight ? "#4B5563" : "var(--text-muted)", margin: "4px 0 0 0" }}>{subtitle}</p>}
           </div>
           <div className="carousel-actions">
             <div className="carousel-arrows">
