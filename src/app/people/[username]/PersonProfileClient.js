@@ -287,23 +287,21 @@ export default function PersonProfileClient() {
 
   const isBgDark = customBgColor && customBgColor !== "transparent" ? getBgBrightness(customBgColor) < 140 : false;
 
-  let containerStyle = {
-    maxWidth: "1400px",
-    borderRadius: "20px",
-    padding: "1.5rem",
-    position: "relative",
-    minHeight: "100vh",
-    transition: "all 0.3s ease"
-  };
-
+  let pageBgStyle = {};
   if (bgStyle === "image" && bgImage) {
-    containerStyle.backgroundImage = `url(${bgImage})`;
-    containerStyle.backgroundSize = "cover";
-    containerStyle.backgroundPosition = "center";
+    pageBgStyle = {
+      backgroundImage: `url(${bgImage})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center"
+    };
   } else if (bgStyle === "gradient" && customBgColor) {
-    containerStyle.background = `linear-gradient(135deg, ${customBgColor}, #FFFFFF)`;
+    pageBgStyle = {
+      background: `linear-gradient(135deg, ${customBgColor}, #FFFFFF)`
+    };
   } else if (customBgColor && customBgColor !== "transparent" && bgStyle !== "none") {
-    containerStyle.background = customBgColor;
+    pageBgStyle = {
+      background: customBgColor
+    };
   }
 
   const textColorMain = isBgDark ? "#FFFFFF" : "var(--text-primary)";
@@ -311,7 +309,23 @@ export default function PersonProfileClient() {
   const bioBoxBg = isBgDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.01)";
 
   return (
-    <div className="container" style={containerStyle}>
+    <>
+      {bgStyle !== "none" && (customBgColor || bgImage) && (
+        <div 
+          style={{ 
+            position: "fixed", 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0, 
+            pointerEvents: "none", 
+            zIndex: -1,
+            transition: "all 0.3s ease",
+            ...pageBgStyle
+          }} 
+        />
+      )}
+      <div className="container" style={{ maxWidth: "1400px", padding: "1.5rem", position: "relative", minHeight: "100vh" }}>
       <div style={{ position: "relative", marginBottom: "2.5rem" }}>
         <button onClick={() => router.push("/")} className="profile-close-btn" style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>&times;</button>
         <button onClick={copyLink} className="profile-share-btn" style={{ position: "absolute", top: "15px", right: "60px", zIndex: 10 }} title="Copiar enlace de perfil">
@@ -609,6 +623,6 @@ export default function PersonProfileClient() {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
