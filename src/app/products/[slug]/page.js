@@ -293,7 +293,9 @@ export default function ProductDetailPage() {
             ...pageBgCss
           }} 
         />
-            <div style={{ marginBottom: "2rem", position: "relative", zIndex: 1 }}>
+      )}
+
+      <div style={{ marginBottom: "2rem", position: "relative", zIndex: 1 }}>
         <button 
           onClick={() => router.push("/")} 
           className="btn-outline-gold" 
@@ -412,7 +414,7 @@ export default function ProductDetailPage() {
                 </>
               )}
             </div>
-          </div>       </div>
+          </div>
 
           
           <div style={{ marginBottom: "2rem" }}>
