@@ -186,9 +186,8 @@ export default function FairProfileClient({ initialFair }) {
   function FairProductCard({ prod }) {
     const brandOfProd = brands.find(b => b.id === prod.brandId);
     const brandDesign = brandOfProd?.brandDesign || {};
-    const rawCardBg = (prod.imgBgColor && prod.imgBgColor !== "transparent") 
-      ? prod.imgBgColor 
-      : (brandDesign.cardBgColor && brandDesign.cardBgColor !== "transparent" ? brandDesign.cardBgColor : null);
+    const brandColor = brandOfProd ? (getBrandPalette ? getBrandPalette(null, brandOfProd).c1 : "var(--gold-primary)") : "var(--gold-primary)";
+    const rawCardBg = (brandDesign.cardBgColor && brandDesign.cardBgColor !== "transparent") ? brandDesign.cardBgColor : null;
 
     const rawCardText = brandDesign.cardTextColor || "auto";
     const rawCardBorder = brandDesign.cardBorderColor || "auto";
@@ -202,7 +201,7 @@ export default function FairProfileClient({ initialFair }) {
 
     if (rawCardBg) {
       let finalColor = rawCardBg;
-      if (rawCardBg === "brand") finalColor = brandOfProd?.color || "var(--gold-primary)";
+      if (rawCardBg === "brand") finalColor = brandColor;
       else if (rawCardBg === "brand-soft") finalColor = "rgba(212, 175, 55, 0.12)";
 
       if (finalColor.startsWith("#")) {
