@@ -1103,14 +1103,18 @@ export default function BrandProfileClient({ initialBrand }) {
         footer.site-footer a {
           color: ${palette.c1} !important;
         }
+        .brand-profile-theme-scope .grid-catalog .product-card,
+        .brand-profile-theme-scope .carousel-item .product-card,
         .brand-profile-theme-scope .product-card {
           background-color: ${isStoreBgLight ? "#FFFFFF" : "#18181B"} !important;
+          background: ${isStoreBgLight ? "#FFFFFF" : "#18181B"} !important;
           border: ${isStoreBgLight ? "1px solid rgba(0, 0, 0, 0.12)" : "1px solid rgba(255, 255, 255, 0.15)"} !important;
           box-shadow: ${isStoreBgLight ? "0 6px 20px rgba(0, 0, 0, 0.07)" : "0 8px 24px rgba(0, 0, 0, 0.3)"} !important;
           border-radius: 16px !important;
           overflow: hidden !important;
           position: relative !important;
           z-index: 2 !important;
+          min-height: 360px !important;
           ${cardCss}
           ${enableAnimations ? 'transition: all 0.25s ease-in-out !important;' : ''}
         }
