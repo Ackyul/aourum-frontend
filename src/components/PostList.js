@@ -4,12 +4,16 @@ import { useState } from "react";
 import Link from "next/link";
 import { useApp } from "../context/AppContext";
 
-function SocialPostCard({ post, activePersonId, deletePost, togglePostLike, addPostComment, deletePostComment, triggerNotification, onPostDeleted }) {
+function SocialPostCard({ post, activePersonId, brands = [], organizers = [], deletePost, togglePostLike, addPostComment, deletePostComment, triggerNotification, onPostDeleted }) {
   const author = post.author || post.personAuthor || {};
   const authorName = author.name || "Usuario Aourum";
   const authorAvatar = author.logo || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&q=80";
   const authorTypeLabel = post.authorType === "brand" ? "Marca" : post.authorType === "organizer" ? "Productora" : "";
-  const isOwner = Number(post.personId) === Number(activePersonId);
+  
+  const isCreator = activePersonId != null && Number(post.personId) === Number(activePersonId);
+  const isBrandOwner = post.authorType === "brand" && post.brandId && brands?.some(b => Number(b.id) === Number(post.brandId) && (Number(b.personId) === Number(activePersonId) || b.collaborators?.some(c => Number(c.personId) === Number(activePersonId))));
+  const isOrganizerOwner = post.authorType === "organizer" && post.organizerId && organizers?.some(o => Number(o.id) === Number(post.organizerId) && (Number(o.personId) === Number(activePersonId) || o.collaborators?.some(c => Number(c.personId) === Number(activePersonId))));
+  const isOwner = Boolean(activePersonId && (isCreator || isBrandOwner || isOrganizerOwner));
 
   // Social interactions state
   const initialLikes = Array.isArray(post.likes) ? post.likes.map(Number) : [];
@@ -428,7 +432,7 @@ function SocialPostCard({ post, activePersonId, deletePost, togglePostLike, addP
 }
 
 export default function PostList({ posts = [], loading = false, emptyMessage = "No hay publicaciones aún.", onPostDeleted }) {
-  const { activePersonId, deletePost, togglePostLike, addPostComment, deletePostComment, triggerNotification } = useApp();
+  const { activePersonId, brands, organizers, deletePost, togglePostLike, addPostComment, deletePostComment, triggerNotification } = useApp();
 
   if (loading) {
     return (
@@ -456,6 +460,8 @@ export default function PostList({ posts = [], loading = false, emptyMessage = "
           key={post.id}
           post={post}
           activePersonId={activePersonId}
+          brands={brands}
+          organizers={organizers}
           deletePost={deletePost}
           togglePostLike={togglePostLike}
           addPostComment={addPostComment}
