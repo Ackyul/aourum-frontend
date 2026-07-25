@@ -1047,10 +1047,21 @@ export default function BrandProfileClient({ initialBrand }) {
 
   // Estilos de tarjetas según cardStyle, cardBgColor y cardBorderColor
   let cardCss = "";
-  if (design.cardBgColor && design.cardBgColor !== "transparent") {
+  let resolvedCardBg = null;
+  if (design.cardBgColor && design.cardBgColor !== "transparent" && design.cardBgColor !== "auto") {
     let resolvedBg = design.cardBgColor;
     if (resolvedBg === "brand") resolvedBg = palette.c1;
-    cardCss += `background: ${resolvedBg} !important;`;
+    else if (resolvedBg === "brand-soft") resolvedBg = `${palette.c1}20`;
+    resolvedCardBg = resolvedBg;
+    cardCss += `background: ${resolvedBg} !important; background-color: ${resolvedBg} !important;`;
+  } else {
+    // Default soft tint for glass style, or white for flat/elevated/bordered
+    if (cardStyle === "glass") {
+      resolvedCardBg = isStoreBgLight ? `${palette.c1}18` : "rgba(24, 24, 27, 0.88)";
+    } else {
+      resolvedCardBg = isStoreBgLight ? "#FFFFFF" : "#18181B";
+    }
+    cardCss += `background: ${resolvedCardBg} !important; background-color: ${resolvedCardBg} !important;`;
   }
 
   if (design.cardBorderColor && design.cardBorderColor !== "auto") {
@@ -1134,8 +1145,6 @@ export default function BrandProfileClient({ initialBrand }) {
         .brand-profile-theme-scope .grid-catalog .product-card,
         .brand-profile-theme-scope .carousel-item .product-card,
         .brand-profile-theme-scope .product-card {
-          background-color: ${isStoreBgLight ? "#FFFFFF" : "#18181B"} !important;
-          background: ${isStoreBgLight ? "#FFFFFF" : "#18181B"} !important;
           border: ${isStoreBgLight ? "1px solid rgba(0, 0, 0, 0.12)" : "1px solid rgba(255, 255, 255, 0.15)"} !important;
           box-shadow: ${isStoreBgLight ? "0 6px 20px rgba(0, 0, 0, 0.07)" : "0 8px 24px rgba(0, 0, 0, 0.3)"} !important;
           border-radius: 16px !important;

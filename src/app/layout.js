@@ -2199,55 +2199,57 @@ function AppLayoutShell({ children }) {
                             </div>
 
                             {/* 3. ESTILO, FONDO Y BORDES DE TARJETAS DE PRODUCTO */}
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
-                              <div className="form-group" style={{ margin: 0 }}>
-                                <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "4px", display: "block" }}>Estilo de Tarjetas</label>
-                                <select 
-                                  className="form-control" 
-                                  value={design.cardStyle || "glass"} 
-                                  onChange={(e) => updateDesignKey("cardStyle", e.target.value)}
-                                  style={{ fontSize: "0.8rem", padding: "0.45rem 0.6rem", borderRadius: "8px" }}
-                                >
-                                  <option value="glass">Glassmorphism Transparente</option>
-                                  <option value="flat">Plano Fino</option>
-                                  <option value="elevated">Sombra Elevada</option>
-                                  <option value="bordered">Borde de Marca</option>
-                                </select>
-                              </div>
-
-                              <div className="form-group" style={{ margin: 0 }}>
-                                <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "4px", display: "block" }}>Fondo de Tarjetas</label>
-                                <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                                <div className="form-group" style={{ margin: 0 }}>
+                                  <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "4px", display: "block" }}>Estilo de Tarjetas</label>
                                   <select 
                                     className="form-control" 
-                                    value={design.cardBgColor || "auto"} 
-                                    onChange={(e) => updateDesignKey("cardBgColor", e.target.value)}
-                                    style={{ fontSize: "0.8rem", padding: "0.45rem 0.6rem", borderRadius: "8px", flex: 1 }}
+                                    value={design.cardStyle || "glass"} 
+                                    onChange={(e) => updateDesignKey("cardStyle", e.target.value)}
+                                    style={{ fontSize: "0.8rem", padding: "0.5rem 0.65rem", borderRadius: "8px" }}
                                   >
-                                    <option value="auto">Predeterminado</option>
-                                    <option value="brand">Color de Marca</option>
-                                    <option value="brand-soft">Tinte Suave de Marca</option>
-                                    <option value="#FFFFFF">Blanco Sólido</option>
-                                    <option value="#18181B">Oscuro Zinc</option>
+                                    <option value="glass">Glassmorphism Transparente</option>
+                                    <option value="flat">Plano Fino</option>
+                                    <option value="elevated">Sombra Elevada</option>
+                                    <option value="bordered">Borde de Marca</option>
                                   </select>
-                                  <input 
-                                    type="color" 
-                                    value={design.cardBgColor && design.cardBgColor.startsWith("#") ? design.cardBgColor : "#FFFFFF"} 
-                                    onChange={(e) => updateDesignKey("cardBgColor", e.target.value)} 
-                                    style={{ width: "30px", height: "30px", border: "none", background: "none", cursor: "pointer", padding: 0 }} 
-                                    title="Hex Fondo Tarjeta" 
-                                  />
+                                </div>
+
+                                <div className="form-group" style={{ margin: 0 }}>
+                                  <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "4px", display: "block" }}>Fondo de Tarjetas</label>
+                                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                                    <select 
+                                      className="form-control" 
+                                      value={design.cardBgColor || "auto"} 
+                                      onChange={(e) => updateDesignKey("cardBgColor", e.target.value)}
+                                      style={{ fontSize: "0.8rem", padding: "0.5rem 0.65rem", borderRadius: "8px", flex: 1 }}
+                                    >
+                                      <option value="auto">Tinte Suave (Auto)</option>
+                                      <option value="brand">Color de Marca</option>
+                                      <option value="brand-soft">Tinte Suave de Marca</option>
+                                      <option value="#FFFFFF">Blanco Sólido</option>
+                                      <option value="#18181B">Oscuro Zinc</option>
+                                    </select>
+                                    <input 
+                                      type="color" 
+                                      value={design.cardBgColor && design.cardBgColor.startsWith("#") ? design.cardBgColor : primaryCol} 
+                                      onChange={(e) => updateDesignKey("cardBgColor", e.target.value)} 
+                                      style={{ width: "34px", height: "34px", border: "1px solid var(--border-color)", borderRadius: "6px", background: "none", cursor: "pointer", padding: 0 }} 
+                                      title="Hex Fondo Tarjeta" 
+                                    />
+                                  </div>
                                 </div>
                               </div>
 
                               <div className="form-group" style={{ margin: 0 }}>
                                 <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "4px", display: "block" }}>Borde de Tarjetas</label>
-                                <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                                   <select 
                                     className="form-control" 
                                     value={design.cardBorderColor || "auto"} 
                                     onChange={(e) => updateDesignKey("cardBorderColor", e.target.value)}
-                                    style={{ fontSize: "0.8rem", padding: "0.45rem 0.6rem", borderRadius: "8px", flex: 1 }}
+                                    style={{ fontSize: "0.8rem", padding: "0.5rem 0.65rem", borderRadius: "8px", flex: 1 }}
                                   >
                                     <option value="auto">Predeterminado Sutil</option>
                                     <option value="brand">Color de Marca</option>
@@ -2258,7 +2260,7 @@ function AppLayoutShell({ children }) {
                                     type="color" 
                                     value={design.cardBorderColor && design.cardBorderColor.startsWith("#") ? design.cardBorderColor : primaryCol} 
                                     onChange={(e) => updateDesignKey("cardBorderColor", e.target.value)} 
-                                    style={{ width: "30px", height: "30px", border: "none", background: "none", cursor: "pointer", padding: 0 }} 
+                                    style={{ width: "34px", height: "34px", border: "1px solid var(--border-color)", borderRadius: "6px", background: "none", cursor: "pointer", padding: 0 }} 
                                     title="Hex Borde" 
                                   />
                                 </div>
