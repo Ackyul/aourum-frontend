@@ -640,6 +640,6 @@ export default function OrganizerProfilePage() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

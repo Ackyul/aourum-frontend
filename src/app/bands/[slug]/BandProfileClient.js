@@ -1146,9 +1146,9 @@ export default function BandProfileClient({ initialBand }) {
                             </div>
                           );
                         })}
-                      </div>
                     </div>
-                )}
+                  );
+                })()}
               </div>
               <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
                 <button type="button" onClick={() => setShowFairs(false)} className="btn-outline-gold" style={{ padding: "0.5rem 1.2rem", borderRadius: "6px" }}>Cancelar</button>
