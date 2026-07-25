@@ -1074,6 +1074,12 @@ export default function BrandProfileClient({ initialBrand }) {
     }
   }
 
+  let resolvedCardTextColor = null;
+  if (design.cardTextColor && design.cardTextColor !== "auto") {
+    if (design.cardTextColor === "brand") resolvedCardTextColor = palette.c1;
+    else if (design.cardTextColor.startsWith("#")) resolvedCardTextColor = design.cardTextColor;
+  }
+
   return (
     <div className="container brand-profile-theme-scope" style={{ maxWidth: "1400px", padding: "1.5rem 1rem 3rem 1rem", position: "relative", minHeight: "100vh", fontFamily: fontFamily !== "Inter" ? `"${fontFamily}", sans-serif` : "inherit" }}>
       {/* Import de la fuente de Google seleccionada si no es Inter */}
@@ -1085,7 +1091,6 @@ export default function BrandProfileClient({ initialBrand }) {
       <style>{`
         .brand-profile-theme-scope h1,
         .brand-profile-theme-scope h2,
-        .brand-profile-theme-scope h3,
         .brand-profile-theme-scope h4,
         .brand-profile-theme-scope h5,
         .brand-profile-theme-scope h6,
@@ -1156,7 +1161,7 @@ export default function BrandProfileClient({ initialBrand }) {
           ${enableAnimations ? 'transition: all 0.25s ease-in-out !important;' : ''}
         }
         .brand-profile-theme-scope .product-card h3 {
-          color: ${isStoreBgLight ? "#1C1C1E" : "#FFFFFF"} !important;
+          color: ${resolvedCardTextColor || (isStoreBgLight ? "#1C1C1E" : "#FFFFFF")} !important;
         }
         .brand-profile-theme-scope .product-card .card-text-container {
           background-color: ${isStoreBgLight ? "#FFFFFF" : "#18181B"} !important;
