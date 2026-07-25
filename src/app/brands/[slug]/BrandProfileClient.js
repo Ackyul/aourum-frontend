@@ -1080,7 +1080,7 @@ export default function BrandProfileClient({ initialBrand }) {
   }
 
   return (
-    <div className="container brand-profile-theme-scope" style={{ maxWidth: "1400px", padding: "1.5rem 1rem 3rem 1rem", position: "relative", minHeight: "100vh", fontFamily: fontFamily !== "Inter" ? `"${fontFamily}", sans-serif` : "inherit" }}>
+    <div className="container brand-profile-theme-scope" style={{ maxWidth: "1400px", padding: "1.5rem 1.5rem 3rem 1.5rem", position: "relative", minHeight: "100vh", fontFamily: fontFamily !== "Inter" ? `"${fontFamily}", sans-serif` : "inherit" }}>
       {/* Import de la fuente de Google seleccionada si no es Inter */}
       {fontFamily !== "Inter" && (
         <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400;600;700;800&display=swap`} />

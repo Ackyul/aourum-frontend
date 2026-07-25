@@ -774,7 +774,7 @@ export default function FairProfileClient({ initialFair }) {
   }
 
   return (
-    <div className="container" style={{ maxWidth: "1400px", padding: "0 1rem" }}>
+    <div className="container" style={{ maxWidth: "1400px" }}>
       <style>{`
         @keyframes pulse-live {
           0% { transform: scale(0.9); opacity: 0.6; }

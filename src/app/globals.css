@@ -1601,14 +1601,14 @@ header {
 }
 
 .product-details-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 1rem 4rem 1rem;
+  padding: 0 1.5rem 4rem 1.5rem;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .product-details-container {
-    padding: 0 0.85rem 2.5rem 0.85rem;
+    padding: 0 1rem 2.5rem 1rem;
   }
 }
 
