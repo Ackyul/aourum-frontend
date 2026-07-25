@@ -1154,7 +1154,7 @@ export default function BandProfileClient({ initialBand }) {
             </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 }
