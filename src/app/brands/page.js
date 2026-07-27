@@ -12,7 +12,8 @@ export default function BrandsPage() {
     loading,
     searchTerm,
     parseDescription,
-    loadBrands
+    loadBrands,
+    getCurrentPerson
   } = useApp();
 
   useEffect(() => {
@@ -118,6 +119,27 @@ export default function BrandsPage() {
     return matchesSearch && matchesCategory;
   });
 
+  // Helper para priorizar marcas de la ciudad del usuario activo
+  const prioritizeByCity = (brandList) => {
+    const currentPerson = getCurrentPerson();
+    const userCity = currentPerson?.city ? currentPerson.city.trim().toLowerCase() : "";
+    if (!userCity) return brandList;
+
+    const matching = [];
+    const others = [];
+
+    brandList.forEach((b) => {
+      const bCity = b.city ? b.city.trim().toLowerCase() : "";
+      if (bCity && bCity === userCity) {
+        matching.push(b);
+      } else {
+        others.push(b);
+      }
+    });
+
+    return [...matching, ...others];
+  };
+
   // 2. Sort filtered brands based on selected sorting criteria
   const getSortedBrands = (brandList) => {
     const listToSort = brandList || filteredBrands;
@@ -131,13 +153,13 @@ export default function BrandsPage() {
         const item = heap.extractMax();
         if (item) sorted.push(item);
       }
-      return sorted;
+      return prioritizeByCity(sorted);
     } else if (sortBy === "name-asc") {
-      return [...listToSort].sort((a, b) => a.name.localeCompare(b.name));
+      return prioritizeByCity([...listToSort].sort((a, b) => a.name.localeCompare(b.name)));
     } else if (sortBy === "name-desc") {
-      return [...listToSort].sort((a, b) => b.name.localeCompare(a.name));
+      return prioritizeByCity([...listToSort].sort((a, b) => b.name.localeCompare(a.name)));
     }
-    return listToSort;
+    return prioritizeByCity(listToSort);
   };
 
   const sortedBrands = getSortedBrands();

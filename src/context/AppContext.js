@@ -198,6 +198,8 @@ export function AppContextProvider({ children }) {
   const [editThemeColor, setEditThemeColor] = useState("");
   const [editTagline, setEditTagline] = useState("");
   const [editInterests, setEditInterests] = useState("");
+  const [editCity, setEditCity] = useState("");
+  const [isOnboarding, setIsOnboarding] = useState(false);
   const [editBrandDesign, setEditBrandDesign] = useState({});
 
   // 2. Product/Service creation & editing
@@ -811,12 +813,33 @@ export function AppContextProvider({ children }) {
           setActivePersonId(stringId);
           setActiveUsername(data.person.username || "");
           setActiveRole("person");
+
+          // Configurar datos iniciales para el modal de datos básicos / onboarding
+          setEditProfileType("person");
+          setEditProfileId(stringId);
+          setEditName(data.person.name || regName || "");
+          setEditLastName(data.person.lastName || "");
+          setEditUsername(data.person.username || regUsername || "");
+          setEditOccupation(data.person.occupation || regOccupation || "");
+          setEditDescription(data.person.description || regDescription || "");
+          setEditLogo(data.person.logo || regLogo || "");
+          setEditLogoPreview(data.person.logo || regLogo || "");
+          setEditCity(data.person.city || "");
+          setEditInterests(data.person.interests || "");
+          setActiveEditTab("basic");
+          setIsOnboarding(true);
+          setEditProfileOpen(true);
+
           setRegName(""); setRegUsername(""); setRegEmail(""); setRegPassword(""); setRegOwner("");
           setRegCategory(""); setRegOccupation(""); setRegDescription("");
           setRegLocation(""); setRegDate(""); setRegTime(""); setRegGenre("");
           setRegMembers(""); setRegLogo(""); setRegLogoPreview("");
           setShowRegModal(false);
           fetchData();
+
+          if (typeof window !== "undefined" && window.location.pathname !== "/") {
+            window.location.href = "/";
+          }
         } else {
           triggerNotification(false, data.error || "No se pudo registrar. Intenta con otro correo o usuario.");
         }
@@ -1222,7 +1245,8 @@ export function AppContextProvider({ children }) {
         slug: editSlug, 
         whatsappNumber: editWhatsappNumber,
         themeColor: editThemeColor || '',
-        brandDesign: editBrandDesign || {}
+        brandDesign: editBrandDesign || {},
+        city: editCity
       };
     } else if (effectiveType === "fair" || effectiveType === "organizer") {
       url = `${API_URL}/api/organizers/${effectiveId}`;
@@ -1241,7 +1265,9 @@ export function AppContextProvider({ children }) {
         brandIds: editBrandIds,
         organizerIds: editOrganizerIds,
         bandIds: editBandIds,
-        lastName: editLastName
+        lastName: editLastName,
+        city: editCity,
+        interests: editInterests
       };
     }
     try {
@@ -1264,6 +1290,7 @@ export function AppContextProvider({ children }) {
           }
         }
         triggerNotification(true, "✨ ¡Perfil actualizado exitosamente!");
+        setIsOnboarding(false);
         setEditProfileOpen(false);
         fetchData();
       } else {
@@ -1489,8 +1516,9 @@ export function AppContextProvider({ children }) {
         editBanner, setEditBanner,
         editBannerPreview, setEditBannerPreview,
         editThemeColor, setEditThemeColor,
-        editTagline, setEditTagline,
         editInterests, setEditInterests,
+        editCity, setEditCity,
+        isOnboarding, setIsOnboarding,
         editBrandDesign, setEditBrandDesign,
         prodFormOpen, setProdFormOpen,
         editingProdId, setEditingProdId,

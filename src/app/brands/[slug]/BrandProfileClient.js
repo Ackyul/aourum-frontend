@@ -98,6 +98,7 @@ export default function BrandProfileClient({ initialBrand }) {
     setEditThemeColor,
     setEditTagline,
     setEditInterests,
+    setEditCity,
     editBrandDesign,
     editProfileOpen,
     editProfileId,
@@ -935,6 +936,7 @@ export default function BrandProfileClient({ initialBrand }) {
     setEditThemeColor(parsed.theme_color || "");
     setEditTagline(parsed.tagline || "");
     setEditInterests(parsed.interests || "");
+    if (setEditCity) setEditCity(brand.city || "");
     if (setEditBrandDesign) {
       setEditBrandDesign(brand.brandDesign || {});
     }

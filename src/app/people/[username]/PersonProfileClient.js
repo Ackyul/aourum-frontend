@@ -51,6 +51,7 @@ export default function PersonProfileClient() {
     setEditThemeColor,
     setEditTagline,
     setEditInterests,
+    setEditCity,
     parseDescription,
     brands,
     organizers,
@@ -201,7 +202,8 @@ export default function PersonProfileClient() {
     if (setEditBannerPreview) setEditBannerPreview(parsed.banner || "");
     if (setEditThemeColor) setEditThemeColor(parsed.theme_color || "");
     if (setEditTagline) setEditTagline(parsed.tagline || "");
-    if (setEditInterests) setEditInterests(parsed.interests || "");
+    if (setEditInterests) setEditInterests(person.interests || parsed.interests || "");
+    if (setEditCity) setEditCity(person.city || "");
     if (setEditBrandDesign) {
       setEditBrandDesign(parsed.brandDesign || {
         customBgColor: parsed.customBgColor || "",
@@ -242,7 +244,8 @@ export default function PersonProfileClient() {
     if (setEditBannerPreview) setEditBannerPreview(parsed.banner || "");
     if (setEditThemeColor) setEditThemeColor(parsed.theme_color || "");
     if (setEditTagline) setEditTagline(parsed.tagline || "");
-    if (setEditInterests) setEditInterests(parsed.interests || "");
+    if (setEditInterests) setEditInterests(person.interests || parsed.interests || "");
+    if (setEditCity) setEditCity(person.city || "");
     if (setEditBrandDesign) {
       setEditBrandDesign(parsed.brandDesign || {
         customBgColor: parsed.customBgColor || "",

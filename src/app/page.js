@@ -8,9 +8,18 @@ import { MaxHeap, getItemViews, getBrandViews, getProductViews } from "@/utils/m
 import SocialFeedPublisher from "@/components/SocialFeedPublisher";
 import PostList from "@/components/PostList";
 
-// Helper to interleave products of different brands to guarantee representation and bypass entry order
-const interleaveProducts = (productList) => {
+// Helper to interleave products of different brands to guarantee representation and bypass entry order, prioritizing user's city
+const interleaveProducts = (productList, brands = [], userCity = "") => {
   if (!productList || productList.length === 0) return [];
+
+  const brandCityMap = {};
+  if (Array.isArray(brands)) {
+    brands.forEach(b => {
+      if (b && b.id) {
+        brandCityMap[b.id] = b.city ? b.city.trim().toLowerCase() : "";
+      }
+    });
+  }
 
   // Group by brand
   const productsByBrand = {};
@@ -32,10 +41,28 @@ const interleaveProducts = (productList) => {
     return arr;
   };
 
-  // Shuffle the brands list and also shuffle products within each brand
-  const shuffledBrands = shuffle(Object.keys(productsByBrand));
+  const brandKeys = Object.keys(productsByBrand);
+  let sortedBrandKeys = shuffle(brandKeys);
+
+  // If userCity is specified, prioritize brand keys matching userCity first
+  if (userCity) {
+    const cleanUserCity = userCity.trim().toLowerCase();
+    const cityBrands = [];
+    const otherBrands = [];
+
+    sortedBrandKeys.forEach(bId => {
+      const bCity = brandCityMap[bId] || "";
+      if (bCity && bCity === cleanUserCity) {
+        cityBrands.push(bId);
+      } else {
+        otherBrands.push(bId);
+      }
+    });
+    sortedBrandKeys = [...cityBrands, ...otherBrands];
+  }
+
   const shuffledProductsByBrand = {};
-  shuffledBrands.forEach(bId => {
+  sortedBrandKeys.forEach(bId => {
     shuffledProductsByBrand[bId] = shuffle(productsByBrand[bId]);
   });
 
@@ -45,7 +72,7 @@ const interleaveProducts = (productList) => {
   let index = 0;
   while (hasMore) {
     hasMore = false;
-    shuffledBrands.forEach(bId => {
+    sortedBrandKeys.forEach(bId => {
       const brandProds = shuffledProductsByBrand[bId];
       if (index < brandProds.length) {
         orderedProducts.push(brandProds[index]);
@@ -465,13 +492,16 @@ export default function Home() {
 
   const featuredProducts = getFeaturedProducts();
 
+  const currentPerson = getCurrentPerson();
+  const userCity = currentPerson?.city || "";
+
   const showcaseProducts = useMemo(() => {
-    return interleaveProducts(products);
-  }, [products]);
+    return interleaveProducts(products, brands, userCity);
+  }, [products, brands, userCity]);
 
   const interleavedFilteredProducts = useMemo(() => {
-    return interleaveProducts(filteredProducts);
-  }, [filteredProducts]);
+    return interleaveProducts(filteredProducts, brands, userCity);
+  }, [filteredProducts, brands, userCity]);
 
   // Thematic sections specifications
   const themeSpecs = [

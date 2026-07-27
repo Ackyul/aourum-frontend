@@ -16,6 +16,22 @@ const inter = Inter({
   display: "swap",
 });
 
+const PERU_CITIES = [
+  "Lima", "Arequipa", "Trujillo", "Chiclayo", "Piura", "Cusco",
+  "Huancayo", "Iquitos", "Tacna", "Chimbote", "Cajamarca", "Pucallpa",
+  "Juliaca", "Ayacucho", "Huánuco", "Tarapoto", "Chincha Alta", "Ica",
+  "Sullana", "Moquegua", "Puno", "Tumbes", "Huaraz", "Cerro de Pasco",
+  "Abancay", "Puerto Maldonado"
+];
+
+const POPULAR_INTERESTS = [
+  "Perfumería", "Esoterismo & Astrología", "Tarot & Oráculos",
+  "Masajes & Holístico", "Artefactos & Místicos", "Duendes",
+  "Moda & Indumentaria", "Joyería & Cristales", "Gastronomía & Repostería",
+  "Bienestar & Cuidado Personal", "Música & Festivales", "Fotografía & Arte",
+  "Artesanías & Coleccionables"
+];
+
 function AppLayoutShell({ children }) {
   const {
     activeRole, setActiveRole,
@@ -81,8 +97,9 @@ function AppLayoutShell({ children }) {
     editBanner, setEditBanner,
     editBannerPreview, setEditBannerPreview,
     editThemeColor, setEditThemeColor,
-    editTagline, setEditTagline,
     editInterests, setEditInterests,
+    editCity, setEditCity,
+    isOnboarding, setIsOnboarding,
     editBrandDesign, setEditBrandDesign,
     handleAccountRegistration,
     handleEditProfileSubmit,
@@ -1315,11 +1332,15 @@ function AppLayoutShell({ children }) {
       {/* ── EDIT PROFILE MODAL ─────────────────────────────────────────────── */}
       {editProfileOpen && (
         <div className="modal-overlay" style={{ zIndex: 1150 }}>
-          <div className="modal-backdrop" onClick={() => setEditProfileOpen(false)}></div>
+          <div className="modal-backdrop" onClick={() => { if (!isOnboarding) setEditProfileOpen(false); }}></div>
           <div className="modal-panel fade-in" style={{ maxWidth: "560px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
               <h3 style={{ fontSize: "1.25rem", fontWeight: 800, display: "flex", alignItems: "center", gap: 10 }}>
-                {activeEditTab === "configuracion" ? (
+                {isOnboarding ? (
+                  <>
+                    <i className="fa-solid fa-sparkles" style={{ color: "var(--gold-primary)" }}></i> ¡Bienvenido! Completa tus Datos Básicos
+                  </>
+                ) : activeEditTab === "configuracion" ? (
                   <>
                     <i className="fa-solid fa-gear" style={{ color: "var(--gold-primary)" }}></i> Configuración
                   </>
@@ -1329,12 +1350,14 @@ function AppLayoutShell({ children }) {
                   </>
                 )}
               </h3>
-              <button onClick={() => setEditProfileOpen(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>&times;</button>
+              {!isOnboarding && (
+                <button onClick={() => setEditProfileOpen(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>&times;</button>
+              )}
             </div>
 
             <form onSubmit={handleEditProfileSubmit}>
-              {/* Tab bar header */}
-              {activeEditTab !== "configuracion" && (
+              {/* Tab bar header (solo si no es onboarding post-registro) */}
+              {activeEditTab !== "configuracion" && !isOnboarding && (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", borderBottom: "1.5px solid var(--border-color)", paddingBottom: "0.6rem", marginBottom: "1.2rem" }}>
                   <button 
                     type="button" 
@@ -1568,6 +1591,86 @@ function AppLayoutShell({ children }) {
                     <div className="form-group">
                       <label>Especialidad / Ocupación</label>
                       <input type="text" className="form-control" value={editOccupation} onChange={(e) => setEditOccupation(e.target.value)} placeholder="Ej: Ilustrador, Diseñador" />
+                    </div>
+                  )}
+
+                  <div className="form-group">
+                    <label style={{ fontSize: "0.85rem", fontWeight: 800, display: "flex", alignItems: "center", gap: 6 }}>
+                      <i className="fa-solid fa-location-dot" style={{ color: "var(--gold-primary)" }}></i> Ciudad / Ubicación *
+                    </label>
+                    <select 
+                      className="form-control" 
+                      value={editCity} 
+                      onChange={(e) => setEditCity(e.target.value)}
+                      required
+                    >
+                      <option value="">-- Selecciona tu Ciudad (Perú) --</option>
+                      {PERU_CITIES.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                      <option value="Otra Ciudad">Otra Ciudad / Fuera de Perú</option>
+                    </select>
+                  </div>
+
+                  {editProfileType === "person" && (
+                    <div className="form-group">
+                      <label style={{ fontSize: "0.85rem", fontWeight: 800, display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "var(--gold-primary)" }}></i> Intereses & Gustos
+                        </span>
+                        <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 400 }}>Haz clic para seleccionar</span>
+                      </label>
+
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "8px" }}>
+                        {POPULAR_INTERESTS.map((interest) => {
+                          const selectedList = (editInterests || "").split(",").map(s => s.trim()).filter(Boolean);
+                          const isSelected = selectedList.includes(interest);
+                          return (
+                            <button
+                              key={interest}
+                              type="button"
+                              onClick={() => {
+                                let nextList = [...selectedList];
+                                if (isSelected) {
+                                  nextList = nextList.filter(item => item !== interest);
+                                } else {
+                                  nextList.push(interest);
+                                }
+                                setEditInterests(nextList.join(", "));
+                              }}
+                              style={{
+                                background: isSelected ? "var(--gold-gradient)" : "rgba(255,255,255,0.06)",
+                                color: isSelected ? "#1C1C1E" : "var(--text-color)",
+                                border: isSelected ? "1px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                padding: "0.35rem 0.8rem",
+                                borderRadius: "20px",
+                                fontSize: "0.78rem",
+                                fontWeight: isSelected ? 700 : 500,
+                                cursor: "pointer",
+                                transition: "all 0.2s ease",
+                                boxShadow: isSelected ? "0 2px 8px rgba(212,175,55,0.25)" : "none",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px"
+                              }}
+                            >
+                              {isSelected && <i className="fa-solid fa-check" style={{ fontSize: "0.68rem" }}></i>}
+                              {interest}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        value={editInterests} 
+                        onChange={(e) => setEditInterests(e.target.value)} 
+                        placeholder="Ej: Perfumería, Tarot, Duendes, Masajes (separados por coma)" 
+                      />
+                      <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "4px" }}>
+                        Selecciona las etiquetas arriba o escribe tus intereses separados por comas.
+                      </p>
                     </div>
                   )}
 
@@ -2748,10 +2851,18 @@ function AppLayoutShell({ children }) {
                 </div>
               ) : (
                 <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1.2rem", borderTop: "1px solid var(--border-color)", paddingTop: "1rem" }}>
-                  <button type="button" onClick={() => setEditProfileOpen(false)} className="btn-outline-gold" style={{ padding: "0.5rem 1.3rem", borderRadius: "8px", fontSize: "0.88rem" }}>Cancelar</button>
-                  <button type="submit" className="btn-gold" style={{ padding: "0.5rem 1.6rem", borderRadius: "8px", fontSize: "0.88rem", fontWeight: 700 }} disabled={uploadingEdit || editProfileLoading}>
-                    <i className={editProfileLoading ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-check"}></i> {editProfileLoading ? "Guardando..." : "Guardar Cambios"}
-                  </button>
+                  {isOnboarding ? (
+                    <button type="submit" className="btn-gold" style={{ width: "100%", padding: "0.75rem 1.6rem", borderRadius: "10px", fontSize: "0.95rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }} disabled={uploadingEdit || editProfileLoading}>
+                      <i className={editProfileLoading ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-rocket"}></i> {editProfileLoading ? "Guardando..." : "Completar Registro y Guardar"}
+                    </button>
+                  ) : (
+                    <>
+                      <button type="button" onClick={() => setEditProfileOpen(false)} className="btn-outline-gold" style={{ padding: "0.5rem 1.3rem", borderRadius: "8px", fontSize: "0.88rem" }}>Cancelar</button>
+                      <button type="submit" className="btn-gold" style={{ padding: "0.5rem 1.6rem", borderRadius: "8px", fontSize: "0.88rem", fontWeight: 700 }} disabled={uploadingEdit || editProfileLoading}>
+                        <i className={editProfileLoading ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-check"}></i> {editProfileLoading ? "Guardando..." : "Guardar Cambios"}
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </form>
