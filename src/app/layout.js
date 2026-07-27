@@ -127,6 +127,7 @@ function AppLayoutShell({ children }) {
   } = useApp();
 
   const [mounted, setMounted] = useState(false);
+  const [customInterestInput, setCustomInterestInput] = useState("");
   
   // Estados para configuración de seguridad del perfil
   const [configEmail, setConfigEmail] = useState("");
@@ -1618,59 +1619,100 @@ function AppLayoutShell({ children }) {
                         <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "var(--gold-primary)" }}></i> Intereses & Gustos
                         </span>
-                        <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 400 }}>Haz clic para seleccionar</span>
+                        <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 400 }}>Haz clic en las etiquetas o añade las tuyas</span>
                       </label>
 
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "8px" }}>
-                        {POPULAR_INTERESTS.map((interest) => {
-                          const selectedList = (editInterests || "").split(",").map(s => s.trim()).filter(Boolean);
-                          const isSelected = selectedList.includes(interest);
-                          return (
-                            <button
-                              key={interest}
-                              type="button"
-                              onClick={() => {
-                                let nextList = [...selectedList];
-                                if (isSelected) {
-                                  nextList = nextList.filter(item => item !== interest);
-                                } else {
-                                  nextList.push(interest);
-                                }
-                                setEditInterests(nextList.join(", "));
-                              }}
-                              style={{
-                                background: isSelected ? "var(--gold-gradient)" : "rgba(255,255,255,0.06)",
-                                color: isSelected ? "#1C1C1E" : "var(--text-color)",
-                                border: isSelected ? "1px solid var(--gold-primary)" : "1px solid var(--border-color)",
-                                padding: "0.35rem 0.8rem",
-                                borderRadius: "20px",
-                                fontSize: "0.78rem",
-                                fontWeight: isSelected ? 700 : 500,
-                                cursor: "pointer",
-                                transition: "all 0.2s ease",
-                                boxShadow: isSelected ? "0 2px 8px rgba(212,175,55,0.25)" : "none",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "4px"
-                              }}
-                            >
-                              {isSelected && <i className="fa-solid fa-check" style={{ fontSize: "0.68rem" }}></i>}
-                              {interest}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      {/* Chips list container */}
+                      {(() => {
+                        const selectedList = (editInterests || "").split(",").map(s => s.trim()).filter(Boolean);
+                        // Combine popular interests with any user-custom selected interests
+                        const combinedChips = Array.from(new Set([...POPULAR_INTERESTS, ...selectedList]));
 
-                      <input 
-                        type="text" 
-                        className="form-control" 
-                        value={editInterests} 
-                        onChange={(e) => setEditInterests(e.target.value)} 
-                        placeholder="Ej: Perfumería, Tarot, Duendes, Masajes (separados por coma)" 
-                      />
-                      <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "4px" }}>
-                        Selecciona las etiquetas arriba o escribe tus intereses separados por comas.
-                      </p>
+                        const handleAddTag = (tagToAdd) => {
+                          const clean = tagToAdd.trim();
+                          if (!clean) return;
+                          if (!selectedList.map(s => s.toLowerCase()).includes(clean.toLowerCase())) {
+                            const next = [...selectedList, clean];
+                            setEditInterests(next.join(", "));
+                          }
+                          setCustomInterestInput("");
+                        };
+
+                        const handleToggleTag = (interest) => {
+                          const isSelected = selectedList.some(s => s.toLowerCase() === interest.toLowerCase());
+                          let nextList = [...selectedList];
+                          if (isSelected) {
+                            nextList = nextList.filter(item => item.toLowerCase() !== interest.toLowerCase());
+                          } else {
+                            nextList.push(interest);
+                          }
+                          setEditInterests(nextList.join(", "));
+                        };
+
+                        return (
+                          <>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "10px", maxHeight: "180px", overflowY: "auto", padding: "2px" }}>
+                              {combinedChips.map((interest) => {
+                                const isSelected = selectedList.some(s => s.toLowerCase() === interest.toLowerCase());
+                                return (
+                                  <button
+                                    key={interest}
+                                    type="button"
+                                    onClick={() => handleToggleTag(interest)}
+                                    style={{
+                                      background: isSelected ? "var(--gold-gradient)" : "rgba(255,255,255,0.06)",
+                                      color: isSelected ? "#1C1C1E" : "var(--text-color)",
+                                      border: isSelected ? "1px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                      padding: "0.35rem 0.85rem",
+                                      borderRadius: "20px",
+                                      fontSize: "0.78rem",
+                                      fontWeight: isSelected ? 700 : 500,
+                                      cursor: "pointer",
+                                      transition: "all 0.2s ease",
+                                      boxShadow: isSelected ? "0 2px 8px rgba(212,175,55,0.25)" : "none",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "5px"
+                                    }}
+                                  >
+                                    {isSelected ? <i className="fa-solid fa-check" style={{ fontSize: "0.68rem" }}></i> : <i className="fa-solid fa-plus" style={{ fontSize: "0.65rem", opacity: 0.6 }}></i>}
+                                    {interest}
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            {/* Custom Tag Creator */}
+                            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                              <input 
+                                type="text" 
+                                className="form-control" 
+                                style={{ fontSize: "0.85rem" }}
+                                value={customInterestInput} 
+                                onChange={(e) => setCustomInterestInput(e.target.value)} 
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    handleAddTag(customInterestInput);
+                                  }
+                                }}
+                                placeholder="Escribe otro interés (ej: Skincare, Cerveza Artesanal, Alquimia...)" 
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleAddTag(customInterestInput)}
+                                className="btn-gold"
+                                style={{ padding: "0.45rem 1rem", borderRadius: "8px", fontSize: "0.82rem", fontWeight: 700, whiteSpace: "nowrap" }}
+                              >
+                                + Añadir
+                              </button>
+                            </div>
+                            <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "4px" }}>
+                              Puedes seleccionar las etiquetas prediseñadas o escribir cualquier interés personalizado.
+                            </p>
+                          </>
+                        );
+                      })()}
                     </div>
                   )}
 
