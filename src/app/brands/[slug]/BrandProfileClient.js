@@ -1128,7 +1128,6 @@ export default function BrandProfileClient({ initialBrand }) {
       <style>{`
         ${fontFamily !== "Inter" ? `
           .brand-profile-theme-scope,
-          .brand-profile-theme-scope *,
           .brand-profile-theme-scope h1,
           .brand-profile-theme-scope h2,
           .brand-profile-theme-scope h3,
@@ -1136,10 +1135,23 @@ export default function BrandProfileClient({ initialBrand }) {
           .brand-profile-theme-scope h5,
           .brand-profile-theme-scope h6,
           .brand-profile-theme-scope p,
-          .brand-profile-theme-scope span,
-          .brand-profile-theme-scope button,
-          .brand-profile-theme-scope div {
+          .brand-profile-theme-scope span:not([class*="fa-"]),
+          .brand-profile-theme-scope button:not([class*="fa-"]),
+          .brand-profile-theme-scope div:not([class*="fa-"]),
+          .brand-profile-theme-scope a:not([class*="fa-"]),
+          .brand-profile-theme-scope label:not([class*="fa-"]),
+          .brand-profile-theme-scope input:not([class*="fa-"]) {
             font-family: "${fontFamily}", sans-serif !important;
+          }
+          .brand-profile-theme-scope i,
+          .brand-profile-theme-scope [class*="fa-"],
+          .brand-profile-theme-scope .fa-solid,
+          .brand-profile-theme-scope .fa-regular,
+          .brand-profile-theme-scope .fa-brands,
+          .brand-profile-theme-scope .fas,
+          .brand-profile-theme-scope .far,
+          .brand-profile-theme-scope .fab {
+            font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", FontAwesome !important;
           }
         ` : ''}
         .brand-profile-theme-scope h1,
