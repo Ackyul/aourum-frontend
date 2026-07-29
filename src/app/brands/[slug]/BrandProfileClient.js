@@ -973,15 +973,19 @@ export default function BrandProfileClient({ initialBrand }) {
 
   const { getBrandPalette } = useApp();
   const parsed = parseDescription(brand.description);
-  const palette = getBrandPalette ? getBrandPalette(parsed, brand) : { c1: "#D4AF37", c2: "#EAB308", c3: "#F97316", c4: "#8B5CF6" };
+  const isEditingThisBrand = editProfileOpen && editProfileId === brand?.id;
+  const effectiveThemeColor = (isEditingThisBrand && editThemeColor) ? editThemeColor : (brand.themeColor || parsed.theme_color || '');
+  const effectiveBanner = isEditingThisBrand ? (editBannerPreview || editBanner || parsed.banner || '') : (parsed.banner || '');
+  const effectiveTagline = isEditingThisBrand ? (editTagline !== undefined ? editTagline : parsed.tagline) : (parsed.tagline || '');
+
+  const palette = getBrandPalette ? getBrandPalette(parsed, { ...brand, themeColor: effectiveThemeColor }) : { c1: "#D4AF37", c2: "#EAB308", c3: "#F97316", c4: "#8B5CF6" };
   const themeColor = palette.c1;
-  const bannerStyle = !parsed.banner ? { background: `linear-gradient(135deg, ${palette.c1}, ${palette.c2})` } : {};
+  const bannerStyle = !effectiveBanner ? { background: `linear-gradient(135deg, ${palette.c1}, ${palette.c2})` } : {};
 
   // Opciones avanzadas de personalización visual (brandDesign) con Vista Previa en Vivo
-  const isEditingThisBrand = editProfileOpen && editProfileId === brand?.id;
   const design = (isEditingThisBrand && editBrandDesign && Object.keys(editBrandDesign).length > 0)
     ? editBrandDesign
-    : (brand.brandDesign || {});
+    : (brand.brandDesign && Object.keys(brand.brandDesign).length > 0 ? brand.brandDesign : (parsed.brandDesign || {}));
   const bgStyle = design.bgStyle || "solid";
   const customBgColor = design.customBgColor || "#FAF9F0";
   const bgImage = design.bgImage || "";
@@ -1098,11 +1102,12 @@ export default function BrandProfileClient({ initialBrand }) {
   }
 
   return (
-    <div className="container brand-profile-theme-scope" style={{ maxWidth: "1400px", padding: "1.5rem 1.5rem 3rem 1.5rem", position: "relative", minHeight: "100vh", fontFamily: fontFamily !== "Inter" ? `"${fontFamily}", sans-serif` : "inherit" }}>
-      {/* Import de la fuente de Google seleccionada si no es Inter */}
-      {fontFamily !== "Inter" && (
-        <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400;600;700;800&display=swap`} />
-      )}
+    <div className="brand-profile-page-wrapper" style={{ minHeight: "100vh", width: "100%", position: "relative", ...profileBgCss }}>
+      <div className="container brand-profile-theme-scope" style={{ maxWidth: "1400px", padding: "1.5rem 1.5rem 3rem 1.5rem", position: "relative", minHeight: "100vh", fontFamily: fontFamily !== "Inter" ? `"${fontFamily}", sans-serif` : "inherit" }}>
+        {/* Import de la fuente de Google seleccionada si no es Inter */}
+        {fontFamily !== "Inter" && (
+          <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400;600;700;800&display=swap`} />
+        )}
 
       {/* Estilos dinámicos de la Paleta de Marca para toda la página */}
       <style>{`
@@ -1258,8 +1263,8 @@ export default function BrandProfileClient({ initialBrand }) {
       {/* Cabezal de Perfil Extremo a Extremo 1200x500 */}
       <div style={{ position: "relative", marginBottom: "2.5rem", zIndex: 1 }}>
         <div className="profile-header-banner" style={{ ...bannerStyle, overflow: "hidden", position: "relative" }}>
-          {parsed.banner && (
-            <img src={parsed.banner} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "cover", filter: bannerOverlay === "blur" ? "blur(3px)" : "none" }} />
+          {effectiveBanner && (
+            <img src={effectiveBanner} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "cover", filter: bannerOverlay === "blur" ? "blur(3px)" : "none" }} />
           )}
           
           {/* Overlay sobre el banner */}
@@ -1287,9 +1292,9 @@ export default function BrandProfileClient({ initialBrand }) {
                 </span>
               </div>
               <h2 style={{ fontSize: "1.8rem", fontWeight: 800, marginTop: "0.8rem", letterSpacing: "-0.015em" }}>{brand.name}</h2>
-              {parsed.tagline && (
+              {effectiveTagline && (
                 <p style={{ fontSize: "1.0rem", color: "var(--text-muted)", fontStyle: "italic", marginTop: "0.4rem", marginBottom: "0.4rem" }}>
-                  &ldquo;{parsed.tagline}&rdquo;
+                  &ldquo;{effectiveTagline}&rdquo;
                 </p>
               )}
               {brand.collaborators && brand.collaborators.length > 1 && (
@@ -2525,6 +2530,7 @@ export default function BrandProfileClient({ initialBrand }) {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 }
