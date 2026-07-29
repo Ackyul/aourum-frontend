@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 import PostList from "../../../components/PostList";
+import SocialFeedPublisher from "../../../components/SocialFeedPublisher";
 const DEFAULT_USER_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' fill='%23E5E7EB'/%3E%3Cpath d='M64 24a24 24 0 100 48 24 24 0 000-48zM32 104a32 32 0 0164 0H32z' fill='%239CA3AF'/%3E%3C/svg%3E";
 
 export default function PersonProfileClient() {
@@ -78,29 +79,23 @@ export default function PersonProfileClient() {
     if (typeof loadBands === "function") loadBands();
   }, [loadPeople, loadInvitations, loadBrands, loadFairs, loadBands]);
 
-  const [personId, setPersonId] = useState(null);
-
   const person = useMemo(() => {
     if (!people || people.length === 0) return null;
-    const normParam = usernameParam ? usernameParam.toString().toLowerCase().trim() : "";
+    const normParam = usernameParam ? decodeURIComponent(usernameParam).toString().toLowerCase().trim() : "";
     const isNum = /^\d+$/.test(normParam);
     return people.find((p) => {
       if (!p) return false;
-      if (personId && p.id === personId) return true;
       const pUser = (p.username || "").toLowerCase().trim();
       const pName = (p.name || "").toLowerCase().trim();
+      const pLastName = (p.lastName || "").toLowerCase().trim();
+      const fullNameNoSpace = `${pName}${pLastName}`.replace(/\s+/g, '');
       if (pUser && (pUser === normParam || pUser.replace(/_/g, '-') === normParam || pUser.replace(/-/g, '_') === normParam)) return true;
       if (pName && (pName === normParam || pName.replace(/\s+/g, '') === normParam)) return true;
+      if (fullNameNoSpace && fullNameNoSpace === normParam) return true;
       if (isNum && p.id === Number(normParam)) return true;
       return p.id != null && p.id.toString() === normParam;
     }) || null;
-  }, [people, personId, usernameParam]);
-
-  useEffect(() => {
-    if (person && !personId) {
-      setPersonId(person.id);
-    }
-  }, [person, personId]);
+  }, [people, usernameParam]);
 
   useEffect(() => {
     if (person?.id && typeof loadPosts === "function") {
