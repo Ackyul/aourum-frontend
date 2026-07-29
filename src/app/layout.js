@@ -1660,7 +1660,7 @@ function AppLayoutShell({ children }) {
 
                         return (
                           <>
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "10px", maxHeight: "180px", overflowY: "auto", padding: "2px" }}>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "12px", padding: "2px" }}>
                               {combinedChips.map((interest) => {
                                 const isSelected = selectedList.some(s => s.toLowerCase() === interest.toLowerCase());
                                 return (
