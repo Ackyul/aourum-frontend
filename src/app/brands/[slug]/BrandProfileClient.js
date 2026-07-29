@@ -893,7 +893,8 @@ export default function BrandProfileClient({ initialBrand }) {
 
   // Check collaborator role of the logged-in persona
   const currentPerson = people.find((p) => Number(p.id) === Number(activePersonId));
-  const isDirectOwner = activePersonId != null && brand?.personId != null && Number(brand.personId) === Number(activePersonId);
+  const isBrandSessionOwner = (activeRole === 'brand' && activeBrandId != null && brand?.id != null && Number(activeBrandId) === Number(brand.id));
+  const isDirectOwner = isBrandSessionOwner || (activePersonId != null && brand?.personId != null && Number(brand.personId) === Number(activePersonId));
   const userCollaborator = brand?.collaborators ? brand.collaborators.find(c => Number(c.personId) === Number(activePersonId)) : null;
   const userRole = userCollaborator ? userCollaborator.role : (isDirectOwner ? 'creador_original' : null);
   const isCollaborator = !!userRole || isDirectOwner;
