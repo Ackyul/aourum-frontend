@@ -32,6 +32,14 @@ const POPULAR_INTERESTS = [
   "Artesanías & Coleccionables"
 ];
 
+const toHex7 = (val, fallback = "#D4AF37") => {
+  if (!val || typeof val !== "string") return fallback;
+  let s = val.trim();
+  if (!s.startsWith("#")) s = "#" + s;
+  if (s.length === 4) s = "#" + s[1] + s[1] + s[2] + s[2] + s[3] + s[3];
+  return /^#[0-9A-Fa-f]{6}$/.test(s) ? s : fallback;
+};
+
 function AppLayoutShell({ children }) {
   const {
     activeRole, setActiveRole,
@@ -1916,15 +1924,6 @@ function AppLayoutShell({ children }) {
 
                       const design = editBrandDesign || {};
                       const generalBgCol = design.customBgColor || "#FAF9F0";
-
-                      // Helper para formatear cadenas a hex7 válido (#RRGGBB) para <input type="color">
-                      const toHex7 = (val, fallback = "#D4AF37") => {
-                        if (!val || typeof val !== "string") return fallback;
-                        let s = val.trim();
-                        if (!s.startsWith("#")) s = "#" + s;
-                        if (s.length === 4) s = "#" + s[1] + s[1] + s[2] + s[2] + s[3] + s[3];
-                        return /^#[0-9A-Fa-f]{6}$/.test(s) ? s : fallback;
-                      };
 
                       // Helper para calcular versión clara del color principal
                       const getLightTint = (hex) => {
