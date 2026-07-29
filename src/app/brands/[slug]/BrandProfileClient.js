@@ -975,6 +975,7 @@ export default function BrandProfileClient({ initialBrand }) {
   const effectiveThemeColor = (isEditingThisBrand && editThemeColor) ? editThemeColor : (brand.themeColor || parsed.theme_color || '');
   const effectiveBanner = isEditingThisBrand ? (editBannerPreview || editBanner || parsed.banner || '') : (parsed.banner || '');
   const effectiveTagline = isEditingThisBrand ? (editTagline !== undefined ? editTagline : parsed.tagline) : (parsed.tagline || '');
+  const effectiveCity = (isEditingThisBrand && editCity) ? editCity : (brand.city || '');
 
   const palette = getBrandPalette ? getBrandPalette(parsed, { ...brand, themeColor: effectiveThemeColor }) : { c1: "#D4AF37", c2: "#EAB308", c3: "#F97316", c4: "#8B5CF6" };
   const themeColor = palette.c1;
@@ -1317,9 +1318,11 @@ export default function BrandProfileClient({ initialBrand }) {
                 <span style={{ fontSize: "0.8rem", color: palette.c1, textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.08em", background: `${palette.c1}15`, padding: "4px 12px", borderRadius: "20px", border: `1px solid ${palette.c1}35` }}>
                   {brand.rubro_especifico || brand.rubro_general || brand.category}
                 </span>
-                <span style={{ fontSize: "0.72rem", color: palette.c2, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "4px", background: `${palette.c2}15`, padding: "4px 10px", borderRadius: "20px", border: `1px solid ${palette.c2}30` }}>
-                  <i className="fa-solid fa-store" style={{ fontSize: "0.75rem", color: palette.c3 }}></i> Marca Aourum
-                </span>
+                {effectiveCity && (
+                  <span style={{ fontSize: "0.72rem", color: palette.c2, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "4px", background: `${palette.c2}15`, padding: "4px 10px", borderRadius: "20px", border: `1px solid ${palette.c2}30` }}>
+                    <i className="fa-solid fa-location-dot" style={{ fontSize: "0.75rem", color: palette.c3 }}></i> {effectiveCity}
+                  </span>
+                )}
               </div>
               <h2 style={{ fontSize: "1.8rem", fontWeight: 800, marginTop: "0.8rem", letterSpacing: "-0.015em" }}>{brand.name}</h2>
               {effectiveTagline && (
