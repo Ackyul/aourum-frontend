@@ -33,6 +33,7 @@ export default function BrandProfileClient({ initialBrand }) {
     people,
     loading,
     activePersonId,
+    activeBrandId,
     prodFormOpen,
     setProdFormOpen,
     editingProdId,

@@ -2595,7 +2595,7 @@ function AppLayoutShell({ children }) {
                         </label>
                         <div ref={localMapContainerRef} style={{ height: "200px", width: "100%", borderRadius: "8px", border: "1px solid var(--border-color)", zIndex: 1 }}></div>
                         <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px", display: "block" }}>
-                          Coordenadas del local: Lat: {editLocalLat.toFixed(5)}, Lng: {editLocalLng.toFixed(5)}
+                          Coordenadas del local: Lat: {(Number(editLocalLat) || -16.39889).toFixed(5)}, Lng: {(Number(editLocalLng) || -71.53694).toFixed(5)}
                         </span>
                       </div>
                     </>
