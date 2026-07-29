@@ -4,10 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { useApp } from "../context/AppContext";
 
+const DEFAULT_USER_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' fill='%23E5E7EB'/%3E%3Cpath d='M64 24a24 24 0 100 48 24 24 0 000-48zM32 104a32 32 0 0164 0H32z' fill='%239CA3AF'/%3E%3C/svg%3E";
+
 function SocialPostCard({ post, activePersonId, brands = [], organizers = [], deletePost, togglePostLike, addPostComment, deletePostComment, triggerNotification, onPostDeleted }) {
   const author = post.author || post.personAuthor || {};
   const authorName = author.name || "Usuario Aourum";
-  const authorAvatar = author.logo || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&q=80";
+  const authorAvatar = author.logo || DEFAULT_USER_AVATAR;
   const authorTypeLabel = post.authorType === "brand" ? "Marca" : post.authorType === "organizer" ? "Productora" : "";
   
   const isCreator = activePersonId != null && Number(post.personId) === Number(activePersonId);
@@ -374,7 +376,7 @@ function SocialPostCard({ post, activePersonId, brands = [], organizers = [], de
                 return (
                   <div key={c.id} style={{ display: "flex", gap: "10px", background: "var(--bg-input)", padding: "8px 12px", borderRadius: "10px" }}>
                     <img
-                      src={c.authorLogo || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&q=80"}
+                      src={c.authorLogo || DEFAULT_USER_AVATAR}
                       alt={c.authorName}
                       style={{ width: "30px", height: "30px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
                     />

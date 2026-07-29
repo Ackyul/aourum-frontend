@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 import PostList from "../../../components/PostList";
-import SocialFeedPublisher from "../../../components/SocialFeedPublisher";
+const DEFAULT_USER_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' fill='%23E5E7EB'/%3E%3Cpath d='M64 24a24 24 0 100 48 24 24 0 000-48zM32 104a32 32 0 0164 0H32z' fill='%239CA3AF'/%3E%3C/svg%3E";
 
 export default function PersonProfileClient() {
   const routeParams = useParams();
@@ -344,7 +344,7 @@ export default function PersonProfileClient() {
         <div className="profile-body person-profile-body-offset" style={{ position: "relative", zIndex: 1, padding: "0 2rem 2rem 2rem" }}>
           <div style={{ display: "flex", gap: "2rem", alignItems: "flex-end", flexWrap: "wrap", marginBottom: "2rem" }}>
             <img 
-              src={person.logo || "https://placehold.co/120x120/d4af37/1C1C1E?text=P"} 
+              src={person.logo || DEFAULT_USER_AVATAR} 
               alt={person.name} 
               className="person-avatar-large"
               style={{ width: "140px", height: "140px", borderRadius: "50%", objectFit: "cover", border: "4px solid #FFFFFF", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", flexShrink: 0 }}
@@ -497,7 +497,7 @@ export default function PersonProfileClient() {
                               }}
                             >
                               <img 
-                                src={b.logo || "https://placehold.co/40x40/d4af37/1C1C1E?text=M"} 
+                                src={b.logo || ""} 
                                 alt={b.name} 
                                 style={{ width: "36px", height: "36px", borderRadius: "8px", objectFit: "cover" }} 
                               />
@@ -535,7 +535,7 @@ export default function PersonProfileClient() {
                               }}
                             >
                               <img 
-                                src={o.logo || "https://placehold.co/40x40/d4af37/1C1C1E?text=P"} 
+                                src={o.logo || ""} 
                                 alt={o.name} 
                                 style={{ width: "36px", height: "36px", borderRadius: "8px", objectFit: "cover" }} 
                               />
@@ -573,7 +573,7 @@ export default function PersonProfileClient() {
                               }}
                             >
                               <img 
-                                src={b.image || "https://placehold.co/40x40/d4af37/1C1C1E?text=B"} 
+                                src={b.image || ""} 
                                 alt={b.name} 
                                 style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover" }} 
                               />

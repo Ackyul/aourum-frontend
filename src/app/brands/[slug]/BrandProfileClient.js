@@ -19,6 +19,7 @@ const getItemViews = (name, id) => {
 };
 
 const getProductViews = (p) => p.views || p.viewCount || getItemViews(p.name, p.id);
+const DEFAULT_USER_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' fill='%23E5E7EB'/%3E%3Cpath d='M64 24a24 24 0 100 48 24 24 0 000-48zM32 104a32 32 0 0164 0H32z' fill='%239CA3AF'/%3E%3C/svg%3E";
 
 export default function BrandProfileClient({ initialBrand }) {
   const routeParams = useParams();
@@ -2297,11 +2298,14 @@ export default function BrandProfileClient({ initialBrand }) {
                       if (!p) return null;
                       const isThisCollaboratorOriginalCreator = c.role === 'creador_original';
                       return (
-                        <div key={p.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-input)", padding: "0.5rem", borderRadius: "6px", gap: "10px" }}>
+                        <div key={p.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-input)", padding: "0.5rem 0.75rem", borderRadius: "8px", gap: "10px" }}>
                           <div onClick={() => { router.push(`/people/${p.username || p.id}`); setShowCollabs(false); }} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-                            <img src={p.logo} alt={p.name} style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover" }} />
-                            <span style={{ fontSize: "0.85rem", fontWeight: 600, textDecoration: "underline" }}>{p.name}</span>
-                            <span style={{ fontSize: "0.72rem", color: "var(--text-gold)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>({c.role})</span>
+                            <img src={p.logo || DEFAULT_USER_AVATAR} alt={p.name} style={{ width: "28px", height: "28px", borderRadius: "50%", objectFit: "cover" }} />
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                              <span style={{ fontSize: "0.85rem", fontWeight: 700, textDecoration: "underline" }}>{p.name}</span>
+                              <span style={{ fontSize: "0.78rem", color: "var(--text-gold)", fontWeight: 700 }}>@{p.username || p.id}</span>
+                              <span style={{ fontSize: "0.70rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>({c.role})</span>
+                            </div>
                           </div>
                           
                           {userRole === 'creador_original' && !isThisCollaboratorOriginalCreator && (
@@ -2344,11 +2348,14 @@ export default function BrandProfileClient({ initialBrand }) {
                       const pendingReceiverIds = invitations.filter(inv => inv.senderType === "brand" && inv.senderId === brand.id).map(inv => inv.receiverPersonId);
                       const candidates = people.filter(p => !linkedIds.includes(p.id) && !pendingReceiverIds.includes(p.id));
 
-                      const filteredCandidates = candidates.filter(p => 
-                        p.name.toLowerCase().includes(personSearchQuery.toLowerCase()) || 
-                        (p.username && p.username.toLowerCase().includes(personSearchQuery.toLowerCase())) ||
-                        (p.occupation && p.occupation.toLowerCase().includes(personSearchQuery.toLowerCase()))
-                      );
+                      const cleanQ = personSearchQuery.toLowerCase().trim().replace(/^@/, '');
+                      const filteredCandidates = candidates.filter(p => {
+                        if (!cleanQ) return true;
+                        const pName = (p.name || '').toLowerCase();
+                        const pUser = (p.username || '').toLowerCase();
+                        const pOcc = (p.occupation || '').toLowerCase();
+                        return pName.includes(cleanQ) || pUser.includes(cleanQ) || pOcc.includes(cleanQ);
+                      });
 
                       return (
                         <form onSubmit={(e) => {
@@ -2366,7 +2373,7 @@ export default function BrandProfileClient({ initialBrand }) {
                               <input
                                 type="text"
                                 className="form-control"
-                                placeholder="Escribe el nombre para buscar..."
+                                placeholder="Buscar por nombre o @usuario..."
                                 value={personSearchQuery}
                                 onChange={(e) => {
                                   setPersonSearchQuery(e.target.value);
@@ -2392,7 +2399,7 @@ export default function BrandProfileClient({ initialBrand }) {
                                     position: "absolute", top: "100%", left: 0, right: 0,
                                     background: "var(--bg-card)", border: "1px solid var(--border-color)",
                                     borderRadius: "8px", boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-                                    maxHeight: "160px", overflowY: "auto", zIndex: 1000, marginTop: "4px"
+                                    maxHeight: "180px", overflowY: "auto", zIndex: 1000, marginTop: "4px"
                                   }}
                                 >
                                   {filteredCandidates.map(p => (
@@ -2400,19 +2407,27 @@ export default function BrandProfileClient({ initialBrand }) {
                                       key={p.id}
                                       onClick={() => {
                                         setSelectedPersonId(p.id.toString());
-                                        setPersonSearchQuery(p.name + (p.occupation ? ` (${p.occupation})` : ""));
+                                        setPersonSearchQuery(`${p.name} (@${p.username || p.id})`);
                                         setShowPersonDropdown(false);
                                       }}
                                       style={{
                                         padding: "0.6rem 1rem", cursor: "pointer",
                                         transition: "background 0.2s", fontSize: "0.85rem",
-                                        borderBottom: "1px solid rgba(0,0,0,0.02)",
+                                        borderBottom: "1px solid rgba(0,0,0,0.04)",
+                                        display: "flex", alignItems: "center", gap: "10px",
                                         color: "var(--text-primary)"
                                       }}
-                                      onMouseEnter={(e) => e.target.style.background = "var(--bg-input)"}
-                                      onMouseLeave={(e) => e.target.style.background = "none"}
+                                      onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-input)"}
+                                      onMouseLeave={(e) => e.currentTarget.style.background = "none"}
                                     >
-                                      <strong>{p.name}</strong> {p.occupation && <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginLeft: "6px" }}>({p.occupation})</span>}
+                                      <img src={p.logo || DEFAULT_USER_AVATAR} alt={p.name} style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover" }} />
+                                      <div style={{ display: "flex", flexDirection: "column", lineHeight: "1.2" }}>
+                                        <div>
+                                          <strong>{p.name}</strong>
+                                          <span style={{ color: "var(--text-gold)", fontSize: "0.8rem", fontWeight: 700, marginLeft: "6px" }}>@{p.username || p.id}</span>
+                                        </div>
+                                        {p.occupation && <span style={{ color: "var(--text-muted)", fontSize: "0.75rem", marginTop: "2px" }}>{p.occupation}</span>}
+                                      </div>
                                     </div>
                                   ))}
                                 </div>

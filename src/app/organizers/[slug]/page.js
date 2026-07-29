@@ -5,6 +5,8 @@ import { useApp } from "../../../context/AppContext";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 
+const DEFAULT_USER_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' fill='%23E5E7EB'/%3E%3Cpath d='M64 24a24 24 0 100 48 24 24 0 000-48zM32 104a32 32 0 0164 0H32z' fill='%239CA3AF'/%3E%3C/svg%3E";
+
 export default function OrganizerProfilePage() {
   const routeParams = useParams();
   const slug = routeParams?.slug || "";
@@ -341,7 +343,7 @@ export default function OrganizerProfilePage() {
         </div>
 
         <div className="profile-avatar-wrapper">
-          <img src={organizer.logo || "https://placehold.co/150x150/d4af37/1C1C1E?text=P"} alt={organizer.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <img src={organizer.logo || ""} alt={organizer.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
 
         <div className="profile-body">
@@ -485,7 +487,7 @@ export default function OrganizerProfilePage() {
                       onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border-color)"}
                     >
                       <img 
-                        src={p.logo || "https://placehold.co/24x24/d4af37/1C1C1E?text=P"} 
+                        src={p.logo || DEFAULT_USER_AVATAR} 
                         alt={p.name} 
                         style={{ width: "24px", height: "24px", borderRadius: "50%", objectFit: "cover", border: "1px solid var(--border-color)" }} 
                       />

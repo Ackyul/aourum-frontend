@@ -32,6 +32,8 @@ const POPULAR_INTERESTS = [
   "Artesanías & Coleccionables"
 ];
 
+const DEFAULT_USER_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' fill='%23E5E7EB'/%3E%3Cpath d='M64 24a24 24 0 100 48 24 24 0 000-48zM32 104a32 32 0 0164 0H32z' fill='%239CA3AF'/%3E%3C/svg%3E";
+
 const toHex7 = (val, fallback = "#D4AF37") => {
   if (!val || typeof val !== "string") return fallback;
   let s = val.trim();
@@ -547,10 +549,10 @@ function AppLayoutShell({ children }) {
                                 }}
                               >
                                 <img 
-                                  src={person.logo || "/dummy.png"} 
+                                  src={person.logo || DEFAULT_USER_AVATAR} 
                                   alt={person.name} 
                                   className="search-dropdown-item-avatar"
-                                  onError={(e) => { e.target.src = "/dummy.png"; }}
+                                  onError={(e) => { e.target.src = DEFAULT_USER_AVATAR; }}
                                 />
                                 <div className="search-dropdown-item-info">
                                   <div className="search-dropdown-item-name">{person.name} {person.lastName || ""}</div>
@@ -1482,7 +1484,7 @@ function AppLayoutShell({ children }) {
                     <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: "10px", padding: "1rem" }}>
                       <div style={{ position: "relative", flexShrink: 0 }}>
                         <img 
-                          src={editLogoPreview || "https://placehold.co/80x80/d4af37/1C1C1E?text=P"} 
+                          src={editLogoPreview || (editProfileType === "person" ? DEFAULT_USER_AVATAR : "")} 
                           alt="preview"
                           style={{ width: "72px", height: "72px", borderRadius: editProfileType === "person" || editProfileType === "band" ? "50%" : "12px", objectFit: "cover", border: "2px solid var(--gold-primary)", boxShadow: "0 4px 12px rgba(212,175,55,0.15)" }}
                         />

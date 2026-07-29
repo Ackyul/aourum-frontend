@@ -86,8 +86,10 @@ export default function SocialFeedPublisher({ onPostCreated, defaultFairId = nul
     );
   }
 
+  const DEFAULT_USER_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' fill='%23E5E7EB'/%3E%3Cpath d='M64 24a24 24 0 100 48 24 24 0 000-48zM32 104a32 32 0 0164 0H32z' fill='%239CA3AF'/%3E%3C/svg%3E";
+
   // Get active identity avatar & name
-  let activeAvatar = currentPerson?.logo || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&q=80";
+  let activeAvatar = currentPerson?.logo || DEFAULT_USER_AVATAR;
   let activeName = currentPerson ? `${currentPerson.name}` : "Mi Perfil";
 
   if (authorType === "brand") {
