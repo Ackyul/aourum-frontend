@@ -1120,11 +1120,27 @@ export default function BrandProfileClient({ initialBrand }) {
       <div className="container brand-profile-theme-scope" style={{ maxWidth: "1400px", padding: "1.5rem 1.5rem 3rem 1.5rem", position: "relative", minHeight: "100vh", fontFamily: fontFamily !== "Inter" ? `"${fontFamily}", sans-serif` : "inherit" }}>
         {/* Import de la fuente de Google seleccionada si no es Inter */}
         {fontFamily !== "Inter" && (
-          <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400;600;700;800&display=swap`} />
+          <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${fontFamily.replace(/ /g, "+")}:wght@400;600;700;800&display=swap`} />
         )}
 
       {/* Estilos dinámicos de la Paleta de Marca para toda la página */}
       <style>{`
+        ${fontFamily !== "Inter" ? `
+          .brand-profile-theme-scope,
+          .brand-profile-theme-scope *,
+          .brand-profile-theme-scope h1,
+          .brand-profile-theme-scope h2,
+          .brand-profile-theme-scope h3,
+          .brand-profile-theme-scope h4,
+          .brand-profile-theme-scope h5,
+          .brand-profile-theme-scope h6,
+          .brand-profile-theme-scope p,
+          .brand-profile-theme-scope span,
+          .brand-profile-theme-scope button,
+          .brand-profile-theme-scope div {
+            font-family: "${fontFamily}", sans-serif !important;
+          }
+        ` : ''}
         .brand-profile-theme-scope h1,
         .brand-profile-theme-scope h2,
         .brand-profile-theme-scope h4,
