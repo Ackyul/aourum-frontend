@@ -97,6 +97,7 @@ function AppLayoutShell({ children }) {
     editBanner, setEditBanner,
     editBannerPreview, setEditBannerPreview,
     editThemeColor, setEditThemeColor,
+    editTagline, setEditTagline,
     editInterests, setEditInterests,
     editCity, setEditCity,
     isOnboarding, setIsOnboarding,
@@ -1916,12 +1917,19 @@ function AppLayoutShell({ children }) {
                       const design = editBrandDesign || {};
                       const generalBgCol = design.customBgColor || "#FAF9F0";
 
+                      // Helper para formatear cadenas a hex7 válido (#RRGGBB) para <input type="color">
+                      const toHex7 = (val, fallback = "#D4AF37") => {
+                        if (!val || typeof val !== "string") return fallback;
+                        let s = val.trim();
+                        if (!s.startsWith("#")) s = "#" + s;
+                        if (s.length === 4) s = "#" + s[1] + s[1] + s[2] + s[2] + s[3] + s[3];
+                        return /^#[0-9A-Fa-f]{6}$/.test(s) ? s : fallback;
+                      };
+
                       // Helper para calcular versión clara del color principal
                       const getLightTint = (hex) => {
-                        if (!hex || typeof hex !== "string" || !hex.startsWith("#")) return "#FAF9F0";
-                        let c = hex.replace("#", "");
-                        if (c.length === 3) c = c.split("").map((x) => x + x).join("");
-                        if (c.length !== 6) return "#FAF9F0";
+                        const h = toHex7(hex, "#D4AF37");
+                        let c = h.replace("#", "");
                         const r = parseInt(c.substring(0, 2), 16) || 0;
                         const g = parseInt(c.substring(2, 4), 16) || 0;
                         const b = parseInt(c.substring(4, 6), 16) || 0;
@@ -2035,7 +2043,7 @@ function AppLayoutShell({ children }) {
                               <div style={{ display: "flex", gap: "10px", alignItems: "center", background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: "10px", padding: "8px 12px" }}>
                                 <input 
                                   type="color" 
-                                  value={primaryCol.startsWith("#") ? primaryCol : "#D4AF37"} 
+                                  value={toHex7(primaryCol, "#D4AF37")} 
                                   onChange={(e) => setPrimaryColor(e.target.value)} 
                                   style={{ width: "32px", height: "32px", border: "none", background: "none", cursor: "pointer", padding: 0 }}
                                 />
@@ -2094,7 +2102,7 @@ function AppLayoutShell({ children }) {
                               <div style={{ display: "flex", gap: "10px", alignItems: "center", background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: "10px", padding: "8px 12px" }}>
                                 <input 
                                   type="color" 
-                                  value={generalBgCol.startsWith("#") ? generalBgCol : primaryLightTint} 
+                                  value={toHex7(generalBgCol, primaryLightTint)} 
                                   onChange={(e) => setGeneralBgColor(e.target.value)} 
                                   style={{ width: "32px", height: "32px", border: "none", background: "none", cursor: "pointer", padding: 0 }}
                                 />
@@ -2414,7 +2422,7 @@ function AppLayoutShell({ children }) {
                                       </select>
                                       <input 
                                         type="color" 
-                                        value={design.cardBgColor && design.cardBgColor.startsWith("#") ? design.cardBgColor : primaryCol} 
+                                        value={toHex7(design.cardBgColor, primaryCol)} 
                                         onChange={(e) => updateDesignKey("cardBgColor", e.target.value)} 
                                         style={{ width: "34px", height: "34px", border: "1px solid var(--border-color)", borderRadius: "6px", background: "none", cursor: "pointer", padding: 0 }} 
                                         title="Hex Fondo Tarjeta" 
@@ -2440,7 +2448,7 @@ function AppLayoutShell({ children }) {
                                       </select>
                                       <input 
                                         type="color" 
-                                        value={design.cardBorderColor && design.cardBorderColor.startsWith("#") ? design.cardBorderColor : primaryCol} 
+                                        value={toHex7(design.cardBorderColor, primaryCol)} 
                                         onChange={(e) => updateDesignKey("cardBorderColor", e.target.value)} 
                                         style={{ width: "34px", height: "34px", border: "1px solid var(--border-color)", borderRadius: "6px", background: "none", cursor: "pointer", padding: 0 }} 
                                         title="Hex Borde" 
@@ -2464,7 +2472,7 @@ function AppLayoutShell({ children }) {
                                       </select>
                                       <input 
                                         type="color" 
-                                        value={design.cardTextColor && design.cardTextColor.startsWith("#") ? design.cardTextColor : "#1C1C1E"} 
+                                        value={toHex7(design.cardTextColor, "#1C1C1E")} 
                                         onChange={(e) => updateDesignKey("cardTextColor", e.target.value)} 
                                         style={{ width: "34px", height: "34px", border: "1px solid var(--border-color)", borderRadius: "6px", background: "none", cursor: "pointer", padding: 0 }} 
                                         title="Hex Texto Tarjeta" 
