@@ -603,15 +603,16 @@ export default function FairProfileClient({ initialFair }) {
   }
 
   // Check if the logged-in persona is an owner/organizer of this fair
-  const currentPerson = people.find((p) => p.id === Number(activePersonId));
+  const currentPerson = people.find((p) => Number(p.id) === Number(activePersonId));
   const organizer = organizers.find((o) => o.id === fair.organizerId);
   
-  const userCollaborator = organizer && organizer.collaborators ? organizer.collaborators.find(c => c.personId === Number(activePersonId)) : null;
-  const userRole = userCollaborator ? userCollaborator.role : null;
-  const isCollaborator = !!userRole;
-  const canEditFair = userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor';
+  const isDirectOwner = activePersonId != null && organizer?.personId != null && Number(organizer.personId) === Number(activePersonId);
+  const userCollaborator = organizer && organizer.collaborators ? organizer.collaborators.find(c => Number(c.personId) === Number(activePersonId)) : null;
+  const userRole = userCollaborator ? userCollaborator.role : (isDirectOwner ? 'creador_original' : null);
+  const isCollaborator = !!userRole || isDirectOwner;
+  const canEditFair = isCollaborator || userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor' || isDirectOwner;
   
-  const isOwner = userRole === 'creador_original';
+  const isOwner = userRole === 'creador_original' || isDirectOwner;
 
   const copyLink = (e) => {
     e.stopPropagation();

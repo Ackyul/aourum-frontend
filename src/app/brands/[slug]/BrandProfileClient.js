@@ -892,14 +892,15 @@ export default function BrandProfileClient({ initialBrand }) {
   }
 
   // Check collaborator role of the logged-in persona
-  const currentPerson = people.find((p) => p.id === Number(activePersonId));
-  const userCollaborator = brand.collaborators ? brand.collaborators.find(c => c.personId === Number(activePersonId)) : null;
-  const userRole = userCollaborator ? userCollaborator.role : null;
-  const isCollaborator = !!userRole;
-  const canEditProfile = userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor';
-  const canInvite = userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor';
+  const currentPerson = people.find((p) => Number(p.id) === Number(activePersonId));
+  const isDirectOwner = activePersonId != null && brand?.personId != null && Number(brand.personId) === Number(activePersonId);
+  const userCollaborator = brand?.collaborators ? brand.collaborators.find(c => Number(c.personId) === Number(activePersonId)) : null;
+  const userRole = userCollaborator ? userCollaborator.role : (isDirectOwner ? 'creador_original' : null);
+  const isCollaborator = !!userRole || isDirectOwner;
+  const canEditProfile = isCollaborator || userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor' || isDirectOwner;
+  const canInvite = userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor' || isDirectOwner;
 
-  const isOwner = userRole === 'creador_original';
+  const isOwner = userRole === 'creador_original' || isDirectOwner;
 
   const copyLink = (e) => {
     e.stopPropagation();
@@ -911,20 +912,20 @@ export default function BrandProfileClient({ initialBrand }) {
 
   const handleEditClick = () => {
     const parsed = parseDescription(brand.description);
-    setEditName(brand.name);
+    setEditName(brand.name || "");
     setEditOwner(brand.owner || "");
     setEditCategory(brand.category || "");
-    setEditDescription(parsed.text);
+    setEditDescription(parsed.text || "");
     setEditLogo(brand.logo || "");
     setEditLogoPreview(brand.logo || "");
     setEditProfileType("brand");
     setEditProfileId(brand.id);
     setEditSlug(brand.slug || "");
     setEditWhatsappNumber(brand.whatsappNumber || "");
-    setEditInstagram(parsed.instagram);
-    setEditFacebook(parsed.facebook);
-    setEditTiktok(parsed.tiktok);
-    setEditWebsite(parsed.website);
+    setEditInstagram(parsed.instagram || "");
+    setEditFacebook(parsed.facebook || "");
+    setEditTiktok(parsed.tiktok || "");
+    setEditWebsite(parsed.website || "");
     setEditRubroGeneral(parsed.rubro_general || "");
     setEditRubroEspecifico(parsed.rubro_especifico || "");
     setEditHasLocal(!!parsed.has_local);
@@ -938,7 +939,11 @@ export default function BrandProfileClient({ initialBrand }) {
     setEditInterests(parsed.interests || "");
     if (setEditCity) setEditCity(brand.city || "");
     if (setEditBrandDesign) {
-      setEditBrandDesign(brand.brandDesign || {});
+      setEditBrandDesign(parsed.brandDesign || {
+        customBgColor: parsed.customBgColor || "",
+        bgStyle: parsed.bgStyle || "solid",
+        bgImage: parsed.bgImage || ""
+      });
     }
     setEditProfileOpen(true);
   };

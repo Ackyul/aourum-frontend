@@ -217,14 +217,15 @@ export default function BandProfileClient({ initialBand }) {
   }
 
   // Check collaborator role of the logged-in persona
-  const currentPerson = people.find((p) => p.id === Number(activePersonId));
-  const userCollaborator = band.collaborators ? band.collaborators.find(c => c.personId === Number(activePersonId)) : null;
-  const userRole = userCollaborator ? userCollaborator.role : null;
-  const isCollaborator = !!userRole;
-  const canEditProfile = userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor';
-  const canInvite = userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor';
+  const currentPerson = people.find((p) => Number(p.id) === Number(activePersonId));
+  const isDirectOwner = activePersonId != null && band?.personId != null && Number(band.personId) === Number(activePersonId);
+  const userCollaborator = band?.collaborators ? band.collaborators.find(c => Number(c.personId) === Number(activePersonId)) : null;
+  const userRole = userCollaborator ? userCollaborator.role : (isDirectOwner ? 'creador_original' : null);
+  const isCollaborator = !!userRole || isDirectOwner;
+  const canEditProfile = isCollaborator || userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor' || isDirectOwner;
+  const canInvite = userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor' || isDirectOwner;
 
-  const isOwner = userRole === 'creador_original';
+  const isOwner = userRole === 'creador_original' || isDirectOwner;
 
   const copyLink = (e) => {
     e.stopPropagation();

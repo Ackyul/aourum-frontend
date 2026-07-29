@@ -201,10 +201,11 @@ export default function OrganizerProfilePage() {
   const organizerFairs = fairs.filter((f) => f.organizerId === organizer.id);
 
   // Check collaborator role of the logged-in persona
-  const userCollaborator = organizer.collaborators ? organizer.collaborators.find(c => c.personId === Number(activePersonId)) : null;
-  const userRole = userCollaborator ? userCollaborator.role : null;
-  const isCollaborator = !!userRole;
-  const isOwner = userRole === 'creador_original';
+  const isDirectOwner = activePersonId != null && organizer?.personId != null && Number(organizer.personId) === Number(activePersonId);
+  const userCollaborator = organizer?.collaborators ? organizer.collaborators.find(c => Number(c.personId) === Number(activePersonId)) : null;
+  const userRole = userCollaborator ? userCollaborator.role : (isDirectOwner ? 'creador_original' : null);
+  const isCollaborator = !!userRole || isDirectOwner;
+  const isOwner = userRole === 'creador_original' || isDirectOwner;
 
   const copyLink = (e) => {
     e.stopPropagation();
