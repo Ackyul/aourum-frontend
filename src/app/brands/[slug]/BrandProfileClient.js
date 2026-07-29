@@ -913,31 +913,31 @@ export default function BrandProfileClient({ initialBrand }) {
 
   const handleEditClick = () => {
     const parsed = parseDescription(brand.description);
-    setEditName(brand.name || "");
-    setEditOwner(brand.owner || "");
-    setEditCategory(brand.category || "");
-    setEditDescription(parsed.text || "");
-    setEditLogo(brand.logo || "");
-    setEditLogoPreview(brand.logo || "");
-    setEditProfileType("brand");
-    setEditProfileId(brand.id);
-    setEditSlug(brand.slug || "");
-    setEditWhatsappNumber(brand.whatsappNumber || "");
-    setEditInstagram(parsed.instagram || "");
-    setEditFacebook(parsed.facebook || "");
-    setEditTiktok(parsed.tiktok || "");
-    setEditWebsite(parsed.website || "");
-    setEditRubroGeneral(parsed.rubro_general || "");
-    setEditRubroEspecifico(parsed.rubro_especifico || "");
-    setEditHasLocal(!!parsed.has_local);
-    setEditLocalAddress(parsed.local_address || "");
-    setEditLocalLat(parsed.local_lat !== undefined ? Number(parsed.local_lat) : -16.39889);
-    setEditLocalLng(parsed.local_lng !== undefined ? Number(parsed.local_lng) : -71.53694);
-    setEditBanner(parsed.banner || "");
-    setEditBannerPreview(parsed.banner || "");
-    setEditThemeColor(parsed.theme_color || "");
-    setEditTagline(parsed.tagline || "");
-    setEditInterests(parsed.interests || "");
+    if (setEditName) setEditName(brand.name || "");
+    if (setEditOwner) setEditOwner(brand.owner || "");
+    if (setEditCategory) setEditCategory(brand.category || "");
+    if (setEditDescription) setEditDescription(parsed.text || "");
+    if (setEditLogo) setEditLogo(brand.logo || "");
+    if (setEditLogoPreview) setEditLogoPreview(brand.logo || "");
+    if (setEditProfileType) setEditProfileType("brand");
+    if (setEditProfileId) setEditProfileId(brand.id);
+    if (setEditSlug) setEditSlug(brand.slug || "");
+    if (setEditWhatsappNumber) setEditWhatsappNumber(brand.whatsappNumber || "");
+    if (setEditInstagram) setEditInstagram(parsed.instagram || "");
+    if (setEditFacebook) setEditFacebook(parsed.facebook || "");
+    if (setEditTiktok) setEditTiktok(parsed.tiktok || "");
+    if (setEditWebsite) setEditWebsite(parsed.website || "");
+    if (setEditRubroGeneral) setEditRubroGeneral(parsed.rubro_general || "");
+    if (setEditRubroEspecifico) setEditRubroEspecifico(parsed.rubro_especifico || "");
+    if (setEditHasLocal) setEditHasLocal(!!parsed.has_local);
+    if (setEditLocalAddress) setEditLocalAddress(parsed.local_address || "");
+    if (setEditLocalLat) setEditLocalLat(parsed.local_lat !== undefined ? Number(parsed.local_lat) : -16.39889);
+    if (setEditLocalLng) setEditLocalLng(parsed.local_lng !== undefined ? Number(parsed.local_lng) : -71.53694);
+    if (setEditBanner) setEditBanner(parsed.banner || "");
+    if (setEditBannerPreview) setEditBannerPreview(parsed.banner || "");
+    if (setEditThemeColor) setEditThemeColor(parsed.theme_color || "");
+    if (setEditTagline) setEditTagline(parsed.tagline || "");
+    if (setEditInterests) setEditInterests(parsed.interests || "");
     if (setEditCity) setEditCity(brand.city || "");
     if (setEditBrandDesign) {
       setEditBrandDesign(parsed.brandDesign || {
@@ -946,7 +946,7 @@ export default function BrandProfileClient({ initialBrand }) {
         bgImage: parsed.bgImage || ""
       });
     }
-    setEditProfileOpen(true);
+    if (setEditProfileOpen) setEditProfileOpen(true);
   };
 
   if (loading && !brand) {

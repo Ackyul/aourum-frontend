@@ -1516,6 +1516,7 @@ export function AppContextProvider({ children }) {
         editBanner, setEditBanner,
         editBannerPreview, setEditBannerPreview,
         editThemeColor, setEditThemeColor,
+        editTagline, setEditTagline,
         editInterests, setEditInterests,
         editCity, setEditCity,
         isOnboarding, setIsOnboarding,
