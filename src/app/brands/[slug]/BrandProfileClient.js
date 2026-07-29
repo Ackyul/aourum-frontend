@@ -982,10 +982,26 @@ export default function BrandProfileClient({ initialBrand }) {
   const themeColor = palette.c1;
   const bannerStyle = !effectiveBanner ? { background: `linear-gradient(135deg, ${palette.c1}, ${palette.c2})` } : {};
 
-  // Opciones avanzadas de personalización visual (brandDesign) con Vista Previa en Vivo
+  // Opciones avanzadas de personalización visual (brandDesign) extraídas directamente de la DB (columnas y JSON)
+  const dbDesign = (brand.brandDesign && Object.keys(brand.brandDesign).length > 0)
+    ? brand.brandDesign
+    : (parsed.brandDesign || {});
+
   const design = (isEditingThisBrand && editBrandDesign && Object.keys(editBrandDesign).length > 0)
     ? editBrandDesign
-    : (brand.brandDesign && Object.keys(brand.brandDesign).length > 0 ? brand.brandDesign : (parsed.brandDesign || {}));
+    : {
+        customBgColor: dbDesign.customBgColor || parsed.customBgColor || "#FAF9F0",
+        bgStyle: dbDesign.bgStyle || parsed.bgStyle || "solid",
+        bgImage: dbDesign.bgImage || parsed.bgImage || "",
+        bgImageFit: dbDesign.bgImageFit || parsed.bgImageFit || "cover",
+        logoShape: dbDesign.logoShape || parsed.logoShape || "circle",
+        bannerOverlay: dbDesign.bannerOverlay || parsed.bannerOverlay || "none",
+        cardStyle: dbDesign.cardStyle || parsed.cardStyle || "glass",
+        fontFamily: dbDesign.fontFamily || parsed.fontFamily || "Inter",
+        glowIntensity: dbDesign.glowIntensity !== undefined ? dbDesign.glowIntensity : (parsed.glowIntensity !== undefined ? parsed.glowIntensity : 70),
+        animations: dbDesign.animations !== false,
+        ...dbDesign
+      };
   const bgStyle = design.bgStyle || "solid";
   const customBgColor = design.customBgColor || "#FAF9F0";
   const bgImage = design.bgImage || "";
