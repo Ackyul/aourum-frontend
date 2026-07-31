@@ -2213,6 +2213,20 @@ function AppLayoutShell({ children }) {
 
                         const colorParts = (typeof editThemeColor === "string" ? editThemeColor : "").split(",").map(c => c.trim()).filter(Boolean);
                         const primaryCol = colorParts[0] || "#D4AF37";
+
+                        const getLightTint = (hex) => {
+                          const h = toHex7(hex, "#D4AF37");
+                          let c = h.replace("#", "");
+                          const r = parseInt(c.substring(0, 2), 16) || 0;
+                          const g = parseInt(c.substring(2, 4), 16) || 0;
+                          const b = parseInt(c.substring(4, 6), 16) || 0;
+                          const lr = Math.round(r * 0.12 + 255 * 0.88);
+                          const lg = Math.round(g * 0.12 + 255 * 0.88);
+                          const lb = Math.round(b * 0.12 + 255 * 0.88);
+                          return "#" + [lr, lg, lb].map((x) => x.toString(16).padStart(2, "0")).join("");
+                        };
+
+                        const primaryLightTint = getLightTint(primaryCol);
                         const generalBgCol = (typeof design.customBgColor === "string" && design.customBgColor) ? design.customBgColor : "#FAF9F0";
                         const fontFam = (typeof design.fontFamily === "string" && design.fontFamily) ? design.fontFamily : "Inter";
                         const logoShp = (typeof design.logoShape === "string" && design.logoShape) ? design.logoShape : "circle";
