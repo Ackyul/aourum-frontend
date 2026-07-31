@@ -238,10 +238,14 @@ export default function OrganizerProfilePage() {
     setEditTagline(parsed.tagline || "");
     setEditInterests(parsed.interests || "");
     if (setEditBrandDesign) {
-      setEditBrandDesign(parsed.brandDesign || {
-        customBgColor: parsed.customBgColor || "",
-        bgStyle: parsed.bgStyle || "solid",
-        bgImage: parsed.bgImage || ""
+      const activeDesign = (organizer?.brandDesign && Object.keys(organizer.brandDesign).length > 0)
+        ? organizer.brandDesign
+        : (parsed.brandDesign || {});
+      setEditBrandDesign({
+        customBgColor: activeDesign.customBgColor || parsed.customBgColor || "",
+        bgStyle: activeDesign.bgStyle || parsed.bgStyle || "solid",
+        bgImage: activeDesign.bgImage || parsed.bgImage || "",
+        ...activeDesign
       });
     }
     setEditProfileOpen(true);

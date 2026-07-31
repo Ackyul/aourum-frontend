@@ -200,10 +200,14 @@ export default function PersonProfileClient() {
     if (setEditInterests) setEditInterests(person.interests || parsed.interests || "");
     if (setEditCity) setEditCity(person.city || "");
     if (setEditBrandDesign) {
-      setEditBrandDesign(parsed.brandDesign || {
-        customBgColor: parsed.customBgColor || "",
-        bgStyle: parsed.bgStyle || "solid",
-        bgImage: parsed.bgImage || ""
+      const activeDesign = (person?.brandDesign && Object.keys(person.brandDesign).length > 0)
+        ? person.brandDesign
+        : (parsed.brandDesign || {});
+      setEditBrandDesign({
+        customBgColor: activeDesign.customBgColor || parsed.customBgColor || "",
+        bgStyle: activeDesign.bgStyle || parsed.bgStyle || "solid",
+        bgImage: activeDesign.bgImage || parsed.bgImage || "",
+        ...activeDesign
       });
     }
     if (setEditProfileType) setEditProfileType("person");

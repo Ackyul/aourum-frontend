@@ -939,10 +939,14 @@ export default function BrandProfileClient({ initialBrand }) {
     if (setEditInterests) setEditInterests(parsed.interests || "");
     if (setEditCity) setEditCity(brand.city || "");
     if (setEditBrandDesign) {
-      setEditBrandDesign(parsed.brandDesign || {
-        customBgColor: parsed.customBgColor || "",
-        bgStyle: parsed.bgStyle || "solid",
-        bgImage: parsed.bgImage || ""
+      const activeDesign = (brand?.brandDesign && Object.keys(brand.brandDesign).length > 0)
+        ? brand.brandDesign
+        : (parsed.brandDesign || {});
+      setEditBrandDesign({
+        customBgColor: activeDesign.customBgColor || parsed.customBgColor || "",
+        bgStyle: activeDesign.bgStyle || parsed.bgStyle || "solid",
+        bgImage: activeDesign.bgImage || parsed.bgImage || "",
+        ...activeDesign
       });
     }
     if (setEditProfileOpen) setEditProfileOpen(true);

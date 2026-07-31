@@ -2205,6 +2205,7 @@ function AppLayoutShell({ children }) {
                       </p>
 
                       {(() => {
+                        const isBrand = editProfileType === "brand";
                         const design = editBrandDesign || {};
                         const updateDesignKey = (key, val) => {
                           setEditBrandDesign(prev => ({ ...(prev || {}), [key]: val }));

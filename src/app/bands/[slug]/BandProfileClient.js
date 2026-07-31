@@ -253,10 +253,14 @@ export default function BandProfileClient({ initialBand }) {
     setEditTiktok(parsed.tiktok);
     setEditWebsite(parsed.website);
     if (setEditBrandDesign) {
-      setEditBrandDesign(parsed.brandDesign || {
-        customBgColor: parsed.customBgColor || "",
-        bgStyle: parsed.bgStyle || "solid",
-        bgImage: parsed.bgImage || ""
+      const activeDesign = (band?.brandDesign && Object.keys(band.brandDesign).length > 0)
+        ? band.brandDesign
+        : (parsed.brandDesign || {});
+      setEditBrandDesign({
+        customBgColor: activeDesign.customBgColor || parsed.customBgColor || "",
+        bgStyle: activeDesign.bgStyle || parsed.bgStyle || "solid",
+        bgImage: activeDesign.bgImage || parsed.bgImage || "",
+        ...activeDesign
       });
     }
     setEditProfileOpen(true);
