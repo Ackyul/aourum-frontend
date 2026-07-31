@@ -2424,7 +2424,7 @@ function AppLayoutShell({ children }) {
                                       </select>
                                       <input 
                                         type="color" 
-                                        value={toHex7(design.cardBgColor, primaryCol)} 
+                                        value={toHex7(design.cardBgColor === "brand" ? primaryCol : design.cardBgColor === "brand-soft" ? primaryLightTint : design.cardBgColor, primaryCol)} 
                                         onChange={(e) => updateDesignKey("cardBgColor", e.target.value)} 
                                         style={{ width: "34px", height: "34px", border: "1px solid var(--border-color)", borderRadius: "6px", background: "none", cursor: "pointer", padding: 0 }} 
                                         title="Hex Fondo Tarjeta" 
@@ -2450,7 +2450,7 @@ function AppLayoutShell({ children }) {
                                       </select>
                                       <input 
                                         type="color" 
-                                        value={toHex7(design.cardBorderColor, primaryCol)} 
+                                        value={toHex7(design.cardBorderColor === "brand" ? primaryCol : design.cardBorderColor, primaryCol)} 
                                         onChange={(e) => updateDesignKey("cardBorderColor", e.target.value)} 
                                         style={{ width: "34px", height: "34px", border: "1px solid var(--border-color)", borderRadius: "6px", background: "none", cursor: "pointer", padding: 0 }} 
                                         title="Hex Borde" 
@@ -2474,7 +2474,7 @@ function AppLayoutShell({ children }) {
                                       </select>
                                       <input 
                                         type="color" 
-                                        value={toHex7(design.cardTextColor, "#1C1C1E")} 
+                                        value={toHex7(design.cardTextColor === "brand" ? primaryCol : design.cardTextColor, primaryCol || "#1C1C1E")} 
                                         onChange={(e) => updateDesignKey("cardTextColor", e.target.value)} 
                                         style={{ width: "34px", height: "34px", border: "1px solid var(--border-color)", borderRadius: "6px", background: "none", cursor: "pointer", padding: 0 }} 
                                         title="Hex Texto Tarjeta" 
