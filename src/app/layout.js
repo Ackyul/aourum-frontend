@@ -1924,8 +1924,8 @@ function AppLayoutShell({ children }) {
                       const primaryCol = colorParts[0] || "#D4AF37";
                       const secondaryCol = colorParts[1] || "#EAB308";
 
-                      const design = editBrandDesign || {};
-                      const generalBgCol = design.customBgColor || "#FAF9F0";
+                      const design = (editBrandDesign && typeof editBrandDesign === "object") ? editBrandDesign : {};
+                      const generalBgCol = (typeof design.customBgColor === "string" && design.customBgColor) ? design.customBgColor : "#FAF9F0";
 
                       // Helper para calcular versión clara del color principal
                       const getLightTint = (hex) => {
@@ -2078,7 +2078,7 @@ function AppLayoutShell({ children }) {
                                         alignItems: "center",
                                         gap: "5px",
                                         background: "var(--bg-input)",
-                                        border: primaryCol.toLowerCase() === preset.color.toLowerCase() ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                        border: (primaryCol || "").toString().toLowerCase() === (preset.color || "").toString().toLowerCase() ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
                                         borderRadius: "14px",
                                         padding: "3px 8px",
                                         cursor: "pointer",
@@ -2136,7 +2136,7 @@ function AppLayoutShell({ children }) {
                                       gap: "6px",
                                       background: primaryLightTint,
                                       color: "#1C1C1E",
-                                      border: generalBgCol.toLowerCase() === primaryLightTint.toLowerCase() ? "2px solid var(--gold-primary)" : "1.5px solid rgba(0,0,0,0.15)",
+                                      border: (generalBgCol || "").toString().toLowerCase() === (primaryLightTint || "").toString().toLowerCase() ? "2px solid var(--gold-primary)" : "1.5px solid rgba(0,0,0,0.15)",
                                       borderRadius: "14px",
                                       padding: "4px 10px",
                                       cursor: "pointer",
@@ -2160,7 +2160,7 @@ function AppLayoutShell({ children }) {
                                         alignItems: "center",
                                         gap: "5px",
                                         background: "var(--bg-input)",
-                                        border: generalBgCol.toLowerCase() === preset.color.toLowerCase() ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                        border: (generalBgCol || "").toString().toLowerCase() === (preset.color || "").toString().toLowerCase() ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
                                         borderRadius: "14px",
                                         padding: "3px 8px",
                                         cursor: "pointer",
@@ -2206,17 +2206,17 @@ function AppLayoutShell({ children }) {
 
                       {(() => {
                         const isBrand = editProfileType === "brand";
-                        const design = editBrandDesign || {};
+                        const design = (editBrandDesign && typeof editBrandDesign === "object") ? editBrandDesign : {};
                         const updateDesignKey = (key, val) => {
                           setEditBrandDesign(prev => ({ ...(prev || {}), [key]: val }));
                         };
 
-                        const colorParts = (editThemeColor || "").split(",").map(c => c.trim()).filter(Boolean);
+                        const colorParts = (typeof editThemeColor === "string" ? editThemeColor : "").split(",").map(c => c.trim()).filter(Boolean);
                         const primaryCol = colorParts[0] || "#D4AF37";
-                        const generalBgCol = design.customBgColor || "#FAF9F0";
-                        const fontFam = design.fontFamily || "Inter";
-                        const logoShp = design.logoShape || "circle";
-                        const cardStl = design.cardStyle || "glass";
+                        const generalBgCol = (typeof design.customBgColor === "string" && design.customBgColor) ? design.customBgColor : "#FAF9F0";
+                        const fontFam = (typeof design.fontFamily === "string" && design.fontFamily) ? design.fontFamily : "Inter";
+                        const logoShp = (typeof design.logoShape === "string" && design.logoShape) ? design.logoShape : "circle";
+                        const cardStl = (typeof design.cardStyle === "string" && design.cardStyle) ? design.cardStyle : "glass";
 
                         const logoRadius = logoShp === "square" ? "4px" : logoShp === "rounded" ? "14px" : "50%";
 
@@ -2224,7 +2224,7 @@ function AppLayoutShell({ children }) {
                           <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
                             {/* 📱 VISTA PREVIA EN VIVO */}
                             <div style={{
-                              background: generalBgCol.startsWith("#") ? generalBgCol : "#FAF9F0",
+                              background: (typeof generalBgCol === "string" && generalBgCol.startsWith("#")) ? generalBgCol : "#FAF9F0",
                               border: "1px solid var(--border-color)",
                               borderRadius: "16px",
                               padding: "1rem",
@@ -2241,7 +2241,7 @@ function AppLayoutShell({ children }) {
                                 </div>
                                 <div style={{ flex: 1, fontFamily: fontFam !== "Inter" ? `"${fontFam}", sans-serif` : "inherit" }}>
                                   <div style={{ fontSize: "0.88rem", fontWeight: 800, color: "#1C1C1E" }}>{editName || "Tu Marca"}</div>
-                                  <div style={{ fontSize: "0.7rem", color: primaryCol, fontWeight: 700 }}>Estilo: {cardStl.toUpperCase()} | {fontFam}</div>
+                                  <div style={{ fontSize: "0.7rem", color: primaryCol, fontWeight: 700 }}>Estilo: {(cardStl || "glass").toString().toUpperCase()} | {fontFam}</div>
                                 </div>
                                 <button type="button" style={{ background: primaryCol, color: "#FFFFFF", border: "none", borderRadius: "8px", padding: "4px 10px", fontSize: "0.72rem", fontWeight: 700 }}>
                                   Ver Catálogo
