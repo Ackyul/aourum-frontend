@@ -34,6 +34,24 @@ export class ErrorBoundary extends React.Component {
           <p style={{ color: "#4b5563", marginBottom: "1.5rem", maxWidth: "480px" }}>
             Se ha producido un inconveniente al cargar esta vista. Puedes intentar recargar la página.
           </p>
+          {this.state.error && (
+            <div style={{
+              background: "rgba(239, 68, 68, 0.08)",
+              border: "1px solid rgba(239, 68, 68, 0.2)",
+              borderRadius: "8px",
+              padding: "10px 14px",
+              marginBottom: "1.5rem",
+              maxWidth: "600px",
+              textAlign: "left",
+              fontSize: "0.82rem",
+              color: "#dc2626",
+              fontFamily: "monospace",
+              wordBreak: "break-word"
+            }}>
+              <strong>Detalle técnico del error:</strong>
+              <div style={{ marginTop: "4px" }}>{this.state.error.toString()}</div>
+            </div>
+          )}
           <button
             onClick={() => {
               this.setState({ hasError: false, error: null });
