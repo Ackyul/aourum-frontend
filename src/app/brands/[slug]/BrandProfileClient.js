@@ -53,6 +53,8 @@ export default function BrandProfileClient({ initialBrand }) {
     setProdCategory,
     prodType,
     setProdType,
+    prodIsVisible,
+    setProdIsVisible,
     prodImage,
     setProdImage,
     prodImagePreview,
@@ -531,15 +533,20 @@ export default function BrandProfileClient({ initialBrand }) {
     return brandFairs.filter(f => f.name.toLowerCase().includes(fairSearchQuery.toLowerCase()));
   }, [fairs, fairSearchQuery, parseDescription]);
 
-  const brandProducts = brand ? products.filter((p) => p.brandId === brand.id) : [];
+  const allBrandProducts = brand ? products.filter((p) => p.brandId === brand.id) : [];
+
+  const brandProducts = useMemo(() => {
+    if (canEditProfile) return allBrandProducts;
+    return allBrandProducts.filter(p => p.isVisible !== false);
+  }, [allBrandProducts, canEditProfile]);
 
   const filteredAdminProducts = useMemo(() => {
-    if (!adminSearchQuery.trim()) return brandProducts;
-    return brandProducts.filter((p) => 
+    if (!adminSearchQuery.trim()) return allBrandProducts;
+    return allBrandProducts.filter((p) => 
       p.name.toLowerCase().includes(adminSearchQuery.toLowerCase()) ||
       (p.category && p.category.toLowerCase().includes(adminSearchQuery.toLowerCase()))
     );
-  }, [brandProducts, adminSearchQuery]);
+  }, [allBrandProducts, adminSearchQuery]);
 
   const trackRefs = useRef({});
   const [visibleCount, setVisibleCount] = useState(15);
@@ -1817,6 +1824,21 @@ export default function BrandProfileClient({ initialBrand }) {
                 </div>
               </div>
 
+              <div className="form-group" style={{ marginTop: "1rem" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontWeight: 700, fontSize: "0.9rem" }}>
+                  <input 
+                    type="checkbox" 
+                    checked={prodIsVisible} 
+                    onChange={(e) => setProdIsVisible(e.target.checked)} 
+                    style={{ width: "18px", height: "18px", accentColor: "var(--gold-primary)", cursor: "pointer" }}
+                  />
+                  <span>👁️ Producto visible públicamente en el catálogo</span>
+                </label>
+                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block", marginLeft: "26px", marginTop: "2px" }}>
+                  Si desmarcas esta casilla, el producto estará oculto. Nadie más que tú podrá acceder a él (los enlaces externos redirigirán al inicio).
+                </span>
+              </div>
+
               <div className="prod-form-img-desc" style={{ marginTop: "1rem" }}>
                 <div className="form-group">
                   <label>Subir Imagen</label>
@@ -2527,6 +2549,7 @@ export default function BrandProfileClient({ initialBrand }) {
                     <th>Tipo</th>
                     <th>Precio</th>
                     <th>Stock</th>
+                    <th>Visibilidad</th>
                     <th style={{ textAlign: "right" }}>Acciones</th>
                   </tr>
                 </thead>
@@ -2555,6 +2578,36 @@ export default function BrandProfileClient({ initialBrand }) {
                         )}
                       </td>
                       <td>{prod.type === "service" ? "Por Agenda" : (prod.stock == null ? "Ilimitado / Opcional" : prod.stock)}</td>
+                      <td>
+                        <button 
+                          type="button" 
+                          onClick={async () => {
+                            try {
+                              const newVis = prod.isVisible === false ? true : false;
+                              await handleProductSubmit({ ...prod, isVisible: newVis });
+                            } catch (err) {
+                              console.error("Error al actualizar visibilidad", err);
+                            }
+                          }}
+                          style={{ 
+                            background: prod.isVisible === false ? "#fee2e2" : "#dcfce7", 
+                            color: prod.isVisible === false ? "#991b1b" : "#166534", 
+                            border: "none", 
+                            padding: "4px 8px", 
+                            borderRadius: "6px", 
+                            fontSize: "0.75rem", 
+                            fontWeight: 700, 
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px"
+                          }}
+                          title={prod.isVisible === false ? "Clic para mostrar en catálogo" : "Clic para ocultar de catálogo"}
+                        >
+                          <i className={prod.isVisible === false ? "fa-solid fa-eye-slash" : "fa-solid fa-eye"}></i>
+                          {prod.isVisible === false ? "Oculto" : "Visible"}
+                        </button>
+                      </td>
                       <td style={{ textAlign: "right" }}>
                         <button 
                           onClick={() => {
@@ -2562,6 +2615,7 @@ export default function BrandProfileClient({ initialBrand }) {
                             setProdName(prod.name); setProdDescription(prod.description); setProdPrice(prod.price);
                             setProdPriceAourum(prod.priceAourum == null ? "" : prod.priceAourum);
                             setProdStock(prod.stock == null ? "" : prod.stock); setProdCategory(prod.category); setProdType(prod.type);
+                            setProdIsVisible(prod.isVisible !== false);
                             setProdImgBgColor(prod.imgBgColor || "transparent");
                             setProdImage(prod.image); setProdImagePreview(prod.image); setProdFormOpen(true);
                           }}

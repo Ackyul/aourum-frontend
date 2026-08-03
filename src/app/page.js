@@ -449,8 +449,12 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const visibleProducts = useMemo(() => {
+    return products.filter(p => p.isVisible !== false);
+  }, [products]);
+
   // Filter products based on global search & sidebar filters
-  const filteredProducts = products.filter((prod) => {
+  const filteredProducts = visibleProducts.filter((prod) => {
     const matchesSearch = prod.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           prod.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           getBrandName(prod.brandId).toLowerCase().includes(searchTerm.toLowerCase());
@@ -462,7 +466,7 @@ export default function Home() {
   const allCategories = (() => {
     const seen = new Set();
     const unique = [];
-    products.forEach(p => {
+    visibleProducts.forEach(p => {
       if (p.category) {
         const trimmed = p.category.trim();
         const lower = trimmed.toLowerCase();
@@ -477,12 +481,12 @@ export default function Home() {
 
   // Extraction of featured entities using MaxHeap
   const getFeaturedProducts = () => {
-    if (!products || products.length === 0) return [];
+    if (!visibleProducts || visibleProducts.length === 0) return [];
     const heap = new MaxHeap((a, b) => getProductViews(a) - getProductViews(b));
-    products.forEach(p => heap.insert(p));
+    visibleProducts.forEach(p => heap.insert(p));
     
     const result = [];
-    const targetSize = Math.min(8, products.length);
+    const targetSize = Math.min(8, visibleProducts.length);
     for (let i = 0; i < targetSize; i++) {
       const p = heap.extractMax();
       if (p) result.push(p);
@@ -496,8 +500,8 @@ export default function Home() {
   const userCity = currentPerson?.city || "";
 
   const showcaseProducts = useMemo(() => {
-    return interleaveProducts(products, brands, userCity);
-  }, [products, brands, userCity]);
+    return interleaveProducts(visibleProducts, brands, userCity);
+  }, [visibleProducts, brands, userCity]);
 
   const interleavedFilteredProducts = useMemo(() => {
     return interleaveProducts(filteredProducts, brands, userCity);

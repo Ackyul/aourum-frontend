@@ -90,6 +90,9 @@ export default function ProductDetailPage() {
     loadProducts,
     loadBrands,
     activeRole,
+    activeBrandId,
+    activePersonId,
+    people,
     setShowLoginModal,
     triggerNotification
   } = useApp();
@@ -137,10 +140,33 @@ export default function ProductDetailPage() {
     }
   }, [prod, isNumericSlug, router]);
 
+  const brand = useMemo(() => {
+    if (!prod) return null;
+    return brands.find((b) => b.id === prod.brandId);
+  }, [prod, brands]);
+
+  const isCreatorOrOwner = useMemo(() => {
+    if (!prod || !brand) return false;
+    const isBrandSessionOwner = (activeRole === 'brand' && activeBrandId != null && Number(activeBrandId) === Number(brand.id));
+    const isDirectOwner = isBrandSessionOwner || (activePersonId != null && brand.personId != null && Number(brand.personId) === Number(activePersonId));
+    const userCollaborator = brand.collaborators ? brand.collaborators.find(c => Number(c.personId) === Number(activePersonId)) : null;
+    return isDirectOwner || !!userCollaborator;
+  }, [prod, brand, activeRole, activeBrandId, activePersonId]);
+
+  // Redirect if product is hidden and visitor is not creator
+  useEffect(() => {
+    if (!loading && prod && prod.isVisible === false && !isCreatorOrOwner) {
+      if (triggerNotification) {
+        triggerNotification(false, "Este enlace no existe o el producto fue ocultado por su creador.");
+      }
+      router.replace("/");
+    }
+  }, [loading, prod, isCreatorOrOwner, router, triggerNotification]);
+
   const suggestedBrandProds = useMemo(() => {
     if (!prod) return [];
     const brandCandidates = products.filter(
-      (p) => p.brandId === prod.brandId && p.id !== prod.id
+      (p) => p.brandId === prod.brandId && p.id !== prod.id && p.isVisible !== false
     );
     return getBalancedSuggestions(brandCandidates, 6);
   }, [prod, products]);
@@ -152,7 +178,8 @@ export default function ProductDetailPage() {
              prod.category && 
              p.category.trim().toLowerCase() === prod.category.trim().toLowerCase() && 
              p.id !== prod.id &&
-             p.brandId !== prod.brandId
+             p.brandId !== prod.brandId &&
+             p.isVisible !== false
     );
     const finalCandidates = categoryCandidates.length > 0 
       ? categoryCandidates 
@@ -160,7 +187,8 @@ export default function ProductDetailPage() {
           (p) => p.category && 
                  prod.category && 
                  p.category.trim().toLowerCase() === prod.category.trim().toLowerCase() && 
-                 p.id !== prod.id
+                 p.id !== prod.id &&
+                 p.isVisible !== false
         );
     return getBalancedSuggestions(finalCandidates, 6);
   }, [prod, products]);
@@ -174,17 +202,16 @@ export default function ProductDetailPage() {
     );
   }
 
-  if (!prod) {
+  if (!prod || (prod.isVisible === false && !isCreatorOrOwner)) {
     return (
       <div className="container" style={{ textAlign: "center", padding: "4rem 0" }}>
-        <h3 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "1rem" }}>Producto o servicio no encontrado</h3>
-        <p style={{ color: "var(--text-muted)", marginBottom: "1.5rem" }}>El ítem que buscas no existe o fue movido.</p>
-        <button onClick={() => router.push("/")} className="btn-gold" style={{ padding: "0.75rem 1.8rem", cursor: "pointer" }}>Volver al Catálogo</button>
+        <h3 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "1rem" }}>Este enlace no existe</h3>
+        <p style={{ color: "var(--text-muted)", marginBottom: "1.5rem" }}>El producto o servicio que buscas no está disponible o el enlace no existe. Redireccionando a la página principal...</p>
+        <button onClick={() => router.push("/")} className="btn-gold" style={{ padding: "0.75rem 1.8rem", cursor: "pointer" }}>Ir a la Página Principal</button>
       </div>
     );
   }
 
-  const brand = brands.find((b) => b.id === prod.brandId);
   const parsedBrand = brand ? parseDescription(brand.description) : null;
   const palette = (brand && getBrandPalette) 
     ? getBrandPalette(parsedBrand, brand) 
@@ -522,6 +549,15 @@ export default function ProductDetailPage() {
 
   return (
     <div className="product-details-container product-theme-scope" style={{ position: "relative", minHeight: "100vh", fontFamily: fontFamily !== "Inter" ? `"${fontFamily}", sans-serif` : "inherit" }}>
+      {/* Banner de Producto Oculto para el creador */}
+      {prod.isVisible === false && (
+        <div className="container" style={{ paddingTop: "1.5rem" }}>
+          <div style={{ background: "#fee2e2", color: "#991b1b", padding: "0.85rem 1.2rem", borderRadius: "10px", fontWeight: 700, fontSize: "0.88rem", display: "flex", alignItems: "center", gap: "10px", border: "1px solid #fca5a5" }}>
+            <i className="fa-solid fa-eye-slash" style={{ fontSize: "1.2rem" }}></i>
+            <span>🔒 Producto Oculto: Solo tú como creador(a) de la marca puedes ver este enlace. Para los demás usuarios o visitantes, este enlace saldrá como inexistente y los redirigirá al inicio.</span>
+          </div>
+        </div>
+      )}
       {/* Import de la fuente de Google seleccionada si no es Inter */}
       {fontFamily !== "Inter" && (
         <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400;600;700;800&display=swap`} />

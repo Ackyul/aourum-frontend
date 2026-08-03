@@ -212,6 +212,7 @@ export function AppContextProvider({ children }) {
   const [prodStock, setProdStock] = useState("");
   const [prodCategory, setProdCategory] = useState("");
   const [prodType, setProdType] = useState("product");
+  const [prodIsVisible, setProdIsVisible] = useState(true);
   const [prodImage, setProdImage] = useState("");
   const [prodImagePreview, setProdImagePreview] = useState("");
   const [prodImgBgColor, setProdImgBgColor] = useState("transparent");
@@ -562,34 +563,56 @@ export function AppContextProvider({ children }) {
 
   // Submit handlers
   const handleProductSubmit = async (e, brandId) => {
-    if (e) e.preventDefault();
-    const targetBrandId = brandId || activeBrandId;
-    if (!prodName || !prodPrice || !prodCategory || !targetBrandId) {
+    let isDirectObject = false;
+    let directObj = null;
+
+    if (e && typeof e === 'object' && !e.preventDefault && (e.id || e.name)) {
+      isDirectObject = true;
+      directObj = e;
+    } else if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+
+    const name = isDirectObject ? directObj.name : prodName;
+    const description = isDirectObject ? directObj.description : prodDescription;
+    const price = isDirectObject ? directObj.price : prodPrice;
+    const priceAourum = isDirectObject ? directObj.priceAourum : prodPriceAourum;
+    const stock = isDirectObject ? directObj.stock : prodStock;
+    const category = isDirectObject ? directObj.category : prodCategory;
+    const type = isDirectObject ? directObj.type : prodType;
+    const image = isDirectObject ? directObj.image : prodImage;
+    const imgBgColor = isDirectObject ? directObj.imgBgColor : prodImgBgColor;
+    const isVisible = isDirectObject ? (directObj.isVisible !== false) : (prodIsVisible !== false);
+    const targetEditingId = isDirectObject ? directObj.id : editingProdId;
+    const targetBrandId = isDirectObject ? directObj.brandId : (brandId || activeBrandId);
+
+    if (!name || !price || !category || !targetBrandId) {
       triggerNotification(false, "Completa los campos obligatorios del producto/servicio");
       return;
     }
     setProductSubmitLoading(true);
-    const trimmedCategory = prodCategory.trim();
+    const trimmedCategory = String(category).trim();
     const existingCategory = products.find(p => p.category && p.category.trim().toLowerCase() === trimmedCategory.toLowerCase())?.category;
     const cleanCategory = existingCategory ? existingCategory.trim() : trimmedCategory;
 
     const payload = {
-      name: prodName,
-      description: prodDescription,
-      price: Number(prodPrice),
-      priceAourum: prodPriceAourum === "" || prodPriceAourum == null ? null : Number(prodPriceAourum),
-      stock: prodType === "service" ? 99999 : (prodStock === "" || prodStock == null ? null : Number(prodStock)),
+      name,
+      description: description || '',
+      price: Number(price),
+      priceAourum: priceAourum === "" || priceAourum == null ? null : Number(priceAourum),
+      stock: type === "service" ? 99999 : (stock === "" || stock == null ? null : Number(stock)),
       category: cleanCategory,
       brandId: Number(targetBrandId),
-      type: prodType,
-      image: prodImage || undefined,
-      imgBgColor: prodImgBgColor || "transparent"
+      type: type || 'product',
+      image: image || undefined,
+      imgBgColor: imgBgColor || "transparent",
+      isVisible: isVisible !== false
     };
 
     try {
       let response;
-      if (editingProdId) {
-        response = await fetch(`${API_URL}/api/products/${editingProdId}`, {
+      if (targetEditingId) {
+        response = await fetch(`${API_URL}/api/products/${targetEditingId}`, {
           method: "PUT",
           headers: authHeaders(),
           body: JSON.stringify(payload)
@@ -603,11 +626,13 @@ export function AppContextProvider({ children }) {
       }
 
       if (response.ok) {
-        triggerNotification(true, editingProdId ? "✨ Producto/Servicio actualizado exitosamente" : "✨ ¡Nuevo item añadido al catálogo!");
-        setProdName(""); setProdDescription(""); setProdPrice(""); setProdPriceAourum("");
-        setProdStock(""); setProdCategory(""); setProdType("product");
-        setProdImage(""); setProdImagePreview(""); setProdImgBgColor("transparent");
-        setProdFormOpen(false); setEditingProdId(null);
+        if (!isDirectObject) {
+          triggerNotification(true, targetEditingId ? "✨ Producto/Servicio actualizado exitosamente" : "✨ ¡Nuevo item añadido al catálogo!");
+          setProdName(""); setProdDescription(""); setProdPrice(""); setProdPriceAourum("");
+          setProdStock(""); setProdCategory(""); setProdType("product"); setProdIsVisible(true);
+          setProdImage(""); setProdImagePreview(""); setProdImgBgColor("transparent");
+          setProdFormOpen(false); setEditingProdId(null);
+        }
         fetchData();
       } else {
         triggerNotification(false, "No se pudo guardar el item. Revisa tus campos.");
@@ -1530,6 +1555,7 @@ export function AppContextProvider({ children }) {
         prodStock, setProdStock,
         prodCategory, setProdCategory,
         prodType, setProdType,
+        prodIsVisible, setProdIsVisible,
         prodImage, setProdImage,
         prodImagePreview, setProdImagePreview,
         prodImgBgColor, setProdImgBgColor,
