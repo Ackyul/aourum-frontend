@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useApp } from "../../../context/AppContext";
 import Link from "next/link";
+import { useRouter, useParams } from "next/navigation";
 
 const DEFAULT_USER_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' fill='%23E5E7EB'/%3E%3Cpath d='M64 24a24 24 0 100 48 24 24 0 000-48zM32 104a32 32 0 0164 0H32z' fill='%239CA3AF'/%3E%3C/svg%3E";
 
