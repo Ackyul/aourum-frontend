@@ -149,6 +149,18 @@ export default function BrandProfileClient({ initialBrand }) {
     return initialBrand || null;
   }, [initialBrand, brands, brandId, isNumeric, slug]);
 
+  // Check collaborator role of the logged-in persona
+  const currentPerson = useMemo(() => people.find((p) => Number(p.id) === Number(activePersonId)), [people, activePersonId]);
+  const isBrandSessionOwner = (activeRole === 'brand' && activeBrandId != null && brand?.id != null && Number(activeBrandId) === Number(brand.id));
+  const isDirectOwner = isBrandSessionOwner || (activePersonId != null && brand?.personId != null && Number(brand.personId) === Number(activePersonId));
+  const userCollaborator = brand?.collaborators ? brand.collaborators.find(c => Number(c.personId) === Number(activePersonId)) : null;
+  const userRole = userCollaborator ? userCollaborator.role : (isDirectOwner ? 'creador_original' : null);
+  const isCollaborator = !!userRole || isDirectOwner;
+  const canEditProfile = isCollaborator || userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor' || isDirectOwner;
+  const canInvite = userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor' || isDirectOwner;
+
+  const isOwner = userRole === 'creador_original' || isDirectOwner;
+
   useEffect(() => {
     if (brand?.id) {
       setBrandPostsLoading(true);
@@ -897,17 +909,7 @@ export default function BrandProfileClient({ initialBrand }) {
     );
   }
 
-  // Check collaborator role of the logged-in persona
-  const currentPerson = people.find((p) => Number(p.id) === Number(activePersonId));
-  const isBrandSessionOwner = (activeRole === 'brand' && activeBrandId != null && brand?.id != null && Number(activeBrandId) === Number(brand.id));
-  const isDirectOwner = isBrandSessionOwner || (activePersonId != null && brand?.personId != null && Number(brand.personId) === Number(activePersonId));
-  const userCollaborator = brand?.collaborators ? brand.collaborators.find(c => Number(c.personId) === Number(activePersonId)) : null;
-  const userRole = userCollaborator ? userCollaborator.role : (isDirectOwner ? 'creador_original' : null);
-  const isCollaborator = !!userRole || isDirectOwner;
-  const canEditProfile = isCollaborator || userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor' || isDirectOwner;
-  const canInvite = userRole === 'creador_original' || userRole === 'creador' || userRole === 'gestor' || isDirectOwner;
 
-  const isOwner = userRole === 'creador_original' || isDirectOwner;
 
   const copyLink = (e) => {
     e.stopPropagation();
