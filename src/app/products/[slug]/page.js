@@ -243,8 +243,23 @@ export default function ProductDetailPage() {
     };
   }
 
-  const whatsappNumber = brand?.whatsappNumber || "51999999999";
-  const whatsappLink = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=Hola%20${brand ? encodeURIComponent(brand.name) : "Productor"}%20desde%20AOURUM,%20estoy%20interesado%20en%20el%20item%20"${encodeURIComponent(prod.name)}".`;
+  const whatsappNumber = (brand?.whatsappNumber || "51999999999").replace(/[^0-9]/g, "");
+  const productPrice = prod?.priceAourum ?? prod?.price;
+  const formattedPriceStr = (productPrice != null && !isNaN(Number(productPrice)))
+    ? `S/ ${formatPrice(productPrice)}`
+    : null;
+  const productUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/products/${prod.slug || prod.id}`
+    : "";
+
+  let whatsappMsg = `Hola ${brand ? brand.name : "Productor"} desde AOURUM, estoy interesado en el item "${prod.name}".`;
+  if (formattedPriceStr) {
+    whatsappMsg += `\nPrecio: ${formattedPriceStr}`;
+  }
+  if (productUrl) {
+    whatsappMsg += `\nLink: ${productUrl}`;
+  }
+  const whatsappLink = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodeURIComponent(whatsappMsg)}`;
 
   const renderSuggestedCard = (rp) => {
     const rpBrand = brands.find((b) => b.id === rp.brandId);
