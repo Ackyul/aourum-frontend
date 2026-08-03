@@ -14,10 +14,33 @@ export class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     console.error("ErrorBoundary caught an error:", error, errorInfo);
+    
+    // Auto-reload on ChunkLoadError caused by new deployments on Vercel
+    const errStr = error ? error.toString() : "";
+    const isChunkError = 
+      error?.name === "ChunkLoadError" || 
+      errStr.includes("ChunkLoadError") || 
+      errStr.includes("Failed to load chunk") || 
+      errStr.includes("Loading chunk");
+
+    if (isChunkError && typeof window !== "undefined") {
+      const reloadKey = "aourum_chunk_reload_attempted";
+      if (!sessionStorage.getItem(reloadKey)) {
+        sessionStorage.setItem(reloadKey, "true");
+        window.location.reload();
+      }
+    }
   }
 
   render() {
     if (this.state.hasError) {
+      const errStr = this.state.error ? this.state.error.toString() : "";
+      const isChunkError = 
+        this.state.error?.name === "ChunkLoadError" || 
+        errStr.includes("ChunkLoadError") || 
+        errStr.includes("Failed to load chunk") || 
+        errStr.includes("Loading chunk");
+
       return (
         <div style={{
           display: "flex",
@@ -29,10 +52,13 @@ export class ErrorBoundary extends React.Component {
           textAlign: "center"
         }}>
           <h2 style={{ fontSize: "1.5rem", fontWeight: "600", marginBottom: "1rem", color: "#111827" }}>
-            Algo no salió como esperábamos
+            {isChunkError ? "Nueva versión disponible" : "Algo no salió como esperábamos"}
           </h2>
           <p style={{ color: "#4b5563", marginBottom: "1.5rem", maxWidth: "480px" }}>
-            Se ha producido un inconveniente al cargar esta vista. Puedes intentar recargar la página.
+            {isChunkError 
+              ? "Se ha publicado una nueva actualización de la aplicación. Haz clic en recargar para obtener la última versión."
+              : "Se ha producido un inconveniente al cargar esta vista. Puedes intentar recargar la página."
+            }
           </p>
           {this.state.error && (
             <div style={{
@@ -54,8 +80,10 @@ export class ErrorBoundary extends React.Component {
           )}
           <button
             onClick={() => {
-              this.setState({ hasError: false, error: null });
-              window.location.reload();
+              if (typeof window !== "undefined") {
+                sessionStorage.removeItem("aourum_chunk_reload_attempted");
+                window.location.reload();
+              }
             }}
             style={{
               padding: "0.6rem 1.2rem",
