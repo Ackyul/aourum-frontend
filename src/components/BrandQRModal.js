@@ -705,7 +705,9 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
               style={{
                 maxWidth: "100%",
                 maxHeight: "360px",
+                width: "auto",
                 height: "auto",
+                aspectRatio: includeCardFrame ? "1 / 1.45" : "1 / 1",
                 borderRadius: "12px",
                 boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
                 objectFit: "contain"
@@ -898,6 +900,8 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
               alignItems: "center",
               justifyContent: "center",
               width: "100%",
+              minHeight: 0,
+              minWidth: 0,
               margin: "0.5rem 0"
             }}
           >
@@ -911,16 +915,19 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                maxWidth: "92vw"
+                maxWidth: "92vw",
+                maxHeight: "100%",
+                boxSizing: "border-box"
               }}
             >
               <canvas
                 ref={standCanvasRef}
                 style={{
                   maxWidth: "100%",
-                  maxHeight: "68vh",
+                  maxHeight: "65vh",
                   width: "auto",
                   height: "auto",
+                  aspectRatio: "1 / 1.45",
                   borderRadius: "14px",
                   objectFit: "contain"
                 }}
