@@ -6,6 +6,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import PostList from "../../../components/PostList";
 import SocialFeedPublisher from "../../../components/SocialFeedPublisher";
+import BrandQRModal from "../../../components/BrandQRModal";
 
 // Stable deterministic views generator based on hash of name + id
 const getItemViews = (name, id) => {
@@ -123,6 +124,7 @@ export default function BrandProfileClient({ initialBrand }) {
   const [activeBrandTab, setActiveBrandTab] = useState("vitrina");
   const [brandPosts, setBrandPosts] = useState([]);
   const [brandPostsLoading, setBrandPostsLoading] = useState(false);
+  const [qrModalOpen, setQrModalOpen] = useState(false);
 
   useEffect(() => {
     loadBrands();
@@ -1307,14 +1309,24 @@ export default function BrandProfileClient({ initialBrand }) {
         >
           <i className="fa-solid fa-arrow-left"></i> Volver a Marcas
         </button>
-        <button 
-          onClick={copyLink} 
-          className="btn-outline-gold" 
-          style={{ padding: "0.5rem 1.2rem", fontSize: "0.85rem", borderRadius: "8px", border: `1.5px solid ${palette.c1}`, cursor: "pointer", transition: "var(--transition-smooth)", display: "flex", alignItems: "center", gap: "6px", background: "transparent", color: palette.c1 }} 
-          title="Copiar enlace de perfil"
-        >
-          <i className="fa-solid fa-share-nodes"></i> Compartir Perfil
-        </button>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button 
+            onClick={() => setQrModalOpen(true)} 
+            className="btn-gold" 
+            style={{ padding: "0.5rem 1.2rem", fontSize: "0.85rem", borderRadius: "8px", cursor: "pointer", transition: "var(--transition-smooth)", display: "flex", alignItems: "center", gap: "6px", fontWeight: 700 }} 
+            title="Generar y descargar QR oficial de la marca"
+          >
+            <i className="fa-solid fa-qrcode"></i> Código QR de Marca
+          </button>
+          <button 
+            onClick={copyLink} 
+            className="btn-outline-gold" 
+            style={{ padding: "0.5rem 1.2rem", fontSize: "0.85rem", borderRadius: "8px", border: `1.5px solid ${palette.c1}`, cursor: "pointer", transition: "var(--transition-smooth)", display: "flex", alignItems: "center", gap: "6px", background: "transparent", color: palette.c1 }} 
+            title="Copiar enlace de perfil"
+          >
+            <i className="fa-solid fa-share-nodes"></i> Compartir Perfil
+          </button>
+        </div>
       </div>
 
       {/* Cabezal de Perfil Extremo a Extremo 1200x500 */}
@@ -1414,6 +1426,13 @@ export default function BrandProfileClient({ initialBrand }) {
                      <i className="fa-solid fa-gear"></i> Editar Perfil
                    </button>
                  )}
+                 <button
+                   onClick={() => setQrModalOpen(true)}
+                   className="btn-gold"
+                   style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                 >
+                   <i className="fa-solid fa-qrcode"></i> Generar QR Marca
+                 </button>
                </div>
              )}
           </div>
@@ -2650,6 +2669,12 @@ export default function BrandProfileClient({ initialBrand }) {
           </div>
         </div>
       )}
+      {/* Modal QR de Marca AOURUM */}
+      <BrandQRModal
+        isOpen={qrModalOpen}
+        onClose={() => setQrModalOpen(false)}
+        brand={brand}
+      />
     </div>
     </div>
   );
