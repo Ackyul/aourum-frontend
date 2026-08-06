@@ -1731,19 +1731,19 @@ export default function BrandProfileClient({ initialBrand }) {
       {isOwner && prodFormOpen && (
         <div className="modal-overlay" style={{ zIndex: 1200 }}>
           <div className="modal-backdrop" onClick={() => { setProdFormOpen(false); setEditingProdId(null); }}></div>
-          <div className="modal-panel fade-in" style={{ maxWidth: "750px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+          <div className="modal-panel fade-in" style={{ maxWidth: "750px", background: "#FFFFFF", border: "1.5px solid var(--gold-primary)", padding: 0 }}>
+            <div className="modal-header">
               <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0 }}>
                 {editingProdId ? "✨ Editar Item de Catálogo" : "✨ Publicar Nuevo Item"}
               </h3>
               <button 
                 onClick={() => { setProdFormOpen(false); setEditingProdId(null); }} 
-                style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
+                style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
               >
                 &times;
               </button>
             </div>
-            <form onSubmit={(e) => handleProductSubmit(e, brand.id)}>
+            <form onSubmit={(e) => handleProductSubmit(e, brand.id)} className="modal-body">
               <div className="grid-2-to-1">
                 <div className="form-group">
                   <label>Nombre del Item *</label>
@@ -2235,19 +2235,19 @@ export default function BrandProfileClient({ initialBrand }) {
       {isOwner && showFairs && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal-backdrop" onClick={() => setShowFairs(false)}></div>
-          <div className="modal-panel fade-in" style={{ maxWidth: "550px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", position: "relative" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+          <div className="modal-panel fade-in" style={{ maxWidth: "550px", background: "#FFFFFF", border: "1.5px solid var(--gold-primary)", padding: 0 }}>
+            <div className="modal-header">
               <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0 }}>
                 <i className="fa-solid fa-paper-plane" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Postular Marca a Ferias
               </h3>
               <button 
                 onClick={() => setShowFairs(false)} 
-                style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
+                style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
               >
                 &times;
               </button>
             </div>
-            <form onSubmit={(e) => handleApplyToFair(e, "brand", brand.id)} className="apply-fair-form">
+            <form onSubmit={(e) => handleApplyToFair(e, "brand", brand.id)} className="apply-fair-form modal-body">
               <div className="form-group" style={{ marginBottom: "1.5rem", position: "relative" }}>
                 <label style={{ fontWeight: 600, fontSize: "0.9rem", display: "block", marginBottom: "0.5rem" }}>Buscar y seleccionar feria del calendario local</label>
                 <div style={{ position: "relative" }}>
@@ -2320,20 +2320,20 @@ export default function BrandProfileClient({ initialBrand }) {
       {isOwner && showCollabs && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal-backdrop" onClick={() => setShowCollabs(false)}></div>
-          <div className="modal-panel fade-in" style={{ maxWidth: "750px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+          <div className="modal-panel fade-in" style={{ maxWidth: "750px", background: "#FFFFFF", border: "1.5px solid var(--gold-primary)", padding: 0 }}>
+            <div className="modal-header">
               <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0 }}>
                 <i className="fa-solid fa-users" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Colaboradores de la Marca
               </h3>
               <button 
                 onClick={() => setShowCollabs(false)} 
-                style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
+                style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
               >
                 &times;
               </button>
             </div>
             
-            <div className="collab-grid">
+            <div className="collab-grid modal-body">
               <div>
                 <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.8rem", color: "var(--text-gold)" }}>Miembros Vinculados</h4>
                 {brand.collaborators && brand.collaborators.length === 0 ? (
@@ -2526,19 +2526,21 @@ export default function BrandProfileClient({ initialBrand }) {
       {isOwner && adminCatalogOpen && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal-backdrop" onClick={() => { setAdminCatalogOpen(false); setAdminSearchQuery(""); }}></div>
-          <div className="modal-panel fade-in" style={{ maxWidth: "850px", width: "95%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+          <div className="modal-panel fade-in" style={{ maxWidth: "850px", background: "#FFFFFF", border: "1.5px solid var(--gold-primary)", padding: 0 }}>
+            <div className="modal-header">
               <h3 style={{ fontSize: "1.20rem", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
                 <i className="fa-solid fa-list-check" style={{ color: "var(--gold-primary)" }}></i>
                 Administrar Items en Catálogo
               </h3>
               <button 
                 onClick={() => { setAdminCatalogOpen(false); setAdminSearchQuery(""); }} 
-                style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
+                style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
               >
                 &times;
               </button>
             </div>
+            
+            <div className="modal-body">
             
             {/* Buscador de items */}
             <div style={{ marginBottom: "1.5rem", position: "relative" }}>
@@ -2668,7 +2670,8 @@ export default function BrandProfileClient({ initialBrand }) {
             </div>
           </div>
         </div>
-      )}
+      </div>
+    )}
       {/* Modal QR de Marca AOURUM */}
       <BrandQRModal
         isOpen={qrModalOpen}

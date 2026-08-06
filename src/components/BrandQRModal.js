@@ -498,45 +498,36 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
 
       {/* Main Modal Overlay */}
       <div
+        className="modal-overlay"
         style={{
-          position: "fixed",
-          inset: 0,
+          zIndex: 99999,
           background: "rgba(0, 0, 0, 0.85)",
           backdropFilter: "blur(8px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 99999,
-          padding: "0.75rem"
+          WebkitBackdropFilter: "blur(8px)"
         }}
         onClick={onClose}
       >
         <div
+          className="modal-panel"
           style={{
             background: "#141416",
             border: "1px solid rgba(212, 175, 55, 0.35)",
-            borderRadius: "20px",
-            width: "100%",
             maxWidth: "680px",
-            maxHeight: "92vh",
-            overflowY: "auto",
-            padding: "1.5rem",
             color: "#FFFFFF",
             boxShadow: "0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(212,175,55,0.15)",
-            position: "relative",
-            boxSizing: "border-box"
+            padding: 0
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
+          {/* Sticky Header */}
           <div
+            className="modal-header"
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
+              background: "#141416",
               borderBottom: "1px solid rgba(255,255,255,0.1)",
-              paddingBottom: "0.8rem",
-              marginBottom: "1rem"
+              position: "sticky",
+              top: 0,
+              zIndex: 20
             }}
           >
             <div>
@@ -567,9 +558,9 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
             <button
               onClick={onClose}
               style={{
-                background: "rgba(255,255,255,0.08)",
+                background: "rgba(255,255,255,0.12)",
                 border: "none",
-                color: "#A1A1AA",
+                color: "#FFFFFF",
                 width: "36px",
                 height: "36px",
                 borderRadius: "50%",
@@ -577,7 +568,7 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: "1rem",
+                fontSize: "1.1rem",
                 flexShrink: 0
               }}
             >
@@ -585,264 +576,267 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
             </button>
           </div>
 
-          {/* Controls Bar: Theme & Format switch */}
-          <div
-            style={{
-              display: "flex",
-              gap: "10px",
-              flexWrap: "wrap",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "1rem",
-              background: "rgba(255,255,255,0.03)",
-              padding: "10px 12px",
-              borderRadius: "12px",
-              border: "1px solid rgba(255,255,255,0.06)"
-            }}
-          >
-            {/* Theme Selector */}
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-              <span style={{ fontSize: "0.75rem", color: "#A1A1AA", fontWeight: 600 }}>Estilo:</span>
-              <button
-                onClick={() => setTheme("dark")}
-                style={{
-                  padding: "4px 10px",
-                  borderRadius: "6px",
-                  fontSize: "0.75rem",
-                  fontWeight: "700",
-                  cursor: "pointer",
-                  border: theme === "dark" ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
-                  background: theme === "dark" ? "#121214" : "transparent",
-                  color: theme === "dark" ? "#D4AF37" : "#A1A1AA"
-                }}
-              >
-                Obsidiana
-              </button>
-              <button
-                onClick={() => setTheme("light")}
-                style={{
-                  padding: "4px 10px",
-                  borderRadius: "6px",
-                  fontSize: "0.75rem",
-                  fontWeight: "700",
-                  cursor: "pointer",
-                  border: theme === "light" ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
-                  background: theme === "light" ? "#FAF9F6" : "transparent",
-                  color: theme === "light" ? "#1C1C1E" : "#A1A1AA"
-                }}
-              >
-                Claridad
-              </button>
-              <button
-                onClick={() => setTheme("gold")}
-                style={{
-                  padding: "4px 10px",
-                  borderRadius: "6px",
-                  fontSize: "0.75rem",
-                  fontWeight: "700",
-                  cursor: "pointer",
-                  border: theme === "gold" ? "1px solid #FFD700" : "1px solid rgba(255,255,255,0.1)",
-                  background: theme === "gold" ? "#1A1710" : "transparent",
-                  color: theme === "gold" ? "#FFD700" : "#A1A1AA"
-                }}
-              >
-                Oro Puro
-              </button>
+          {/* Scrollable Body */}
+          <div className="modal-body" style={{ background: "#141416" }}>
+            {/* Controls Bar: Theme & Format switch */}
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                flexWrap: "wrap",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "1rem",
+                background: "rgba(255,255,255,0.03)",
+                padding: "10px 12px",
+                borderRadius: "12px",
+                border: "1px solid rgba(255,255,255,0.06)"
+              }}
+            >
+              {/* Theme Selector */}
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                <span style={{ fontSize: "0.75rem", color: "#A1A1AA", fontWeight: 600 }}>Estilo:</span>
+                <button
+                  onClick={() => setTheme("dark")}
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: "6px",
+                    fontSize: "0.75rem",
+                    fontWeight: "700",
+                    cursor: "pointer",
+                    border: theme === "dark" ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
+                    background: theme === "dark" ? "#121214" : "transparent",
+                    color: theme === "dark" ? "#D4AF37" : "#A1A1AA"
+                  }}
+                >
+                  Obsidiana
+                </button>
+                <button
+                  onClick={() => setTheme("light")}
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: "6px",
+                    fontSize: "0.75rem",
+                    fontWeight: "700",
+                    cursor: "pointer",
+                    border: theme === "light" ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
+                    background: theme === "light" ? "#FAF9F6" : "transparent",
+                    color: theme === "light" ? "#1C1C1E" : "#A1A1AA"
+                  }}
+                >
+                  Claridad
+                </button>
+                <button
+                  onClick={() => setTheme("gold")}
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: "6px",
+                    fontSize: "0.75rem",
+                    fontWeight: "700",
+                    cursor: "pointer",
+                    border: theme === "gold" ? "1px solid #FFD700" : "1px solid rgba(255,255,255,0.1)",
+                    background: theme === "gold" ? "#1A1710" : "transparent",
+                    color: theme === "gold" ? "#FFD700" : "#A1A1AA"
+                  }}
+                >
+                  Oro Puro
+                </button>
+              </div>
+
+              {/* Layout Toggle */}
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                <span style={{ fontSize: "0.75rem", color: "#A1A1AA", fontWeight: 600 }}>Formato:</span>
+                <button
+                  onClick={() => setIncludeCardFrame(false)}
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: "6px",
+                    fontSize: "0.75rem",
+                    fontWeight: "700",
+                    cursor: "pointer",
+                    border: !includeCardFrame ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
+                    background: !includeCardFrame ? "rgba(212, 175, 55, 0.15)" : "transparent",
+                    color: !includeCardFrame ? "#D4AF37" : "#A1A1AA"
+                  }}
+                >
+                  Solo QR
+                </button>
+                <button
+                  onClick={() => setIncludeCardFrame(true)}
+                  style={{
+                    padding: "4px 10px",
+                    borderRadius: "6px",
+                    fontSize: "0.75rem",
+                    fontWeight: "700",
+                    cursor: "pointer",
+                    border: includeCardFrame ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
+                    background: includeCardFrame ? "rgba(212, 175, 55, 0.15)" : "transparent",
+                    color: includeCardFrame ? "#D4AF37" : "#A1A1AA"
+                  }}
+                >
+                  Tarjeta Impresa / Stand
+                </button>
+              </div>
             </div>
 
-            {/* Layout Toggle */}
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-              <span style={{ fontSize: "0.75rem", color: "#A1A1AA", fontWeight: 600 }}>Formato:</span>
-              <button
-                onClick={() => setIncludeCardFrame(false)}
+            {/* QR Canvas Preview Display */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "1rem",
+                background: "#0A0A0C",
+                borderRadius: "16px",
+                border: "1px solid rgba(212,175,55,0.2)",
+                marginBottom: "1.2rem",
+                position: "relative"
+              }}
+            >
+              {generating && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    background: "rgba(10,10,12,0.7)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "16px",
+                    zIndex: 2
+                  }}
+                >
+                  <i className="fa-solid fa-spinner fa-spin" style={{ color: "#D4AF37", fontSize: "2rem" }}></i>
+                </div>
+              )}
+              <canvas
+                ref={canvasRef}
                 style={{
-                  padding: "4px 10px",
-                  borderRadius: "6px",
-                  fontSize: "0.75rem",
-                  fontWeight: "700",
-                  cursor: "pointer",
-                  border: !includeCardFrame ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
-                  background: !includeCardFrame ? "rgba(212, 175, 55, 0.15)" : "transparent",
-                  color: !includeCardFrame ? "#D4AF37" : "#A1A1AA"
+                  maxWidth: "100%",
+                  maxHeight: "360px",
+                  width: "auto",
+                  height: "auto",
+                  aspectRatio: includeCardFrame ? "1 / 1.45" : "1 / 1",
+                  borderRadius: "12px",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+                  objectFit: "contain"
                 }}
-              >
-                Solo QR
-              </button>
-              <button
-                onClick={() => setIncludeCardFrame(true)}
-                style={{
-                  padding: "4px 10px",
-                  borderRadius: "6px",
-                  fontSize: "0.75rem",
-                  fontWeight: "700",
-                  cursor: "pointer",
-                  border: includeCardFrame ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
-                  background: includeCardFrame ? "rgba(212, 175, 55, 0.15)" : "transparent",
-                  color: includeCardFrame ? "#D4AF37" : "#A1A1AA"
-                }}
-              >
-                Tarjeta Impresa / Stand
-              </button>
+              />
+              <div style={{ marginTop: "8px", textAlign: "center", width: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
+                <span style={{ fontSize: "0.72rem", color: "#8E8E93", wordBreak: "break-all" }}>
+                  Enlace inalterable: <strong style={{ color: "#D4AF37" }}>{brandUrl}</strong>
+                </span>
+              </div>
             </div>
-          </div>
 
-          {/* QR Canvas Preview Display */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "1rem",
-              background: "#0A0A0C",
-              borderRadius: "16px",
-              border: "1px solid rgba(212,175,55,0.2)",
-              marginBottom: "1.2rem",
-              position: "relative"
-            }}
-          >
-            {generating && (
-              <div
+            {/* Download & Action Options Grid */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "8px" }}>
+              <button
+                onClick={downloadPNGHD}
                 style={{
-                  position: "absolute",
-                  inset: 0,
-                  background: "rgba(10,10,12,0.7)",
+                  background: "linear-gradient(135deg, #D4AF37, #A68015)",
+                  color: "#121214",
+                  border: "none",
+                  padding: "10px 12px",
+                  borderRadius: "10px",
+                  fontWeight: "800",
+                  fontSize: "0.8rem",
+                  cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  borderRadius: "16px",
-                  zIndex: 2
+                  gap: "6px",
+                  boxShadow: "0 4px 12px rgba(212,175,55,0.25)"
                 }}
               >
-                <i className="fa-solid fa-spinner fa-spin" style={{ color: "#D4AF37", fontSize: "2rem" }}></i>
-              </div>
-            )}
-            <canvas
-              ref={canvasRef}
-              style={{
-                maxWidth: "100%",
-                maxHeight: "360px",
-                width: "auto",
-                height: "auto",
-                aspectRatio: includeCardFrame ? "1 / 1.45" : "1 / 1",
-                borderRadius: "12px",
-                boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
-                objectFit: "contain"
-              }}
-            />
-            <div style={{ marginTop: "8px", textAlign: "center", width: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
-              <span style={{ fontSize: "0.72rem", color: "#8E8E93", wordBreak: "break-all" }}>
-                Enlace inalterable: <strong style={{ color: "#D4AF37" }}>{brandUrl}</strong>
-              </span>
+                <i className="fa-solid fa-download"></i> PNG HD (2000px)
+              </button>
+
+              <button
+                onClick={downloadSVG}
+                style={{
+                  background: "rgba(255,255,255,0.06)",
+                  color: "#FFFFFF",
+                  border: "1px solid rgba(212,175,55,0.5)",
+                  padding: "10px 12px",
+                  borderRadius: "10px",
+                  fontWeight: "700",
+                  fontSize: "0.8rem",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px"
+                }}
+              >
+                <i className="fa-solid fa-vector-square" style={{ color: "#D4AF37" }}></i> Vector SVG
+              </button>
+
+              <button
+                onClick={handlePrintCard}
+                style={{
+                  background: "rgba(255,255,255,0.06)",
+                  color: "#FFFFFF",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  padding: "10px 12px",
+                  borderRadius: "10px",
+                  fontWeight: "700",
+                  fontSize: "0.8rem",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px"
+                }}
+              >
+                <i className="fa-solid fa-print" style={{ color: "#38bdf8" }}></i> Cartel Impreso / PDF
+              </button>
+
+              <button
+                onClick={copyToClipboard}
+                style={{
+                  background: "rgba(255,255,255,0.06)",
+                  color: "#FFFFFF",
+                  border: "1px solid rgba(255,255,255,0.15)",
+                  padding: "10px 12px",
+                  borderRadius: "10px",
+                  fontWeight: "700",
+                  fontSize: "0.8rem",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px"
+                }}
+              >
+                <i className={`fa-solid ${isCopied ? "fa-check" : "fa-copy"}`} style={{ color: isCopied ? "#4ade80" : "#a855f7" }}></i>
+                {isCopied ? "¡Copiado!" : "Copiar Imagen"}
+              </button>
+
+              <button
+                onClick={() => setIsStandMode(true)}
+                style={{
+                  gridColumn: "1 / -1",
+                  background: "linear-gradient(135deg, #1E1B10, #2A2414)",
+                  color: "#FFD700",
+                  border: "1.5px solid #FFD700",
+                  padding: "12px 16px",
+                  borderRadius: "12px",
+                  fontWeight: "800",
+                  fontSize: "0.85rem",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  marginTop: "4px"
+                }}
+              >
+                <i className="fa-solid fa-tablet-screen-button" style={{ fontSize: "1.05rem" }}></i>
+                Abrir Modo Mostrador / Stand (Para pantalla en Feria)
+              </button>
             </div>
-          </div>
-
-          {/* Download & Action Options Grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "8px" }}>
-            <button
-              onClick={downloadPNGHD}
-              style={{
-                background: "linear-gradient(135deg, #D4AF37, #A68015)",
-                color: "#121214",
-                border: "none",
-                padding: "10px 12px",
-                borderRadius: "10px",
-                fontWeight: "800",
-                fontSize: "0.8rem",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "6px",
-                boxShadow: "0 4px 12px rgba(212,175,55,0.25)"
-              }}
-            >
-              <i className="fa-solid fa-download"></i> PNG HD (2000px)
-            </button>
-
-            <button
-              onClick={downloadSVG}
-              style={{
-                background: "rgba(255,255,255,0.06)",
-                color: "#FFFFFF",
-                border: "1px solid rgba(212,175,55,0.5)",
-                padding: "10px 12px",
-                borderRadius: "10px",
-                fontWeight: "700",
-                fontSize: "0.8rem",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "6px"
-              }}
-            >
-              <i className="fa-solid fa-vector-square" style={{ color: "#D4AF37" }}></i> Vector SVG
-            </button>
-
-            <button
-              onClick={handlePrintCard}
-              style={{
-                background: "rgba(255,255,255,0.06)",
-                color: "#FFFFFF",
-                border: "1px solid rgba(255,255,255,0.15)",
-                padding: "10px 12px",
-                borderRadius: "10px",
-                fontWeight: "700",
-                fontSize: "0.8rem",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "6px"
-              }}
-            >
-              <i className="fa-solid fa-print" style={{ color: "#38bdf8" }}></i> Cartel Impreso / PDF
-            </button>
-
-            <button
-              onClick={copyToClipboard}
-              style={{
-                background: "rgba(255,255,255,0.06)",
-                color: "#FFFFFF",
-                border: "1px solid rgba(255,255,255,0.15)",
-                padding: "10px 12px",
-                borderRadius: "10px",
-                fontWeight: "700",
-                fontSize: "0.8rem",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "6px"
-              }}
-            >
-              <i className={`fa-solid ${isCopied ? "fa-check" : "fa-copy"}`} style={{ color: isCopied ? "#4ade80" : "#a855f7" }}></i>
-              {isCopied ? "¡Copiado!" : "Copiar Imagen"}
-            </button>
-
-            <button
-              onClick={() => setIsStandMode(true)}
-              style={{
-                gridColumn: "1 / -1",
-                background: "linear-gradient(135deg, #1E1B10, #2A2414)",
-                color: "#FFD700",
-                border: "1.5px solid #FFD700",
-                padding: "12px 16px",
-                borderRadius: "12px",
-                fontWeight: "800",
-                fontSize: "0.85rem",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                marginTop: "4px"
-              }}
-            >
-              <i className="fa-solid fa-tablet-screen-button" style={{ fontSize: "1.05rem" }}></i>
-              Abrir Modo Mostrador / Stand (Para pantalla en Feria)
-            </button>
           </div>
         </div>
       </div>

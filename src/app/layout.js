@@ -877,15 +877,15 @@ function AppLayoutShell({ children }) {
       {showRegModal && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal-backdrop" onClick={() => setShowRegModal(false)}></div>
-          <div className="modal-panel fade-in" style={{ maxWidth: "550px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+          <div className="modal-panel fade-in" style={{ maxWidth: "550px", padding: 0 }}>
+            <div className="modal-header">
               <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0 }}>
                 {!activeRole ? "Crear tu Perfil en AOURUM" : "Registrar Nuevo Proyecto"}
               </h3>
-              <button onClick={() => setShowRegModal(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>&times;</button>
+              <button onClick={() => setShowRegModal(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>&times;</button>
             </div>
 
-            <form onSubmit={handleAccountRegistration}>
+            <form onSubmit={handleAccountRegistration} className="modal-body">
               <div className="form-group">
                 <label>Nombre de {regType === "brand" ? "la Marca" : regType === "organizer" ? "la Organización" : regType === "band" ? "la Banda Musical" : "la Persona"} *</label>
                 <input 
@@ -1136,14 +1136,16 @@ function AppLayoutShell({ children }) {
       {showLoginModal && (
         <div className="modal-overlay" style={{ zIndex: 1200 }}>
           <div className="modal-backdrop" onClick={() => setShowLoginModal(false)}></div>
-          <div className="modal-panel fade-in" style={{ maxWidth: "420px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.8rem" }}>
+          <div className="modal-panel fade-in" style={{ maxWidth: "420px", padding: 0 }}>
+            <div className="modal-header">
               <div>
                 <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: "0 0 4px 0" }}>Iniciar Sesión</h3>
                 <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: 0 }}>Accede a tu cuenta AOURUM</p>
               </div>
-              <button onClick={() => setShowLoginModal(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>&#x00D7;</button>
+              <button onClick={() => setShowLoginModal(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>&#x00D7;</button>
             </div>
+
+            <div className="modal-body">
 
             {/* Logo decorativo */}
             <div style={{ textAlign: "center", marginBottom: "1.6rem" }}>
@@ -1265,6 +1267,7 @@ function AppLayoutShell({ children }) {
               </div>
             </form>
           </div>
+          </div>
         </div>
       )}
 
@@ -1272,14 +1275,16 @@ function AppLayoutShell({ children }) {
       {showForgotModal && (
         <div className="modal-overlay" style={{ zIndex: 1200 }}>
           <div className="modal-backdrop" onClick={() => setShowForgotModal(false)}></div>
-          <div className="modal-panel fade-in" style={{ maxWidth: "420px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.8rem" }}>
+          <div className="modal-panel fade-in" style={{ maxWidth: "420px", padding: 0 }}>
+            <div className="modal-header">
               <div>
                 <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: "0 0 4px 0" }}>Recuperar Contraseña</h3>
                 <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: 0 }}>Te enviaremos un enlace para restablecerla</p>
               </div>
-              <button onClick={() => setShowForgotModal(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>&#x00D7;</button>
+              <button onClick={() => setShowForgotModal(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>&#x00D7;</button>
             </div>
+
+            <div className="modal-body">
 
             {/* Logo decorativo */}
             <div style={{ textAlign: "center", marginBottom: "1.6rem" }}>
@@ -1338,6 +1343,7 @@ function AppLayoutShell({ children }) {
               </div>
             </form>
           </div>
+          </div>
         </div>
       )}
 
@@ -1345,8 +1351,8 @@ function AppLayoutShell({ children }) {
       {editProfileOpen && (
         <div className="modal-overlay" style={{ zIndex: 1150 }}>
           <div className="modal-backdrop" onClick={() => { if (!isOnboarding) setEditProfileOpen(false); }}></div>
-          <div className="modal-panel fade-in" style={{ maxWidth: "560px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+          <div className="modal-panel fade-in" style={{ maxWidth: "560px", padding: 0 }}>
+            <div className="modal-header">
               <h3 style={{ fontSize: "1.25rem", fontWeight: 800, display: "flex", alignItems: "center", gap: 10 }}>
                 {isOnboarding ? (
                   <>

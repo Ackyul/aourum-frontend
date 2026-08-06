@@ -109,10 +109,10 @@ export default function CreatePostModal() {
   return (
     <div className="modal-overlay" style={{ zIndex: 1200 }}>
       <div className="modal-backdrop" onClick={() => setShowCreatePostModal(false)}></div>
-      <div className="modal-panel fade-in" style={{ maxWidth: "540px", borderRadius: "16px" }}>
+      <div className="modal-panel fade-in" style={{ maxWidth: "540px" }}>
         
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem" }}>
+        {/* Sticky Header */}
+        <div className="modal-header">
           <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
             <i className="fa-solid fa-pen-to-square" style={{ color: "var(--text-gold)" }}></i>
             Crear Publicación
@@ -120,13 +120,13 @@ export default function CreatePostModal() {
           <button 
             type="button"
             onClick={() => setShowCreatePostModal(false)} 
-            style={{ background: "rgba(0,0,0,0.05)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
+            style={{ background: "rgba(0,0,0,0.05)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
           >
             &times;
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="modal-body">
           
           {/* Identity Selection (Only shown when not pre-specified by profile context) */}
           {(!postModalDefaultAuthorType && !postModalDefaultBrandId && (userBrands.length > 0 || userOrganizers.length > 0)) && (

@@ -890,19 +890,19 @@ export default function BandProfileClient({ initialBand }) {
       {isOwner && showFairs && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal-backdrop" onClick={() => setShowFairs(false)}></div>
-          <div className="modal-panel fade-in" style={{ maxWidth: "550px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", position: "relative" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+          <div className="modal-panel fade-in" style={{ maxWidth: "550px", background: "#FFFFFF", border: "1.5px solid var(--gold-primary)", padding: 0 }}>
+            <div className="modal-header">
               <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0 }}>
                 <i className="fa-solid fa-paper-plane" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Postular Banda a Ferias
               </h3>
               <button 
                 onClick={() => setShowFairs(false)} 
-                style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
+                style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
               >
                 &times;
               </button>
             </div>
-            <form onSubmit={(e) => handleApplyToFair(e, "band", band.id)} className="apply-fair-form">
+            <form onSubmit={(e) => handleApplyToFair(e, "band", band.id)} className="apply-fair-form modal-body">
               <div className="form-group" style={{ marginBottom: "1.5rem", position: "relative" }}>
                 <label style={{ fontWeight: 600, fontSize: "0.9rem", display: "block", marginBottom: "0.5rem" }}>Buscar y seleccionar feria del calendario local</label>
                 <div style={{ position: "relative" }}>
@@ -975,20 +975,20 @@ export default function BandProfileClient({ initialBand }) {
       {isOwner && showCollabs && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal-backdrop" onClick={() => setShowCollabs(false)}></div>
-          <div className="modal-panel fade-in" style={{ maxWidth: "750px", width: "90%", padding: "2rem", background: "#FFFFFF", borderRadius: "12px", border: "1.5px solid var(--gold-primary)", maxHeight: "90vh", overflowY: "auto", position: "relative" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+          <div className="modal-panel fade-in" style={{ maxWidth: "750px", background: "#FFFFFF", border: "1.5px solid var(--gold-primary)", padding: 0 }}>
+            <div className="modal-header">
               <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0 }}>
                 <i className="fa-solid fa-users" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Integrantes de la Banda
               </h3>
               <button 
                 onClick={() => setShowCollabs(false)} 
-                style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
+                style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
               >
                 &times;
               </button>
             </div>
             
-            <div className="collab-grid">
+            <div className="collab-grid modal-body">
               <div>
                 <h4 style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.8rem", color: "var(--text-gold)" }}>Miembros Vinculados</h4>
                 {band.collaborators && band.collaborators.length === 0 ? (

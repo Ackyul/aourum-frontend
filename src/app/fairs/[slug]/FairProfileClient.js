@@ -1045,15 +1045,15 @@ export default function FairProfileClient({ initialFair }) {
       {canEditFair && editFairOpen && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal-backdrop" onClick={() => setEditFairOpen(false)}></div>
-          <div className="modal-panel fade-in" style={{ maxWidth: "550px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+          <div className="modal-panel fade-in" style={{ maxWidth: "550px", padding: 0 }}>
+            <div className="modal-header">
               <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0 }}>
                 🎪 Editar Información del Evento
               </h3>
-              <button onClick={() => setEditFairOpen(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>&times;</button>
+              <button onClick={() => setEditFairOpen(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>&times;</button>
             </div>
 
-            <form onSubmit={handleEditFairSubmit}>
+            <form onSubmit={handleEditFairSubmit} className="modal-body">
               {/* Tab bar header */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", borderBottom: "1.5px solid var(--border-color)", paddingBottom: "0.6rem", marginBottom: "1.2rem" }}>
                 <button 
@@ -1319,17 +1319,17 @@ export default function FairProfileClient({ initialFair }) {
       {locationModalOpen && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal-backdrop" onClick={() => setLocationModalOpen(false)}></div>
-          <div className="modal-panel fade-in" style={{ maxWidth: "600px", width: "90%", maxHeight: "85vh", display: "flex", flexDirection: "column", padding: 0 }}>
+          <div className="modal-panel fade-in" style={{ maxWidth: "600px", padding: 0 }}>
             {/* Modal Header */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.5rem", borderBottom: "1px solid var(--border-color)" }}>
+            <div className="modal-header">
               <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0, color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "8px" }}>
                 <i className="fa-solid fa-location-dot"></i> Ubicación del Evento
               </h3>
-              <button onClick={() => setLocationModalOpen(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>&times;</button>
+              <button onClick={() => setLocationModalOpen(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>&times;</button>
             </div>
 
             {/* Modal Body */}
-            <div style={{ overflowY: "auto", padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div className="modal-body" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               {fair.location && (
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "10px" }}>
@@ -1378,13 +1378,13 @@ export default function FairProfileClient({ initialFair }) {
       {infoModalOpen && (
         <div className="modal-overlay" style={{ zIndex: 1100 }}>
           <div className="modal-backdrop" onClick={() => setInfoModalOpen(false)}></div>
-          <div className="modal-panel fade-in" style={{ maxWidth: "650px", width: "95%", maxHeight: "90vh", display: "flex", flexDirection: "column", padding: 0 }}>
+          <div className="modal-panel fade-in" style={{ maxWidth: "650px", padding: 0 }}>
             {/* Modal Header */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.5rem 1.5rem 0.8rem 1.5rem" }}>
+            <div className="modal-header">
               <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0, color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "8px" }}>
                 <i className="fa-solid fa-store"></i> {fairType === "only_bands" ? "Lineup de Música" : "Marcas Presentes"}
               </h3>
-              <button onClick={() => setInfoModalOpen(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>&times;</button>
+              <button onClick={() => setInfoModalOpen(false)} style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>&times;</button>
             </div>
 
             {/* Description is always shown at the top of the body if present */}
