@@ -154,17 +154,31 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
     drawEye(0, moduleCount - 7);
     drawEye(moduleCount - 7, 0);
 
-    // Center Emblem Badge
+    // Center Emblem Badge (White rounded square fitting the logo)
     const centerSize = (centerEnd - centerStart + 1.2) * cellSize;
     const centerX = qrMargin + (moduleCount / 2) * cellSize;
     const centerY = qrTopOffset + (moduleCount / 2) * cellSize;
+    const boxSize = centerSize * 1.05;
+    const boxX = centerX - boxSize / 2;
+    const boxY = centerY - boxSize / 2;
+    const borderRadius = boxSize * 0.22;
 
     ctx.save();
-    ctx.fillStyle = badgeBg;
+    ctx.fillStyle = "#FFFFFF";
     ctx.strokeStyle = badgeBorder;
-    ctx.lineWidth = cellSize * 0.8;
+    ctx.lineWidth = cellSize * 0.6;
     ctx.beginPath();
-    ctx.arc(centerX, centerY, centerSize / 2 + cellSize * 0.4, 0, Math.PI * 2);
+    if (typeof ctx.roundRect === "function") {
+      ctx.roundRect(boxX, boxY, boxSize, boxSize, borderRadius);
+    } else {
+      const r = borderRadius;
+      ctx.moveTo(boxX + r, boxY);
+      ctx.arcTo(boxX + boxSize, boxY, boxX + boxSize, boxY + boxSize, r);
+      ctx.arcTo(boxX + boxSize, boxY + boxSize, boxX, boxY + boxSize, r);
+      ctx.arcTo(boxX, boxY + boxSize, boxX, boxY, r);
+      ctx.arcTo(boxX, boxY, boxX + boxSize, boxY, r);
+      ctx.closePath();
+    }
     ctx.fill();
     ctx.stroke();
 
@@ -182,11 +196,11 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
       });
 
       if (logoImg.complete && logoImg.naturalWidth !== 0) {
-        const imgSize = centerSize * 0.85;
+        const imgSize = boxSize * 0.8;
         ctx.drawImage(logoImg, centerX - imgSize / 2, centerY - imgSize / 2, imgSize, imgSize);
       } else {
-        ctx.fillStyle = eyeOuterColor;
-        ctx.font = `bold ${Math.round(centerSize * 0.22)}px 'Tenor Sans', sans-serif`;
+        ctx.fillStyle = "#121214";
+        ctx.font = `bold ${Math.round(boxSize * 0.22)}px 'Tenor Sans', sans-serif`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText("AOURUM", centerX, centerY);
@@ -348,13 +362,16 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
         makeEyeSVG((size - 7) * cellSize, 0) +
         makeEyeSVG(0, (size - 7) * cellSize);
 
-      // Center Emblem Badge SVG
+      // Center Emblem Badge SVG (White rounded square)
       const cCenter = totalSize / 2;
-      const emblemR = (totalSize * 0.22) / 2;
+      const boxSizeSVG = totalSize * 0.24;
+      const boxRadiusSVG = boxSizeSVG * 0.22;
+      const boxXSVG = cCenter - boxSizeSVG / 2;
+      const boxYSVG = cCenter - boxSizeSVG / 2;
 
       const badgeSVG = `
-        <circle cx="${cCenter}" cy="${cCenter}" r="${emblemR + cellSize}" fill="${bg}" stroke="${eyeOuter}" stroke-width="${cellSize * 0.6}" />
-        <text x="${cCenter}" y="${cCenter}" font-family="sans-serif" font-weight="bold" font-size="${emblemR * 0.45}" fill="${eyeOuter}" text-anchor="middle" dominant-baseline="central">AOURUM</text>
+        <rect x="${boxXSVG}" y="${boxYSVG}" width="${boxSizeSVG}" height="${boxSizeSVG}" rx="${boxRadiusSVG}" fill="#FFFFFF" stroke="${eyeOuter}" stroke-width="${cellSize * 0.6}" />
+        <text x="${cCenter}" y="${cCenter}" font-family="sans-serif" font-weight="bold" font-size="${boxSizeSVG * 0.25}" fill="#121214" text-anchor="middle" dominant-baseline="central">AOURUM</text>
       `;
 
       const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
