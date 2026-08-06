@@ -36,13 +36,14 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Card aspect ratio: 1:1.45 for balanced editorial poster/card format
     canvas.width = size;
-    canvas.height = isCard ? Math.round(size * 1.35) : size;
+    canvas.height = isCard ? Math.round(size * 1.45) : size;
 
     const width = canvas.width;
     const height = canvas.height;
 
-    // Define Color Palette based on theme
+    // Define Palette
     let bgColor = "#121214";
     let moduleColor = "#FFFFFF";
     let eyeOuterColor = "#D4AF37";
@@ -76,53 +77,44 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, width, height);
 
-    // If card frame, draw subtle gold border
+    // 2. Outer & Inner Decorative Borders (if isCard)
     if (isCard) {
-      ctx.strokeStyle = "rgba(212, 175, 55, 0.4)";
-      ctx.lineWidth = width * 0.015;
+      // Outer Gold Frame
+      ctx.strokeStyle = "rgba(212, 175, 55, 0.45)";
+      ctx.lineWidth = width * 0.012;
       ctx.strokeRect(width * 0.03, width * 0.03, width * 0.94, height - width * 0.06);
 
-      // Inner decorative border
-      ctx.strokeStyle = "rgba(212, 175, 55, 0.2)";
-      ctx.lineWidth = width * 0.004;
+      // Inner Fine Frame
+      ctx.strokeStyle = "rgba(212, 175, 55, 0.25)";
+      ctx.lineWidth = width * 0.003;
       ctx.strokeRect(width * 0.045, width * 0.045, width * 0.91, height - width * 0.09);
     }
 
-    // Calculate QR geometry
-    const qrMargin = isCard ? width * 0.08 : width * 0.06;
-    const qrTopOffset = isCard ? width * 0.38 : qrMargin;
+    // 3. QR Matrix Placement
+    const qrMargin = isCard ? width * 0.11 : width * 0.06;
+    const qrTopOffset = isCard ? width * 0.36 : qrMargin;
     const qrSize = width - qrMargin * 2;
 
-    // Generate raw QR code matrix using qrcode lib with High Error Correction ('H')
     const qrData = QRCode.create(brandUrl, { errorCorrectionLevel: "H" });
     const modules = qrData.modules;
     const moduleCount = modules.size;
     const cellSize = qrSize / moduleCount;
 
-    // 2. Identify Finder Patterns (3 corners 7x7 areas)
-    const isEyeModule = (r, c) => {
-      if (r < 7 && c < 7) return true; // Top-left
-      if (r < 7 && c >= moduleCount - 7) return true; // Top-right
-      if (r >= moduleCount - 7 && c < 7) return true; // Bottom-left
-      return false;
-    };
+    const isEyeModule = (r, c) =>
+      (r < 7 && c < 7) || (r < 7 && c >= moduleCount - 7) || (r >= moduleCount - 7 && c < 7);
 
-    // Center Emblem Cutout Zone (center ~24% of matrix)
     const centerStart = Math.floor(moduleCount * 0.38);
     const centerEnd = Math.ceil(moduleCount * 0.62);
-    const isCenterModule = (r, c) => {
-      return r >= centerStart && r <= centerEnd && c >= centerStart && c <= centerEnd;
-    };
+    const isCenterModule = (r, c) =>
+      r >= centerStart && r <= centerEnd && c >= centerStart && c <= centerEnd;
 
-    // 3. Draw QR Data Modules
+    // Draw QR Modules (Rounded Dots)
     ctx.fillStyle = moduleColor;
     for (let r = 0; r < moduleCount; r++) {
       for (let c = 0; c < moduleCount; c++) {
         if (modules.get(r, c) && !isEyeModule(r, c) && !isCenterModule(r, c)) {
           const x = qrMargin + c * cellSize;
           const y = qrTopOffset + r * cellSize;
-          
-          // Render smooth rounded dot modules
           const dotRadius = cellSize * 0.38;
           ctx.beginPath();
           ctx.arc(x + cellSize / 2, y + cellSize / 2, dotRadius, 0, Math.PI * 2);
@@ -131,20 +123,18 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
       }
     }
 
-    // 4. Custom Render Finder Pattern Eyes
+    // Draw Custom Finder Eyes
     const drawEye = (startR, startC) => {
       const eyeX = qrMargin + startC * cellSize;
       const eyeY = qrTopOffset + startR * cellSize;
       const eyeSize = 7 * cellSize;
 
-      // Outer Box Frame
       ctx.fillStyle = eyeOuterColor;
       const outerRadius = cellSize * 1.5;
       ctx.beginPath();
       ctx.roundRect(eyeX, eyeY, eyeSize, eyeSize, outerRadius);
       ctx.fill();
 
-      // Inner Background Cutout
       ctx.fillStyle = bgColor;
       const innerGap = cellSize * 1;
       const innerSize = 5 * cellSize;
@@ -152,7 +142,6 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
       ctx.roundRect(eyeX + innerGap, eyeY + innerGap, innerSize, innerSize, outerRadius * 0.7);
       ctx.fill();
 
-      // Center Eye Dot
       ctx.fillStyle = eyeInnerColor;
       const centerGap = cellSize * 2;
       const dotSize = 3 * cellSize;
@@ -161,16 +150,15 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
       ctx.fill();
     };
 
-    drawEye(0, 0); // Top Left
-    drawEye(0, moduleCount - 7); // Top Right
-    drawEye(moduleCount - 7, 0); // Bottom Left
+    drawEye(0, 0);
+    drawEye(0, moduleCount - 7);
+    drawEye(moduleCount - 7, 0);
 
-    // 5. Draw Center Emblem Badge (Aourum Logo)
+    // Center Emblem Badge
     const centerSize = (centerEnd - centerStart + 1.2) * cellSize;
     const centerX = qrMargin + (moduleCount / 2) * cellSize;
     const centerY = qrTopOffset + (moduleCount / 2) * cellSize;
 
-    // Badge Background Shield
     ctx.save();
     ctx.fillStyle = badgeBg;
     ctx.strokeStyle = badgeBorder;
@@ -180,7 +168,6 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
     ctx.fill();
     ctx.stroke();
 
-    // Load and draw Aourum Center Emblem Logo
     try {
       const logoImg = new Image();
       logoImg.crossOrigin = "anonymous";
@@ -198,7 +185,6 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
         const imgSize = centerSize * 0.85;
         ctx.drawImage(logoImg, centerX - imgSize / 2, centerY - imgSize / 2, imgSize, imgSize);
       } else {
-        // Fallback text "AOURUM"
         ctx.fillStyle = eyeOuterColor;
         ctx.font = `bold ${Math.round(centerSize * 0.22)}px 'Tenor Sans', sans-serif`;
         ctx.textAlign = "center";
@@ -206,16 +192,14 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
         ctx.fillText("AOURUM", centerX, centerY);
       }
     } catch (e) {
-      console.warn("Logo load notice:", e);
+      console.warn(e);
     }
     ctx.restore();
 
-    // 6. Draw Card Header & Footer (if isCard = true)
+    // Card Header & Footer Text Layout
     if (isCard) {
       ctx.save();
-
-      // Header: Brand Logo & Name
-      const headerY = width * 0.08;
+      const headerY = width * 0.065;
 
       // Brand Logo
       if (brand.logo) {
@@ -229,20 +213,18 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
           });
 
           if (bLogo.complete && bLogo.naturalWidth !== 0) {
-            const logoR = width * 0.07;
-            const logoX = width / 2 - logoR;
+            const logoR = width * 0.06;
             const logoY = headerY;
 
             ctx.beginPath();
             ctx.arc(width / 2, logoY + logoR, logoR, 0, Math.PI * 2);
             ctx.clip();
-            ctx.drawImage(bLogo, logoX, logoY, logoR * 2, logoR * 2);
+            ctx.drawImage(bLogo, width / 2 - logoR, logoY, logoR * 2, logoR * 2);
             ctx.restore();
             ctx.save();
 
-            // Border around brand logo
             ctx.strokeStyle = eyeOuterColor;
-            ctx.lineWidth = width * 0.005;
+            ctx.lineWidth = width * 0.004;
             ctx.beginPath();
             ctx.arc(width / 2, logoY + logoR, logoR, 0, Math.PI * 2);
             ctx.stroke();
@@ -252,30 +234,30 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
 
       // Brand Name
       ctx.fillStyle = textColor;
-      ctx.font = `bold ${Math.round(width * 0.055)}px 'Space Grotesk', sans-serif`;
+      ctx.font = `bold ${Math.round(width * 0.048)}px 'Space Grotesk', sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "top";
-      ctx.fillText(brand.name || "Marca", width / 2, headerY + width * 0.16);
+      ctx.fillText(brand.name || "Marca", width / 2, headerY + width * 0.135);
 
-      // Rubro / Category Subtitle
+      // Subtitle (Category)
       ctx.fillStyle = mutedTextColor;
-      ctx.font = `600 ${Math.round(width * 0.032)}px 'Space Grotesk', sans-serif`;
+      ctx.font = `600 ${Math.round(width * 0.026)}px 'Space Grotesk', sans-serif`;
       ctx.fillText(
         (brand.rubro_especifico || brand.rubro_general || "MARCA REGISTRADA").toUpperCase(),
         width / 2,
-        headerY + width * 0.235
+        headerY + width * 0.205
       );
 
-      // Footer Call to Action
-      const footerY = qrTopOffset + qrSize + width * 0.05;
+      // Footer CTA (Calculated inside inner border zone)
+      const footerStartY = qrTopOffset + qrSize + width * 0.04;
 
       ctx.fillStyle = eyeOuterColor;
-      ctx.font = `bold ${Math.round(width * 0.036)}px 'Space Grotesk', sans-serif`;
-      ctx.fillText("ESCANEA PARA EXPLORAR NUESTRO CATÁLOGO", width / 2, footerY);
+      ctx.font = `bold ${Math.round(width * 0.032)}px 'Space Grotesk', sans-serif`;
+      ctx.fillText("ESCANEA PARA EXPLORAR NUESTRO CATÁLOGO", width / 2, footerStartY);
 
       ctx.fillStyle = mutedTextColor;
-      ctx.font = `400 ${Math.round(width * 0.028)}px 'Space Grotesk', sans-serif`;
-      ctx.fillText("Encuéntranos en AOURUM", width / 2, footerY + width * 0.048);
+      ctx.font = `500 ${Math.round(width * 0.025)}px 'Space Grotesk', sans-serif`;
+      ctx.fillText("Encuéntranos en AOURUM", width / 2, footerStartY + width * 0.045);
 
       ctx.restore();
     }
@@ -508,7 +490,7 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
           alignItems: "center",
           justifyContent: "center",
           zIndex: 99999,
-          padding: "1rem"
+          padding: "0.75rem"
         }}
         onClick={onClose}
       >
@@ -521,10 +503,11 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
             maxWidth: "680px",
             maxHeight: "92vh",
             overflowY: "auto",
-            padding: "1.8rem",
+            padding: "1.5rem",
             color: "#FFFFFF",
             boxShadow: "0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(212,175,55,0.15)",
-            position: "relative"
+            position: "relative",
+            boxSizing: "border-box"
           }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -535,12 +518,12 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
               justifyContent: "space-between",
               alignItems: "flex-start",
               borderBottom: "1px solid rgba(255,255,255,0.1)",
-              paddingBottom: "1rem",
-              marginBottom: "1.2rem"
+              paddingBottom: "0.8rem",
+              marginBottom: "1rem"
             }}
           >
             <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
                 <span
                   style={{
                     background: "linear-gradient(135deg, #D4AF37, #F3E5AB)",
@@ -560,7 +543,7 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                   Código QR Permanente e Inalterable
                 </span>
               </div>
-              <h2 style={{ fontSize: "1.35rem", fontWeight: "800", margin: 0, color: "#FFFFFF" }}>
+              <h2 style={{ fontSize: "1.25rem", fontWeight: "800", margin: 0, color: "#FFFFFF" }}>
                 Código QR de <span style={{ color: "#D4AF37" }}>{brand.name}</span>
               </h2>
             </div>
@@ -578,7 +561,7 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: "1rem",
-                transition: "all 0.2s"
+                flexShrink: 0
               }}
             >
               <i className="fa-solid fa-xmark"></i>
@@ -589,19 +572,20 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
           <div
             style={{
               display: "flex",
-              gap: "12px",
+              gap: "10px",
               flexWrap: "wrap",
               justifyContent: "space-between",
-              marginBottom: "1.2rem",
+              alignItems: "center",
+              marginBottom: "1rem",
               background: "rgba(255,255,255,0.03)",
-              padding: "10px 14px",
+              padding: "10px 12px",
               borderRadius: "12px",
               border: "1px solid rgba(255,255,255,0.06)"
             }}
           >
             {/* Theme Selector */}
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ fontSize: "0.78rem", color: "#A1A1AA", fontWeight: 600 }}>Estilo:</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "0.75rem", color: "#A1A1AA", fontWeight: 600 }}>Estilo:</span>
               <button
                 onClick={() => setTheme("dark")}
                 style={{
@@ -650,8 +634,8 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
             </div>
 
             {/* Layout Toggle */}
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ fontSize: "0.78rem", color: "#A1A1AA", fontWeight: 600 }}>Formato:</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "0.75rem", color: "#A1A1AA", fontWeight: 600 }}>Formato:</span>
               <button
                 onClick={() => setIncludeCardFrame(false)}
                 style={{
@@ -692,11 +676,11 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              padding: "1.2rem",
+              padding: "1rem",
               background: "#0A0A0C",
               borderRadius: "16px",
               border: "1px solid rgba(212,175,55,0.2)",
-              marginBottom: "1.5rem",
+              marginBottom: "1.2rem",
               position: "relative"
             }}
           >
@@ -723,28 +707,29 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                 maxHeight: "360px",
                 height: "auto",
                 borderRadius: "12px",
-                boxShadow: "0 10px 30px rgba(0,0,0,0.5)"
+                boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+                objectFit: "contain"
               }}
             />
-            <div style={{ marginTop: "10px", textAlign: "center" }}>
-              <span style={{ fontSize: "0.72rem", color: "#8E8E93" }}>
+            <div style={{ marginTop: "8px", textAlign: "center", width: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <span style={{ fontSize: "0.72rem", color: "#8E8E93", wordBreak: "break-all" }}>
                 Enlace inalterable: <strong style={{ color: "#D4AF37" }}>{brandUrl}</strong>
               </span>
             </div>
           </div>
 
           {/* Download & Action Options Grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "10px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "8px" }}>
             <button
               onClick={downloadPNGHD}
               style={{
                 background: "linear-gradient(135deg, #D4AF37, #A68015)",
                 color: "#121214",
                 border: "none",
-                padding: "10px 14px",
+                padding: "10px 12px",
                 borderRadius: "10px",
                 fontWeight: "800",
-                fontSize: "0.82rem",
+                fontSize: "0.8rem",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -762,10 +747,10 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                 background: "rgba(255,255,255,0.06)",
                 color: "#FFFFFF",
                 border: "1px solid rgba(212,175,55,0.5)",
-                padding: "10px 14px",
+                padding: "10px 12px",
                 borderRadius: "10px",
                 fontWeight: "700",
-                fontSize: "0.82rem",
+                fontSize: "0.8rem",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -782,10 +767,10 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                 background: "rgba(255,255,255,0.06)",
                 color: "#FFFFFF",
                 border: "1px solid rgba(255,255,255,0.15)",
-                padding: "10px 14px",
+                padding: "10px 12px",
                 borderRadius: "10px",
                 fontWeight: "700",
-                fontSize: "0.82rem",
+                fontSize: "0.8rem",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -802,10 +787,10 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                 background: "rgba(255,255,255,0.06)",
                 color: "#FFFFFF",
                 border: "1px solid rgba(255,255,255,0.15)",
-                padding: "10px 14px",
+                padding: "10px 12px",
                 borderRadius: "10px",
                 fontWeight: "700",
-                fontSize: "0.82rem",
+                fontSize: "0.8rem",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -827,7 +812,7 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                 padding: "12px 16px",
                 borderRadius: "12px",
                 fontWeight: "800",
-                fontSize: "0.88rem",
+                fontSize: "0.85rem",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -836,7 +821,7 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                 marginTop: "4px"
               }}
             >
-              <i className="fa-solid fa-tablet-screen-button" style={{ fontSize: "1.1rem" }}></i>
+              <i className="fa-solid fa-tablet-screen-button" style={{ fontSize: "1.05rem" }}></i>
               Abrir Modo Mostrador / Stand (Para pantalla en Feria)
             </button>
           </div>
@@ -854,67 +839,109 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            justifyContent: "center",
-            padding: "2rem",
-            color: "#FFFFFF"
+            justifyContent: "space-between",
+            padding: "1.2rem 1rem",
+            color: "#FFFFFF",
+            boxSizing: "border-box",
+            overflowY: "auto"
           }}
         >
-          <button
-            onClick={() => setIsStandMode(false)}
-            style={{
-              position: "absolute",
-              top: "24px",
-              right: "24px",
-              background: "rgba(255,255,255,0.1)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              color: "#FFFFFF",
-              padding: "10px 18px",
-              borderRadius: "30px",
-              cursor: "pointer",
-              fontWeight: "700",
-              fontSize: "0.9rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px"
-            }}
-          >
-            <i className="fa-solid fa-compress"></i> Salir de Modo Stand
-          </button>
-
-          <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-            <span style={{ fontSize: "0.85rem", color: "#D4AF37", letterSpacing: "0.15em", textTransform: "uppercase", fontWeight: "800" }}>
-              AOURUM • STAND OFICIAL
-            </span>
-            <h1 style={{ fontSize: "2.8rem", fontWeight: "900", margin: "0.4rem 0 0 0", color: "#FFFFFF" }}>
-              {brand.name}
-            </h1>
-          </div>
-
+          {/* Header Bar */}
           <div
             style={{
-              padding: "1.5rem",
-              background: "#121214",
-              borderRadius: "24px",
-              border: "2px solid #D4AF37",
-              boxShadow: "0 0 60px rgba(212,175,55,0.3)",
+              width: "100%",
+              maxWidth: "800px",
               display: "flex",
-              justifyContent: "center"
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "0.5rem"
             }}
           >
-            <canvas
-              ref={standCanvasRef}
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <img src="/aourum-gold-badge.png" alt="Aourum" style={{ width: "32px", height: "32px" }} />
+              <div>
+                <span style={{ fontSize: "0.68rem", color: "#D4AF37", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: "800", display: "block" }}>
+                  STAND OFICIAL AOURUM
+                </span>
+                <h1 style={{ fontSize: "1.15rem", fontWeight: "800", margin: 0, color: "#FFFFFF", lineHeight: 1.2 }}>
+                  {brand.name}
+                </h1>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsStandMode(false)}
               style={{
-                maxWidth: "85vw",
-                maxHeight: "60vh",
-                borderRadius: "16px"
+                background: "rgba(255,255,255,0.1)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                color: "#FFFFFF",
+                padding: "8px 16px",
+                borderRadius: "30px",
+                cursor: "pointer",
+                fontWeight: "700",
+                fontSize: "0.85rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                flexShrink: 0
               }}
-            />
+            >
+              <i className="fa-solid fa-xmark"></i> Salir
+            </button>
           </div>
 
-          <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
-            <p style={{ fontSize: "1.2rem", fontWeight: "700", color: "#D4AF37", margin: 0 }}>
-              <i className="fa-solid fa-qrcode" style={{ marginRight: "8px" }}></i>
-              Escanea para ver nuestro catálogo en vivo
+          {/* Centered Canvas Container */}
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "100%",
+              margin: "0.5rem 0"
+            }}
+          >
+            <div
+              style={{
+                padding: "10px",
+                background: "#121214",
+                borderRadius: "20px",
+                border: "1.5px solid #D4AF37",
+                boxShadow: "0 0 50px rgba(212,175,55,0.25), 0 15px 35px rgba(0,0,0,0.8)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                maxWidth: "92vw"
+              }}
+            >
+              <canvas
+                ref={standCanvasRef}
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "68vh",
+                  width: "auto",
+                  height: "auto",
+                  borderRadius: "14px",
+                  objectFit: "contain"
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Footer Badge */}
+          <div
+            style={{
+              textAlign: "center",
+              background: "rgba(212, 175, 55, 0.12)",
+              border: "1px solid rgba(212, 175, 55, 0.3)",
+              padding: "8px 20px",
+              borderRadius: "30px",
+              marginTop: "0.5rem"
+            }}
+          >
+            <p style={{ fontSize: "0.85rem", fontWeight: "700", color: "#FFD700", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+              <i className="fa-solid fa-qrcode" style={{ fontSize: "1rem" }}></i>
+              Escanea para ver catálogo e información en vivo
             </p>
           </div>
         </div>

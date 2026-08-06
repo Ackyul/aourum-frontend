@@ -1301,7 +1301,7 @@ export default function BrandProfileClient({ initialBrand }) {
       )}
 
       {/* Botones de Navegación Superior */}
-      <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", zIndex: 1 }}>
+      <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", zIndex: 1, flexWrap: "wrap", gap: "10px" }}>
         <button 
           onClick={() => router.push("/brands")} 
           className="btn-outline-gold" 
@@ -1309,7 +1309,7 @@ export default function BrandProfileClient({ initialBrand }) {
         >
           <i className="fa-solid fa-arrow-left"></i> Volver a Marcas
         </button>
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
           <button 
             onClick={() => setQrModalOpen(true)} 
             className="btn-gold" 
