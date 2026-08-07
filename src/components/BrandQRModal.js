@@ -806,9 +806,9 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                 onClick={() => setIsStandMode(true)}
                 style={{
                   gridColumn: "1 / -1",
-                  background: "linear-gradient(135deg, #1C1C1E, #2C2C2E)",
-                  color: "#FFD700",
-                  border: "1.5px solid #FFD700",
+                  background: "#FFFFFF",
+                  color: "#1C1C1E",
+                  border: "1.5px solid #D4AF37",
                   padding: "12px 16px",
                   borderRadius: "12px",
                   fontWeight: "800",
@@ -818,10 +818,11 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                   alignItems: "center",
                   justifyContent: "center",
                   gap: "8px",
-                  marginTop: "4px"
+                  marginTop: "4px",
+                  boxShadow: "0 4px 14px rgba(212,175,55,0.15)"
                 }}
               >
-                <i className="fa-solid fa-tablet-screen-button" style={{ fontSize: "1.05rem" }}></i>
+                <i className="fa-solid fa-tablet-screen-button" style={{ fontSize: "1.05rem", color: "#B8901D" }}></i>
                 Abrir Modo Mostrador / Stand (Para pantalla en Feria)
               </button>
             </div>
