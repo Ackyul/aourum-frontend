@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import QRCode from "qrcode";
 
 export default function BrandQRModal({ isOpen, onClose, brand }) {
-  const [theme, setTheme] = useState("dark"); // "dark" | "light" | "gold"
+  const [theme, setTheme] = useState("light"); // "light" | "gold"
   const [includeCardFrame, setIncludeCardFrame] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
   const [isStandMode, setIsStandMode] = useState(false);
@@ -43,34 +43,25 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
     const width = canvas.width;
     const height = canvas.height;
 
-    // Define Palette
-    let bgColor = "#121214";
-    let moduleColor = "#FFFFFF";
-    let eyeOuterColor = "#D4AF37";
-    let eyeInnerColor = "#E5C158";
-    let textColor = "#FFFFFF";
-    let mutedTextColor = "#A1A1AA";
-    let badgeBg = "#121214";
+    // Define Palette (All themes feature a clean white background matching Aourum brand identity)
+    let bgColor = "#FAF9F6";
+    let moduleColor = "#18181B";
+    let eyeOuterColor = "#B8901D";
+    let eyeInnerColor = "#D4AF37";
+    let textColor = "#1C1C1E";
+    let mutedTextColor = "#71717A";
+    let badgeBg = "#FFFFFF";
     let badgeBorder = "#D4AF37";
 
-    if (theme === "light") {
-      bgColor = "#FAF9F6";
-      moduleColor = "#18181B";
-      eyeOuterColor = "#B8901D";
-      eyeInnerColor = "#D4AF37";
+    if (theme === "gold") {
+      bgColor = "#FFFFFF";
+      moduleColor = "#B8901D";
+      eyeOuterColor = "#D4AF37";
+      eyeInnerColor = "#B8901D";
       textColor = "#1C1C1E";
-      mutedTextColor = "#71717A";
+      mutedTextColor = "#8E742A";
       badgeBg = "#FFFFFF";
       badgeBorder = "#D4AF37";
-    } else if (theme === "gold") {
-      bgColor = "#1A1710";
-      moduleColor = "#F3E5AB";
-      eyeOuterColor = "#FFD700";
-      eyeInnerColor = "#D4AF37";
-      textColor = "#F3E5AB";
-      mutedTextColor = "#C5A059";
-      badgeBg = "#1A1710";
-      badgeBorder = "#FFD700";
     }
 
     // 1. Draw Background
@@ -347,10 +338,10 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
         c >= Math.floor(size * 0.38) &&
         c <= Math.ceil(size * 0.62);
 
-      let modColor = theme === "light" ? "#18181B" : theme === "gold" ? "#F3E5AB" : "#FFFFFF";
-      let eyeOuter = theme === "light" ? "#B8901D" : theme === "gold" ? "#FFD700" : "#D4AF37";
-      let eyeInner = theme === "light" ? "#D4AF37" : theme === "gold" ? "#D4AF37" : "#E5C158";
-      let bg = theme === "light" ? "#FAF9F6" : theme === "gold" ? "#1A1710" : "#121214";
+      let modColor = theme === "gold" ? "#B8901D" : "#18181B";
+      let eyeOuter = theme === "gold" ? "#D4AF37" : "#B8901D";
+      let eyeInner = theme === "gold" ? "#B8901D" : "#D4AF37";
+      let bg = theme === "gold" ? "#FFFFFF" : "#FAF9F6";
 
       for (let r = 0; r < size; r++) {
         for (let c = 0; c < size; c++) {
@@ -609,24 +600,9 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
               <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
                 <span style={{ fontSize: "0.75rem", color: "#71717A", fontWeight: 600 }}>Estilo:</span>
                 <button
-                  onClick={() => setTheme("dark")}
-                  style={{
-                    padding: "4px 10px",
-                    borderRadius: "6px",
-                    fontSize: "0.75rem",
-                    fontWeight: "700",
-                    cursor: "pointer",
-                    border: theme === "dark" ? "1.5px solid #D4AF37" : "1px solid #E4E4E7",
-                    background: theme === "dark" ? "#121214" : "#FFFFFF",
-                    color: theme === "dark" ? "#D4AF37" : "#52525B"
-                  }}
-                >
-                  Obsidiana
-                </button>
-                <button
                   onClick={() => setTheme("light")}
                   style={{
-                    padding: "4px 10px",
+                    padding: "4px 12px",
                     borderRadius: "6px",
                     fontSize: "0.75rem",
                     fontWeight: "700",
@@ -641,14 +617,14 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                 <button
                   onClick={() => setTheme("gold")}
                   style={{
-                    padding: "4px 10px",
+                    padding: "4px 12px",
                     borderRadius: "6px",
                     fontSize: "0.75rem",
                     fontWeight: "700",
                     cursor: "pointer",
                     border: theme === "gold" ? "1.5px solid #D4AF37" : "1px solid #E4E4E7",
-                    background: theme === "gold" ? "#1A1710" : "#FFFFFF",
-                    color: theme === "gold" ? "#FFD700" : "#52525B"
+                    background: theme === "gold" ? "rgba(212, 175, 55, 0.12)" : "#FFFFFF",
+                    color: theme === "gold" ? "#B8901D" : "#52525B"
                   }}
                 >
                   Oro Puro
