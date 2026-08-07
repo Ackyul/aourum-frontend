@@ -185,7 +185,7 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
     try {
       const logoImg = new Image();
       logoImg.crossOrigin = "anonymous";
-      logoImg.src = "/aourum-gold-badge.png";
+      logoImg.src = "/aourum-logo-a.png";
       await new Promise((resolve) => {
         logoImg.onload = resolve;
         logoImg.onerror = () => {
@@ -196,8 +196,20 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
       });
 
       if (logoImg.complete && logoImg.naturalWidth !== 0) {
-        const imgSize = boxSize * 0.8;
-        ctx.drawImage(logoImg, centerX - imgSize / 2, centerY - imgSize / 2, imgSize, imgSize);
+        const imgSize = boxSize * 0.72;
+        const offCanvas = document.createElement("canvas");
+        offCanvas.width = logoImg.naturalWidth;
+        offCanvas.height = logoImg.naturalHeight;
+        const offCtx = offCanvas.getContext("2d");
+        if (offCtx) {
+          offCtx.drawImage(logoImg, 0, 0);
+          offCtx.globalCompositeOperation = "source-in";
+          offCtx.fillStyle = "#121214";
+          offCtx.fillRect(0, 0, offCanvas.width, offCanvas.height);
+          ctx.drawImage(offCanvas, centerX - imgSize / 2, centerY - imgSize / 2, imgSize, imgSize);
+        } else {
+          ctx.drawImage(logoImg, centerX - imgSize / 2, centerY - imgSize / 2, imgSize, imgSize);
+        }
       } else {
         ctx.fillStyle = "#121214";
         ctx.font = `bold ${Math.round(boxSize * 0.22)}px 'Tenor Sans', sans-serif`;
