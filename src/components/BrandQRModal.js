@@ -513,7 +513,7 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
         className="modal-overlay"
         style={{
           zIndex: 99999,
-          background: "rgba(0, 0, 0, 0.85)",
+          background: "rgba(28, 28, 30, 0.65)",
           backdropFilter: "blur(8px)",
           WebkitBackdropFilter: "blur(8px)"
         }}
@@ -522,11 +522,11 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
         <div
           className="modal-panel"
           style={{
-            background: "#141416",
-            border: "1px solid rgba(212, 175, 55, 0.35)",
+            background: "#FFFFFF",
+            border: "1.5px solid var(--gold-primary)",
             maxWidth: "680px",
-            color: "#FFFFFF",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(212,175,55,0.15)",
+            color: "#1C1C1E",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.18), 0 0 35px rgba(212,175,55,0.15)",
             padding: 0
           }}
           onClick={(e) => e.stopPropagation()}
@@ -535,8 +535,8 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
           <div
             className="modal-header"
             style={{
-              background: "#141416",
-              borderBottom: "1px solid rgba(255,255,255,0.1)",
+              background: "#FFFFFF",
+              borderBottom: "1px solid #EAE6DF",
               position: "sticky",
               top: 0,
               zIndex: 20
@@ -558,21 +558,21 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                 >
                   Exclusivo AOURUM
                 </span>
-                <span style={{ fontSize: "0.75rem", color: "#A1A1AA" }}>
-                  <i className="fa-solid fa-lock" style={{ marginRight: "4px", color: "#D4AF37" }}></i>
+                <span style={{ fontSize: "0.75rem", color: "#71717A" }}>
+                  <i className="fa-solid fa-lock" style={{ marginRight: "4px", color: "#B8901D" }}></i>
                   Código QR Permanente e Inalterable
                 </span>
               </div>
-              <h2 style={{ fontSize: "1.25rem", fontWeight: "800", margin: 0, color: "#FFFFFF" }}>
-                Código QR de <span style={{ color: "#D4AF37" }}>{brand.name}</span>
+              <h2 style={{ fontSize: "1.25rem", fontWeight: "800", margin: 0, color: "#1C1C1E" }}>
+                Código QR de <span style={{ color: "#B8901D" }}>{brand.name}</span>
               </h2>
             </div>
             <button
               onClick={onClose}
               style={{
-                background: "rgba(255,255,255,0.12)",
-                border: "none",
-                color: "#FFFFFF",
+                background: "#F4F4F5",
+                border: "1px solid #E4E4E7",
+                color: "#1C1C1E",
                 width: "36px",
                 height: "36px",
                 borderRadius: "50%",
@@ -589,7 +589,7 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
           </div>
 
           {/* Scrollable Body */}
-          <div className="modal-body" style={{ background: "#141416" }}>
+          <div className="modal-body" style={{ background: "#FFFFFF" }}>
             {/* Controls Bar: Theme & Format switch */}
             <div
               style={{
@@ -599,15 +599,15 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                 justifyContent: "space-between",
                 alignItems: "center",
                 marginBottom: "1rem",
-                background: "rgba(255,255,255,0.03)",
+                background: "#FBFBFA",
                 padding: "10px 12px",
                 borderRadius: "12px",
-                border: "1px solid rgba(255,255,255,0.06)"
+                border: "1px solid #EAE6DF"
               }}
             >
               {/* Theme Selector */}
               <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "0.75rem", color: "#A1A1AA", fontWeight: 600 }}>Estilo:</span>
+                <span style={{ fontSize: "0.75rem", color: "#71717A", fontWeight: 600 }}>Estilo:</span>
                 <button
                   onClick={() => setTheme("dark")}
                   style={{
@@ -616,9 +616,9 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                     fontSize: "0.75rem",
                     fontWeight: "700",
                     cursor: "pointer",
-                    border: theme === "dark" ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
-                    background: theme === "dark" ? "#121214" : "transparent",
-                    color: theme === "dark" ? "#D4AF37" : "#A1A1AA"
+                    border: theme === "dark" ? "1.5px solid #D4AF37" : "1px solid #E4E4E7",
+                    background: theme === "dark" ? "#121214" : "#FFFFFF",
+                    color: theme === "dark" ? "#D4AF37" : "#52525B"
                   }}
                 >
                   Obsidiana
@@ -631,9 +631,9 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                     fontSize: "0.75rem",
                     fontWeight: "700",
                     cursor: "pointer",
-                    border: theme === "light" ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
-                    background: theme === "light" ? "#FAF9F6" : "transparent",
-                    color: theme === "light" ? "#1C1C1E" : "#A1A1AA"
+                    border: theme === "light" ? "1.5px solid #D4AF37" : "1px solid #E4E4E7",
+                    background: theme === "light" ? "rgba(212, 175, 55, 0.12)" : "#FFFFFF",
+                    color: theme === "light" ? "#B8901D" : "#52525B"
                   }}
                 >
                   Claridad
@@ -646,9 +646,9 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                     fontSize: "0.75rem",
                     fontWeight: "700",
                     cursor: "pointer",
-                    border: theme === "gold" ? "1px solid #FFD700" : "1px solid rgba(255,255,255,0.1)",
-                    background: theme === "gold" ? "#1A1710" : "transparent",
-                    color: theme === "gold" ? "#FFD700" : "#A1A1AA"
+                    border: theme === "gold" ? "1.5px solid #D4AF37" : "1px solid #E4E4E7",
+                    background: theme === "gold" ? "#1A1710" : "#FFFFFF",
+                    color: theme === "gold" ? "#FFD700" : "#52525B"
                   }}
                 >
                   Oro Puro
@@ -657,7 +657,7 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
 
               {/* Layout Toggle */}
               <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "0.75rem", color: "#A1A1AA", fontWeight: 600 }}>Formato:</span>
+                <span style={{ fontSize: "0.75rem", color: "#71717A", fontWeight: 600 }}>Formato:</span>
                 <button
                   onClick={() => setIncludeCardFrame(false)}
                   style={{
@@ -666,9 +666,9 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                     fontSize: "0.75rem",
                     fontWeight: "700",
                     cursor: "pointer",
-                    border: !includeCardFrame ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
-                    background: !includeCardFrame ? "rgba(212, 175, 55, 0.15)" : "transparent",
-                    color: !includeCardFrame ? "#D4AF37" : "#A1A1AA"
+                    border: !includeCardFrame ? "1.5px solid #D4AF37" : "1px solid #E4E4E7",
+                    background: !includeCardFrame ? "rgba(212, 175, 55, 0.12)" : "#FFFFFF",
+                    color: !includeCardFrame ? "#B8901D" : "#52525B"
                   }}
                 >
                   Solo QR
@@ -681,9 +681,9 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                     fontSize: "0.75rem",
                     fontWeight: "700",
                     cursor: "pointer",
-                    border: includeCardFrame ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
-                    background: includeCardFrame ? "rgba(212, 175, 55, 0.15)" : "transparent",
-                    color: includeCardFrame ? "#D4AF37" : "#A1A1AA"
+                    border: includeCardFrame ? "1.5px solid #D4AF37" : "1px solid #E4E4E7",
+                    background: includeCardFrame ? "rgba(212, 175, 55, 0.12)" : "#FFFFFF",
+                    color: includeCardFrame ? "#B8901D" : "#52525B"
                   }}
                 >
                   Tarjeta Impresa / Stand
@@ -699,9 +699,9 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                 alignItems: "center",
                 justifyContent: "center",
                 padding: "1rem",
-                background: "#0A0A0C",
+                background: "#F6F5F2",
                 borderRadius: "16px",
-                border: "1px solid rgba(212,175,55,0.2)",
+                border: "1px solid #EAE6DF",
                 marginBottom: "1.2rem",
                 position: "relative"
               }}
@@ -711,7 +711,7 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                   style={{
                     position: "absolute",
                     inset: 0,
-                    background: "rgba(10,10,12,0.7)",
+                    background: "rgba(255,255,255,0.7)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -731,13 +731,13 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                   height: "auto",
                   aspectRatio: includeCardFrame ? "1 / 1.45" : "1 / 1",
                   borderRadius: "12px",
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
                   objectFit: "contain"
                 }}
               />
               <div style={{ marginTop: "8px", textAlign: "center", width: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
-                <span style={{ fontSize: "0.72rem", color: "#8E8E93", wordBreak: "break-all" }}>
-                  Enlace inalterable: <strong style={{ color: "#D4AF37" }}>{brandUrl}</strong>
+                <span style={{ fontSize: "0.72rem", color: "#71717A", wordBreak: "break-all" }}>
+                  Enlace inalterable: <strong style={{ color: "#B8901D" }}>{brandUrl}</strong>
                 </span>
               </div>
             </div>
@@ -759,7 +759,7 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                   alignItems: "center",
                   justifyContent: "center",
                   gap: "6px",
-                  boxShadow: "0 4px 12px rgba(212,175,55,0.25)"
+                  boxShadow: "0 4px 14px rgba(212,175,55,0.25)"
                 }}
               >
                 <i className="fa-solid fa-download"></i> PNG HD (2000px)
@@ -768,9 +768,9 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
               <button
                 onClick={downloadSVG}
                 style={{
-                  background: "rgba(255,255,255,0.06)",
-                  color: "#FFFFFF",
-                  border: "1px solid rgba(212,175,55,0.5)",
+                  background: "#FFFFFF",
+                  color: "#1C1C1E",
+                  border: "1px solid #D4AF37",
                   padding: "10px 12px",
                   borderRadius: "10px",
                   fontWeight: "700",
@@ -782,15 +782,15 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                   gap: "6px"
                 }}
               >
-                <i className="fa-solid fa-vector-square" style={{ color: "#D4AF37" }}></i> Vector SVG
+                <i className="fa-solid fa-vector-square" style={{ color: "#B8901D" }}></i> Vector SVG
               </button>
 
               <button
                 onClick={handlePrintCard}
                 style={{
-                  background: "rgba(255,255,255,0.06)",
-                  color: "#FFFFFF",
-                  border: "1px solid rgba(255,255,255,0.15)",
+                  background: "#FFFFFF",
+                  color: "#1C1C1E",
+                  border: "1px solid #EAE6DF",
                   padding: "10px 12px",
                   borderRadius: "10px",
                   fontWeight: "700",
@@ -802,15 +802,15 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                   gap: "6px"
                 }}
               >
-                <i className="fa-solid fa-print" style={{ color: "#38bdf8" }}></i> Cartel Impreso / PDF
+                <i className="fa-solid fa-print" style={{ color: "#0284c7" }}></i> Cartel Impreso / PDF
               </button>
 
               <button
                 onClick={copyToClipboard}
                 style={{
-                  background: "rgba(255,255,255,0.06)",
-                  color: "#FFFFFF",
-                  border: "1px solid rgba(255,255,255,0.15)",
+                  background: "#FFFFFF",
+                  color: "#1C1C1E",
+                  border: "1px solid #EAE6DF",
                   padding: "10px 12px",
                   borderRadius: "10px",
                   fontWeight: "700",
@@ -822,7 +822,7 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                   gap: "6px"
                 }}
               >
-                <i className={`fa-solid ${isCopied ? "fa-check" : "fa-copy"}`} style={{ color: isCopied ? "#4ade80" : "#a855f7" }}></i>
+                <i className={`fa-solid ${isCopied ? "fa-check" : "fa-copy"}`} style={{ color: isCopied ? "#16a34a" : "#9333ea" }}></i>
                 {isCopied ? "¡Copiado!" : "Copiar Imagen"}
               </button>
 
@@ -830,7 +830,7 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                 onClick={() => setIsStandMode(true)}
                 style={{
                   gridColumn: "1 / -1",
-                  background: "linear-gradient(135deg, #1E1B10, #2A2414)",
+                  background: "linear-gradient(135deg, #1C1C1E, #2C2C2E)",
                   color: "#FFD700",
                   border: "1.5px solid #FFD700",
                   padding: "12px 16px",
