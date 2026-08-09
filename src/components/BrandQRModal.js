@@ -866,8 +866,8 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                 <span style={{ fontSize: "0.68rem", color: "#D4AF37", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: "800", display: "block" }}>
                   STAND OFICIAL AOURUM
                 </span>
-                <h1 style={{ fontSize: "1.15rem", fontWeight: "800", margin: 0, color: "#FFFFFF", lineHeight: 1.2 }}>
-                  {brand.name}
+                <h1 style={{ fontSize: "1.15rem", fontWeight: "800", margin: 0, color: "#FFFFFF", lineHeight: 1.2, WebkitTextFillColor: "#FFFFFF" }}>
+                  <span style={{ color: "#FFFFFF" }}>{brand.name}</span>
                 </h1>
               </div>
             </div>
