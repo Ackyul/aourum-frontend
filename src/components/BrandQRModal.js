@@ -807,6 +807,7 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
                 style={{
                   gridColumn: "1 / -1",
                   background: "#FFFFFF",
+                  backgroundColor: "#FFFFFF",
                   color: "#1C1C1E",
                   border: "1.5px solid #D4AF37",
                   padding: "12px 16px",
