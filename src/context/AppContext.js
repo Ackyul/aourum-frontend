@@ -58,6 +58,7 @@ export function AppContextProvider({ children }) {
   const [organizers, setOrganizers] = useState([]);
   const [people, setPeople] = useState([]);
   const [invitations, setInvitations] = useState([]);
+  const [events, setEvents] = useState([]);
   const [posts, setPosts] = useState([]);
   const [postsLoading, setPostsLoading] = useState(false);
 
@@ -363,6 +364,72 @@ export function AppContextProvider({ children }) {
     }
   }, [API_URL, invitations.length]);
 
+  const loadEvents = useCallback(async (force = false) => {
+    if (events.length > 0 && !force) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/events`).then((r) => r.json());
+      if (Array.isArray(res)) setEvents(res);
+    } catch (err) {
+      console.error("Error loading events:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [API_URL, events.length]);
+
+  const addEvent = async (eventData) => {
+    try {
+      const res = await fetch(`${API_URL}/api/events`, {
+        method: "POST",
+        headers: authHeaders("application/json"),
+        body: JSON.stringify(eventData)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al crear el evento");
+      setEvents((prev) => [...prev, data]);
+      triggerNotification(true, "Evento/Curso creado con éxito");
+      return data;
+    } catch (err) {
+      triggerNotification(false, err.message);
+      throw err;
+    }
+  };
+
+  const updateEvent = async (id, eventData) => {
+    try {
+      const res = await fetch(`${API_URL}/api/events/${id}`, {
+        method: "PUT",
+        headers: authHeaders("application/json"),
+        body: JSON.stringify(eventData)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al actualizar el evento");
+      setEvents((prev) => prev.map((e) => (e.id === Number(id) ? data : e)));
+      triggerNotification(true, "Evento/Curso actualizado con éxito");
+      return data;
+    } catch (err) {
+      triggerNotification(false, err.message);
+      throw err;
+    }
+  };
+
+  const deleteEvent = async (id) => {
+    try {
+      const res = await fetch(`${API_URL}/api/events/${id}`, {
+        method: "DELETE",
+        headers: authHeaders()
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al eliminar el evento");
+      setEvents((prev) => prev.filter((e) => e.id !== Number(id)));
+      triggerNotification(true, "Evento/Curso eliminado");
+      return true;
+    } catch (err) {
+      triggerNotification(false, err.message);
+      throw err;
+    }
+  };
+
   const loadPosts = useCallback(async (params = {}) => {
     setPostsLoading(true);
     try {
@@ -485,6 +552,7 @@ export function AppContextProvider({ children }) {
         loadBrands(true),
         loadPeople(true),
         loadInvitations(true),
+        loadEvents(true),
       ]);
     } catch (err) {
       console.error("Error in fetchData:", err);
@@ -1635,6 +1703,11 @@ export function AppContextProvider({ children }) {
         openCreatePostModal,
         triggerNotification,
         logout,
+        events,
+        loadEvents,
+        addEvent,
+        updateEvent,
+        deleteEvent,
         parseDescription,
         getBrandPalette
       }}

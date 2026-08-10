@@ -32,6 +32,11 @@ export default function BrandProfileClient({ initialBrand }) {
   const {
     brands,
     products,
+    events,
+    loadEvents,
+    addEvent,
+    updateEvent,
+    deleteEvent,
     people,
     loading,
     activePersonId,
@@ -122,6 +127,22 @@ export default function BrandProfileClient({ initialBrand }) {
   const router = useRouter();
 
   const [activeBrandTab, setActiveBrandTab] = useState("vitrina");
+
+  // State for Events Management inside Brand Profile
+  const [eventFormOpen, setEventFormOpen] = useState(false);
+  const [editingEventId, setEditingEventId] = useState(null);
+  const [evtTitle, setEvtTitle] = useState("");
+  const [evtDescription, setEvtDescription] = useState("");
+  const [evtType, setEvtType] = useState("curso");
+  const [evtDate, setEvtDate] = useState("");
+  const [evtDuration, setEvtDuration] = useState("");
+  const [evtIsOnline, setEvtIsOnline] = useState(false);
+  const [evtOnlineLink, setEvtOnlineLink] = useState("");
+  const [evtLocation, setEvtLocation] = useState("");
+  const [evtPrice, setEvtPrice] = useState("");
+  const [evtSpotsTotal, setEvtSpotsTotal] = useState("");
+  const [evtImage, setEvtImage] = useState("");
+  const [evtSubmitLoading, setEvtSubmitLoading] = useState(false);
   const [brandPosts, setBrandPosts] = useState([]);
   const [brandPostsLoading, setBrandPostsLoading] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
@@ -1620,20 +1641,194 @@ export default function BrandProfileClient({ initialBrand }) {
         >
           <i className="fa-solid fa-rss"></i> Muro de Novedades
         </button>
+        <button
+          type="button"
+          className={`aourum-tab-btn ${activeBrandTab === "eventos" ? "active" : ""}`}
+          onClick={() => setActiveBrandTab("eventos")}
+        >
+          <i className="fa-solid fa-graduation-cap"></i> Cursos & Eventos ({(events || []).filter(e => Number(e.brandId) === Number(brand?.id)).length})
+        </button>
 
         {isCollaborator && (
-          <button
-            type="button"
-            onClick={() => openCreatePostModal({ brandId: brand?.id, authorType: "brand" })}
-            className="btn-gold"
-            style={{ marginLeft: "auto", padding: "0.45rem 1rem", fontSize: "0.82rem", borderRadius: "8px", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
-          >
-            <i className="fa-solid fa-pen-to-square"></i> Publicar Novedad
-          </button>
+          <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
+            <button
+              type="button"
+              onClick={() => {
+                setEditingEventId(null);
+                setEvtTitle("");
+                setEvtDescription("");
+                setEvtType("curso");
+                setEvtDate("");
+                setEvtDuration("");
+                setEvtIsOnline(false);
+                setEvtOnlineLink("");
+                setEvtLocation("");
+                setEvtPrice("");
+                setEvtSpotsTotal("");
+                setEvtImage("");
+                setEventFormOpen(true);
+              }}
+              className="btn-gold"
+              style={{ padding: "0.45rem 1rem", fontSize: "0.82rem", borderRadius: "8px", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+            >
+              <i className="fa-solid fa-calendar-plus"></i> Crear Evento / Curso
+            </button>
+            <button
+              type="button"
+              onClick={() => openCreatePostModal({ brandId: brand?.id, authorType: "brand" })}
+              className="btn-outline-gold"
+              style={{ padding: "0.45rem 1rem", fontSize: "0.82rem", borderRadius: "8px", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+            >
+              <i className="fa-solid fa-pen-to-square"></i> Publicar Novedad
+            </button>
+          </div>
         )}
       </div>
 
-      {activeBrandTab === "muro" ? (
+      {activeBrandTab === "eventos" ? (
+        <div style={{ marginTop: "1.5rem" }}>
+          {(() => {
+            const brandEvents = (events || []).filter(e => Number(e.brandId) === Number(brand?.id));
+            if (brandEvents.length === 0) {
+              return (
+                <div className="glass-panel" style={{ textAlign: "center", padding: "4rem 1rem", color: "var(--text-muted)", borderRadius: "16px" }}>
+                  <i className="fa-solid fa-graduation-cap" style={{ fontSize: "3rem", color: "var(--gold-primary)", marginBottom: "1rem", opacity: 0.5 }}></i>
+                  <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "0.5rem" }}>
+                    No hay cursos o eventos activos
+                  </h3>
+                  <p style={{ fontSize: "0.88rem", maxWidth: "450px", margin: "0 auto 1.5rem auto" }}>
+                    {brand?.name} no ha publicado eventos o talleres por el momento.
+                  </p>
+                  {isCollaborator && (
+                    <button
+                      type="button"
+                      onClick={() => setEventFormOpen(true)}
+                      className="btn-gold"
+                      style={{ padding: "0.6rem 1.2rem", borderRadius: "12px", fontSize: "0.88rem", fontWeight: 700 }}
+                    >
+                      <i className="fa-solid fa-plus" style={{ marginRight: 6 }}></i> Crear Primer Curso o Taller
+                    </button>
+                  )}
+                </div>
+              );
+            }
+
+            return (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1.25rem" }}>
+                {brandEvents.map((evt) => (
+                  <div
+                    key={evt.id}
+                    style={{
+                      background: "var(--bg-card)",
+                      border: "1px solid var(--border-color)",
+                      borderRadius: "16px",
+                      overflow: "hidden",
+                      display: "flex",
+                      flexDirection: "column",
+                      position: "relative"
+                    }}
+                  >
+                    <div style={{ position: "relative", width: "100%", height: "150px", background: "#111" }}>
+                      <img
+                        src={evt.image || brand?.logo || "/dummy.png"}
+                        alt={evt.title}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        onError={(e) => { e.target.src = "/dummy.png"; }}
+                      />
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: "10px",
+                          left: "10px",
+                          background: "rgba(0,0,0,0.75)",
+                          color: "var(--gold-dark)",
+                          padding: "2px 8px",
+                          borderRadius: "10px",
+                          fontSize: "0.7rem",
+                          fontWeight: 800,
+                          textTransform: "uppercase"
+                        }}
+                      >
+                        {evt.eventType || "Curso"}
+                      </span>
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: "10px",
+                          right: "10px",
+                          background: evt.isOnline ? "rgba(59,130,246,0.85)" : "rgba(16,185,129,0.85)",
+                          color: "#FFF",
+                          padding: "2px 8px",
+                          borderRadius: "10px",
+                          fontSize: "0.7rem",
+                          fontWeight: 700
+                        }}
+                      >
+                        {evt.isOnline ? "Online" : "Presencial"}
+                      </span>
+                    </div>
+
+                    <div style={{ padding: "1rem", flex: 1, display: "flex", flexDirection: "column" }}>
+                      <h4 style={{ fontSize: "1rem", fontWeight: 800, marginBottom: "0.4rem" }}>{evt.title}</h4>
+                      <div style={{ fontSize: "0.8rem", color: "var(--gold-dark)", fontWeight: 700, marginBottom: "0.4rem" }}>
+                        <i className="fa-regular fa-clock" style={{ marginRight: 4 }}></i>
+                        {evt.eventDate ? new Date(evt.eventDate).toLocaleDateString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "Por definir"}
+                      </div>
+                      <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "0.8rem" }}>
+                        <i className={`fa-solid ${evt.isOnline ? "fa-link" : "fa-map-pin"}`} style={{ marginRight: 4 }}></i>
+                        {evt.isOnline ? "Virtual" : (evt.location || "Presencial")}
+                      </div>
+
+                      <div style={{ marginTop: "auto", paddingTop: "0.6rem", borderTop: "1px solid var(--border-color)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <span style={{ fontSize: "0.95rem", fontWeight: 900, color: evt.price > 0 ? "var(--gold-dark)" : "#10b981" }}>
+                          {evt.price > 0 ? `S/ ${evt.price}` : "Gratis"}
+                        </span>
+                        {isCollaborator && (
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingEventId(evt.id);
+                                setEvtTitle(evt.title || "");
+                                setEvtDescription(evt.description || "");
+                                setEvtType(evt.eventType || "curso");
+                                setEvtDate(evt.eventDate ? evt.eventDate.slice(0, 16) : "");
+                                setEvtDuration(evt.durationMinutes || "");
+                                setEvtIsOnline(!!evt.isOnline);
+                                setEvtOnlineLink(evt.onlineLink || "");
+                                setEvtLocation(evt.location || "");
+                                setEvtPrice(evt.price !== null && evt.price !== undefined ? evt.price : "");
+                                setEvtSpotsTotal(evt.spotsTotal || "");
+                                setEvtImage(evt.image || "");
+                                setEventFormOpen(true);
+                              }}
+                              className="btn-outline-gold"
+                              style={{ padding: "3px 8px", fontSize: "0.72rem", borderRadius: "6px" }}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (confirm(`¿Eliminar el evento "${evt.title}"?`)) {
+                                  await deleteEvent(evt.id);
+                                }
+                              }}
+                              style={{ background: "rgba(239,68,68,0.15)", color: "#ef4444", border: "none", padding: "3px 8px", fontSize: "0.72rem", borderRadius: "6px", cursor: "pointer" }}
+                            >
+                              Borrar
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+      ) : activeBrandTab === "muro" ? (
         <div style={{ marginTop: "1.5rem" }}>
           {isCollaborator && (
             <SocialFeedPublisher
@@ -2672,6 +2867,220 @@ export default function BrandProfileClient({ initialBrand }) {
         </div>
       </div>
     )}
+      {/* Modal para Crear / Editar Evento */}
+      {isCollaborator && eventFormOpen && (
+        <div className="modal-overlay" style={{ zIndex: 1200 }}>
+          <div className="modal-backdrop" onClick={() => setEventFormOpen(false)}></div>
+          <div className="modal-panel fade-in" style={{ maxWidth: "560px", background: "var(--bg-card)", border: "1.5px solid var(--gold-primary)", padding: "1.5rem", borderRadius: "20px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem" }}>
+              <h3 style={{ fontSize: "1.15rem", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+                <i className="fa-solid fa-graduation-cap" style={{ color: "var(--gold-primary)" }}></i>
+                {editingEventId ? "Editar Evento / Taller" : "Crear Nuevo Evento o Curso"}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEventFormOpen(false)}
+                style={{ background: "none", border: "none", fontSize: "1.2rem", cursor: "pointer", color: "var(--text-muted)" }}
+              >
+                &times;
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!evtTitle || !evtDate) return;
+                setEvtSubmitLoading(true);
+                try {
+                  const payload = {
+                    brandId: brand.id,
+                    title: evtTitle,
+                    description: evtDescription,
+                    eventType: evtType,
+                    eventDate: evtDate,
+                    durationMinutes: evtDuration ? Number(evtDuration) : null,
+                    isOnline: evtIsOnline,
+                    onlineLink: evtIsOnline ? evtOnlineLink : null,
+                    location: !evtIsOnline ? evtLocation : null,
+                    price: evtPrice !== "" ? Number(evtPrice) : null,
+                    spotsTotal: evtSpotsTotal ? Number(evtSpotsTotal) : null,
+                    image: evtImage || null,
+                  };
+
+                  if (editingEventId) {
+                    await updateEvent(editingEventId, payload);
+                  } else {
+                    await addEvent(payload);
+                  }
+
+                  setEventFormOpen(false);
+                } catch (err) {
+                  console.error(err);
+                } finally {
+                  setEvtSubmitLoading(false);
+                }
+              }}
+              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+            >
+              <div className="form-group" style={{ margin: 0 }}>
+                <label style={{ fontSize: "0.8rem", fontWeight: 700 }}>Título del Evento / Curso *</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Ej: Taller de Joyería Artesanal en Plata"
+                  value={evtTitle}
+                  onChange={(e) => setEvtTitle(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label style={{ fontSize: "0.8rem", fontWeight: 700 }}>Tipo *</label>
+                  <select
+                    className="form-control"
+                    value={evtType}
+                    onChange={(e) => setEvtType(e.target.value)}
+                    required
+                  >
+                    <option value="curso">Curso</option>
+                    <option value="taller">Taller</option>
+                    <option value="presentacion">Presentación</option>
+                    <option value="feria">Feria / Showroom</option>
+                    <option value="otro">Otro</option>
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label style={{ fontSize: "0.8rem", fontWeight: 700 }}>Fecha y Hora *</label>
+                  <input
+                    type="datetime-local"
+                    className="form-control"
+                    value={evtDate}
+                    onChange={(e) => setEvtDate(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label style={{ fontSize: "0.8rem", fontWeight: 700 }}>Precio (S/ ARS) - Vacío = Gratis</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="form-control"
+                    placeholder="0 = Gratis"
+                    value={evtPrice}
+                    onChange={(e) => setEvtPrice(e.target.value)}
+                  />
+                </div>
+
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label style={{ fontSize: "0.8rem", fontWeight: 700 }}>Duración (minutos)</label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="Ej: 90"
+                    value={evtDuration}
+                    onChange={(e) => setEvtDuration(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group" style={{ margin: 0 }}>
+                <label style={{ fontSize: "0.8rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px" }}>
+                  <input
+                    type="checkbox"
+                    checked={evtIsOnline}
+                    onChange={(e) => setEvtIsOnline(e.target.checked)}
+                    style={{ accentColor: "var(--gold-primary)", width: "16px", height: "16px" }}
+                  />
+                  <span>Modalidad Online / Virtual</span>
+                </label>
+              </div>
+
+              {evtIsOnline ? (
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label style={{ fontSize: "0.8rem", fontWeight: 700 }}>Enlace de Conexión (Zoom, Meet, Twitch, etc.)</label>
+                  <input
+                    type="url"
+                    className="form-control"
+                    placeholder="https://meet.google.com/xyz..."
+                    value={evtOnlineLink}
+                    onChange={(e) => setEvtOnlineLink(e.target.value)}
+                  />
+                </div>
+              ) : (
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label style={{ fontSize: "0.8rem", fontWeight: 700 }}>Ubicación Presencial</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Ej: Av. Ejercito 300, Yanahuara, Arequipa"
+                    value={evtLocation}
+                    onChange={(e) => setEvtLocation(e.target.value)}
+                  />
+                </div>
+              )}
+
+              <div className="form-group" style={{ margin: 0 }}>
+                <label style={{ fontSize: "0.8rem", fontWeight: 700 }}>Descripción / Temario</label>
+                <textarea
+                  className="form-control"
+                  rows={3}
+                  placeholder="Detalles sobre lo que se aprenderá, requerimientos, materiales incluidos..."
+                  value={evtDescription}
+                  onChange={(e) => setEvtDescription(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group" style={{ margin: 0 }}>
+                <label style={{ fontSize: "0.8rem", fontWeight: 700 }}>Imagen de Portada del Evento</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      try {
+                        const url = await uploadImage(file);
+                        setEvtImage(url);
+                      } catch (err) {
+                        console.error(err);
+                      }
+                    }
+                  }}
+                  style={{ fontSize: "0.8rem" }}
+                />
+                {evtImage && (
+                  <img src={evtImage} alt="Preview" style={{ width: "100%", height: "120px", objectFit: "cover", borderRadius: "8px", marginTop: "8px" }} />
+                )}
+              </div>
+
+              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1rem" }}>
+                <button
+                  type="button"
+                  onClick={() => setEventFormOpen(false)}
+                  className="btn-outline-gold"
+                  style={{ padding: "0.5rem 1.2rem", borderRadius: "8px", fontSize: "0.85rem" }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn-gold"
+                  disabled={evtSubmitLoading}
+                  style={{ padding: "0.5rem 1.4rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700 }}
+                >
+                  {evtSubmitLoading ? "Guardando..." : (editingEventId ? "Guardar Cambios" : "Publicar Evento")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Modal QR de Marca AOURUM */}
       <BrandQRModal
         isOpen={qrModalOpen}
