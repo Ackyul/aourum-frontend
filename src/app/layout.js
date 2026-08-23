@@ -685,7 +685,6 @@ function AppLayoutShell({ children }) {
                 { href: "/brands", icon: "fa-store", label: "Marcas" },
                 { href: "/fairs", icon: "fa-calendar-days", label: "Ferias" },
                 { href: "/bands", icon: "fa-guitar", label: "Música" },
-                { href: "/events", icon: "fa-graduation-cap", label: "Eventos & Cursos" },
               ].map(({ href, icon, label }) => (
                 <Link
                   key={href}

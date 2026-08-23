@@ -9,16 +9,19 @@ import { MaxHeap, getBrandViews } from "@/utils/maxHeap";
 export default function BrandsPage() {
   const {
     brands,
+    events,
     loading,
     searchTerm,
     parseDescription,
     loadBrands,
+    loadEvents,
     getCurrentPerson
   } = useApp();
 
   useEffect(() => {
     loadBrands();
-  }, [loadBrands]);
+    loadEvents();
+  }, [loadBrands, loadEvents]);
 
   const router = useRouter();
   
@@ -277,6 +280,9 @@ export default function BrandsPage() {
   function BrandCard({ brand, isFeatured }) {
     const rubro = brand.rubro_especifico || brand.rubro_general || brand.category || "Marca Local";
     const descText = parseDescription(brand.description).text;
+    const hasEvent = (events || []).some(
+      (e) => Number(e.brandId || e.brand_id) === Number(brand?.id)
+    );
 
     return (
       <div 
@@ -297,6 +303,15 @@ export default function BrandsPage() {
             }}>
               ⭐ Destacada
             </span>
+          )}
+          {hasEvent && (
+            <div 
+              className="reactive-red-dot-container"
+              title="Esta marca tiene un evento activo"
+            >
+              <span className="reactive-red-dot" />
+              <span className="reactive-red-dot-text">Evento</span>
+            </div>
           )}
         </div>
         <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>

@@ -2463,4 +2463,59 @@ header {
   }
 }
 
+/* Reactive Red Dot Indicator for Brands with Events */
+@keyframes reactive-pulse {
+  0% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.75);
+  }
+  70% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
 
+.reactive-red-dot-container {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(20, 20, 22, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 4px 8px 4px 6px;
+  border-radius: 20px;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transition: var(--transition-smooth);
+}
+
+.reactive-red-dot-container:hover {
+  transform: scale(1.06);
+  background: rgba(20, 20, 22, 0.9);
+  border-color: rgba(239, 68, 68, 0.8);
+}
+
+.reactive-red-dot {
+  width: 10px;
+  height: 10px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  animation: reactive-pulse 1.8s infinite ease-in-out;
+  flex-shrink: 0;
+}
+
+.reactive-red-dot-text {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
