@@ -1762,18 +1762,8 @@ export default function BrandProfileClient({ initialBrand }) {
               )}
             </>
           )}
-
-          {/* Info del Dueño al final del perfil */}
-          {brand.owner && (
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", marginTop: "2rem", padding: "1rem 0 0", borderTop: "1px solid var(--border-color)", fontSize: "0.85rem", color: "var(--text-muted)" }}>
-              <i className="fa-solid fa-user-tag" style={{ color: "var(--gold-primary)" }}></i>
-              <span>Esta marca es gestionada por su dueño(a): <strong>{brand.owner}</strong></span>
-            </div>
-          )}
         </div>
       </div>
-
-      {/* ── PESTAÑAS: VITRINA CULTURAL vs MURO DE NOVEDADES ── */}
       <div className="aourum-tabs-container" style={{ marginTop: "2.5rem" }}>
         <button
           type="button"
@@ -2083,6 +2073,14 @@ export default function BrandProfileClient({ initialBrand }) {
           </div>
         </div>
       )
+      )}
+
+      {/* Info del Dueño al final del perfil, después de todos los productos y antes del footer */}
+      {brand.owner && (
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", marginTop: "3.5rem", padding: "1.5rem 0 0", borderTop: isStoreBgLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.1)", fontSize: "0.88rem", color: isStoreBgLight ? "#4B5563" : "#9CA3AF" }}>
+          <i className="fa-solid fa-user-tag" style={{ color: "var(--gold-primary)" }}></i>
+          <span>Esta marca es gestionada por su dueño(a): <strong>{brand.owner}</strong></span>
+        </div>
       )}
 
       {/* ── VENTANAS SUPERPUESTAS (MODALS) RENDERIZADAS A NIVEL DE RAÍZ DEL COMPONENTE ── */}
