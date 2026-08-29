@@ -135,6 +135,7 @@ export default function BrandProfileClient({ initialBrand }) {
   const [evtDescription, setEvtDescription] = useState("");
   const [evtType, setEvtType] = useState("curso");
   const [evtDate, setEvtDate] = useState("");
+  const [evtIsAllDay, setEvtIsAllDay] = useState(false);
   const [evtDuration, setEvtDuration] = useState("");
   const [evtIsOnline, setEvtIsOnline] = useState(false);
   const [evtOnlineLink, setEvtOnlineLink] = useState("");
@@ -1867,7 +1868,13 @@ export default function BrandProfileClient({ initialBrand }) {
                       <h4 style={{ fontSize: "1rem", fontWeight: 800, marginBottom: "0.4rem" }}>{evt.title}</h4>
                       <div style={{ fontSize: "0.8rem", color: "var(--gold-dark)", fontWeight: 700, marginBottom: "0.4rem" }}>
                         <i className="fa-regular fa-clock" style={{ marginRight: 4 }}></i>
-                        {evt.eventDate ? new Date(evt.eventDate).toLocaleDateString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "Por definir"}
+                        {evt.eventDate ? (
+                          (evt.isAllDay || evt.eventDate.includes("T00:00")) ? (
+                            new Date(evt.eventDate).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" }) + " (Todo el día)"
+                          ) : (
+                            new Date(evt.eventDate).toLocaleDateString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+                          )
+                        ) : "Por definir"}
                       </div>
                       <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "0.8rem" }}>
                         <i className={`fa-solid ${evt.isOnline ? "fa-link" : "fa-map-pin"}`} style={{ marginRight: 4 }}></i>
@@ -1888,6 +1895,7 @@ export default function BrandProfileClient({ initialBrand }) {
                                 setEvtDescription(evt.description || "");
                                 setEvtType(evt.eventType || "curso");
                                 setEvtDate(evt.eventDate ? evt.eventDate.slice(0, 16) : "");
+                                setEvtIsAllDay(evt.isAllDay || (evt.eventDate && evt.eventDate.includes("T00:00")) || false);
                                 setEvtDuration(evt.durationMinutes || "");
                                 setEvtIsOnline(!!evt.isOnline);
                                 setEvtOnlineLink(evt.onlineLink || "");
@@ -3002,7 +3010,8 @@ export default function BrandProfileClient({ initialBrand }) {
                     title: evtTitle,
                     description: evtDescription,
                     eventType: evtType,
-                    eventDate: evtDate,
+                    eventDate: evtIsAllDay && !evtDate.includes("T") ? `${evtDate}T00:00` : evtDate,
+                    isAllDay: evtIsAllDay,
                     durationMinutes: evtDuration ? Number(evtDuration) : null,
                     isOnline: evtIsOnline,
                     onlineLink: evtIsOnline ? waUrl : null,
@@ -3058,11 +3067,31 @@ export default function BrandProfileClient({ initialBrand }) {
                 </div>
 
                 <div className="form-group" style={{ margin: 0 }}>
-                  <label style={{ fontSize: "0.8rem", fontWeight: 700 }}>Fecha y Hora *</label>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                    <label style={{ fontSize: "0.8rem", fontWeight: 700, margin: 0 }}>
+                      {evtIsAllDay ? "Fecha *" : "Fecha y Hora *"}
+                    </label>
+                    <label style={{ fontSize: "0.75rem", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px", cursor: "pointer", userSelect: "none", color: "var(--gold-dark, #d4af37)" }}>
+                      <input
+                        type="checkbox"
+                        checked={evtIsAllDay}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setEvtIsAllDay(checked);
+                          if (checked && evtDate.includes("T")) {
+                            setEvtDate(evtDate.split("T")[0]);
+                          } else if (!checked && evtDate && !evtDate.includes("T")) {
+                            setEvtDate(`${evtDate}T09:00`);
+                          }
+                        }}
+                      />
+                      <span>Todo el día</span>
+                    </label>
+                  </div>
                   <input
-                    type="datetime-local"
+                    type={evtIsAllDay ? "date" : "datetime-local"}
                     className="form-control"
-                    value={evtDate}
+                    value={evtIsAllDay && evtDate.includes("T") ? evtDate.split("T")[0] : evtDate}
                     onChange={(e) => setEvtDate(e.target.value)}
                     required
                   />

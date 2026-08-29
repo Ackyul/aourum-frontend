@@ -64,10 +64,19 @@ export default function EventsPage() {
     });
   }, [events, brands, searchQuery, selectedType, selectedModality, sortBy]);
 
-  const formatEventDate = (dateStr) => {
+  const formatEventDate = (dateStr, isAllDay = false) => {
     if (!dateStr) return "Fecha por confirmar";
     try {
       const date = new Date(dateStr);
+      const isAllDayDate = isAllDay || dateStr.includes("T00:00");
+      if (isAllDayDate) {
+        return date.toLocaleDateString("es-ES", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+          year: "numeric"
+        }) + " (Todo el día)";
+      }
       return date.toLocaleDateString("es-ES", {
         weekday: "short",
         day: "numeric",
