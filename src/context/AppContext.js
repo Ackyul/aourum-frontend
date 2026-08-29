@@ -602,6 +602,14 @@ export function AppContextProvider({ children }) {
     }
   };
 
+  const handleUnauthorized = useCallback((msg = "Tu sesión ha expirado. Por favor inicia sesión nuevamente.") => {
+    clearSession();
+    setActivePersonId("");
+    setActiveRole("");
+    setActiveUsername("");
+    triggerNotification(msg, "error");
+  }, []);
+
   // Image upload helper
   const uploadImage = async (file, setUploading) => {
     if (typeof setUploading === "function") setUploading(true);
@@ -614,6 +622,10 @@ export function AppContextProvider({ children }) {
         body: formData,
       });
       const data = await res.json().catch(() => ({}));
+      if (res.status === 401 || (data.error && (data.error.includes("Token") || data.error.includes("expirad") || data.error.includes("inválid")))) {
+        handleUnauthorized("Tu sesión ha expirado. Por favor inicia sesión de nuevo.");
+        return null;
+      }
       if (!res.ok) throw new Error(data.error || "Upload fallido");
       return data.url;
     } catch (err) {
