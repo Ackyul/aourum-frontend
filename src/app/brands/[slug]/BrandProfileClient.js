@@ -1861,7 +1861,7 @@ export default function BrandProfileClient({ initialBrand }) {
                   <div
                     key={evt.id}
                     className="event-card product-card"
-                    onClick={() => setSelectedEventModal(evt)}
+                    onClick={() => router.push(`/events?id=${evt.id}`)}
                     style={{
                       borderRadius: "16px",
                       overflow: "hidden",
