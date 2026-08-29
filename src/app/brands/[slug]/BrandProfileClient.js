@@ -138,14 +138,109 @@ export default function BrandProfileClient({ initialBrand }) {
   const [evtDuration, setEvtDuration] = useState("");
   const [evtIsOnline, setEvtIsOnline] = useState(false);
   const [evtOnlineLink, setEvtOnlineLink] = useState("");
+  const [evtWhatsappNumber, setEvtWhatsappNumber] = useState("");
   const [evtLocation, setEvtLocation] = useState("");
+  const [evtLat, setEvtLat] = useState(-16.39889); // Default Plaza de Armas de Arequipa
+  const [evtLng, setEvtLng] = useState(-71.53694);
+  const [evtMapSearching, setEvtMapSearching] = useState(false);
   const [evtPrice, setEvtPrice] = useState("");
   const [evtSpotsTotal, setEvtSpotsTotal] = useState("");
   const [evtImage, setEvtImage] = useState("");
+  const [evtUploadingImage, setEvtUploadingImage] = useState(false);
   const [evtSubmitLoading, setEvtSubmitLoading] = useState(false);
   const [brandPosts, setBrandPosts] = useState([]);
   const [brandPostsLoading, setBrandPostsLoading] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
+
+  const evtMapContainerRef = useRef(null);
+  const evtLeafletMapRef = useRef(null);
+  const evtMarkerRef = useRef(null);
+
+  useEffect(() => {
+    if (!eventFormOpen || evtIsOnline) {
+      if (evtLeafletMapRef.current) {
+        evtLeafletMapRef.current.remove();
+        evtLeafletMapRef.current = null;
+      }
+      return;
+    }
+
+    const initEvtMap = () => {
+      if (!evtMapContainerRef.current || typeof window === "undefined" || !window.L || evtLeafletMapRef.current) return;
+      const L = window.L;
+      delete L.Icon.Default.prototype._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      });
+
+      const initLat = evtLat || -16.39889;
+      const initLng = evtLng || -71.53694;
+
+      const map = L.map(evtMapContainerRef.current, { zoomControl: false }).setView([initLat, initLng], 15);
+      evtLeafletMapRef.current = map;
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; OpenStreetMap',
+        maxZoom: 19,
+      }).addTo(map);
+
+      const marker = L.marker([initLat, initLng], { draggable: true }).addTo(map);
+      evtMarkerRef.current = marker;
+
+      marker.on("dragend", () => {
+        const pos = marker.getLatLng();
+        setEvtLat(pos.lat);
+        setEvtLng(pos.lng);
+      });
+
+      map.on("click", (e) => {
+        const { lat, lng } = e.latlng;
+        marker.setLatLng([lat, lng]);
+        setEvtLat(lat);
+        setEvtLng(lng);
+      });
+
+      L.control.zoom({ position: "bottomright" }).addTo(map);
+    };
+
+    const timer = setTimeout(initEvtMap, 300);
+    return () => {
+      clearTimeout(timer);
+      if (evtLeafletMapRef.current) {
+        evtLeafletMapRef.current.remove();
+        evtLeafletMapRef.current = null;
+      }
+    };
+  }, [eventFormOpen, evtIsOnline]);
+
+  const handleSearchAddress = async (addressQuery) => {
+    if (!addressQuery || !addressQuery.trim()) return;
+    setEvtMapSearching(true);
+    try {
+      const q = addressQuery.includes("Arequipa") ? addressQuery : `${addressQuery}, Arequipa, Perú`;
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const lat = parseFloat(data[0].lat);
+        const lng = parseFloat(data[0].lon);
+        setEvtLat(lat);
+        setEvtLng(lng);
+        if (evtMarkerRef.current && evtLeafletMapRef.current) {
+          evtMarkerRef.current.setLatLng([lat, lng]);
+          evtLeafletMapRef.current.setView([lat, lng], 16);
+        }
+        triggerNotification("Ubicación en Arequipa encontrada", "success");
+      } else {
+        triggerNotification("No se encontró la dirección exacta. Señala la ubicación en el mapa.", "info");
+      }
+    } catch (err) {
+      console.error("Error geocodificando dirección:", err);
+    } finally {
+      setEvtMapSearching(false);
+    }
+  };
 
   useEffect(() => {
     loadBrands();
@@ -2871,7 +2966,7 @@ export default function BrandProfileClient({ initialBrand }) {
       {isCollaborator && eventFormOpen && (
         <div className="modal-overlay" style={{ zIndex: 1200 }}>
           <div className="modal-backdrop" onClick={() => setEventFormOpen(false)}></div>
-          <div className="modal-panel fade-in" style={{ maxWidth: "560px", background: "var(--bg-card)", border: "1.5px solid var(--gold-primary)", padding: "1.5rem", borderRadius: "20px" }}>
+          <div className="modal-panel fade-in" style={{ maxWidth: "620px", background: "var(--bg-card)", border: "1.5px solid var(--gold-primary)", padding: "1.5rem", borderRadius: "20px", maxHeight: "90vh", overflowY: "auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem" }}>
               <h3 style={{ fontSize: "1.15rem", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
                 <i className="fa-solid fa-graduation-cap" style={{ color: "var(--gold-primary)" }}></i>
@@ -2892,6 +2987,16 @@ export default function BrandProfileClient({ initialBrand }) {
                 if (!evtTitle || !evtDate) return;
                 setEvtSubmitLoading(true);
                 try {
+                  let waUrl = null;
+                  if (evtIsOnline) {
+                    let cleanWa = evtWhatsappNumber ? evtWhatsappNumber.replace(/[^\d+]/g, '') : '';
+                    if (cleanWa && !cleanWa.startsWith('+') && !cleanWa.startsWith('51') && cleanWa.length === 9) {
+                      cleanWa = `51${cleanWa}`;
+                    }
+                    const msg = `Hola, quisiera solicitar información sobre el ${evtType}: "${evtTitle}"`;
+                    waUrl = cleanWa ? `https://wa.me/${cleanWa.replace('+', '')}?text=${encodeURIComponent(msg)}` : evtOnlineLink;
+                  }
+
                   const payload = {
                     brandId: brand.id,
                     title: evtTitle,
@@ -2900,8 +3005,11 @@ export default function BrandProfileClient({ initialBrand }) {
                     eventDate: evtDate,
                     durationMinutes: evtDuration ? Number(evtDuration) : null,
                     isOnline: evtIsOnline,
-                    onlineLink: evtIsOnline ? evtOnlineLink : null,
+                    onlineLink: evtIsOnline ? waUrl : null,
+                    whatsappNumber: evtIsOnline ? evtWhatsappNumber : null,
                     location: !evtIsOnline ? evtLocation : null,
+                    lat: !evtIsOnline ? evtLat : null,
+                    lng: !evtIsOnline ? evtLng : null,
                     price: evtPrice !== "" ? Number(evtPrice) : null,
                     spotsTotal: evtSpotsTotal ? Number(evtSpotsTotal) : null,
                     image: evtImage || null,
@@ -2920,7 +3028,7 @@ export default function BrandProfileClient({ initialBrand }) {
                   setEvtSubmitLoading(false);
                 }
               }}
-              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+              style={{ display: "flex", flexDirection: "column", gap: "14px" }}
             >
               <div className="form-group" style={{ margin: 0 }}>
                 <label style={{ fontSize: "0.8rem", fontWeight: 700 }}>Título del Evento / Curso *</label>
@@ -2970,7 +3078,7 @@ export default function BrandProfileClient({ initialBrand }) {
                     type="number"
                     step="0.01"
                     className="form-control"
-                    placeholder="0 = Gratis"
+                    placeholder="0 = Gratis / Entrada Libre"
                     value={evtPrice}
                     onChange={(e) => setEvtPrice(e.target.value)}
                   />
@@ -2988,74 +3096,155 @@ export default function BrandProfileClient({ initialBrand }) {
                 </div>
               </div>
 
+              {/* ── Carga de Flyer / Póster ── */}
               <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontSize: "0.8rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px" }}>
+                <label style={{ fontSize: "0.8rem", fontWeight: 700, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>🖼️ Flyer / Poster del Anuncio</span>
+                  {evtUploadingImage && <span style={{ color: "var(--gold-primary)", fontSize: "0.78rem" }}><i className="fa-solid fa-spinner fa-spin"></i> Subiendo imagen...</span>}
+                </label>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "4px" }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        try {
+                          setEvtUploadingImage(true);
+                          const url = await uploadImage(file);
+                          if (url) {
+                            setEvtImage(url);
+                            triggerNotification("Flyer del anuncio cargado con éxito", "success");
+                          }
+                        } catch (err) {
+                          console.error(err);
+                          triggerNotification("Error al subir el flyer del anuncio", "error");
+                        } finally {
+                          setEvtUploadingImage(false);
+                        }
+                      }
+                    }}
+                    style={{ fontSize: "0.8rem" }}
+                  />
+                  <input
+                    type="url"
+                    className="form-control"
+                    placeholder="O pega la URL directa de la imagen del flyer..."
+                    value={evtImage}
+                    onChange={(e) => setEvtImage(e.target.value)}
+                    style={{ fontSize: "0.8rem" }}
+                  />
+                </div>
+
+                {evtImage && (
+                  <div style={{ marginTop: "10px", position: "relative", borderRadius: "12px", overflow: "hidden", border: "1.5px solid var(--gold-primary)", background: "#000", textAlign: "center" }}>
+                    <img src={evtImage} alt="Flyer Preview" style={{ maxHeight: "200px", width: "auto", maxWidth: "100%", objectFit: "contain", display: "block", margin: "0 auto" }} />
+                    <button
+                      type="button"
+                      onClick={() => setEvtImage("")}
+                      style={{ position: "absolute", top: "6px", right: "6px", background: "rgba(0,0,0,0.8)", color: "#fff", border: "none", borderRadius: "50%", width: "26px", height: "26px", cursor: "pointer", fontSize: "0.9rem" }}
+                      title="Quitar flyer"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* ── Modalidad Switch ── */}
+              <div className="form-group" style={{ margin: 0, background: "var(--bg-input)", padding: "10px 14px", borderRadius: "10px", border: "1px solid var(--border-color)" }}>
+                <label style={{ fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}>
                   <input
                     type="checkbox"
                     checked={evtIsOnline}
                     onChange={(e) => setEvtIsOnline(e.target.checked)}
-                    style={{ accentColor: "var(--gold-primary)", width: "16px", height: "16px" }}
+                    style={{ accentColor: "var(--gold-primary)", width: "18px", height: "18px" }}
                   />
-                  <span>Modalidad Online / Virtual</span>
+                  <span>🌐 Modalidad Online / Virtual (Consultas e Inscripciones por WhatsApp)</span>
                 </label>
               </div>
 
+              {/* ── Formulario Modalidad Virtual ── */}
               {evtIsOnline ? (
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label style={{ fontSize: "0.8rem", fontWeight: 700 }}>Enlace de Conexión (Zoom, Meet, Twitch, etc.)</label>
-                  <input
-                    type="url"
-                    className="form-control"
-                    placeholder="https://meet.google.com/xyz..."
-                    value={evtOnlineLink}
-                    onChange={(e) => setEvtOnlineLink(e.target.value)}
-                  />
+                <div style={{ background: "rgba(37,211,102,0.08)", border: "1.5px solid rgba(37,211,102,0.3)", borderRadius: "14px", padding: "14px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label style={{ fontSize: "0.82rem", fontWeight: 800, color: "#25D366", display: "flex", alignItems: "center", gap: "6px" }}>
+                      <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.15rem" }}></i>
+                      Número de WhatsApp de Contacto *
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Ej: 51987654321 o 987654321"
+                      value={evtWhatsappNumber}
+                      onChange={(e) => setEvtWhatsappNumber(e.target.value)}
+                      required={evtIsOnline}
+                    />
+                    <small style={{ fontSize: "0.74rem", color: "var(--text-muted)", marginTop: "4px", display: "block" }}>
+                      Al hacer clic en el anuncio, los interesados serán redirigidos a tu WhatsApp solicitando información.
+                    </small>
+                  </div>
                 </div>
               ) : (
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label style={{ fontSize: "0.8rem", fontWeight: 700 }}>Ubicación Presencial</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Ej: Av. Ejercito 300, Yanahuara, Arequipa"
-                    value={evtLocation}
-                    onChange={(e) => setEvtLocation(e.target.value)}
-                  />
+                /* ── Formulario Modalidad Presencial (Mapa en Arequipa) ── */
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: "14px", padding: "14px" }}>
+                  <div className="form-group" style={{ margin: 0 }}>
+                    <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>📍 Dirección / Lugar Presencial en Arequipa *</label>
+                    <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Ej: Av. Ejercito 300, Yanahuara, Arequipa"
+                        value={evtLocation}
+                        onChange={(e) => setEvtLocation(e.target.value)}
+                        required={!evtIsOnline}
+                      />
+                      <button
+                        type="button"
+                        className="btn-outline-gold"
+                        onClick={() => handleSearchAddress(evtLocation)}
+                        disabled={evtMapSearching}
+                        style={{ padding: "0 14px", whiteSpace: "nowrap", fontSize: "0.8rem", borderRadius: "8px" }}
+                      >
+                        {evtMapSearching ? <i className="fa-solid fa-spinner fa-spin"></i> : "Buscar Mapa"}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style={{ fontSize: "0.74rem", color: "var(--text-muted)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span>Haz clic o arrastra el marcador para fijar la posición exacta en Arequipa:</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEvtLat(-16.39889);
+                        setEvtLng(-71.53694);
+                        if (evtMarkerRef.current && evtLeafletMapRef.current) {
+                          evtMarkerRef.current.setLatLng([-16.39889, -71.53694]);
+                          evtLeafletMapRef.current.setView([-16.39889, -71.53694], 15);
+                        }
+                      }}
+                      style={{ background: "none", border: "none", color: "var(--gold-primary)", cursor: "pointer", fontSize: "0.74rem", fontWeight: 700 }}
+                    >
+                      📍 Reset Plaza de Armas
+                    </button>
+                  </div>
+
+                  <div
+                    ref={evtMapContainerRef}
+                    style={{ height: "200px", width: "100%", borderRadius: "10px", overflow: "hidden", border: "1px solid var(--border-color)", position: "relative" }}
+                  ></div>
                 </div>
               )}
 
               <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontSize: "0.8rem", fontWeight: 700 }}>Descripción / Temario</label>
+                <label style={{ fontSize: "0.8rem", fontWeight: 700 }}>Descripción / Temario *</label>
                 <textarea
                   className="form-control"
                   rows={3}
-                  placeholder="Detalles sobre lo que se aprenderá, requerimientos, materiales incluidos..."
+                  placeholder="Detalles del evento/curso, temario, qué se aprenderá, requerimientos..."
                   value={evtDescription}
                   onChange={(e) => setEvtDescription(e.target.value)}
                 />
-              </div>
-
-              <div className="form-group" style={{ margin: 0 }}>
-                <label style={{ fontSize: "0.8rem", fontWeight: 700 }}>Imagen de Portada del Evento</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      try {
-                        const url = await uploadImage(file);
-                        setEvtImage(url);
-                      } catch (err) {
-                        console.error(err);
-                      }
-                    }
-                  }}
-                  style={{ fontSize: "0.8rem" }}
-                />
-                {evtImage && (
-                  <img src={evtImage} alt="Preview" style={{ width: "100%", height: "120px", objectFit: "cover", borderRadius: "8px", marginTop: "8px" }} />
-                )}
               </div>
 
               <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "1rem" }}>
@@ -3070,10 +3259,10 @@ export default function BrandProfileClient({ initialBrand }) {
                 <button
                   type="submit"
                   className="btn-gold"
-                  disabled={evtSubmitLoading}
+                  disabled={evtSubmitLoading || evtUploadingImage}
                   style={{ padding: "0.5rem 1.4rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700 }}
                 >
-                  {evtSubmitLoading ? "Guardando..." : (editingEventId ? "Guardar Cambios" : "Publicar Evento")}
+                  {evtSubmitLoading ? "Guardando..." : (editingEventId ? "Guardar Cambios" : "Publicar Anuncio de Evento")}
                 </button>
               </div>
             </form>

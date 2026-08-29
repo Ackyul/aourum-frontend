@@ -219,6 +219,69 @@ function SocialPostCard({ post, activePersonId, brands = [], organizers = [], de
         {post.content}
       </div>
 
+      {/* ── Call to Action Buttons for Events (WhatsApp / Maps) ── */}
+      {(() => {
+        const waMatch = post.content && post.content.match(/(https:\/\/wa\.me\/[^\s]+)/);
+        const mapMatch = post.content && post.content.match(/(https:\/\/www\.google\.com\/maps\/[^\s]+)/);
+        const waUrl = waMatch ? waMatch[1] : null;
+        const mapUrl = mapMatch ? mapMatch[1] : null;
+
+        if (!waUrl && !mapUrl) return null;
+
+        return (
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", margin: "0.8rem 0 0.8rem 0" }}>
+            {waUrl && (
+              <a
+                href={waUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "10px 18px",
+                  borderRadius: "12px",
+                  backgroundColor: "#25D366",
+                  color: "#ffffff",
+                  fontWeight: 700,
+                  fontSize: "0.9rem",
+                  textDecoration: "none",
+                  boxShadow: "0 4px 12px rgba(37, 211, 102, 0.3)",
+                  transition: "all 0.2s"
+                }}
+              >
+                <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.25rem" }}></i>
+                Pedir Información por WhatsApp
+              </a>
+            )}
+
+            {mapUrl && (
+              <a
+                href={mapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "10px 16px",
+                  borderRadius: "12px",
+                  backgroundColor: "rgba(212,175,55,0.12)",
+                  color: "var(--text-gold)",
+                  border: "1px solid var(--text-gold)",
+                  fontWeight: 700,
+                  fontSize: "0.85rem",
+                  textDecoration: "none"
+                }}
+              >
+                <i className="fa-solid fa-map-location-dot"></i>
+                Ver Ubicación en Mapa
+              </a>
+            )}
+          </div>
+        );
+      })()}
+
       {/* ── Post Image Media ── */}
       {post.image && (
         <div

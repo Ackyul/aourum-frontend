@@ -643,19 +643,63 @@ export default function EventsPage() {
                   </div>
                 )}
 
-                {/* Link Online de acceso si existe */}
+                {/* Link u Opción de WhatsApp para Modalidad Virtual */}
                 {selectedEvent.isOnline && selectedEvent.onlineLink && (
-                  <div style={{ marginBottom: "1.5rem", background: "rgba(59, 130, 246, 0.1)", border: "1px solid rgba(59, 130, 246, 0.3)", padding: "0.85rem", borderRadius: "12px" }}>
-                    <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#3b82f6", display: "block", marginBottom: "4px" }}>
-                      <i className="fa-solid fa-link" style={{ marginRight: "6px" }}></i> Enlace de Conexión Virtual:
+                  <div style={{ marginBottom: "1.5rem", background: "rgba(37, 211, 102, 0.1)", border: "1px solid rgba(37, 211, 102, 0.4)", padding: "1rem", borderRadius: "14px", display: "flex", flexDirection: "column", gap: "8px", alignItems: "flex-start" }}>
+                    <span style={{ fontSize: "0.82rem", fontWeight: 800, color: "#25D366", display: "flex", alignItems: "center", gap: "6px" }}>
+                      <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.1rem" }}></i> Inscripción y Consultas por WhatsApp
                     </span>
                     <a
                       href={selectedEvent.onlineLink}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ color: "#60a5fa", fontWeight: 700, wordBreak: "break-all", fontSize: "0.85rem" }}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "10px 18px",
+                        borderRadius: "12px",
+                        backgroundColor: "#25D366",
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        fontSize: "0.9rem",
+                        textDecoration: "none",
+                        boxShadow: "0 4px 12px rgba(37, 211, 102, 0.3)"
+                      }}
                     >
-                      {selectedEvent.onlineLink}
+                      <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.25rem" }}></i>
+                      Pedir Información por WhatsApp
+                    </a>
+                  </div>
+                )}
+
+                {/* Ubicación en Mapa para Modalidad Presencial */}
+                {!selectedEvent.isOnline && selectedEvent.lat && selectedEvent.lng && (
+                  <div style={{ marginBottom: "1.5rem", background: "rgba(212, 175, 55, 0.08)", border: "1px solid var(--border-color)", padding: "1rem", borderRadius: "14px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <span style={{ fontSize: "0.82rem", fontWeight: 800, color: "var(--gold-dark)", display: "flex", alignItems: "center", gap: "6px" }}>
+                      <i className="fa-solid fa-map-location-dot"></i> Ubicación Presencial en Arequipa
+                    </span>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${selectedEvent.lat},${selectedEvent.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "9px 16px",
+                        borderRadius: "10px",
+                        backgroundColor: "rgba(212,175,55,0.15)",
+                        color: "var(--gold-primary)",
+                        border: "1px solid var(--gold-primary)",
+                        fontWeight: 700,
+                        fontSize: "0.85rem",
+                        textDecoration: "none",
+                        width: "fit-content"
+                      }}
+                    >
+                      <i className="fa-solid fa-map-location-dot"></i>
+                      Ver Ubicación en Google Maps
                     </a>
                   </div>
                 )}
