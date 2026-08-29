@@ -1221,13 +1221,13 @@ export default function BrandProfileClient({ initialBrand }) {
   if (design.cardBgColor && design.cardBgColor !== "transparent" && design.cardBgColor !== "auto") {
     let resolvedBg = design.cardBgColor;
     if (resolvedBg === "brand") resolvedBg = palette.c1;
-    else if (resolvedBg === "brand-soft") resolvedBg = `${palette.c1}20`;
+    else if (resolvedBg === "brand-soft") resolvedBg = customBgColor || (palette.c1 ? `${palette.c1}20` : "#f2f6e4");
     resolvedCardBg = resolvedBg;
     cardCss += `background: ${resolvedBg} !important; background-color: ${resolvedBg} !important;`;
   } else {
     // Default soft tint for glass style, or white for flat/elevated/bordered
     if (cardStyle === "glass") {
-      resolvedCardBg = isStoreBgLight ? `${palette.c1}18` : "rgba(24, 24, 27, 0.88)";
+      resolvedCardBg = isStoreBgLight ? (customBgColor || `${palette.c1}18`) : "rgba(24, 24, 27, 0.88)";
     } else {
       resolvedCardBg = isStoreBgLight ? "#FFFFFF" : "#18181B";
     }
@@ -1331,8 +1331,9 @@ export default function BrandProfileClient({ initialBrand }) {
           background: ${palette.c1}18 !important;
         }
         .brand-profile-theme-scope .glass-panel {
-          border: ${isStoreBgLight ? "1px solid rgba(0,0,0,0.12)" : `1px solid ${palette.c1}25`} !important;
+          border: ${design.cardBorderColor === "brand" || cardStyle === "bordered" ? `1.5px solid ${palette.c1}` : (isStoreBgLight ? "1px solid rgba(0,0,0,0.12)" : `1px solid ${palette.c1}25`)} !important;
           box-shadow: ${isStoreBgLight ? "0 4px 16px rgba(0,0,0,0.06)" : `0 8px 24px ${palette.c1}08`} !important;
+          background-color: ${resolvedCardBg || (isStoreBgLight ? "#FFFFFF" : "#18181B")} !important;
         }
         header {
           background: linear-gradient(180deg, ${palette.c1}18 0%, rgba(255, 255, 255, 0.96) 100%) !important;
@@ -1350,8 +1351,10 @@ export default function BrandProfileClient({ initialBrand }) {
         .brand-profile-theme-scope .carousel-item .product-card,
         .brand-profile-theme-scope .product-card,
         .brand-profile-theme-scope .event-card,
-        .brand-profile-theme-scope .social-post-card {
-          border: ${isStoreBgLight ? "1px solid rgba(0, 0, 0, 0.12)" : "1px solid rgba(255, 255, 255, 0.15)"} !important;
+        .brand-profile-theme-scope .social-post-card,
+        .brand-profile-theme-scope .social-publisher-card,
+        .brand-profile-theme-scope .social-feed-publisher {
+          border: ${design.cardBorderColor === "brand" || cardStyle === "bordered" ? `1.5px solid ${palette.c1}` : (isStoreBgLight ? "1px solid rgba(0, 0, 0, 0.12)" : "1px solid rgba(255, 255, 255, 0.15)")} !important;
           box-shadow: ${isStoreBgLight ? "0 6px 20px rgba(0, 0, 0, 0.07)" : "0 8px 24px rgba(0, 0, 0, 0.3)"} !important;
           border-radius: 16px !important;
           overflow: hidden !important;
@@ -1384,19 +1387,23 @@ export default function BrandProfileClient({ initialBrand }) {
           }
         }
         .brand-profile-theme-scope .product-card h3,
-        .brand-profile-theme-scope .event-card h4 {
+        .brand-profile-theme-scope .event-card h4,
+        .brand-profile-theme-scope .social-post-card h4,
+        .brand-profile-theme-scope .glass-panel h3 {
           color: ${resolvedCardTextColor || (isStoreBgLight ? "#1C1C1E" : "#FFFFFF")} !important;
         }
         .brand-profile-theme-scope .product-card .card-text-container,
         .brand-profile-theme-scope .event-card .event-card-body,
-        .brand-profile-theme-scope .social-post-card {
-          background-color: ${isStoreBgLight ? "#FFFFFF" : "#18181B"} !important;
-          color: ${isStoreBgLight ? "#1C1C1E" : "#FFFFFF"} !important;
+        .brand-profile-theme-scope .social-post-card,
+        .brand-profile-theme-scope .social-feed-publisher {
+          background-color: ${resolvedCardBg || (isStoreBgLight ? "#FFFFFF" : "#18181B")} !important;
+          color: ${resolvedCardTextColor || (isStoreBgLight ? "#1C1C1E" : "#FFFFFF")} !important;
         }
         ${enableAnimations ? `
           .brand-profile-theme-scope .product-card:hover,
           .brand-profile-theme-scope .event-card:hover,
-          .brand-profile-theme-scope .social-post-card:hover {
+          .brand-profile-theme-scope .social-post-card:hover,
+          .brand-profile-theme-scope .glass-panel:hover {
             border-color: ${palette.c1} !important;
             box-shadow: 0 12px 32px ${palette.c1}25 !important;
             transform: translateY(-4px) !important;
@@ -1856,8 +1863,6 @@ export default function BrandProfileClient({ initialBrand }) {
                     className="event-card product-card"
                     onClick={() => setSelectedEventModal(evt)}
                     style={{
-                      background: "var(--bg-card)",
-                      border: "1px solid var(--border-color)",
                       borderRadius: "16px",
                       overflow: "hidden",
                       display: "flex",

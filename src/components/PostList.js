@@ -122,8 +122,6 @@ function SocialPostCard({ post, activePersonId, brands = [], organizers = [], de
       id={`post-${post.id}`}
       className="social-post-card fade-in"
       style={{
-        background: "var(--bg-card)",
-        border: "1px solid var(--border-color)",
         borderRadius: "16px",
         padding: "1.25rem",
         marginBottom: "1.2rem",

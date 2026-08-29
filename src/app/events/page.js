@@ -329,12 +329,45 @@ export default function EventsPage() {
             {filteredEvents.map((evt) => {
               const brand = brands.find((b) => Number(b.id) === Number(evt.brandId));
 
+              // Extract brand theme color and background design
+              let brandThemeCol = "var(--gold-dark)";
+              let brandCardBorder = "1px solid var(--border-color)";
+              let brandCardBg = "var(--bg-card)";
+
+              if (brand) {
+                let parsedDesc = {};
+                try {
+                  if (brand.description && brand.description.startsWith("{")) {
+                    parsedDesc = JSON.parse(brand.description);
+                  }
+                } catch (e) {}
+
+                const designObj = brand.design || parsedDesc.design || {};
+                const rawTheme = designObj.themeColor || parsedDesc.theme_color || brand.themeColor;
+                if (rawTheme) {
+                  brandThemeCol = rawTheme.split(",")[0].trim();
+                }
+
+                if (designObj.cardBorderColor === "brand" || designObj.cardStyle === "bordered") {
+                  brandCardBorder = `1.5px solid ${brandThemeCol}`;
+                } else if (designObj.cardBorderColor && designObj.cardBorderColor.startsWith("#")) {
+                  brandCardBorder = `1.5px solid ${designObj.cardBorderColor}`;
+                }
+
+                const bgColor = designObj.bgColor || parsedDesc.bgColor || brand.bgColor;
+                if (designObj.cardBgColor === "brand-soft" && bgColor) {
+                  brandCardBg = bgColor;
+                } else if (designObj.cardBgColor === "brand" && brandThemeCol) {
+                  brandCardBg = brandThemeCol;
+                }
+              }
+
               return (
                 <div
                   key={evt.id}
                   style={{
-                    background: "var(--bg-card)",
-                    border: "1px solid var(--border-color)",
+                    background: brandCardBg,
+                    border: brandCardBorder,
                     borderRadius: "16px",
                     overflow: "hidden",
                     display: "flex",
@@ -363,8 +396,8 @@ export default function EventsPage() {
                         left: "12px",
                         background: "rgba(0, 0, 0, 0.75)",
                         backdropFilter: "blur(6px)",
-                        color: "var(--gold-dark)",
-                        border: "1px solid rgba(212, 175, 55, 0.4)",
+                        color: brandThemeCol,
+                        border: `1px solid ${brandThemeCol}60`,
                         padding: "3px 10px",
                         borderRadius: "12px",
                         fontSize: "0.72rem",
@@ -406,7 +439,7 @@ export default function EventsPage() {
                           style={{ width: "22px", height: "22px", borderRadius: "50%", objectFit: "cover" }}
                           onError={(e) => { e.target.src = "/dummy.png"; }}
                         />
-                        <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--text-muted)" }}>
+                        <span style={{ fontSize: "0.8rem", fontWeight: 700, color: brandThemeCol }}>
                           {brand.name}
                         </span>
                       </div>
@@ -426,7 +459,7 @@ export default function EventsPage() {
                     </h3>
 
                     {/* Fecha y Hora */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.82rem", color: "var(--gold-dark)", fontWeight: 700, marginBottom: "0.5rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.82rem", color: brandThemeCol, fontWeight: 700, marginBottom: "0.5rem" }}>
                       <i className="fa-regular fa-clock"></i>
                       <span>{formatEventDate(evt.eventDate)}</span>
                     </div>
@@ -441,7 +474,7 @@ export default function EventsPage() {
                     <div style={{ marginTop: "auto", paddingTop: "0.8rem", borderTop: "1px solid var(--border-color)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                       <div>
                         {evt.price !== null && evt.price !== undefined && evt.price > 0 ? (
-                          <span style={{ fontSize: "1.1rem", fontWeight: 900, color: "var(--gold-dark)" }}>
+                          <span style={{ fontSize: "1.1rem", fontWeight: 900, color: brandThemeCol }}>
                             S/ {evt.price.toLocaleString("es-PE")}
                           </span>
                         ) : (
@@ -454,7 +487,13 @@ export default function EventsPage() {
                       <button
                         onClick={(e) => { e.stopPropagation(); setSelectedEvent(evt); }}
                         className="btn-gold"
-                        style={{ padding: "0.4rem 0.9rem", borderRadius: "14px", fontSize: "0.78rem", fontWeight: 700 }}
+                        style={{
+                          padding: "0.4rem 0.9rem",
+                          borderRadius: "8px",
+                          fontSize: "0.78rem",
+                          fontWeight: 700,
+                          background: brandThemeCol !== "var(--gold-dark)" ? brandThemeCol : undefined
+                        }}
                       >
                         Ver Detalles
                       </button>

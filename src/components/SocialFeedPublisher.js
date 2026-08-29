@@ -196,8 +196,6 @@ export default function SocialFeedPublisher({ onPostCreated, defaultFairId = nul
     <div
       className="social-publisher-card fade-in"
       style={{
-        background: "var(--bg-card)",
-        border: "1px solid var(--border-color)",
         borderRadius: "18px",
         padding: "1.25rem 1.5rem",
         marginBottom: "1.8rem",
