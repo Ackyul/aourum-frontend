@@ -282,6 +282,12 @@ export default function BrandProfileClient({ initialBrand }) {
   const isOwner = userRole === 'creador_original' || isDirectOwner;
 
   useEffect(() => {
+    if (loadEvents) {
+      loadEvents();
+    }
+  }, [loadEvents]);
+
+  useEffect(() => {
     if (brand?.id) {
       setBrandPostsLoading(true);
       loadPosts({ brandId: brand.id })
