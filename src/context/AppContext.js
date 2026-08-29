@@ -577,12 +577,27 @@ export function AppContextProvider({ children }) {
   }, [loadPeople, loadBrands, loadFairs, loadBands]);
 
   // Float notifications handler
-  const triggerNotification = (success, msg) => {
-    if (success) {
-      setSuccessMsg(msg);
+  const triggerNotification = (param1, param2) => {
+    let isSuccess = false;
+    let message = "";
+
+    if (typeof param1 === "boolean") {
+      isSuccess = param1;
+      message = param2 || "";
+    } else if (typeof param1 === "string") {
+      message = param1;
+      if (param2 === "error" || param2 === false) {
+        isSuccess = false;
+      } else {
+        isSuccess = true;
+      }
+    }
+
+    if (isSuccess) {
+      setSuccessMsg(message);
       setTimeout(() => setSuccessMsg(""), 3500);
     } else {
-      setErrorMsg(msg);
+      setErrorMsg(message);
       setTimeout(() => setErrorMsg(""), 3500);
     }
   };
