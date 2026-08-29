@@ -23,9 +23,7 @@ export default function EventsPage() {
     { id: "all", label: "Todos los Tipos", icon: "fa-border-all" },
     { id: "curso", label: "Cursos", icon: "fa-graduation-cap" },
     { id: "taller", label: "Talleres", icon: "fa-chalkboard-user" },
-    { id: "presentacion", label: "Presentaciones", icon: "fa-bullhorn" },
-    { id: "feria", label: "Ferias", icon: "fa-calendar-days" },
-    { id: "otro", label: "Otros", icon: "fa-star" },
+    { id: "evento", label: "Eventos", icon: "fa-calendar-days" },
   ];
 
   // Filtering logic

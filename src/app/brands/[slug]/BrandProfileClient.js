@@ -3053,9 +3053,7 @@ export default function BrandProfileClient({ initialBrand }) {
                   >
                     <option value="curso">Curso</option>
                     <option value="taller">Taller</option>
-                    <option value="presentacion">Presentación</option>
-                    <option value="feria">Feria / Showroom</option>
-                    <option value="otro">Otro</option>
+                    <option value="evento">Evento</option>
                   </select>
                 </div>
 
