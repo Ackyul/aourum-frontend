@@ -152,6 +152,7 @@ export default function BrandProfileClient({ initialBrand }) {
   const [brandPosts, setBrandPosts] = useState([]);
   const [brandPostsLoading, setBrandPostsLoading] = useState(false);
   const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [selectedEventModal, setSelectedEventModal] = useState(null);
 
   const evtMapContainerRef = useRef(null);
   const evtLeafletMapRef = useRef(null);
@@ -1347,7 +1348,9 @@ export default function BrandProfileClient({ initialBrand }) {
         }
         .brand-profile-theme-scope .grid-catalog .product-card,
         .brand-profile-theme-scope .carousel-item .product-card,
-        .brand-profile-theme-scope .product-card {
+        .brand-profile-theme-scope .product-card,
+        .brand-profile-theme-scope .event-card,
+        .brand-profile-theme-scope .social-post-card {
           border: ${isStoreBgLight ? "1px solid rgba(0, 0, 0, 0.12)" : "1px solid rgba(255, 255, 255, 0.15)"} !important;
           box-shadow: ${isStoreBgLight ? "0 6px 20px rgba(0, 0, 0, 0.07)" : "0 8px 24px rgba(0, 0, 0, 0.3)"} !important;
           border-radius: 16px !important;
@@ -1380,14 +1383,20 @@ export default function BrandProfileClient({ initialBrand }) {
             font-size: 0.88rem !important;
           }
         }
-        .brand-profile-theme-scope .product-card h3 {
+        .brand-profile-theme-scope .product-card h3,
+        .brand-profile-theme-scope .event-card h4 {
           color: ${resolvedCardTextColor || (isStoreBgLight ? "#1C1C1E" : "#FFFFFF")} !important;
         }
-        .brand-profile-theme-scope .product-card .card-text-container {
+        .brand-profile-theme-scope .product-card .card-text-container,
+        .brand-profile-theme-scope .event-card .event-card-body,
+        .brand-profile-theme-scope .social-post-card {
           background-color: ${isStoreBgLight ? "#FFFFFF" : "#18181B"} !important;
+          color: ${isStoreBgLight ? "#1C1C1E" : "#FFFFFF"} !important;
         }
         ${enableAnimations ? `
-          .brand-profile-theme-scope .product-card:hover {
+          .brand-profile-theme-scope .product-card:hover,
+          .brand-profile-theme-scope .event-card:hover,
+          .brand-profile-theme-scope .social-post-card:hover {
             border-color: ${palette.c1} !important;
             box-shadow: 0 12px 32px ${palette.c1}25 !important;
             transform: translateY(-4px) !important;
@@ -1417,31 +1426,32 @@ export default function BrandProfileClient({ initialBrand }) {
         />
       )}
 
-      {/* Botones de Navegación Superior */}
-      <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", zIndex: 1, flexWrap: "wrap", gap: "10px" }}>
+      {/* Botones de Navegación Superior (Compactos y Funcionales) */}
+      <div style={{ marginBottom: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", zIndex: 1, flexWrap: "wrap", gap: "8px" }}>
         <button 
           onClick={() => router.push("/brands")} 
           className="btn-outline-gold" 
-          style={{ padding: "0.5rem 1.2rem", fontSize: "0.85rem", borderRadius: "8px", border: `1.5px solid ${palette.c1}`, cursor: "pointer", transition: "var(--transition-smooth)", display: "flex", alignItems: "center", gap: "6px", background: "transparent", color: palette.c1 }}
+          style={{ padding: "5px 12px", fontSize: "0.78rem", borderRadius: "20px", border: `1px solid ${palette.c1}60`, cursor: "pointer", transition: "var(--transition-smooth)", display: "inline-flex", alignItems: "center", gap: "5px", background: "var(--bg-card)", color: palette.c1, fontWeight: 700 }}
         >
-          <i className="fa-solid fa-arrow-left"></i> Volver a Marcas
+          <i className="fa-solid fa-arrow-left" style={{ fontSize: "0.75rem" }}></i> Volver
         </button>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+
+        <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
           <button 
             onClick={() => setQrModalOpen(true)} 
             className="btn-gold" 
-            style={{ padding: "0.5rem 1.2rem", fontSize: "0.85rem", borderRadius: "8px", cursor: "pointer", transition: "var(--transition-smooth)", display: "flex", alignItems: "center", gap: "6px", fontWeight: 700 }} 
-            title="Generar y descargar QR oficial de la marca"
+            style={{ padding: "5px 12px", fontSize: "0.78rem", borderRadius: "20px", cursor: "pointer", transition: "var(--transition-smooth)", display: "inline-flex", alignItems: "center", gap: "5px", fontWeight: 700 }} 
+            title="Código QR de la marca"
           >
-            <i className="fa-solid fa-qrcode"></i> Código QR de Marca
+            <i className="fa-solid fa-qrcode" style={{ fontSize: "0.8rem" }}></i> QR
           </button>
           <button 
             onClick={copyLink} 
             className="btn-outline-gold" 
-            style={{ padding: "0.5rem 1.2rem", fontSize: "0.85rem", borderRadius: "8px", border: `1.5px solid ${palette.c1}`, cursor: "pointer", transition: "var(--transition-smooth)", display: "flex", alignItems: "center", gap: "6px", background: "transparent", color: palette.c1 }} 
+            style={{ padding: "5px 12px", fontSize: "0.78rem", borderRadius: "20px", border: `1px solid ${palette.c1}60`, cursor: "pointer", transition: "var(--transition-smooth)", display: "inline-flex", alignItems: "center", gap: "5px", background: "var(--bg-card)", color: palette.c1, fontWeight: 700 }} 
             title="Copiar enlace de perfil"
           >
-            <i className="fa-solid fa-share-nodes"></i> Compartir Perfil
+            <i className="fa-solid fa-share-nodes" style={{ fontSize: "0.78rem" }}></i> Compartir
           </button>
         </div>
       </div>
@@ -1478,6 +1488,35 @@ export default function BrandProfileClient({ initialBrand }) {
                     <i className="fa-solid fa-location-dot" style={{ fontSize: "0.75rem", color: palette.c3 }}></i> {effectiveCity}
                   </span>
                 )}
+                {(() => {
+                  const bEvents = (events || []).filter(e => Number(e.brandId) === Number(brand?.id));
+                  if (bEvents.length === 0) return null;
+                  return (
+                    <span 
+                      onClick={() => setActiveBrandTab("eventos")}
+                      style={{ 
+                        fontSize: "0.72rem", 
+                        color: "#ffffff", 
+                        background: "linear-gradient(135deg, #ef4444, #f97316)", 
+                        fontWeight: 800, 
+                        display: "inline-flex", 
+                        alignItems: "center", 
+                        gap: "5px", 
+                        padding: "4px 12px", 
+                        borderRadius: "20px", 
+                        cursor: "pointer", 
+                        boxShadow: "0 2px 10px rgba(239, 68, 68, 0.4)",
+                        transition: "transform 0.2s ease"
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.05)"}
+                      onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+                      title="Ver cursos y eventos disponibles"
+                    >
+                      <i className="fa-solid fa-calendar-check"></i>
+                      {bEvents.length === 1 ? "1 Evento Próximo" : `${bEvents.length} Eventos Próximos`}
+                    </span>
+                  );
+                })()}
               </div>
               <h2 style={{ fontSize: "1.8rem", fontWeight: 800, marginTop: "0.8rem", letterSpacing: "-0.015em" }}>{brand.name}</h2>
               {effectiveTagline && (
@@ -1814,6 +1853,8 @@ export default function BrandProfileClient({ initialBrand }) {
                 {brandEvents.map((evt) => (
                   <div
                     key={evt.id}
+                    className="event-card product-card"
+                    onClick={() => setSelectedEventModal(evt)}
                     style={{
                       background: "var(--bg-card)",
                       border: "1px solid var(--border-color)",
@@ -1821,10 +1862,11 @@ export default function BrandProfileClient({ initialBrand }) {
                       overflow: "hidden",
                       display: "flex",
                       flexDirection: "column",
-                      position: "relative"
+                      position: "relative",
+                      cursor: "pointer"
                     }}
                   >
-                    <div style={{ position: "relative", width: "100%", height: "150px", background: "#111" }}>
+                    <div style={{ position: "relative", width: "100%", height: "160px", background: "#111" }}>
                       <img
                         src={evt.image || brand?.logo || "/dummy.png"}
                         alt={evt.title}
@@ -1864,7 +1906,7 @@ export default function BrandProfileClient({ initialBrand }) {
                       </span>
                     </div>
 
-                    <div style={{ padding: "1rem", flex: 1, display: "flex", flexDirection: "column" }}>
+                    <div className="event-card-body" style={{ padding: "1rem", flex: 1, display: "flex", flexDirection: "column" }}>
                       <h4 style={{ fontSize: "1rem", fontWeight: 800, marginBottom: "0.4rem" }}>{evt.title}</h4>
                       <div style={{ fontSize: "0.8rem", color: "var(--gold-dark)", fontWeight: 700, marginBottom: "0.4rem" }}>
                         <i className="fa-regular fa-clock" style={{ marginRight: 4 }}></i>
@@ -1885,44 +1927,52 @@ export default function BrandProfileClient({ initialBrand }) {
                         <span style={{ fontSize: "0.95rem", fontWeight: 900, color: evt.price > 0 ? "var(--gold-dark)" : "#10b981" }}>
                           {evt.price > 0 ? `S/ ${evt.price}` : "Gratis"}
                         </span>
-                        {isCollaborator && (
-                          <div style={{ display: "flex", gap: "6px" }}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingEventId(evt.id);
-                                setEvtTitle(evt.title || "");
-                                setEvtDescription(evt.description || "");
-                                setEvtType(evt.eventType || "curso");
-                                setEvtDate(evt.eventDate ? evt.eventDate.slice(0, 16) : "");
-                                setEvtIsAllDay(evt.isAllDay || (evt.eventDate && evt.eventDate.includes("T00:00")) || false);
-                                setEvtDuration(evt.durationMinutes || "");
-                                setEvtIsOnline(!!evt.isOnline);
-                                setEvtOnlineLink(evt.onlineLink || "");
-                                setEvtLocation(evt.location || "");
-                                setEvtPrice(evt.price !== null && evt.price !== undefined ? evt.price : "");
-                                setEvtSpotsTotal(evt.spotsTotal || "");
-                                setEvtImage(evt.image || "");
-                                setEventFormOpen(true);
-                              }}
-                              className="btn-outline-gold"
-                              style={{ padding: "3px 8px", fontSize: "0.72rem", borderRadius: "6px" }}
-                            >
-                              Editar
-                            </button>
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                if (confirm(`¿Eliminar el evento "${evt.title}"?`)) {
-                                  await deleteEvent(evt.id);
-                                }
-                              }}
-                              style={{ background: "rgba(239,68,68,0.15)", color: "#ef4444", border: "none", padding: "3px 8px", fontSize: "0.72rem", borderRadius: "6px", cursor: "pointer" }}
-                            >
-                              Borrar
-                            </button>
-                          </div>
-                        )}
+                        
+                        <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                          {isCollaborator && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingEventId(evt.id);
+                                  setEvtTitle(evt.title || "");
+                                  setEvtDescription(evt.description || "");
+                                  setEvtType(evt.eventType || "curso");
+                                  setEvtDate(evt.eventDate ? evt.eventDate.slice(0, 16) : "");
+                                  setEvtIsAllDay(evt.isAllDay || (evt.eventDate && evt.eventDate.includes("T00:00")) || false);
+                                  setEvtDuration(evt.durationMinutes || "");
+                                  setEvtIsOnline(!!evt.isOnline);
+                                  setEvtOnlineLink(evt.onlineLink || "");
+                                  setEvtLocation(evt.location || "");
+                                  setEvtPrice(evt.price !== null && evt.price !== undefined ? evt.price : "");
+                                  setEvtSpotsTotal(evt.spotsTotal || "");
+                                  setEvtImage(evt.image || "");
+                                  setEventFormOpen(true);
+                                }}
+                                className="btn-outline-gold"
+                                style={{ padding: "3px 8px", fontSize: "0.72rem", borderRadius: "6px" }}
+                              >
+                                Editar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  if (confirm(`¿Eliminar el evento "${evt.title}"?`)) {
+                                    await deleteEvent(evt.id);
+                                  }
+                                }}
+                                style={{ background: "rgba(239,68,68,0.15)", color: "#ef4444", border: "none", padding: "3px 8px", fontSize: "0.72rem", borderRadius: "6px", cursor: "pointer" }}
+                              >
+                                Borrar
+                              </button>
+                            </>
+                          )}
+                          <span style={{ fontSize: "0.72rem", color: "var(--gold-dark)", fontWeight: 700 }}>
+                            Ver Flyer &rarr;
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -3303,6 +3353,135 @@ export default function BrandProfileClient({ initialBrand }) {
         onClose={() => setQrModalOpen(false)}
         brand={brand}
       />
+
+      {/* ── MODAL DETALLE DE EVENTO / FLYER COMPLETO ── */}
+      {selectedEventModal && (
+        <div 
+          className="aourum-modal-overlay" 
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(6px)", zIndex: 99999, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}
+          onClick={() => setSelectedEventModal(null)}
+        >
+          <div 
+            className="glass-panel"
+            style={{ maxWidth: "680px", width: "100%", maxHeight: "92vh", overflowY: "auto", borderRadius: "20px", padding: "0", position: "relative", background: "var(--bg-card)", border: "1px solid var(--border-color)", boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              onClick={() => setSelectedEventModal(null)}
+              style={{ position: "absolute", top: "12px", right: "12px", zIndex: 20, background: "rgba(0,0,0,0.75)", color: "#fff", border: "none", width: "36px", height: "36px", borderRadius: "50%", cursor: "pointer", fontSize: "1.2rem", display: "flex", alignItems: "center", justifyContent: "center" }}
+              title="Cerrar"
+            >
+              &times;
+            </button>
+
+            {/* Flyer de alta resolución */}
+            <div style={{ width: "100%", maxHeight: "420px", overflow: "hidden", position: "relative", background: "#000", display: "flex", justifyContent: "center", alignItems: "center" }}>
+              <img 
+                src={selectedEventModal.image || brand?.logo || "/dummy.png"} 
+                alt={selectedEventModal.title} 
+                style={{ width: "100%", height: "100%", objectFit: "contain", maxHeight: "420px", display: "block" }} 
+              />
+              {selectedEventModal.image && (
+                <a 
+                  href={selectedEventModal.image} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ position: "absolute", bottom: "12px", right: "12px", background: "rgba(0,0,0,0.8)", color: "var(--gold-dark, #d4af37)", padding: "5px 12px", borderRadius: "20px", fontSize: "0.75rem", textDecoration: "none", fontWeight: 700, border: "1px solid rgba(212,175,55,0.4)" }}
+                >
+                  <i className="fa-solid fa-expand" style={{ marginRight: 5 }}></i> Ver Imagen Completa
+                </a>
+              )}
+            </div>
+
+            <div style={{ padding: "1.5rem" }}>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center", marginBottom: "0.8rem", flexWrap: "wrap" }}>
+                <span style={{ background: "var(--gold-primary)", color: "#000", fontWeight: 800, padding: "3px 12px", borderRadius: "14px", fontSize: "0.75rem", textTransform: "uppercase" }}>
+                  {selectedEventModal.eventType || "Evento"}
+                </span>
+                <span style={{ background: selectedEventModal.isOnline ? "#3b82f6" : "#10b981", color: "#fff", fontWeight: 700, padding: "3px 12px", borderRadius: "14px", fontSize: "0.75rem" }}>
+                  {selectedEventModal.isOnline ? "Online / Virtual" : "Presencial"}
+                </span>
+                {selectedEventModal.price !== null && selectedEventModal.price !== undefined && (
+                  <span style={{ background: "rgba(16,185,129,0.15)", color: "#10b981", fontWeight: 800, padding: "3px 12px", borderRadius: "14px", fontSize: "0.75rem", border: "1px solid rgba(16,185,129,0.3)" }}>
+                    {selectedEventModal.price > 0 ? `S/ ${selectedEventModal.price}` : "Entrada Libre / Gratis"}
+                  </span>
+                )}
+              </div>
+
+              <h2 style={{ fontSize: "1.4rem", fontWeight: 800, marginBottom: "0.8rem", color: "var(--text-primary)", lineHeight: 1.3 }}>
+                {selectedEventModal.title}
+              </h2>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", background: "var(--bg-input)", padding: "1rem", borderRadius: "14px", marginBottom: "1.2rem", border: "1px solid var(--border-color)" }}>
+                <div>
+                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block", marginBottom: "2px" }}>Fecha y Hora</span>
+                  <strong style={{ fontSize: "0.88rem", color: "var(--gold-dark)" }}>
+                    <i className="fa-regular fa-clock" style={{ marginRight: 6 }}></i>
+                    {selectedEventModal.eventDate ? (
+                      (selectedEventModal.isAllDay || selectedEventModal.eventDate.includes("T00:00")) ? (
+                        new Date(selectedEventModal.eventDate).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "long", year: "numeric" }) + " (Todo el día)"
+                      ) : (
+                        new Date(selectedEventModal.eventDate).toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })
+                      )
+                    ) : "Por definir"}
+                  </strong>
+                </div>
+
+                <div>
+                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block", marginBottom: "2px" }}>Ubicación</span>
+                  <strong style={{ fontSize: "0.88rem", color: "var(--text-primary)" }}>
+                    <i className={`fa-solid ${selectedEventModal.isOnline ? "fa-link" : "fa-location-dot"}`} style={{ marginRight: 6 }}></i>
+                    {selectedEventModal.isOnline ? "Virtual" : (selectedEventModal.location || "Presencial")}
+                  </strong>
+                </div>
+              </div>
+
+              {selectedEventModal.description && (
+                <div style={{ marginBottom: "1.2rem" }}>
+                  <h4 style={{ fontSize: "0.88rem", fontWeight: 700, marginBottom: "0.4rem", color: "var(--text-primary)" }}>Descripción / Detalles</h4>
+                  <p style={{ fontSize: "0.88rem", color: "var(--text-muted)", lineHeight: 1.6, whiteSpace: "pre-line", margin: 0 }}>
+                    {selectedEventModal.description}
+                  </p>
+                </div>
+              )}
+
+              <div style={{ display: "flex", gap: "10px", marginTop: "1.5rem", flexWrap: "wrap" }}>
+                {selectedEventModal.onlineLink && (
+                  <a 
+                    href={selectedEventModal.onlineLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="btn-gold" 
+                    style={{ flex: 1, padding: "0.65rem 1rem", borderRadius: "12px", textDecoration: "none", textAlign: "center", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontSize: "0.85rem" }}
+                  >
+                    <i className="fa-brands fa-whatsapp"></i> Inscribirse / Contactar
+                  </a>
+                )}
+                <a 
+                  href={`/events?id=${selectedEventModal.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-outline-gold"
+                  style={{ padding: "0.65rem 1rem", borderRadius: "12px", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px", textDecoration: "none", fontSize: "0.82rem" }}
+                >
+                  <i className="fa-solid fa-arrow-up-right-from-square"></i> Abrir en nueva pestaña
+                </a>
+                <button 
+                  onClick={() => {
+                    const shareUrl = `${window.location.origin}/events?id=${selectedEventModal.id}`;
+                    navigator.clipboard?.writeText(shareUrl);
+                    triggerNotification("Enlace del evento copiado al portapapeles", "success");
+                  }}
+                  className="btn-outline-gold"
+                  style={{ padding: "0.65rem 1rem", borderRadius: "12px", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px", fontSize: "0.82rem" }}
+                >
+                  <i className="fa-solid fa-share-nodes"></i> Compartir
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     </div>
   );

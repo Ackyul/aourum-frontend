@@ -18,6 +18,17 @@ export default function EventsPage() {
     loadBrands();
   }, [loadEvents, loadBrands]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined" && events && events.length > 0) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetId = urlParams.get("id");
+      if (targetId) {
+        const found = events.find(e => Number(e.id) === Number(targetId));
+        if (found) setSelectedEvent(found);
+      }
+    }
+  }, [events]);
+
   // Event types for filtering
   const eventTypes = [
     { id: "all", label: "Todos los Tipos", icon: "fa-border-all" },
@@ -516,14 +527,22 @@ export default function EventsPage() {
                 <i className="fa-solid fa-xmark"></i>
               </button>
 
-              {/* Imagen Cabezal */}
+              {/* Imagen Cabezal / Flyer Completo */}
               {selectedEvent.image && (
-                <div style={{ width: "100%", height: "200px", background: "#000" }}>
+                <div style={{ width: "100%", maxHeight: "420px", overflow: "hidden", position: "relative", background: "#000", display: "flex", justifyContent: "center", alignItems: "center" }}>
                   <img
                     src={selectedEvent.image}
                     alt={selectedEvent.title}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    style={{ width: "100%", height: "100%", objectFit: "contain", maxHeight: "420px", display: "block" }}
                   />
+                  <a 
+                    href={selectedEvent.image} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{ position: "absolute", bottom: "12px", right: "12px", background: "rgba(0,0,0,0.8)", color: "var(--gold-dark, #d4af37)", padding: "5px 12px", borderRadius: "20px", fontSize: "0.75rem", textDecoration: "none", fontWeight: 700, border: "1px solid rgba(212,175,55,0.4)" }}
+                  >
+                    <i className="fa-solid fa-expand" style={{ marginRight: 5 }}></i> Ver Imagen Completa
+                  </a>
                 </div>
               )}
 
