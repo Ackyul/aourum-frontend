@@ -377,6 +377,28 @@ export function AppContextProvider({ children }) {
     }
   }, [API_URL, events.length]);
 
+  const loadPosts = useCallback(async (params = {}) => {
+    setPostsLoading(true);
+    try {
+      const query = new URLSearchParams();
+      if (params.fairId) query.set("fairId", params.fairId);
+      if (params.brandId) query.set("brandId", params.brandId);
+      if (params.personId) query.set("personId", params.personId);
+
+      const res = await fetch(`${API_URL}/api/posts?${query.toString()}`).then((r) => r.json());
+      if (res && Array.isArray(res.items)) {
+        setPosts(res.items);
+        return res.items;
+      }
+      return [];
+    } catch (err) {
+      console.error("Error loading posts:", err);
+      return [];
+    } finally {
+      setPostsLoading(false);
+    }
+  }, [API_URL]);
+
   const addEvent = async (eventData) => {
     try {
       const res = await fetch(`${API_URL}/api/events`, {
@@ -388,6 +410,7 @@ export function AppContextProvider({ children }) {
       if (!res.ok) throw new Error(data.error || "Error al crear el evento");
       setEvents((prev) => [...prev, data]);
       triggerNotification(true, "Evento/Curso creado con éxito");
+      loadPosts();
       return data;
     } catch (err) {
       triggerNotification(false, err.message);
@@ -429,28 +452,6 @@ export function AppContextProvider({ children }) {
       throw err;
     }
   };
-
-  const loadPosts = useCallback(async (params = {}) => {
-    setPostsLoading(true);
-    try {
-      const query = new URLSearchParams();
-      if (params.fairId) query.set("fairId", params.fairId);
-      if (params.brandId) query.set("brandId", params.brandId);
-      if (params.personId) query.set("personId", params.personId);
-
-      const res = await fetch(`${API_URL}/api/posts?${query.toString()}`).then((r) => r.json());
-      if (res && Array.isArray(res.items)) {
-        setPosts(res.items);
-        return res.items;
-      }
-      return [];
-    } catch (err) {
-      console.error("Error loading posts:", err);
-      return [];
-    } finally {
-      setPostsLoading(false);
-    }
-  }, [API_URL]);
 
   const createPost = async (postData) => {
     try {
@@ -826,6 +827,7 @@ export function AppContextProvider({ children }) {
         setFairDescription(""); setFairBanner(""); setFairBannerPreview("");
         setFairLat(-16.39889); setFairLng(-71.53694);
         setFairFormOpen(false); fetchData();
+        loadPosts();
       } else {
         triggerNotification(false, "Error al crear la feria.");
       }
