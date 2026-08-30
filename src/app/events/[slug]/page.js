@@ -25,7 +25,6 @@ export default function EventDetailPage() {
     if (!rawSlug) return;
     const decodedSlug = decodeURIComponent(rawSlug).trim();
 
-    // 1. Check in events state array
     if (events && events.length > 0) {
       const found = events.find((e) => {
         if (!e) return false;
@@ -55,7 +54,6 @@ export default function EventDetailPage() {
       }
     }
 
-    // 2. Fetch directly from backend endpoint if not found in state
     const fetchDirect = async () => {
       setLoadingEvent(true);
       try {
@@ -85,7 +83,7 @@ export default function EventDetailPage() {
     ? brands.find((b) => Number(b.id) === Number(eventData.brandId))
     : null;
 
-  // Extract brand design colors and theme from DB
+  // Extract brand design & colors
   const parsed = parseDescription ? parseDescription(brand?.description) : {};
   const palette = getBrandPalette ? getBrandPalette(parsed, brand || {}) : { c1: "#95B721", c2: "#85a711", c3: "#95B721", c4: "#85a711" };
   const primaryColor = palette.c1 || "#95B721";
@@ -99,16 +97,12 @@ export default function EventDetailPage() {
     bgStyle: dbDesign.bgStyle || parsed.bgStyle || "solid",
     bgImage: dbDesign.bgImage || parsed.bgImage || "",
     bgImageFit: dbDesign.bgImageFit || parsed.bgImageFit || "cover",
-    cardStyle: dbDesign.cardStyle || parsed.cardStyle || "glass",
-    cardBgColor: dbDesign.cardBgColor || parsed.cardBgColor || "auto",
-    cardBorderColor: dbDesign.cardBorderColor || parsed.cardBorderColor || "auto",
-    cardTextColor: dbDesign.cardTextColor || parsed.cardTextColor || "auto",
     fontFamily: dbDesign.fontFamily || parsed.fontFamily || "Inter",
     glowIntensity: (dbDesign.glowIntensity !== undefined ? dbDesign.glowIntensity : (parsed.glowIntensity !== undefined ? parsed.glowIntensity : 70)) / 100,
     ...dbDesign
   };
 
-  // Background CSS calculation matching brand profile
+  // Store background luminance determination for high contrast styling
   let profileBgCss = {};
   if (design.bgStyle === "image" && design.bgImage) {
     profileBgCss = {
@@ -145,18 +139,6 @@ export default function EventDetailPage() {
     else if (solidBg === "brand-soft") solidBg = `${primaryColor}18`;
     profileBgCss = { background: solidBg };
   }
-
-  // Card Background and Border resolution
-  let resolvedCardBg = "#FFFFFF";
-  if (design.cardBgColor === "brand") resolvedCardBg = primaryColor;
-  else if (design.cardBgColor === "brand-soft") resolvedCardBg = design.customBgColor || `${primaryColor}18`;
-  else if (design.cardBgColor && design.cardBgColor.startsWith("#")) resolvedCardBg = design.cardBgColor;
-  else if (design.cardStyle === "glass") resolvedCardBg = `${primaryColor}12`;
-
-  let resolvedCardBorder = `1.5px solid ${primaryColor}35`;
-  if (design.cardBorderColor === "brand" || design.cardStyle === "bordered") resolvedCardBorder = `1.5px solid ${primaryColor}`;
-  else if (design.cardBorderColor && design.cardBorderColor.startsWith("#")) resolvedCardBorder = `1.5px solid ${design.cardBorderColor}`;
-  else if (design.cardBorderColor === "transparent") resolvedCardBorder = "none";
 
   const handleGoBack = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -226,20 +208,20 @@ export default function EventDetailPage() {
   const waLink = cleanWa ? `https://wa.me/${cleanWa}?text=${waMsg}` : null;
 
   return (
-    <div style={{ minHeight: "100vh", width: "100%", position: "relative", fontFamily: design.fontFamily !== "Inter" ? `"${design.fontFamily}", sans-serif` : "inherit", ...profileBgCss, paddingBottom: "5rem" }}>
+    <div style={{ minHeight: "100vh", width: "100%", position: "relative", fontFamily: design.fontFamily !== "Inter" ? `"${design.fontFamily}", sans-serif` : "inherit", ...profileBgCss, paddingBottom: "6rem" }}>
       {/* Import de la fuente de Google seleccionada si no es Inter */}
       {design.fontFamily && design.fontFamily !== "Inter" && (
         <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${design.fontFamily.replace(/ /g, "+")}:wght@400;600;700;800&display=swap`} />
       )}
 
-      {/* ── BARRA DE NAVEGACIÓN SUPERIOR FLOTANTE ── */}
-      <div style={{ padding: "1rem 1.5rem", position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", background: "rgba(255, 255, 255, 0.75)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
-        <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
+      {/* ── BARRA DE NAVEGACIÓN FLOTANTE ── */}
+      <div style={{ padding: "0.85rem 1.5rem", position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", background: "rgba(255, 255, 255, 0.8)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
           <button
             type="button"
             onClick={handleGoBack}
             style={{
-              background: "#FFFFFF",
+              background: "var(--bg-card)",
               border: `1.5px solid ${primaryColor}60`,
               borderRadius: "20px",
               padding: "6px 16px",
@@ -250,7 +232,7 @@ export default function EventDetailPage() {
               display: "flex",
               alignItems: "center",
               gap: "6px",
-              boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+              boxShadow: "0 2px 10px rgba(0,0,0,0.04)",
               transition: "transform 0.2s ease"
             }}
           >
@@ -263,7 +245,7 @@ export default function EventDetailPage() {
               type="button"
               onClick={handleShare}
               style={{
-                background: "#FFFFFF",
+                background: "var(--bg-card)",
                 border: `1.5px solid ${primaryColor}50`,
                 borderRadius: "20px",
                 padding: "6px 14px",
@@ -284,7 +266,7 @@ export default function EventDetailPage() {
               type="button"
               onClick={() => setQrModalOpen(true)}
               style={{
-                background: "#FFFFFF",
+                background: "var(--bg-card)",
                 border: `1.5px solid ${primaryColor}50`,
                 borderRadius: "20px",
                 padding: "6px 14px",
@@ -304,16 +286,16 @@ export default function EventDetailPage() {
         </div>
       </div>
 
-      {/* ── CONTENIDO DEL EVENTO (ESTRUCTURA ABIERTA Y FLUIDA) ── */}
-      <div style={{ maxWidth: "1050px", margin: "2rem auto", padding: "0 1.25rem", display: "flex", flexDirection: "column", gap: "2rem" }}>
+      {/* ── ESTRUCTURA ABIERTA DE LA PÁGINA (SIN CUADRO CONTENEDOR CERRADO) ── */}
+      <div style={{ maxWidth: "1200px", margin: "2rem auto", padding: "0 1.5rem", display: "flex", flexDirection: "column", gap: "2.2rem" }}>
         
-        {/* 1. FLYER INDEPENDIENTE (HERO FLYER) */}
+        {/* 1. AFICHE / FLYER PRINCIPAL (DIRECTAMENTE SOBRE EL FONDO) */}
         {eventData.image && (
-          <div style={{ position: "relative", width: "100%", maxHeight: "560px", background: "#000", borderRadius: "24px", overflow: "hidden", boxShadow: "0 16px 40px rgba(0,0,0,0.18)", display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <div style={{ position: "relative", width: "100%", maxHeight: "580px", background: "#000", borderRadius: "24px", overflow: "hidden", boxShadow: "0 16px 45px rgba(0,0,0,0.18)", display: "flex", justifyContent: "center", alignItems: "center" }}>
             <img
               src={eventData.image}
               alt={eventData.title}
-              style={{ width: "100%", maxHeight: "560px", objectFit: "contain", display: "block" }}
+              style={{ width: "100%", maxHeight: "580px", objectFit: "contain", display: "block" }}
             />
             <button
               type="button"
@@ -342,7 +324,7 @@ export default function EventDetailPage() {
           </div>
         )}
 
-        {/* 2. ENCABEZADO: BADGES & TÍTULO PRINCIPAL */}
+        {/* 2. CABECERA: INSIGNIAS Y TÍTULO DEL EVENTO (ABIERTOS DIRECTAMENTE SOBRE LA PÁGINA) */}
         <div>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "1rem" }}>
             <span
@@ -352,7 +334,7 @@ export default function EventDetailPage() {
                 border: `1.5px solid ${primaryColor}`,
                 padding: "4px 14px",
                 borderRadius: "14px",
-                fontSize: "0.8rem",
+                fontSize: "0.82rem",
                 fontWeight: 800,
                 textTransform: "uppercase"
               }}
@@ -367,7 +349,7 @@ export default function EventDetailPage() {
                 border: `1.5px solid ${eventData.isOnline ? "rgba(59, 130, 246, 0.4)" : "rgba(16, 185, 129, 0.4)"}`,
                 padding: "4px 14px",
                 borderRadius: "14px",
-                fontSize: "0.8rem",
+                fontSize: "0.82rem",
                 fontWeight: 700
               }}
             >
@@ -376,70 +358,70 @@ export default function EventDetailPage() {
             </span>
           </div>
 
-          <h1 style={{ fontSize: "2.3rem", fontWeight: 900, lineHeight: 1.2, color: "#1C1C1E", margin: 0 }}>
+          <h1 style={{ fontSize: "2.5rem", fontWeight: 900, lineHeight: 1.2, color: "#1C1C1E", margin: "0 0 1.2rem 0" }}>
             {eventData.title}
           </h1>
+
+          {/* 3. MARCA ORGANIZADORA (FILA ABIERTA CON BORDES SUTILES) */}
+          {brand && (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderTop: `1px solid ${primaryColor}30`, borderBottom: `1px solid ${primaryColor}30`, padding: "1rem 0", flexWrap: "wrap", gap: "1rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <img
+                  src={brand.logo || "/dummy.png"}
+                  alt={brand.name}
+                  style={{ width: "46px", height: "46px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${primaryColor}` }}
+                  onError={(e) => { e.target.src = "/dummy.png"; }}
+                />
+                <div>
+                  <div style={{ fontSize: "0.76rem", color: "#6B7280", fontWeight: 600, textTransform: "uppercase" }}>Organizado por</div>
+                  <div style={{ fontSize: "1.15rem", fontWeight: 900, color: "#1C1C1E" }}>{brand.name}</div>
+                </div>
+              </div>
+
+              <Link
+                href={`/brands/${brand.slug || brand.id}`}
+                style={{
+                  background: `linear-gradient(135deg, ${palette.c1}, ${palette.c2})`,
+                  color: "#FFFFFF",
+                  padding: "0.55rem 1.4rem",
+                  borderRadius: "20px",
+                  fontSize: "0.85rem",
+                  fontWeight: 800,
+                  textDecoration: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  boxShadow: `0 4px 14px ${primaryColor}35`
+                }}
+              >
+                <span>Ver Perfil de Marca</span>
+                <i className="fa-solid fa-arrow-right"></i>
+              </Link>
+            </div>
+          )}
         </div>
 
-        {/* 3. PANEL DE LA MARCA ORGANIZADORA */}
-        {brand && (
-          <div style={{ background: resolvedCardBg, border: resolvedCardBorder, padding: "1rem 1.5rem", borderRadius: "20px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", boxShadow: "0 6px 20px rgba(0,0,0,0.04)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-              <img
-                src={brand.logo || "/dummy.png"}
-                alt={brand.name}
-                style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${primaryColor}` }}
-                onError={(e) => { e.target.src = "/dummy.png"; }}
-              />
-              <div>
-                <div style={{ fontSize: "0.76rem", color: "#6B7280", fontWeight: 600, textTransform: "uppercase" }}>Organizado por</div>
-                <div style={{ fontSize: "1.1rem", fontWeight: 900, color: "#1C1C1E" }}>{brand.name}</div>
-              </div>
-            </div>
-
-            <Link
-              href={`/brands/${brand.slug || brand.id}`}
-              style={{
-                background: `linear-gradient(135deg, ${palette.c1}, ${palette.c2})`,
-                color: "#FFFFFF",
-                padding: "0.5rem 1.2rem",
-                borderRadius: "20px",
-                fontSize: "0.82rem",
-                fontWeight: 800,
-                textDecoration: "none",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                boxShadow: `0 4px 12px ${primaryColor}40`
-              }}
-            >
-              <span>Ver Perfil de Marca</span>
-              <i className="fa-solid fa-arrow-right"></i>
-            </Link>
-          </div>
-        )}
-
-        {/* 4. CAJAS DE INFORMACIÓN CLAVE (FECHA, LUGAR E INVERSIÓN) */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.25rem" }}>
+        {/* 4. BLOQUES CLAVE: FECHA, LUGAR E INVERSIÓN (TARJETAS INDIVIDUALES ABIERTAS) */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem" }}>
           
           {/* FECHA Y HORA */}
-          <div style={{ background: resolvedCardBg, border: resolvedCardBorder, padding: "1.3rem 1.5rem", borderRadius: "20px", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
+          <div style={{ background: "rgba(255, 255, 255, 0.7)", backdropFilter: "blur(8px)", border: `1.5px solid ${primaryColor}40`, padding: "1.4rem 1.6rem", borderRadius: "20px", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", color: primaryColor, fontWeight: 800, fontSize: "0.82rem", marginBottom: "8px", textTransform: "uppercase" }}>
               <i className="fa-regular fa-clock" style={{ fontSize: "1.1rem" }}></i>
               <span>Fecha & Hora</span>
             </div>
-            <div style={{ fontSize: "1rem", fontWeight: 800, color: "#1C1C1E" }}>
+            <div style={{ fontSize: "1.05rem", fontWeight: 800, color: "#1C1C1E" }}>
               {formatEventDate(eventData.eventDate)}
             </div>
           </div>
 
-          {/* UBICACIÓN / ENLACE */}
-          <div style={{ background: resolvedCardBg, border: resolvedCardBorder, padding: "1.3rem 1.5rem", borderRadius: "20px", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
+          {/* UBICACIÓN / LINK */}
+          <div style={{ background: "rgba(255, 255, 255, 0.7)", backdropFilter: "blur(8px)", border: `1.5px solid ${primaryColor}40`, padding: "1.4rem 1.6rem", borderRadius: "20px", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", color: primaryColor, fontWeight: 800, fontSize: "0.82rem", marginBottom: "8px", textTransform: "uppercase" }}>
               <i className={`fa-solid ${eventData.isOnline ? "fa-link" : "fa-map-pin"}`} style={{ fontSize: "1.1rem" }}></i>
-              <span>{eventData.isOnline ? "Plataforma Virtual" : "Ubicación del Evento"}</span>
+              <span>{eventData.isOnline ? "Plataforma Virtual" : "Lugar del Evento"}</span>
             </div>
-            <div style={{ fontSize: "1rem", fontWeight: 700, color: "#1C1C1E" }}>
+            <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "#1C1C1E" }}>
               {eventData.isOnline ? (
                 eventData.onlineLink ? (
                   <a href={eventData.onlineLink} target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb", textDecoration: "underline" }}>
@@ -452,13 +434,13 @@ export default function EventDetailPage() {
             </div>
           </div>
 
-          {/* INVERSIÓN / PRECIO */}
-          <div style={{ background: resolvedCardBg, border: resolvedCardBorder, padding: "1.3rem 1.5rem", borderRadius: "20px", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
+          {/* INVERSIÓN / ENTRADA */}
+          <div style={{ background: "rgba(255, 255, 255, 0.7)", backdropFilter: "blur(8px)", border: `1.5px solid ${primaryColor}40`, padding: "1.4rem 1.6rem", borderRadius: "20px", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", color: primaryColor, fontWeight: 800, fontSize: "0.82rem", marginBottom: "8px", textTransform: "uppercase" }}>
               <i className="fa-solid fa-ticket" style={{ fontSize: "1.1rem" }}></i>
               <span>Inversión / Entrada</span>
             </div>
-            <div style={{ fontSize: "1.25rem", fontWeight: 900, color: eventData.price > 0 ? primaryColor : "#059669" }}>
+            <div style={{ fontSize: "1.3rem", fontWeight: 900, color: eventData.price > 0 ? primaryColor : "#059669" }}>
               {eventData.price !== null && eventData.price !== undefined && eventData.price > 0 ? (
                 `S/ ${eventData.price.toLocaleString("es-PE")}`
               ) : (
@@ -468,20 +450,20 @@ export default function EventDetailPage() {
           </div>
         </div>
 
-        {/* 5. DESCRIPCIÓN DEL EVENTO */}
+        {/* 5. DESCRIPCIÓN DEL EVENTO (ABIERTA DIRECTAMENTE SOBRE EL FONDO) */}
         {eventData.description && (
-          <div style={{ background: resolvedCardBg, border: resolvedCardBorder, padding: "1.8rem", borderRadius: "20px", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
-            <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#1C1C1E", marginBottom: "1rem" }}>
+          <div style={{ background: "rgba(255, 255, 255, 0.7)", backdropFilter: "blur(8px)", border: `1.5px solid ${primaryColor}40`, padding: "2rem", borderRadius: "20px", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
+            <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#1C1C1E", marginBottom: "1rem" }}>
               Descripción & Detalles del Evento
             </h3>
-            <div style={{ fontSize: "0.98rem", lineHeight: 1.65, color: "#374151", whiteSpace: "pre-wrap" }}>
+            <div style={{ fontSize: "1rem", lineHeight: 1.7, color: "#374151", whiteSpace: "pre-wrap" }}>
               {eventData.description}
             </div>
           </div>
         )}
 
-        {/* 6. BOTÓN DE INSCRIPCIÓN / CONTACTO WHATSAPP */}
-        <div style={{ display: "flex", justifyContent: "center", paddingTop: "1rem" }}>
+        {/* 6. BOTÓN DE REGISTRO / CONTACTO POR WHATSAPP */}
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: "1.5rem" }}>
           {waLink ? (
             <a
               href={waLink}
@@ -491,18 +473,18 @@ export default function EventDetailPage() {
                 background: "#25D366",
                 color: "#FFFFFF",
                 textDecoration: "none",
-                padding: "1rem 2.5rem",
+                padding: "1.1rem 2.8rem",
                 borderRadius: "30px",
-                fontSize: "1.05rem",
+                fontSize: "1.08rem",
                 fontWeight: 900,
                 display: "inline-flex",
                 alignItems: "center",
                 gap: "12px",
-                boxShadow: "0 8px 24px rgba(37, 211, 102, 0.4)",
+                boxShadow: "0 8px 25px rgba(37, 211, 102, 0.4)",
                 transition: "transform 0.2s ease"
               }}
             >
-              <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.4rem" }}></i>
+              <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.5rem" }}></i>
               <span>Inscribirse o Consultar por WhatsApp</span>
             </a>
           ) : (
@@ -513,12 +495,12 @@ export default function EventDetailPage() {
                 background: `linear-gradient(135deg, ${palette.c1}, ${palette.c2})`,
                 color: "#FFFFFF",
                 border: "none",
-                padding: "1rem 2.5rem",
+                padding: "1.1rem 2.8rem",
                 borderRadius: "30px",
-                fontSize: "1.05rem",
+                fontSize: "1.08rem",
                 fontWeight: 900,
                 cursor: "pointer",
-                boxShadow: `0 8px 24px ${primaryColor}40`
+                boxShadow: `0 8px 25px ${primaryColor}40`
               }}
             >
               <i className="fa-solid fa-share-nodes" style={{ marginRight: 8 }}></i>
