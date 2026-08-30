@@ -733,7 +733,113 @@ export default function BrandProfileClient({ initialBrand }) {
     return unique;
   }, [brandProducts]);
 
-  function BrandProductCard({ prod }) {
+  function MenuDishCard({ prod, brand, palette, isStoreBgLight, resolvedCardBg, resolvedCardTextColor }) {
+  const primaryColor = palette?.c1 || "#95B721";
+  const waNumber = brand?.whatsappNumber || brand?.phone;
+  const cleanWa = waNumber ? waNumber.replace(/[^0-9]/g, "") : null;
+  const waMsg = encodeURIComponent(`¡Hola! Quisiera realizar un pedido de "${prod.name}" desde el Menú Virtual de ${brand?.name || 'la marca'} en AOURUM.`);
+  const waLink = cleanWa ? `https://wa.me/${cleanWa}?text=${waMsg}` : null;
+
+  return (
+    <div 
+      className="menu-dish-card glass-panel fade-in"
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "1.25rem",
+        padding: "1.25rem 1.5rem",
+        borderRadius: "18px",
+        background: resolvedCardBg || (isStoreBgLight ? "#FAF9F0" : "#18181B"),
+        border: `1.5px solid ${primaryColor}40`,
+        boxShadow: "0 4px 16px rgba(0,0,0,0.03)",
+        flexWrap: "wrap",
+        transition: "transform 0.2s ease"
+      }}
+    >
+      {/* Dish Thumbnail */}
+      {prod.image && (
+        <div style={{ width: "110px", height: "110px", borderRadius: "14px", overflow: "hidden", flexShrink: 0, position: "relative", border: `1px solid ${primaryColor}30`, background: "rgba(0,0,0,0.04)" }}>
+          <img src={prod.image} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        </div>
+      )}
+
+      {/* Dish Details */}
+      <div style={{ flex: 1, minWidth: "220px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "4px" }}>
+          {prod.category && (
+            <span style={{ fontSize: "0.7rem", fontWeight: 800, textTransform: "uppercase", color: primaryColor, background: `${primaryColor}18`, padding: "2px 8px", borderRadius: "6px", border: `1px solid ${primaryColor}30` }}>
+              {prod.category}
+            </span>
+          )}
+          {prod.type === "service" && (
+            <span style={{ fontSize: "0.7rem", fontWeight: 800, color: "#2563eb", background: "rgba(37, 99, 235, 0.1)", padding: "2px 8px", borderRadius: "6px" }}>
+              Por Encargo / Especial
+            </span>
+          )}
+        </div>
+
+        <h3 style={{ fontSize: "1.15rem", fontWeight: 900, color: resolvedCardTextColor || (isStoreBgLight ? "#1C1C1E" : "#FFFFFF"), margin: "0 0 4px 0" }}>
+          {prod.name}
+        </h3>
+
+        {prod.description && (
+          <p style={{ fontSize: "0.85rem", color: isStoreBgLight ? "#4B5563" : "#A1A1AA", margin: "0 0 8px 0", lineHeight: 1.45, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+            {prod.description}
+          </p>
+        )}
+
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+          <span style={{ fontSize: "1.25rem", fontWeight: 900, color: primaryColor }}>
+            S/ {prod.price ? prod.price.toLocaleString("es-PE") : "0.00"}
+          </span>
+          {prod.priceAourum && (
+            <span style={{ fontSize: "0.78rem", background: "linear-gradient(135deg, #d4af37, #f3e5ab)", color: "#1C1C1E", padding: "2px 8px", borderRadius: "6px", fontWeight: 800 }}>
+              S/ {prod.priceAourum} Club AOURUM
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Order Action Button */}
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        {waLink ? (
+          <a
+            href={waLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              background: "#25D366",
+              color: "#FFFFFF",
+              textDecoration: "none",
+              padding: "0.6rem 1.3rem",
+              borderRadius: "20px",
+              fontSize: "0.85rem",
+              fontWeight: 800,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              boxShadow: "0 4px 12px rgba(37, 211, 102, 0.3)",
+              whiteSpace: "nowrap"
+            }}
+          >
+            <i className="fa-brands fa-whatsapp" style={{ fontSize: "1rem" }}></i>
+            <span>Pedir Plato</span>
+          </a>
+        ) : (
+          <button
+            type="button"
+            className="btn-gold"
+            style={{ padding: "0.6rem 1.3rem", borderRadius: "20px", fontSize: "0.85rem", fontWeight: 800 }}
+          >
+            Consultar
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BrandProductCard({ prod }) {
     const rawCardBg = (design.cardBgColor && design.cardBgColor !== "transparent") ? design.cardBgColor : null;
     const rawCardText = design.cardTextColor || "auto";
     const rawCardBorder = design.cardBorderColor || "auto";
@@ -2107,79 +2213,114 @@ export default function BrandProfileClient({ initialBrand }) {
           />
         </div>
       ) : (
-        /* ── SECCIÓN DE CATÁLOGO ESTILO DESCUBRE ── */
+        /* ── SECCIÓN DE CATÁLOGO ESTILO DESCUBRE / MENÚ VIRTUAL ── */
         brandProducts.length === 0 ? (
           <div className="glass-panel" style={{ textAlign: "center", padding: "4rem 0", color: "var(--text-muted)", borderRadius: "16px", marginTop: "2rem" }}>
-            <i className="fa-solid fa-box-open" style={{ fontSize: "2.5rem", opacity: 0.3, marginBottom: "1rem", display: "block" }}></i>
-            <p style={{ fontSize: "0.9rem" }}>Esta marca aún no ha publicado items en su catálogo virtual.</p>
+            <i className="fa-solid fa-utensils" style={{ fontSize: "2.5rem", opacity: 0.3, marginBottom: "1rem", display: "block" }}></i>
+            <p style={{ fontSize: "0.9rem" }}>Esta marca aún no ha publicado platillos o ítems en su carta gastronómica.</p>
           </div>
         ) : (
-          <div style={{ marginTop: "2rem" }}>
-            <div style={{ marginBottom: "2rem" }}>
-              <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", margin: 0, color: isStoreBgLight ? "#1C1C1E" : "#FFFFFF" }}>
-                🛍️ Catálogo de la Marca
-              </h2>
-              <p style={{ fontSize: "0.88rem", color: isStoreBgLight ? "#4B5563" : "#9CA3AF", margin: "4px 0 0 0" }}>
-                Explora todas las colecciones, servicios y productos de {brand.name}
-              </p>
-            </div>
+          (() => {
+            const categoryStr = (brand?.category || parsed.rubro_especifico || parsed.rubro_general || "").toLowerCase();
+            const isFoodCategory = Boolean(/comida|gastronom|restauran|snack|bebida|infusio|postre|alimento|fruta/i.test(categoryStr));
+            const isVirtualMenu = design.catalogDisplayMode === "menu" || (design.catalogDisplayMode !== "grid" && isFoodCategory);
 
-          {/* 1. Carrusel de Productos Destacados de la Marca */}
-          {renderCarousel(
-            "productos-destacados-marca",
-            "Productos Destacados",
-            `Los artículos más populares y recomendados de ${brand.name}`,
-            featuredBrandProducts
-          )}
+            if (isVirtualMenu) {
+              return (
+                <div style={{ marginTop: "2rem" }}>
+                  <div style={{ marginBottom: "2rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+                    <div>
+                      <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", margin: 0, color: isStoreBgLight ? "#1C1C1E" : "#FFFFFF", display: "flex", alignItems: "center", gap: "10px" }}>
+                        <span>🍽️ Carta Digital & Menú Virtual</span>
+                        <span style={{ fontSize: "0.75rem", background: `${palette.c1}20`, color: palette.c1, padding: "3px 10px", borderRadius: "12px", border: `1px solid ${palette.c1}40`, fontWeight: 700 }}>
+                          Gastronomía
+                        </span>
+                      </h2>
+                      <p style={{ fontSize: "0.88rem", color: isStoreBgLight ? "#4B5563" : "#9CA3AF", margin: "4px 0 0 0" }}>
+                        Explora la selección gastronómica, especialidades y bebidas de {brand.name}
+                      </p>
+                    </div>
+                  </div>
 
-          {/* 2. Carruseles por Categoría de la Marca */}
-          {brandCategories.map((cat) => (
-            renderCarousel(
-              `cat-${cat.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
-              cat,
-              `Explora nuestra variedad en ${cat.toLowerCase()}`,
-              brandProducts.filter(p => p.category && p.category.trim().toLowerCase() === cat.trim().toLowerCase())
-            )
-          ))}
+                  {/* Lista Estilo Carta Digital de Restaurante */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+                    {brandProducts.map((prod) => (
+                      <MenuDishCard
+                        key={prod.id}
+                        prod={prod}
+                        brand={brand}
+                        palette={palette}
+                        isStoreBgLight={isStoreBgLight}
+                        resolvedCardBg={resolvedCardBg}
+                        resolvedCardTextColor={resolvedCardTextColor}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            }
 
-          {/* 3. Grilla General de Todos los Productos */}
-          <div style={{ borderTop: isStoreBgLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.1)", paddingTop: "2.5rem", marginTop: "2rem" }}>
-            <div style={{ marginBottom: "1.5rem" }}>
-              <h2 style={{ fontSize: "1.5rem", fontWeight: 800, margin: 0, color: isStoreBgLight ? "#1C1C1E" : "#FFFFFF" }}>
-                ✨ Vitrina Completa de Productos ({brandProducts.length})
-              </h2>
-              <p style={{ fontSize: "0.85rem", color: isStoreBgLight ? "#4B5563" : "#9CA3AF", margin: "4px 0 0 0" }}>
-                Todos los artículos disponibles en {brand.name}
-              </p>
-            </div>
-            <div className="grid-catalog">
-              {brandProducts.slice(0, visibleCount).map((prod) => (
-                <BrandProductCard key={prod.id} prod={prod} />
-              ))}
-            </div>
+            return (
+              <div style={{ marginTop: "2rem" }}>
+                <div style={{ marginBottom: "2rem" }}>
+                  <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", margin: 0, color: isStoreBgLight ? "#1C1C1E" : "#FFFFFF" }}>
+                    🛍️ Catálogo de la Marca
+                  </h2>
+                  <p style={{ fontSize: "0.88rem", color: isStoreBgLight ? "#4B5563" : "#9CA3AF", margin: "4px 0 0 0" }}>
+                    Explora todas las colecciones, servicios y productos de {brand.name}
+                  </p>
+                </div>
 
-            {brandProducts.length > visibleCount && (
-              <div style={{ display: "flex", justifyContent: "center", marginTop: "3rem" }}>
-                <button 
-                  onClick={() => setVisibleCount((prev) => prev + (typeof window !== "undefined" && window.innerWidth <= 640 ? 12 : 15))}
-                  className="btn-outline-gold"
-                  style={{
-                    borderRadius: "30px",
-                    padding: "0.75rem 2rem",
-                    fontSize: "0.9rem",
-                    fontWeight: 700,
-                    boxShadow: "0 4px 12px rgba(214,175,55,0.08)",
-                    cursor: "pointer"
-                  }}
-                >
-                  <i className="fa-solid fa-arrow-rotate-right" style={{ marginRight: "8px" }}></i>
-                  Ver más productos
-                </button>
+                {/* 1. Carrusel de Productos Destacados de la Marca */}
+                {renderCarousel(
+                  "productos-destacados-marca",
+                  "Productos Destacados",
+                  `Los artículos más populares y recomendados de ${brand.name}`,
+                  featuredBrandProducts
+                )}
+
+                {/* 2. Carruseles por Categoría de la Marca */}
+                {brandCategories.map((cat) => (
+                  renderCarousel(
+                    `cat-${cat.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
+                    cat,
+                    `Explora nuestra variedad en ${cat.toLowerCase()}`,
+                    brandProducts.filter(p => p.category && p.category.trim().toLowerCase() === cat.trim().toLowerCase())
+                  )
+                ))}
+
+                {/* 3. Grilla General de Todos los Productos */}
+                <div style={{ borderTop: isStoreBgLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.1)", paddingTop: "2.5rem", marginTop: "2rem" }}>
+                  <div style={{ marginBottom: "1.5rem" }}>
+                    <h2 style={{ fontSize: "1.5rem", fontWeight: 800, margin: 0, color: isStoreBgLight ? "#1C1C1E" : "#FFFFFF" }}>
+                      ✨ Vitrina Completa de Productos ({brandProducts.length})
+                    </h2>
+                    <p style={{ fontSize: "0.85rem", color: isStoreBgLight ? "#4B5563" : "#9CA3AF", margin: "4px 0 0 0" }}>
+                      Todos los artículos disponibles en {brand.name}
+                    </p>
+                  </div>
+                  <div className="grid-catalog">
+                    {brandProducts.slice(0, visibleCount).map((prod) => (
+                      <BrandProductCard key={prod.id} prod={prod} />
+                    ))}
+                  </div>
+
+                  {brandProducts.length > visibleCount && (
+                    <div style={{ display: "flex", justifyContent: "center", marginTop: "3rem" }}>
+                      <button 
+                        onClick={() => setVisibleCount((prev) => prev + (typeof window !== "undefined" && window.innerWidth <= 640 ? 12 : 15))}
+                        className="btn-outline-gold"
+                        style={{ borderRadius: "30px", padding: "0.7rem 2rem", fontWeight: 700 }}
+                      >
+                        Cargar más ítems
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
-        </div>
-      )
+            );
+          })()
+        )
       )}
 
       {/* Info del Dueño al final del perfil, después de todos los productos y antes del footer */}

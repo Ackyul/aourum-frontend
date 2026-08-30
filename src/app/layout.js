@@ -2410,13 +2410,27 @@ function AppLayoutShell({ children }) {
                               </div>
                             </div>
 
-                            {/* SECCIÓN C: TARJETAS DE PRODUCTO */}
+                             {/* SECCIÓN C: TARJETAS DE PRODUCTO / MENÚ VIRTUAL */}
                             <div style={{ background: "rgba(212,175,55,0.04)", border: "1px solid var(--border-color)", borderRadius: "12px", padding: "14px" }}>
                               <div style={{ fontSize: "0.82rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "10px", display: "flex", alignItems: "center", gap: "6px" }}>
-                                <i className="fa-solid fa-box-open" style={{ color: "var(--gold-primary)" }}></i>
-                                <span>3. Tarjetas de Producto (Fondo, Borde y Texto)</span>
+                                <i className="fa-solid fa-utensils" style={{ color: "var(--gold-primary)" }}></i>
+                                <span>3. Modo de Catálogo / Menú Virtual & Tarjetas</span>
                               </div>
                               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                                <div className="form-group" style={{ margin: 0 }}>
+                                  <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "4px", display: "block" }}>Formato de Exhibición de Productos</label>
+                                  <select 
+                                    className="form-control" 
+                                    value={design.catalogDisplayMode || "auto"} 
+                                    onChange={(e) => updateDesignKey("catalogDisplayMode", e.target.value)}
+                                    style={{ fontSize: "0.8rem", padding: "0.5rem 0.65rem", borderRadius: "8px", width: "100%" }}
+                                  >
+                                    <option value="auto">Automático (Segun el rubro de la marca)</option>
+                                    <option value="grid">🛍️ Catálogo Estándar de Productos (Vitrina Virtual)</option>
+                                    <option value="menu">🍽️ Menú Virtual / Carta Gastronómica Digital</option>
+                                  </select>
+                                </div>
+
                                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                                   <div className="form-group" style={{ margin: 0 }}>
                                     <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "4px", display: "block" }}>Estilo de Tarjetas</label>
