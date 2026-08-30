@@ -756,9 +756,22 @@ export default function BrandProfileClient({ initialBrand }) {
         transition: "transform 0.2s ease"
       }}
     >
-      {/* Dish Thumbnail */}
+      {/* Dish Thumbnail (Imagen de Plato más grande y vistosa) */}
       {prod.image && (
-        <div style={{ width: "110px", height: "110px", borderRadius: "14px", overflow: "hidden", flexShrink: 0, position: "relative", border: `1px solid ${primaryColor}30`, background: "rgba(0,0,0,0.04)" }}>
+        <div 
+          className="menu-dish-img-wrapper"
+          style={{ 
+            width: "180px", 
+            height: "180px", 
+            borderRadius: "16px", 
+            overflow: "hidden", 
+            flexShrink: 0, 
+            position: "relative", 
+            border: `1.5px solid ${primaryColor}35`, 
+            background: "rgba(0,0,0,0.04)",
+            boxShadow: `0 4px 14px ${primaryColor}15`
+          }}
+        >
           <img src={prod.image} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
       )}
@@ -1579,6 +1592,19 @@ function BrandProductCard({ prod }) {
           .aourum-tab-btn i {
             margin-right: 3px !important;
           }
+          .menu-dish-card {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            padding: 1rem !important;
+          }
+          .menu-dish-img-wrapper {
+            width: 100% !important;
+            height: 220px !important;
+          }
+        }
+        .menu-dish-img-wrapper {
+          width: 180px !important;
+          height: 180px !important;
         }
       `}</style>
 
