@@ -215,6 +215,9 @@ export default function EventDetailPage() {
       )}
 
       <style>{`
+        html, body, .main-workspace {
+          background: ${design.customBgColor || "#FAF9F0"} !important;
+        }
         header {
           background: ${design.customBgColor || "#FAF9F0"} !important;
           border-bottom: 1px solid ${primaryColor}20 !important;
@@ -222,12 +225,14 @@ export default function EventDetailPage() {
         footer, .site-footer {
           background: ${design.customBgColor || "#FAF9F0"} !important;
           border-top: 1px solid ${primaryColor}30 !important;
+          margin-top: 0 !important;
+          padding-top: 3.5rem !important;
           color: #4B5563 !important;
         }
       `}</style>
 
       {/* ── BARRA DE NAVEGACIÓN FLOTANTE ── */}
-      <div style={{ padding: "0.85rem 1.5rem", position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", background: design.customBgColor ? `${design.customBgColor}dd` : "rgba(250, 249, 240, 0.88)", borderBottom: `1px solid ${primaryColor}20` }}>
+      <div style={{ padding: "0.85rem 1.5rem", position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", background: design.customBgColor ? `${design.customBgColor}ee` : "rgba(250, 249, 240, 0.95)", borderBottom: `1px solid ${primaryColor}20` }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
           <button
             type="button"
@@ -417,7 +422,7 @@ export default function EventDetailPage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem" }}>
           
           {/* FECHA Y HORA */}
-          <div style={{ background: "rgba(255, 255, 255, 0.7)", backdropFilter: "blur(8px)", border: `1.5px solid ${primaryColor}40`, padding: "1.4rem 1.6rem", borderRadius: "20px", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
+          <div style={{ background: design.customBgColor || `${primaryColor}18`, border: `1.5px solid ${primaryColor}45`, padding: "1.4rem 1.6rem", borderRadius: "20px", boxShadow: `0 4px 16px ${primaryColor}15` }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", color: primaryColor, fontWeight: 800, fontSize: "0.82rem", marginBottom: "8px", textTransform: "uppercase" }}>
               <i className="fa-regular fa-clock" style={{ fontSize: "1.1rem" }}></i>
               <span>Fecha & Hora</span>
@@ -428,7 +433,7 @@ export default function EventDetailPage() {
           </div>
 
           {/* UBICACIÓN / LINK */}
-          <div style={{ background: "rgba(255, 255, 255, 0.7)", backdropFilter: "blur(8px)", border: `1.5px solid ${primaryColor}40`, padding: "1.4rem 1.6rem", borderRadius: "20px", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
+          <div style={{ background: design.customBgColor || `${primaryColor}18`, border: `1.5px solid ${primaryColor}45`, padding: "1.4rem 1.6rem", borderRadius: "20px", boxShadow: `0 4px 16px ${primaryColor}15` }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", color: primaryColor, fontWeight: 800, fontSize: "0.82rem", marginBottom: "8px", textTransform: "uppercase" }}>
               <i className={`fa-solid ${eventData.isOnline ? "fa-link" : "fa-map-pin"}`} style={{ fontSize: "1.1rem" }}></i>
               <span>{eventData.isOnline ? "Plataforma Virtual" : "Lugar del Evento"}</span>
@@ -447,7 +452,7 @@ export default function EventDetailPage() {
           </div>
 
           {/* INVERSIÓN / ENTRADA */}
-          <div style={{ background: "rgba(255, 255, 255, 0.7)", backdropFilter: "blur(8px)", border: `1.5px solid ${primaryColor}40`, padding: "1.4rem 1.6rem", borderRadius: "20px", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
+          <div style={{ background: design.customBgColor || `${primaryColor}18`, border: `1.5px solid ${primaryColor}45`, padding: "1.4rem 1.6rem", borderRadius: "20px", boxShadow: `0 4px 16px ${primaryColor}15` }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px", color: primaryColor, fontWeight: 800, fontSize: "0.82rem", marginBottom: "8px", textTransform: "uppercase" }}>
               <i className="fa-solid fa-ticket" style={{ fontSize: "1.1rem" }}></i>
               <span>Inversión / Entrada</span>
@@ -462,9 +467,9 @@ export default function EventDetailPage() {
           </div>
         </div>
 
-        {/* 5. DESCRIPCIÓN DEL EVENTO (ABIERTA DIRECTAMENTE SOBRE EL FONDO) */}
+        {/* 5. DESCRIPCIÓN DEL EVENTO (CON EL COLOR DE LA MARCA) */}
         {eventData.description && (
-          <div style={{ background: "rgba(255, 255, 255, 0.7)", backdropFilter: "blur(8px)", border: `1.5px solid ${primaryColor}40`, padding: "2rem", borderRadius: "20px", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
+          <div style={{ background: design.customBgColor || `${primaryColor}18`, border: `1.5px solid ${primaryColor}45`, padding: "2rem", borderRadius: "20px", boxShadow: `0 4px 16px ${primaryColor}15` }}>
             <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#1C1C1E", marginBottom: "1rem" }}>
               Descripción & Detalles del Evento
             </h3>
