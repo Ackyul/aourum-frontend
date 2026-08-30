@@ -231,8 +231,8 @@ export default function EventDetailPage() {
         }
       `}</style>
 
-      {/* ── BARRA DE NAVEGACIÓN FLOTANTE ── */}
-      <div style={{ padding: "0.85rem 1.5rem", position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", background: design.customBgColor ? `${design.customBgColor}ee` : "rgba(250, 249, 240, 0.95)", borderBottom: `1px solid ${primaryColor}20` }}>
+      {/* ── ACCIONES SUPERIORES (VOLVER, COMPARTIR, QR) ── */}
+      <div style={{ padding: "1.2rem 1.5rem 0.5rem 1.5rem", position: "relative", zIndex: 10 }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
           <button
             type="button"
