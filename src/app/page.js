@@ -433,8 +433,6 @@ export default function Home() {
     };
   }, [filtersOpen]);
 
-  const hasActiveFilters = searchTerm !== "" || filterType !== "all" || filterCategory !== "all";
-
   const handleResetFilters = () => {
     setSearchTerm("");
     setFilterType("all");
