@@ -1857,7 +1857,7 @@ export default function BrandProfileClient({ initialBrand }) {
                   <div
                     key={evt.id}
                     className="event-card product-card"
-                    onClick={() => router.push(`/events?id=${evt.id}`)}
+                    onClick={() => router.push(`/events/${evt.slug || evt.id}`)}
                     style={{
                       borderRadius: "16px",
                       overflow: "hidden",
