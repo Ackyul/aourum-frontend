@@ -777,7 +777,7 @@ export default function BrandProfileClient({ initialBrand }) {
       )}
 
       {/* Dish Details */}
-      <div style={{ flex: 1, minWidth: "220px" }}>
+      <div className="menu-dish-details-wrapper" style={{ flex: 1, minWidth: "220px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "4px" }}>
           {prod.category && (
             <span style={{ fontSize: "0.7rem", fontWeight: 800, textTransform: "uppercase", color: primaryColor, background: `${primaryColor}18`, padding: "2px 8px", borderRadius: "6px", border: `1px solid ${primaryColor}30` }}>
@@ -814,7 +814,7 @@ export default function BrandProfileClient({ initialBrand }) {
       </div>
 
       {/* Order Action Button */}
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      <div className="menu-dish-action-wrapper" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         {waLink ? (
           <a
             href={waLink}
@@ -1595,11 +1595,29 @@ function BrandProductCard({ prod }) {
           .menu-dish-card {
             flex-direction: column !important;
             align-items: stretch !important;
-            padding: 1rem !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            border-radius: 18px !important;
           }
           .menu-dish-img-wrapper {
             width: 100% !important;
-            height: 220px !important;
+            height: 200px !important;
+            border-radius: 16px 16px 0 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+          }
+          .menu-dish-details-wrapper {
+            padding: 1.1rem 1.2rem 0.5rem 1.2rem !important;
+          }
+          .menu-dish-action-wrapper {
+            padding: 0 1.2rem 1.2rem 1.2rem !important;
+            width: 100% !important;
+          }
+          .menu-dish-action-wrapper a, .menu-dish-action-wrapper button {
+            width: 100% !important;
+            justify-content: center !important;
+            padding: 0.75rem 1.2rem !important;
+            font-size: 0.9rem !important;
           }
         }
         .menu-dish-img-wrapper {
@@ -2253,7 +2271,7 @@ function BrandProductCard({ prod }) {
 
             if (isVirtualMenu) {
               return (
-                <div style={{ marginTop: "2rem" }}>
+                <div style={{ marginTop: "2.5rem", paddingTop: "0.5rem" }}>
                   <div style={{ marginBottom: "2rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                     <div>
                       <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", margin: 0, color: isStoreBgLight ? "#1C1C1E" : "#FFFFFF", display: "flex", alignItems: "center", gap: "10px" }}>
