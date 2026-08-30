@@ -1401,9 +1401,16 @@ export default function BrandProfileClient({ initialBrand }) {
         .brand-profile-theme-scope .product-card .card-text-container,
         .brand-profile-theme-scope .event-card .event-card-body,
         .brand-profile-theme-scope .social-post-card,
-        .brand-profile-theme-scope .social-feed-publisher {
-          background-color: ${resolvedCardBg || (isStoreBgLight ? "#FFFFFF" : "#18181B")} !important;
+        .brand-profile-theme-scope .social-feed-publisher,
+        .brand-profile-theme-scope .social-publisher-card,
+        .brand-profile-theme-scope textarea,
+        .brand-profile-theme-scope input:not([type="button"]):not([type="submit"]):not([type="file"]),
+        .brand-profile-theme-scope select,
+        .brand-profile-theme-scope .post-card-image-wrapper,
+        .brand-profile-theme-scope .card-img-container {
+          background-color: ${resolvedCardBg || (customBgColor || "#FAF9F0")} !important;
           color: ${resolvedCardTextColor || (isStoreBgLight ? "#1C1C1E" : "#FFFFFF")} !important;
+          border-color: ${palette.c1}35 !important;
         }
         ${enableAnimations ? `
           .brand-profile-theme-scope .product-card:hover,
