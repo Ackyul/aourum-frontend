@@ -1502,15 +1502,35 @@ export default function BrandProfileClient({ initialBrand }) {
                   </span>
                 )}
                 {(() => {
-                  const bEvents = (events || []).filter(e => Number(e.brandId) === Number(brand?.id));
+                  const bEvents = (events || []).filter(e => Number(e.brandId) === Number(brand?.id) && e.isActive !== false);
                   if (bEvents.length === 0) return null;
+
+                  const now = new Date();
+                  const localYear = now.getFullYear();
+                  const localMonth = String(now.getMonth() + 1).padStart(2, "0");
+                  const localDay = String(now.getDate()).padStart(2, "0");
+                  const todayStr = `${localYear}-${localMonth}-${localDay}`;
+
+                  const hasToday = bEvents.some(e => {
+                    if (!e.eventDate) return false;
+                    try {
+                      const d = new Date(e.eventDate);
+                      const y = d.getFullYear();
+                      const m = String(d.getMonth() + 1).padStart(2, "0");
+                      const day = String(d.getDate()).padStart(2, "0");
+                      return `${y}-${m}-${day}` === todayStr;
+                    } catch (err) {
+                      return false;
+                    }
+                  });
+
                   return (
                     <span 
                       onClick={() => setActiveBrandTab("eventos")}
                       style={{ 
                         fontSize: "0.72rem", 
                         color: "#ffffff", 
-                        background: "linear-gradient(135deg, #ef4444, #f97316)", 
+                        background: hasToday ? "linear-gradient(135deg, #ef4444, #dc2626)" : "linear-gradient(135deg, #d4af37, #b8860b)", 
                         fontWeight: 800, 
                         display: "inline-flex", 
                         alignItems: "center", 
@@ -1518,15 +1538,24 @@ export default function BrandProfileClient({ initialBrand }) {
                         padding: "4px 12px", 
                         borderRadius: "20px", 
                         cursor: "pointer", 
-                        boxShadow: "0 2px 10px rgba(239, 68, 68, 0.4)",
+                        boxShadow: hasToday ? "0 2px 10px rgba(239, 68, 68, 0.4)" : "0 2px 10px rgba(212, 175, 55, 0.35)",
                         transition: "transform 0.2s ease"
                       }}
                       onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.05)"}
                       onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
-                      title="Ver cursos y eventos disponibles"
+                      title={hasToday ? "Ver evento en vivo de hoy" : "Ver eventos próximos disponibles"}
                     >
-                      <i className="fa-solid fa-calendar-check"></i>
-                      {bEvents.length === 1 ? "1 Evento Próximo" : `${bEvents.length} Eventos Próximos`}
+                      {hasToday ? (
+                        <>
+                          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#FFF", display: "inline-block", animation: "reactive-pulse 1.8s infinite ease-in-out" }} />
+                          {bEvents.length === 1 ? "Evento en Vivo Hoy" : `${bEvents.length} Eventos Hoy`}
+                        </>
+                      ) : (
+                        <>
+                          <span>🎫</span>
+                          {bEvents.length === 1 ? "1 Evento Próximo" : `${bEvents.length} Eventos Próximos`}
+                        </>
+                      )}
                     </span>
                   );
                 })()}

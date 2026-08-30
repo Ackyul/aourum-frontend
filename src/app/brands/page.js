@@ -280,9 +280,37 @@ export default function BrandsPage() {
   function BrandCard({ brand, isFeatured }) {
     const rubro = brand.rubro_especifico || brand.rubro_general || brand.category || "Marca Local";
     const descText = parseDescription(brand.description).text;
-    const hasEvent = (events || []).some(
-      (e) => Number(e.brandId || e.brand_id) === Number(brand?.id)
+    const brandEvents = (events || []).filter(
+      (e) => Number(e.brandId || e.brand_id) === Number(brand?.id) && e.isActive !== false
     );
+
+    let eventStatus = null;
+    if (brandEvents.length > 0) {
+      const now = new Date();
+      const localYear = now.getFullYear();
+      const localMonth = String(now.getMonth() + 1).padStart(2, "0");
+      const localDay = String(now.getDate()).padStart(2, "0");
+      const todayStr = `${localYear}-${localMonth}-${localDay}`;
+
+      const isToday = brandEvents.some((e) => {
+        if (!e.eventDate) return false;
+        try {
+          const d = new Date(e.eventDate);
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, "0");
+          const day = String(d.getDate()).padStart(2, "0");
+          return `${y}-${m}-${day}` === todayStr;
+        } catch (err) {
+          return false;
+        }
+      });
+
+      if (isToday) {
+        eventStatus = { type: "today", label: "Evento" };
+      } else {
+        eventStatus = { type: "upcoming", label: "Próximo" };
+      }
+    }
 
     return (
       <div 
@@ -304,13 +332,23 @@ export default function BrandsPage() {
               ⭐ Destacada
             </span>
           )}
-          {hasEvent && (
+          {eventStatus?.type === "today" && (
             <div 
               className="reactive-red-dot-container"
-              title="Esta marca tiene un evento activo"
+              title="Esta marca tiene un evento en vivo hoy"
             >
               <span className="reactive-red-dot" />
               <span className="reactive-red-dot-text">Evento</span>
+            </div>
+          )}
+
+          {eventStatus?.type === "upcoming" && (
+            <div 
+              className="reactive-ticket-container"
+              title="Esta marca tiene un evento próximo"
+            >
+              <span className="reactive-ticket-icon">🎫</span>
+              <span className="reactive-ticket-text">Próximo</span>
             </div>
           )}
         </div>
