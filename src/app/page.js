@@ -433,20 +433,45 @@ export default function Home() {
     };
   }, [filtersOpen]);
 
+  const hasActiveFilters = searchTerm !== "" || filterType !== "all" || filterCategory !== "all";
+
+  const handleResetFilters = () => {
+    setSearchTerm("");
+    setFilterType("all");
+    setFilterCategory("all");
+  };
+
   // Helper to handle "Ver todo" on a category or section
   const handleViewAll = (categoryName) => {
-    const exactCategory = products.find(p => p.category?.toLowerCase() === categoryName.toLowerCase())?.category;
-    if (exactCategory) {
-      setFilterCategory(exactCategory);
+    if (
+      !categoryName ||
+      categoryName === "Productos Destacados" ||
+      categoryName === "Destacados" ||
+      categoryName.toLowerCase().includes("destacado")
+    ) {
+      handleResetFilters();
     } else {
-      const matchedCategory = products.find(p => p.category?.toLowerCase().includes(categoryName.toLowerCase()))?.category;
-      if (matchedCategory) {
-        setFilterCategory(matchedCategory);
+      const exactCategory = products.find(p => p.category?.toLowerCase() === categoryName.toLowerCase())?.category;
+      if (exactCategory) {
+        setFilterCategory(exactCategory);
       } else {
-        setFilterCategory("all");
+        const matchedCategory = products.find(p => p.category?.toLowerCase().includes(categoryName.toLowerCase()))?.category;
+        if (matchedCategory) {
+          setFilterCategory(matchedCategory);
+        } else {
+          setFilterCategory("all");
+        }
       }
     }
-    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    setTimeout(() => {
+      const targetEl = document.getElementById("grid-catalog-header") || document.querySelector(".grid-catalog");
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        window.scrollTo({ top: 600, behavior: "smooth" });
+      }
+    }, 50);
   };
 
   const visibleProducts = useMemo(() => {
@@ -779,23 +804,51 @@ export default function Home() {
           {/* Vitrina Tab */}
           {activeTab === "vitrina" && (
           <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2.0rem", flexWrap: "wrap", gap: "1rem" }}>
+          <div id="grid-catalog-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2.0rem", flexWrap: "wrap", gap: "1rem" }}>
             <div>
               <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", marginTop: "2px" }}>
                 {hasActiveFilters ? "Resultados de busqueda" : "Marcas Locales"}
               </h2>
             </div>
-            <button
-              onClick={() => setFiltersOpen(true)}
-              className="btn-outline-gold desktop-filter-btn"
-              style={{ borderRadius: "20px", padding: "0.45rem 1.2rem", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", background: "transparent" }}
-            >
-              <i className="fa-solid fa-sliders"></i>
-              Mostrar Filtros
-              {(filterType !== "all" || filterCategory !== "all") && (
-                <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--gold-primary)" }}></span>
+            
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={handleResetFilters}
+                  style={{
+                    borderRadius: "20px",
+                    padding: "0.45rem 1.1rem",
+                    fontSize: "0.82rem",
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    background: "rgba(239, 68, 68, 0.1)",
+                    color: "#ef4444",
+                    border: "1.5px solid rgba(239, 68, 68, 0.35)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    transition: "all 0.2s ease"
+                  }}
+                  title="Quitar todos los filtros aplicados"
+                >
+                  <i className="fa-solid fa-xmark"></i>
+                  <span>Quitar Filtros</span>
+                </button>
               )}
-            </button>
+
+              <button
+                onClick={() => setFiltersOpen(true)}
+                className="btn-outline-gold desktop-filter-btn"
+                style={{ borderRadius: "20px", padding: "0.45rem 1.2rem", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", background: "transparent" }}
+              >
+                <i className="fa-solid fa-sliders"></i>
+                Mostrar Filtros
+                {(filterType !== "all" || filterCategory !== "all") && (
+                  <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--gold-primary)" }}></span>
+                )}
+              </button>
+            </div>
           </div>
 
           {hasActiveFilters ? (
