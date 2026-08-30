@@ -756,20 +756,17 @@ export default function BrandProfileClient({ initialBrand }) {
         transition: "transform 0.2s ease"
       }}
     >
-      {/* Dish Thumbnail (Imagen de Plato más grande y vistosa) */}
+      {/* Dish Thumbnail */}
       {prod.image && (
         <div 
           className="menu-dish-img-wrapper"
           style={{ 
-            width: "180px", 
-            height: "180px", 
             borderRadius: "16px", 
             overflow: "hidden", 
             flexShrink: 0, 
             position: "relative", 
             border: `1.5px solid ${primaryColor}35`, 
-            background: "rgba(0,0,0,0.04)",
-            boxShadow: `0 4px 14px ${primaryColor}15`
+            background: "rgba(0,0,0,0.04)"
           }}
         >
           <img src={prod.image} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -1593,36 +1590,58 @@ function BrandProductCard({ prod }) {
             margin-right: 3px !important;
           }
           .menu-dish-card {
-            flex-direction: column !important;
-            align-items: stretch !important;
-            padding: 0 !important;
-            overflow: hidden !important;
-            border-radius: 18px !important;
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            align-items: flex-start !important;
+            justify-content: space-between !important;
+            padding: 1rem 1.1rem !important;
+            gap: 12px !important;
           }
           .menu-dish-img-wrapper {
-            width: 100% !important;
-            height: 200px !important;
-            border-radius: 16px 16px 0 0 !important;
-            border: none !important;
-            box-shadow: none !important;
+            width: 115px !important;
+            height: 115px !important;
+            border-radius: 14px !important;
+            order: 2 !important;
+            flex-shrink: 0 !important;
           }
           .menu-dish-details-wrapper {
-            padding: 1.1rem 1.2rem 0.5rem 1.2rem !important;
+            order: 1 !important;
+            flex: 1 !important;
+            min-width: 0 !important;
+            padding: 0 !important;
           }
           .menu-dish-action-wrapper {
-            padding: 0 1.2rem 1.2rem 1.2rem !important;
+            order: 3 !important;
             width: 100% !important;
+            margin-top: 8px !important;
+            padding: 0 !important;
           }
           .menu-dish-action-wrapper a, .menu-dish-action-wrapper button {
             width: 100% !important;
             justify-content: center !important;
-            padding: 0.75rem 1.2rem !important;
-            font-size: 0.9rem !important;
+            padding: 0.65rem 1rem !important;
+            font-size: 0.85rem !important;
           }
         }
+        .menu-dish-card {
+          display: flex !important;
+          align-items: center !important;
+          gap: 1.25rem !important;
+          padding: 1.25rem 1.5rem !important;
+          border-radius: 18px !important;
+        }
         .menu-dish-img-wrapper {
-          width: 180px !important;
-          height: 180px !important;
+          width: 170px !important;
+          height: 170px !important;
+          border-radius: 16px !important;
+        }
+        .menu-dish-details-wrapper {
+          flex: 1 !important;
+        }
+        .menu-dish-action-wrapper {
+          display: flex !important;
+          align-items: center !important;
         }
       `}</style>
 
