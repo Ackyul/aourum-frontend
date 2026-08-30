@@ -9,7 +9,7 @@ export default function EventDetailPage() {
   const params = useParams();
   const rawSlug = params?.slug || "";
   const router = useRouter();
-  const { events = [], brands = [], loadEvents, loadBrands, triggerNotification } = useApp();
+  const { events = [], brands = [], loadEvents, loadBrands, triggerNotification, getBrandPalette, parseDescription } = useApp();
 
   const [eventData, setEventData] = useState(null);
   const [loadingEvent, setLoadingEvent] = useState(true);
@@ -85,24 +85,78 @@ export default function EventDetailPage() {
     ? brands.find((b) => Number(b.id) === Number(eventData.brandId))
     : null;
 
-  // Extract brand design colors
-  let brandThemeCol = "#95B721";
-  let brandBgColor = "#FAF9F0";
-  if (brand) {
-    let parsedDesc = {};
-    try {
-      if (brand.description && brand.description.startsWith("{")) {
-        parsedDesc = JSON.parse(brand.description);
-      }
-    } catch (e) {}
+  // Extract brand design colors and theme from DB
+  const parsed = parseDescription ? parseDescription(brand?.description) : {};
+  const palette = getBrandPalette ? getBrandPalette(parsed, brand || {}) : { c1: "#95B721", c2: "#85a711", c3: "#95B721", c4: "#85a711" };
+  const primaryColor = palette.c1 || "#95B721";
 
-    const designObj = brand.design || parsedDesc.design || {};
-    const rawTheme = designObj.themeColor || parsedDesc.theme_color || brand.themeColor;
-    if (rawTheme) brandThemeCol = rawTheme.split(",")[0].trim();
-    if (designObj.bgColor || parsedDesc.bgColor || brand.bgColor) {
-      brandBgColor = designObj.bgColor || parsedDesc.bgColor || brand.bgColor;
-    }
+  const dbDesign = (brand?.brandDesign && Object.keys(brand.brandDesign).length > 0)
+    ? brand.brandDesign
+    : (parsed.brandDesign || {});
+
+  const design = {
+    customBgColor: dbDesign.customBgColor || parsed.customBgColor || "#FAF9F0",
+    bgStyle: dbDesign.bgStyle || parsed.bgStyle || "solid",
+    bgImage: dbDesign.bgImage || parsed.bgImage || "",
+    bgImageFit: dbDesign.bgImageFit || parsed.bgImageFit || "cover",
+    cardStyle: dbDesign.cardStyle || parsed.cardStyle || "glass",
+    cardBgColor: dbDesign.cardBgColor || parsed.cardBgColor || "auto",
+    cardBorderColor: dbDesign.cardBorderColor || parsed.cardBorderColor || "auto",
+    cardTextColor: dbDesign.cardTextColor || parsed.cardTextColor || "auto",
+    fontFamily: dbDesign.fontFamily || parsed.fontFamily || "Inter",
+    glowIntensity: (dbDesign.glowIntensity !== undefined ? dbDesign.glowIntensity : (parsed.glowIntensity !== undefined ? parsed.glowIntensity : 70)) / 100,
+    ...dbDesign
+  };
+
+  // Background CSS calculation matching brand profile
+  let profileBgCss = {};
+  if (design.bgStyle === "image" && design.bgImage) {
+    profileBgCss = {
+      backgroundImage: `url(${design.bgImage})`,
+      backgroundSize: design.bgImageFit || "cover",
+      backgroundPosition: "center",
+      backgroundAttachment: "fixed"
+    };
+  } else if (design.bgStyle === "gradient") {
+    profileBgCss = {
+      background: `
+        radial-gradient(ellipse at 70% 20%, ${palette.c1}${Math.round(40 * design.glowIntensity).toString(16).padStart(2, '0')} 0%, transparent 60%),
+        radial-gradient(ellipse at 30% 88%, ${palette.c1}${Math.round(30 * design.glowIntensity).toString(16).padStart(2, '0')} 0%, transparent 50%),
+        linear-gradient(180deg, ${palette.c1}12 0%, ${palette.c2}08 25%, ${palette.c3}06 55%, ${palette.c4}10 85%, ${palette.c1}15 100%)
+      `
+    };
+  } else if (design.bgStyle === "mesh") {
+    profileBgCss = {
+      background: `
+        radial-gradient(at 0% 0%, ${palette.c1}30 0px, transparent 50%),
+        radial-gradient(at 100% 0%, ${palette.c2}30 0px, transparent 50%),
+        radial-gradient(at 100% 100%, ${palette.c3}25 0px, transparent 50%),
+        radial-gradient(at 0% 100%, ${palette.c4}30 0px, transparent 50%)
+      `
+    };
+  } else if (design.bgStyle === "dots") {
+    profileBgCss = {
+      background: `radial-gradient(${palette.c1}35 1px, transparent 1px)`,
+      backgroundSize: "20px 20px"
+    };
+  } else {
+    let solidBg = design.customBgColor || "#FAF9F0";
+    if (solidBg === "brand") solidBg = primaryColor;
+    else if (solidBg === "brand-soft") solidBg = `${primaryColor}18`;
+    profileBgCss = { background: solidBg };
   }
+
+  // Card Background and Border resolution
+  let resolvedCardBg = "#FFFFFF";
+  if (design.cardBgColor === "brand") resolvedCardBg = primaryColor;
+  else if (design.cardBgColor === "brand-soft") resolvedCardBg = design.customBgColor || `${primaryColor}18`;
+  else if (design.cardBgColor && design.cardBgColor.startsWith("#")) resolvedCardBg = design.cardBgColor;
+  else if (design.cardStyle === "glass") resolvedCardBg = `${primaryColor}12`;
+
+  let resolvedCardBorder = `1.5px solid ${primaryColor}35`;
+  if (design.cardBorderColor === "brand" || design.cardStyle === "bordered") resolvedCardBorder = `1.5px solid ${primaryColor}`;
+  else if (design.cardBorderColor && design.cardBorderColor.startsWith("#")) resolvedCardBorder = `1.5px solid ${design.cardBorderColor}`;
+  else if (design.cardBorderColor === "transparent") resolvedCardBorder = "none";
 
   const handleGoBack = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -119,9 +173,9 @@ export default function EventDetailPage() {
       const shareUrl = window.location.href;
       if (navigator.clipboard) {
         navigator.clipboard.writeText(shareUrl);
-        triggerNotification("Enlace del evento copiado al portapapeles", "success");
+        triggerNotification(true, "✨ Enlace del evento copiado al portapapeles");
       } else {
-        triggerNotification("URL: " + shareUrl, "info");
+        triggerNotification(true, "URL: " + shareUrl);
       }
     }
   };
@@ -141,7 +195,7 @@ export default function EventDetailPage() {
   if (loadingEvent) {
     return (
       <div style={{ minHeight: "80vh", display: "flex", justifyContent: "center", alignItems: "center", flexDirection: "column", gap: "1rem" }}>
-        <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2.5rem", color: brandThemeCol }}></i>
+        <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2.5rem", color: primaryColor }}></i>
         <p style={{ color: "var(--text-muted)", fontSize: "0.95rem" }}>Cargando información del evento...</p>
       </div>
     );
@@ -172,26 +226,32 @@ export default function EventDetailPage() {
   const waLink = cleanWa ? `https://wa.me/${cleanWa}?text=${waMsg}` : null;
 
   return (
-    <div style={{ minHeight: "100vh", background: brandBgColor, paddingBottom: "4rem" }}>
-      {/* ── BARRA DE NAVEGACIÓN COMPACTA ── */}
-      <div style={{ background: "rgba(255, 255, 255, 0.85)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(0,0,0,0.08)", sticky: true, top: 0, zIndex: 100, padding: "0.8rem 1.5rem" }}>
+    <div style={{ minHeight: "100vh", width: "100%", position: "relative", fontFamily: design.fontFamily !== "Inter" ? `"${design.fontFamily}", sans-serif` : "inherit", ...profileBgCss, paddingBottom: "5rem" }}>
+      {/* Import de la fuente de Google seleccionada si no es Inter */}
+      {design.fontFamily && design.fontFamily !== "Inter" && (
+        <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${design.fontFamily.replace(/ /g, "+")}:wght@400;600;700;800&display=swap`} />
+      )}
+
+      {/* ── BARRA DE NAVEGACIÓN SUPERIOR FLOTANTE ── */}
+      <div style={{ padding: "1rem 1.5rem", position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", background: "rgba(255, 255, 255, 0.75)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
           <button
             type="button"
             onClick={handleGoBack}
             style={{
-              background: "rgba(0, 0, 0, 0.05)",
-              border: "1px solid rgba(0, 0, 0, 0.1)",
+              background: "#FFFFFF",
+              border: `1.5px solid ${primaryColor}60`,
               borderRadius: "20px",
-              padding: "6px 14px",
+              padding: "6px 16px",
               fontSize: "0.82rem",
               fontWeight: 700,
-              color: "#1C1C1E",
+              color: primaryColor,
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               gap: "6px",
-              transition: "all 0.2s ease"
+              boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
+              transition: "transform 0.2s ease"
             }}
           >
             <i className="fa-solid fa-arrow-left"></i>
@@ -203,8 +263,8 @@ export default function EventDetailPage() {
               type="button"
               onClick={handleShare}
               style={{
-                background: "rgba(0, 0, 0, 0.05)",
-                border: "1px solid rgba(0, 0, 0, 0.1)",
+                background: "#FFFFFF",
+                border: `1.5px solid ${primaryColor}50`,
                 borderRadius: "20px",
                 padding: "6px 14px",
                 fontSize: "0.82rem",
@@ -216,7 +276,7 @@ export default function EventDetailPage() {
                 gap: "6px"
               }}
             >
-              <i className="fa-solid fa-share-nodes"></i>
+              <i className="fa-solid fa-share-nodes" style={{ color: primaryColor }}></i>
               <span>Compartir</span>
             </button>
 
@@ -224,8 +284,8 @@ export default function EventDetailPage() {
               type="button"
               onClick={() => setQrModalOpen(true)}
               style={{
-                background: "rgba(0, 0, 0, 0.05)",
-                border: "1px solid rgba(0, 0, 0, 0.1)",
+                background: "#FFFFFF",
+                border: `1.5px solid ${primaryColor}50`,
                 borderRadius: "20px",
                 padding: "6px 14px",
                 fontSize: "0.82rem",
@@ -237,235 +297,234 @@ export default function EventDetailPage() {
                 gap: "6px"
               }}
             >
-              <i className="fa-solid fa-qrcode"></i>
+              <i className="fa-solid fa-qrcode" style={{ color: primaryColor }}></i>
               <span>Código QR</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* ── CONTENIDO PRINCIPAL DEL EVENTO ── */}
-      <div style={{ maxWidth: "1000px", margin: "2rem auto", padding: "0 1.25rem" }}>
+      {/* ── CONTENIDO DEL EVENTO (ESTRUCTURA ABIERTA Y FLUIDA) ── */}
+      <div style={{ maxWidth: "1050px", margin: "2rem auto", padding: "0 1.25rem", display: "flex", flexDirection: "column", gap: "2rem" }}>
         
-        {/* TARJETA PRINCIPAL DEL EVENTO */}
-        <div style={{ background: "#FFFFFF", borderRadius: "24px", overflow: "hidden", border: `1.5px solid ${brandThemeCol}`, boxShadow: "0 12px 40px rgba(0,0,0,0.08)" }}>
-          
-          {/* FLYER COMPLETO / BANNER DESTACADO */}
-          {eventData.image && (
-            <div style={{ position: "relative", width: "100%", maxHeight: "520px", background: "#0a0a0a", display: "flex", justifyContent: "center", alignItems: "center" }}>
+        {/* 1. FLYER INDEPENDIENTE (HERO FLYER) */}
+        {eventData.image && (
+          <div style={{ position: "relative", width: "100%", maxHeight: "560px", background: "#000", borderRadius: "24px", overflow: "hidden", boxShadow: "0 16px 40px rgba(0,0,0,0.18)", display: "flex", justifyContent: "center", alignItems: "center" }}>
+            <img
+              src={eventData.image}
+              alt={eventData.title}
+              style={{ width: "100%", maxHeight: "560px", objectFit: "contain", display: "block" }}
+            />
+            <button
+              type="button"
+              onClick={() => setFullImgOpen(true)}
+              style={{
+                position: "absolute",
+                bottom: "16px",
+                right: "16px",
+                background: "rgba(0,0,0,0.85)",
+                color: primaryColor,
+                border: `1.5px solid ${primaryColor}80`,
+                padding: "6px 16px",
+                borderRadius: "20px",
+                fontSize: "0.78rem",
+                fontWeight: 800,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                backdropFilter: "blur(6px)"
+              }}
+            >
+              <i className="fa-solid fa-expand"></i>
+              <span>Ver Imagen Completa</span>
+            </button>
+          </div>
+        )}
+
+        {/* 2. ENCABEZADO: BADGES & TÍTULO PRINCIPAL */}
+        <div>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "1rem" }}>
+            <span
+              style={{
+                background: `${primaryColor}20`,
+                color: primaryColor,
+                border: `1.5px solid ${primaryColor}`,
+                padding: "4px 14px",
+                borderRadius: "14px",
+                fontSize: "0.8rem",
+                fontWeight: 800,
+                textTransform: "uppercase"
+              }}
+            >
+              {eventData.eventType || "Curso"}
+            </span>
+
+            <span
+              style={{
+                background: eventData.isOnline ? "rgba(59, 130, 246, 0.12)" : "rgba(16, 185, 129, 0.12)",
+                color: eventData.isOnline ? "#2563eb" : "#059669",
+                border: `1.5px solid ${eventData.isOnline ? "rgba(59, 130, 246, 0.4)" : "rgba(16, 185, 129, 0.4)"}`,
+                padding: "4px 14px",
+                borderRadius: "14px",
+                fontSize: "0.8rem",
+                fontWeight: 700
+              }}
+            >
+              <i className={`fa-solid ${eventData.isOnline ? "fa-laptop" : "fa-location-dot"}`} style={{ marginRight: "6px" }}></i>
+              {eventData.isOnline ? "Modalidad Online / Virtual" : "Modalidad Presencial"}
+            </span>
+          </div>
+
+          <h1 style={{ fontSize: "2.3rem", fontWeight: 900, lineHeight: 1.2, color: "#1C1C1E", margin: 0 }}>
+            {eventData.title}
+          </h1>
+        </div>
+
+        {/* 3. PANEL DE LA MARCA ORGANIZADORA */}
+        {brand && (
+          <div style={{ background: resolvedCardBg, border: resolvedCardBorder, padding: "1rem 1.5rem", borderRadius: "20px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem", boxShadow: "0 6px 20px rgba(0,0,0,0.04)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
               <img
-                src={eventData.image}
-                alt={eventData.title}
-                style={{ width: "100%", maxHeight: "520px", objectFit: "contain", display: "block" }}
+                src={brand.logo || "/dummy.png"}
+                alt={brand.name}
+                style={{ width: "48px", height: "48px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${primaryColor}` }}
+                onError={(e) => { e.target.src = "/dummy.png"; }}
               />
-              <button
-                type="button"
-                onClick={() => setFullImgOpen(true)}
-                style={{
-                  position: "absolute",
-                  bottom: "16px",
-                  right: "16px",
-                  background: "rgba(0,0,0,0.85)",
-                  color: brandThemeCol,
-                  border: `1px solid ${brandThemeCol}60`,
-                  padding: "6px 14px",
-                  borderRadius: "20px",
-                  fontSize: "0.78rem",
-                  fontWeight: 800,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px"
-                }}
-              >
-                <i className="fa-solid fa-expand"></i>
-                <span>Ver Imagen Completa</span>
-              </button>
-            </div>
-          )}
-
-          {/* DETALLES Y DATOS CLAVE */}
-          <div style={{ padding: "2rem 2.2rem" }}>
-            
-            {/* INSIGNIAS (TIPO + MODALIDAD) */}
-            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "1.2rem" }}>
-              <span
-                style={{
-                  background: `${brandThemeCol}18`,
-                  color: brandThemeCol,
-                  border: `1px solid ${brandThemeCol}50`,
-                  padding: "4px 14px",
-                  borderRadius: "14px",
-                  fontSize: "0.8rem",
-                  fontWeight: 800,
-                  textTransform: "uppercase"
-                }}
-              >
-                {eventData.eventType || "Curso"}
-              </span>
-
-              <span
-                style={{
-                  background: eventData.isOnline ? "rgba(59, 130, 246, 0.12)" : "rgba(16, 185, 129, 0.12)",
-                  color: eventData.isOnline ? "#2563eb" : "#059669",
-                  border: `1px solid ${eventData.isOnline ? "rgba(59, 130, 246, 0.3)" : "rgba(16, 185, 129, 0.3)"}`,
-                  padding: "4px 14px",
-                  borderRadius: "14px",
-                  fontSize: "0.8rem",
-                  fontWeight: 700
-                }}
-              >
-                <i className={`fa-solid ${eventData.isOnline ? "fa-laptop" : "fa-location-dot"}`} style={{ marginRight: "6px" }}></i>
-                {eventData.isOnline ? "Modalidad Online / Virtual" : "Modalidad Presencial"}
-              </span>
-            </div>
-
-            {/* TÍTULO PRINCIPAL */}
-            <h1 style={{ fontSize: "2.1rem", fontWeight: 900, lineHeight: 1.25, color: "#1C1C1E", marginBottom: "1.2rem" }}>
-              {eventData.title}
-            </h1>
-
-            {/* MARCA ORGANIZADORA */}
-            {brand && (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(0,0,0,0.025)", border: "1px solid rgba(0,0,0,0.06)", padding: "0.9rem 1.25rem", borderRadius: "16px", marginBottom: "1.8rem" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <img
-                    src={brand.logo || "/dummy.png"}
-                    alt={brand.name}
-                    style={{ width: "42px", height: "42px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${brandThemeCol}` }}
-                    onError={(e) => { e.target.src = "/dummy.png"; }}
-                  />
-                  <div>
-                    <div style={{ fontSize: "0.78rem", color: "#6B7280", fontWeight: 600 }}>Organizado por</div>
-                    <div style={{ fontSize: "1rem", fontWeight: 800, color: "#1C1C1E" }}>{brand.name}</div>
-                  </div>
-                </div>
-
-                <Link
-                  href={`/brands/${brand.slug || brand.id}`}
-                  style={{
-                    color: brandThemeCol,
-                    fontSize: "0.85rem",
-                    fontWeight: 800,
-                    textDecoration: "none",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px"
-                  }}
-                >
-                  <span>Ver Marca</span>
-                  <i className="fa-solid fa-chevron-right" style={{ fontSize: "0.75rem" }}></i>
-                </Link>
-              </div>
-            )}
-
-            {/* CAJAS DE INFORMACIÓN (FECHA, LUGAR Y PRECIO) */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "1.2rem", marginBottom: "2rem" }}>
-              
-              {/* FECHA Y HORA */}
-              <div style={{ background: "rgba(0,0,0,0.02)", padding: "1.2rem", borderRadius: "16px", border: "1px solid rgba(0,0,0,0.05)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: brandThemeCol, fontWeight: 800, fontSize: "0.82rem", marginBottom: "6px", textTransform: "uppercase" }}>
-                  <i className="fa-regular fa-clock" style={{ fontSize: "1rem" }}></i>
-                  <span>Fecha & Hora</span>
-                </div>
-                <div style={{ fontSize: "0.95rem", fontWeight: 800, color: "#1C1C1E" }}>
-                  {formatEventDate(eventData.eventDate)}
-                </div>
-              </div>
-
-              {/* UBICACIÓN / LINK */}
-              <div style={{ background: "rgba(0,0,0,0.02)", padding: "1.2rem", borderRadius: "16px", border: "1px solid rgba(0,0,0,0.05)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: brandThemeCol, fontWeight: 800, fontSize: "0.82rem", marginBottom: "6px", textTransform: "uppercase" }}>
-                  <i className={`fa-solid ${eventData.isOnline ? "fa-link" : "fa-map-pin"}`} style={{ fontSize: "1rem" }}></i>
-                  <span>{eventData.isOnline ? "Plataforma Virtual" : "Lugar del Evento"}</span>
-                </div>
-                <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#1C1C1E" }}>
-                  {eventData.isOnline ? (
-                    eventData.onlineLink ? (
-                      <a href={eventData.onlineLink} target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb", textDecoration: "underline" }}>
-                        Acceso Virtual Disponible
-                      </a>
-                    ) : "Enlace proporcionado tras inscripción"
-                  ) : (
-                    eventData.location || "Ubicación por confirmar"
-                  )}
-                </div>
-              </div>
-
-              {/* INVERSIÓN / ENTRADA */}
-              <div style={{ background: "rgba(0,0,0,0.02)", padding: "1.2rem", borderRadius: "16px", border: "1px solid rgba(0,0,0,0.05)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: brandThemeCol, fontWeight: 800, fontSize: "0.82rem", marginBottom: "6px", textTransform: "uppercase" }}>
-                  <i className="fa-solid fa-ticket" style={{ fontSize: "1rem" }}></i>
-                  <span>Inversión / Costo</span>
-                </div>
-                <div style={{ fontSize: "1.2rem", fontWeight: 900, color: eventData.price > 0 ? brandThemeCol : "#059669" }}>
-                  {eventData.price !== null && eventData.price !== undefined && eventData.price > 0 ? (
-                    `S/ ${eventData.price.toLocaleString("es-PE")}`
-                  ) : (
-                    "¡GRATIS!"
-                  )}
-                </div>
+              <div>
+                <div style={{ fontSize: "0.76rem", color: "#6B7280", fontWeight: 600, textTransform: "uppercase" }}>Organizado por</div>
+                <div style={{ fontSize: "1.1rem", fontWeight: 900, color: "#1C1C1E" }}>{brand.name}</div>
               </div>
             </div>
 
-            {/* DESCRIPCIÓN DEL EVENTO */}
-            {eventData.description && (
-              <div style={{ marginBottom: "2.5rem" }}>
-                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#1C1C1E", marginBottom: "0.8rem" }}>
-                  Descripción & Detalles del Evento
-                </h3>
-                <div style={{ fontSize: "0.95rem", lineHeight: 1.6, color: "#374151", whitespace: "pre-wrap" }}>
-                  {eventData.description}
-                </div>
-              </div>
-            )}
+            <Link
+              href={`/brands/${brand.slug || brand.id}`}
+              style={{
+                background: `linear-gradient(135deg, ${palette.c1}, ${palette.c2})`,
+                color: "#FFFFFF",
+                padding: "0.5rem 1.2rem",
+                borderRadius: "20px",
+                fontSize: "0.82rem",
+                fontWeight: 800,
+                textDecoration: "none",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                boxShadow: `0 4px 12px ${primaryColor}40`
+              }}
+            >
+              <span>Ver Perfil de Marca</span>
+              <i className="fa-solid fa-arrow-right"></i>
+            </Link>
+          </div>
+        )}
 
-            {/* BOTÓN DE ACCIÓN / CONTACTO EN INSCRIPCIÓN */}
-            <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "center", paddingTop: "1.5rem", borderTop: "1px solid rgba(0,0,0,0.08)" }}>
-              {waLink ? (
-                <a
-                  href={waLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    background: "#25D366",
-                    color: "#FFFFFF",
-                    textDecoration: "none",
-                    padding: "0.9rem 2rem",
-                    borderRadius: "14px",
-                    fontSize: "0.98rem",
-                    fontWeight: 800,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "10px",
-                    boxShadow: "0 6px 20px rgba(37, 211, 102, 0.35)",
-                    transition: "transform 0.2s ease"
-                  }}
-                >
-                  <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.3rem" }}></i>
-                  <span>Inscribirse o Consultar por WhatsApp</span>
-                </a>
+        {/* 4. CAJAS DE INFORMACIÓN CLAVE (FECHA, LUGAR E INVERSIÓN) */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.25rem" }}>
+          
+          {/* FECHA Y HORA */}
+          <div style={{ background: resolvedCardBg, border: resolvedCardBorder, padding: "1.3rem 1.5rem", borderRadius: "20px", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: primaryColor, fontWeight: 800, fontSize: "0.82rem", marginBottom: "8px", textTransform: "uppercase" }}>
+              <i className="fa-regular fa-clock" style={{ fontSize: "1.1rem" }}></i>
+              <span>Fecha & Hora</span>
+            </div>
+            <div style={{ fontSize: "1rem", fontWeight: 800, color: "#1C1C1E" }}>
+              {formatEventDate(eventData.eventDate)}
+            </div>
+          </div>
+
+          {/* UBICACIÓN / ENLACE */}
+          <div style={{ background: resolvedCardBg, border: resolvedCardBorder, padding: "1.3rem 1.5rem", borderRadius: "20px", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: primaryColor, fontWeight: 800, fontSize: "0.82rem", marginBottom: "8px", textTransform: "uppercase" }}>
+              <i className={`fa-solid ${eventData.isOnline ? "fa-link" : "fa-map-pin"}`} style={{ fontSize: "1.1rem" }}></i>
+              <span>{eventData.isOnline ? "Plataforma Virtual" : "Ubicación del Evento"}</span>
+            </div>
+            <div style={{ fontSize: "1rem", fontWeight: 700, color: "#1C1C1E" }}>
+              {eventData.isOnline ? (
+                eventData.onlineLink ? (
+                  <a href={eventData.onlineLink} target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb", textDecoration: "underline" }}>
+                    Enlace de acceso disponible
+                  </a>
+                ) : "Se enviará el enlace al confirmar inscripción"
               ) : (
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  style={{
-                    background: brandThemeCol,
-                    color: "#FFFFFF",
-                    border: "none",
-                    padding: "0.9rem 2rem",
-                    borderRadius: "14px",
-                    fontSize: "0.98rem",
-                    fontWeight: 800,
-                    cursor: "pointer"
-                  }}
-                >
-                  <i className="fa-solid fa-share-nodes" style={{ marginRight: 8 }}></i>
-                  Compartir Evento
-                </button>
+                eventData.location || "Ubicación por confirmar"
               )}
             </div>
           </div>
+
+          {/* INVERSIÓN / PRECIO */}
+          <div style={{ background: resolvedCardBg, border: resolvedCardBorder, padding: "1.3rem 1.5rem", borderRadius: "20px", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: primaryColor, fontWeight: 800, fontSize: "0.82rem", marginBottom: "8px", textTransform: "uppercase" }}>
+              <i className="fa-solid fa-ticket" style={{ fontSize: "1.1rem" }}></i>
+              <span>Inversión / Entrada</span>
+            </div>
+            <div style={{ fontSize: "1.25rem", fontWeight: 900, color: eventData.price > 0 ? primaryColor : "#059669" }}>
+              {eventData.price !== null && eventData.price !== undefined && eventData.price > 0 ? (
+                `S/ ${eventData.price.toLocaleString("es-PE")}`
+              ) : (
+                "¡GRATIS!"
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 5. DESCRIPCIÓN DEL EVENTO */}
+        {eventData.description && (
+          <div style={{ background: resolvedCardBg, border: resolvedCardBorder, padding: "1.8rem", borderRadius: "20px", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
+            <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#1C1C1E", marginBottom: "1rem" }}>
+              Descripción & Detalles del Evento
+            </h3>
+            <div style={{ fontSize: "0.98rem", lineHeight: 1.65, color: "#374151", whiteSpace: "pre-wrap" }}>
+              {eventData.description}
+            </div>
+          </div>
+        )}
+
+        {/* 6. BOTÓN DE INSCRIPCIÓN / CONTACTO WHATSAPP */}
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: "1rem" }}>
+          {waLink ? (
+            <a
+              href={waLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                background: "#25D366",
+                color: "#FFFFFF",
+                textDecoration: "none",
+                padding: "1rem 2.5rem",
+                borderRadius: "30px",
+                fontSize: "1.05rem",
+                fontWeight: 900,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "12px",
+                boxShadow: "0 8px 24px rgba(37, 211, 102, 0.4)",
+                transition: "transform 0.2s ease"
+              }}
+            >
+              <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.4rem" }}></i>
+              <span>Inscribirse o Consultar por WhatsApp</span>
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={handleShare}
+              style={{
+                background: `linear-gradient(135deg, ${palette.c1}, ${palette.c2})`,
+                color: "#FFFFFF",
+                border: "none",
+                padding: "1rem 2.5rem",
+                borderRadius: "30px",
+                fontSize: "1.05rem",
+                fontWeight: 900,
+                cursor: "pointer",
+                boxShadow: `0 8px 24px ${primaryColor}40`
+              }}
+            >
+              <i className="fa-solid fa-share-nodes" style={{ marginRight: 8 }}></i>
+              <span>Compartir Evento</span>
+            </button>
+          )}
         </div>
       </div>
 
