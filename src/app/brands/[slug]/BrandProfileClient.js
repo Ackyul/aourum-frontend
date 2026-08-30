@@ -1432,7 +1432,19 @@ export default function BrandProfileClient({ initialBrand }) {
           background: ${resolvedBgForScope || "#FAF9F0"} !important;
           border-bottom: 1px solid ${palette.c1}20 !important;
         }
+        .tab-label-mobile {
+          display: none !important;
+        }
+        .tab-label-desktop {
+          display: inline !important;
+        }
         @media (max-width: 768px) {
+          .tab-label-mobile {
+            display: inline !important;
+          }
+          .tab-label-desktop {
+            display: none !important;
+          }
           .brand-admin-actions-row {
             width: 100% !important;
             margin-top: 6px !important;
@@ -1444,11 +1456,22 @@ export default function BrandProfileClient({ initialBrand }) {
           }
           .aourum-tabs-container {
             width: 100% !important;
-            border-bottom: 1px solid rgba(0,0,0,0.08) !important;
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 4px !important;
+            overflow-x: visible !important;
+            padding-bottom: 0 !important;
           }
           .aourum-tab-btn {
-            padding: 0.55rem 0.85rem !important;
-            font-size: 0.82rem !important;
+            padding: 0.55rem 0.2rem !important;
+            font-size: 0.75rem !important;
+            text-align: center !important;
+            justify-content: center !important;
+            border-radius: 8px !important;
+            width: 100% !important;
+          }
+          .aourum-tab-btn i {
+            margin-right: 3px !important;
           }
         }
       `}</style>
@@ -1844,25 +1867,28 @@ export default function BrandProfileClient({ initialBrand }) {
               type="button"
               className={`aourum-tab-btn ${activeBrandTab === "vitrina" ? "active" : ""}`}
               onClick={() => setActiveBrandTab("vitrina")}
-              style={{ whiteSpace: "nowrap", flexShrink: 0 }}
             >
-              <i className="fa-solid fa-shop"></i> Vitrina Cultural
+              <i className="fa-solid fa-shop"></i>
+              <span className="tab-label-desktop"> Vitrina Cultural</span>
+              <span className="tab-label-mobile"> Vitrina</span>
             </button>
             <button
               type="button"
               className={`aourum-tab-btn ${activeBrandTab === "muro" ? "active" : ""}`}
               onClick={() => setActiveBrandTab("muro")}
-              style={{ whiteSpace: "nowrap", flexShrink: 0 }}
             >
-              <i className="fa-solid fa-rss"></i> Muro de Novedades
+              <i className="fa-solid fa-rss"></i>
+              <span className="tab-label-desktop"> Muro de Novedades</span>
+              <span className="tab-label-mobile"> Novedades</span>
             </button>
             <button
               type="button"
               className={`aourum-tab-btn ${activeBrandTab === "eventos" ? "active" : ""}`}
               onClick={() => setActiveBrandTab("eventos")}
-              style={{ whiteSpace: "nowrap", flexShrink: 0 }}
             >
-              <i className="fa-solid fa-graduation-cap"></i> Cursos & Eventos ({(events || []).filter(e => Number(e.brandId) === Number(brand?.id)).length})
+              <i className="fa-solid fa-graduation-cap"></i>
+              <span className="tab-label-desktop"> Cursos & Eventos ({(events || []).filter(e => Number(e.brandId) === Number(brand?.id)).length})</span>
+              <span className="tab-label-mobile"> Eventos ({(events || []).filter(e => Number(e.brandId) === Number(brand?.id)).length})</span>
             </button>
           </div>
 
