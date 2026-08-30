@@ -214,8 +214,20 @@ export default function EventDetailPage() {
         <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${design.fontFamily.replace(/ /g, "+")}:wght@400;600;700;800&display=swap`} />
       )}
 
+      <style>{`
+        header {
+          background: ${design.customBgColor || "#FAF9F0"} !important;
+          border-bottom: 1px solid ${primaryColor}20 !important;
+        }
+        footer, .site-footer {
+          background: ${design.customBgColor || "#FAF9F0"} !important;
+          border-top: 1px solid ${primaryColor}30 !important;
+          color: #4B5563 !important;
+        }
+      `}</style>
+
       {/* ── BARRA DE NAVEGACIÓN FLOTANTE ── */}
-      <div style={{ padding: "0.85rem 1.5rem", position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", background: "rgba(255, 255, 255, 0.8)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+      <div style={{ padding: "0.85rem 1.5rem", position: "sticky", top: 0, zIndex: 100, backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)", background: design.customBgColor ? `${design.customBgColor}dd` : "rgba(250, 249, 240, 0.88)", borderBottom: `1px solid ${primaryColor}20` }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
           <button
             type="button"

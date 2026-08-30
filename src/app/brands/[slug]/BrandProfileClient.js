@@ -1421,6 +1421,15 @@ export default function BrandProfileClient({ initialBrand }) {
         .brand-profile-theme-scope .profile-avatar-wrapper img {
           border-radius: ${logoBorderRadius} !important;
         }
+        header {
+          background: ${resolvedBgForScope || "#FAF9F0"} !important;
+          border-bottom: 1px solid ${palette.c1}20 !important;
+        }
+        footer, .site-footer {
+          background: ${resolvedBgForScope || "#FAF9F0"} !important;
+          border-top: 1px solid ${palette.c1}30 !important;
+          color: ${isStoreBgLight ? "#4B5563" : "#D4D4D8"} !important;
+        }
       `}</style>
 
       {/* Resplandor / Fondo Personalizado de Ambiente de Marca (Atrás de todo con zIndex -1) */}
