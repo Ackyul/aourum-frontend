@@ -1425,10 +1425,24 @@ export default function BrandProfileClient({ initialBrand }) {
           background: ${resolvedBgForScope || "#FAF9F0"} !important;
           border-bottom: 1px solid ${palette.c1}20 !important;
         }
-        footer, .site-footer {
-          background: ${resolvedBgForScope || "#FAF9F0"} !important;
-          border-top: 1px solid ${palette.c1}30 !important;
-          color: ${isStoreBgLight ? "#4B5563" : "#D4D4D8"} !important;
+        @media (max-width: 768px) {
+          .brand-admin-actions-row {
+            width: 100% !important;
+            margin-top: 6px !important;
+          }
+          .brand-admin-actions-row button {
+            flex: 1 1 45% !important;
+            font-size: 0.78rem !important;
+            padding: 0.6rem 0.8rem !important;
+          }
+          .aourum-tabs-container {
+            width: 100% !important;
+            border-bottom: 1px solid rgba(0,0,0,0.08) !important;
+          }
+          .aourum-tab-btn {
+            padding: 0.55rem 0.85rem !important;
+            font-size: 0.82rem !important;
+          }
         }
       `}</style>
 
@@ -1802,63 +1816,85 @@ export default function BrandProfileClient({ initialBrand }) {
           )}
         </div>
       </div>
-      <div className="aourum-tabs-container" style={{ marginTop: "2.5rem" }}>
-        <button
-          type="button"
-          className={`aourum-tab-btn ${activeBrandTab === "vitrina" ? "active" : ""}`}
-          onClick={() => setActiveBrandTab("vitrina")}
-        >
-          <i className="fa-solid fa-shop"></i> Vitrina Cultural
-        </button>
-        <button
-          type="button"
-          className={`aourum-tab-btn ${activeBrandTab === "muro" ? "active" : ""}`}
-          onClick={() => setActiveBrandTab("muro")}
-        >
-          <i className="fa-solid fa-rss"></i> Muro de Novedades
-        </button>
-        <button
-          type="button"
-          className={`aourum-tab-btn ${activeBrandTab === "eventos" ? "active" : ""}`}
-          onClick={() => setActiveBrandTab("eventos")}
-        >
-          <i className="fa-solid fa-graduation-cap"></i> Cursos & Eventos ({(events || []).filter(e => Number(e.brandId) === Number(brand?.id)).length})
-        </button>
-
-        {isCollaborator && (
-          <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
+      <div className="aourum-tabs-bar-wrapper" style={{ marginTop: "2.5rem", display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
+          
+          {/* Tabs horizontales con scroll táctil en celulares */}
+          <div 
+            className="aourum-tabs-container"
+            style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "8px", 
+              overflowX: "auto", 
+              WebkitOverflowScrolling: "touch",
+              paddingBottom: "4px",
+              maxWidth: "100%",
+              scrollbarWidth: "none"
+            }}
+          >
             <button
               type="button"
-              onClick={() => {
-                setEditingEventId(null);
-                setEvtTitle("");
-                setEvtDescription("");
-                setEvtType("curso");
-                setEvtDate("");
-                setEvtDuration("");
-                setEvtIsOnline(false);
-                setEvtOnlineLink("");
-                setEvtLocation("");
-                setEvtPrice("");
-                setEvtSpotsTotal("");
-                setEvtImage("");
-                setEventFormOpen(true);
-              }}
-              className="btn-gold"
-              style={{ padding: "0.45rem 1rem", fontSize: "0.82rem", borderRadius: "8px", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+              className={`aourum-tab-btn ${activeBrandTab === "vitrina" ? "active" : ""}`}
+              onClick={() => setActiveBrandTab("vitrina")}
+              style={{ whiteSpace: "nowrap", flexShrink: 0 }}
             >
-              <i className="fa-solid fa-calendar-plus"></i> Crear Evento / Curso
+              <i className="fa-solid fa-shop"></i> Vitrina Cultural
             </button>
             <button
               type="button"
-              onClick={() => openCreatePostModal({ brandId: brand?.id, authorType: "brand" })}
-              className="btn-outline-gold"
-              style={{ padding: "0.45rem 1rem", fontSize: "0.82rem", borderRadius: "8px", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+              className={`aourum-tab-btn ${activeBrandTab === "muro" ? "active" : ""}`}
+              onClick={() => setActiveBrandTab("muro")}
+              style={{ whiteSpace: "nowrap", flexShrink: 0 }}
             >
-              <i className="fa-solid fa-pen-to-square"></i> Publicar Novedad
+              <i className="fa-solid fa-rss"></i> Muro de Novedades
+            </button>
+            <button
+              type="button"
+              className={`aourum-tab-btn ${activeBrandTab === "eventos" ? "active" : ""}`}
+              onClick={() => setActiveBrandTab("eventos")}
+              style={{ whiteSpace: "nowrap", flexShrink: 0 }}
+            >
+              <i className="fa-solid fa-graduation-cap"></i> Cursos & Eventos ({(events || []).filter(e => Number(e.brandId) === Number(brand?.id)).length})
             </button>
           </div>
-        )}
+
+          {/* Botones de acción para administradores (flexibles y accesibles en celular) */}
+          {isCollaborator && (
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }} className="brand-admin-actions-row">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingEventId(null);
+                  setEvtTitle("");
+                  setEvtDescription("");
+                  setEvtType("curso");
+                  setEvtDate("");
+                  setEvtDuration("");
+                  setEvtIsOnline(false);
+                  setEvtOnlineLink("");
+                  setEvtLocation("");
+                  setEvtPrice("");
+                  setEvtSpotsTotal("");
+                  setEvtImage("");
+                  setEventFormOpen(true);
+                }}
+                className="btn-gold"
+                style={{ padding: "0.5rem 1rem", fontSize: "0.82rem", borderRadius: "8px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", flex: "1 1 auto", whiteSpace: "nowrap" }}
+              >
+                <i className="fa-solid fa-calendar-plus"></i> Crear Evento / Curso
+              </button>
+              <button
+                type="button"
+                onClick={() => openCreatePostModal({ brandId: brand?.id, authorType: "brand" })}
+                className="btn-outline-gold"
+                style={{ padding: "0.5rem 1rem", fontSize: "0.82rem", borderRadius: "8px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", flex: "1 1 auto", whiteSpace: "nowrap" }}
+              >
+                <i className="fa-solid fa-pen-to-square"></i> Publicar Novedad
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {activeBrandTab === "eventos" ? (
