@@ -69,6 +69,7 @@ function AppLayoutShell({ children }) {
     regMembers, setRegMembers,
     regLogo, setRegLogo,
     regLogoPreview, setRegLogoPreview,
+    regCatalogDisplayMode, setRegCatalogDisplayMode,
     editProfileOpen, setEditProfileOpen,
     editProfileType, setEditProfileType,
     editProfileId, setEditProfileId,
@@ -899,30 +900,45 @@ function AppLayoutShell({ children }) {
               </div>
 
               {regType === "brand" && (
-                <div className="grid-2-to-1">
-                  <div className="form-group">
-                    <label>Dueño / Fundador *</label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      placeholder="Ej: Sofía López" 
-                      value={regOwner} 
-                      onChange={(e) => setRegOwner(e.target.value)} 
-                      required={regType === "brand"}
-                    />
+                <>
+                  <div className="grid-2-to-1">
+                    <div className="form-group">
+                      <label>Dueño / Fundador *</label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="Ej: Sofía López" 
+                        value={regOwner} 
+                        onChange={(e) => setRegOwner(e.target.value)} 
+                        required={regType === "brand"}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Rubro / Categoría *</label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="Ej: Orfebrería, Moda, Gastronomía" 
+                        value={regCategory} 
+                        onChange={(e) => setRegCategory(e.target.value)} 
+                        required={regType === "brand"}
+                      />
+                    </div>
                   </div>
-                  <div className="form-group">
-                    <label>Rubro / Categoría *</label>
-                    <input 
-                      type="text" 
-                      className="form-control" 
-                      placeholder="Ej: Orfebrería, Moda" 
-                      value={regCategory} 
-                      onChange={(e) => setRegCategory(e.target.value)} 
-                      required={regType === "brand"}
-                    />
+                  <div className="form-group" style={{ marginTop: "10px" }}>
+                    <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>Formato de Exhibición (Modo de Carta & Catálogo)</label>
+                    <select
+                      className="form-control"
+                      value={regCatalogDisplayMode || "auto"}
+                      onChange={(e) => setRegCatalogDisplayMode(e.target.value)}
+                      style={{ fontSize: "0.85rem" }}
+                    >
+                      <option value="auto">Automático (Según el rubro de la marca)</option>
+                      <option value="grid">🛍️ Catálogo Estándar de Productos (Vitrina Virtual)</option>
+                      <option value="menu">🍽️ Menú Virtual / Carta Gastronómica Digital</option>
+                    </select>
                   </div>
-                </div>
+                </>
               )}
 
               {regType === "organizer" && (

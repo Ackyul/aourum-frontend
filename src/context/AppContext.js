@@ -157,6 +157,7 @@ export function AppContextProvider({ children }) {
   const [regMembers, setRegMembers] = useState("");
   const [regLogo, setRegLogo] = useState("");
   const [regLogoPreview, setRegLogoPreview] = useState("");
+  const [regCatalogDisplayMode, setRegCatalogDisplayMode] = useState("auto");
   const [uploadingReg, setUploadingReg] = useState(false);
 
   // Profile Customization state
@@ -880,6 +881,7 @@ export function AppContextProvider({ children }) {
         category: regCategory || "General", 
         description: regDescription, 
         logo: regLogo || undefined,
+        catalogDisplayMode: regCatalogDisplayMode || "auto",
         personId: activeRole === "person" ? Number(activePersonId) : undefined
       };
     } else if (regType === "organizer") {
@@ -1367,6 +1369,7 @@ export function AppContextProvider({ children }) {
         slug: editSlug, 
         whatsappNumber: editWhatsappNumber,
         themeColor: editThemeColor || '',
+        catalogDisplayMode: editBrandDesign?.catalogDisplayMode || "auto",
         brandDesign: editBrandDesign || {},
         city: editCity
       };
@@ -1602,6 +1605,7 @@ export function AppContextProvider({ children }) {
         regMembers, setRegMembers,
         regLogo, setRegLogo,
         regLogoPreview, setRegLogoPreview,
+        regCatalogDisplayMode, setRegCatalogDisplayMode,
         uploadingReg, setUploadingReg,
         editProfileOpen, setEditProfileOpen,
         activeEditTab, setActiveEditTab,

@@ -1197,6 +1197,7 @@ function BrandProductCard({ prod }) {
         customBgColor: activeDesign.customBgColor || parsed.customBgColor || "",
         bgStyle: activeDesign.bgStyle || parsed.bgStyle || "solid",
         bgImage: activeDesign.bgImage || parsed.bgImage || "",
+        catalogDisplayMode: activeDesign.catalogDisplayMode || parsed.catalogDisplayMode || "auto",
         ...activeDesign
       });
     }
@@ -1253,6 +1254,7 @@ function BrandProductCard({ prod }) {
         bannerOverlay: dbDesign.bannerOverlay || parsed.bannerOverlay || "none",
         cardStyle: dbDesign.cardStyle || parsed.cardStyle || "glass",
         fontFamily: dbDesign.fontFamily || parsed.fontFamily || "Inter",
+        catalogDisplayMode: dbDesign.catalogDisplayMode || parsed.catalogDisplayMode || "auto",
         glowIntensity: dbDesign.glowIntensity !== undefined ? dbDesign.glowIntensity : (parsed.glowIntensity !== undefined ? parsed.glowIntensity : 70),
         animations: dbDesign.animations !== false,
         ...dbDesign
