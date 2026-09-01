@@ -3,6 +3,7 @@
 import { useMemo, useEffect } from "react";
 import { useApp } from "../../../context/AppContext";
 import { useRouter, useParams } from "next/navigation";
+import { isVirtualMenuBrand } from "@/utils/brandUtils";
 
 // Helper for URL slug generation
 const slugify = (text) => {
@@ -290,6 +291,7 @@ export default function ProductDetailPage() {
 
   const renderSuggestedCard = (rp) => {
     const rpBrand = brands.find((b) => b.id === rp.brandId);
+    const isVirtualMenu = isVirtualMenuBrand(rpBrand);
     const rpDesign = rpBrand?.brandDesign || {};
     const rpParsedBrand = rpBrand ? parseDescription(rpBrand.description) : null;
     const rpPalette = (rpBrand && getBrandPalette)
@@ -385,7 +387,7 @@ export default function ProductDetailPage() {
     } else if (rpCardStyle === "bordered") {
       cardStyleObj.border = `2px solid ${rpPalette.c1}`;
     } else {
-      cardStyleObj.border = isCardDark ? "1px solid rgba(255,255,255,0.15)" : (isStoreBgLight ? "1px solid rgba(0, 0, 0, 0.12)" : `1px solid ${rpPalette.c1}30`);
+      cardStyleObj.border = isVirtualMenu ? "1.5px solid rgba(16, 185, 129, 0.4)" : (isCardDark ? "1px solid rgba(255,255,255,0.15)" : (isStoreBgLight ? "1px solid rgba(0, 0, 0, 0.12)" : `1px solid ${rpPalette.c1}30`));
     }
 
     const views = getProductViews(rp);
@@ -443,7 +445,11 @@ export default function ProductDetailPage() {
 
           {/* Badges on Image top-left */}
           <div style={{ position: "absolute", top: "10px", left: "10px", display: "flex", flexDirection: "column", gap: "6px", zIndex: 3 }}>
-            {isPopular ? (
+            {isVirtualMenu ? (
+              <span style={{ background: "linear-gradient(135deg, #10B981, #059669)", color: "#FFFFFF", fontSize: "0.62rem", padding: "3px 8px", borderRadius: "12px", fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", boxShadow: "0 2px 6px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", gap: "3px" }}>
+                <i className="fa-solid fa-utensils" style={{ fontSize: "0.65rem" }}></i> Carta Virtual
+              </span>
+            ) : isPopular ? (
               <span style={{ background: "linear-gradient(135deg, #ef4444, #f97316)", color: "#FFFFFF", fontSize: "0.62rem", padding: "3px 8px", borderRadius: "12px", fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", boxShadow: "0 2px 6px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", gap: "3px" }}>
                 <i className="fa-solid fa-fire" style={{ fontSize: "0.7rem" }}></i> Popular
               </span>
@@ -457,15 +463,22 @@ export default function ProductDetailPage() {
 
         {/* Bottom Details Body */}
         <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-          <span style={{ 
-            fontSize: "0.72rem", 
-            color: categoryTextColor, 
-            letterSpacing: "0.05em", 
-            textTransform: "uppercase", 
-            fontWeight: 800
-          }}>
-            {rp.category || rpBrand?.rubro_general || "General"}
-          </span>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "6px" }}>
+            <span style={{ 
+              fontSize: "0.72rem", 
+              color: categoryTextColor, 
+              letterSpacing: "0.05em", 
+              textTransform: "uppercase", 
+              fontWeight: 800
+            }}>
+              {rp.category || rpBrand?.rubro_general || "General"}
+            </span>
+            {isVirtualMenu && (
+              <span style={{ fontSize: "0.65rem", fontWeight: 800, color: "#10B981", background: "rgba(16, 185, 129, 0.12)", padding: "1px 6px", borderRadius: "6px" }}>
+                🍽️ Gastronomía
+              </span>
+            )}
+          </div>
 
           <h3 style={{ 
             fontSize: "1.02rem", 
@@ -523,10 +536,10 @@ export default function ProductDetailPage() {
                 fontSize: "0.65rem",
                 fontWeight: 700,
                 textTransform: "uppercase",
-                color: rp.type === "service" ? (isCardDark ? "#93c5fd" : "#1e3a8a") : (isCardDark ? "#fde68a" : "#78350f"),
+                color: isVirtualMenu ? "#059669" : (rp.type === "service" ? (isCardDark ? "#93c5fd" : "#1e3a8a") : (isCardDark ? "#fde68a" : "#78350f")),
                 letterSpacing: "0.03em"
               }}>
-                {rp.type === "service" ? "Servicio" : "Producto"}
+                {isVirtualMenu ? "Platillo" : (rp.type === "service" ? "Servicio" : "Producto")}
               </span>
               <span className="card-stock-label" style={{
                 fontSize: "0.65rem",
@@ -535,10 +548,10 @@ export default function ProductDetailPage() {
                 borderRadius: "8px",
                 textTransform: "uppercase",
                 letterSpacing: "0.02em",
-                background: rp.type === "service" ? "#dbeafe" : (rp.stock == null || rp.stock > 0) ? "#dcfce7" : "#fee2e2",
-                color: rp.type === "service" ? "#1e40af" : (rp.stock == null || rp.stock > 0) ? "#15803d" : "#b91c1c"
+                background: isVirtualMenu ? "#d1fae5" : (rp.type === "service" ? "#dbeafe" : (rp.stock == null || rp.stock > 0) ? "#dcfce7" : "#fee2e2"),
+                color: isVirtualMenu ? "#065f46" : (rp.type === "service" ? "#1e40af" : (rp.stock == null || rp.stock > 0) ? "#15803d" : "#b91c1c")
               }}>
-                {rp.type === "service" ? "Agenda" : (rp.stock == null || rp.stock > 0) ? "Stock" : "Agotado"}
+                {isVirtualMenu ? "En Carta" : (rp.type === "service" ? "Agenda" : (rp.stock == null || rp.stock > 0) ? "Stock" : "Agotado")}
               </span>
             </div>
           </div>
@@ -692,183 +705,198 @@ export default function ProductDetailPage() {
 
         {/* Detalles e Información del Producto */}
         <div>
-          <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "0.5rem" }}>
-            <span style={{
-              background: `${brandThemeColor}15`,
-              border: `1px solid ${brandThemeColor}35`,
-              color: brandThemeColor,
-              padding: "0.25rem 0.6rem",
-              borderRadius: "6px",
-              fontSize: "0.72rem",
-              fontWeight: 700,
-              textTransform: "uppercase"
-            }}>
-              {prod.category || "General"}
-            </span>
-            <span style={{
-              background: prod.type === "service" ? "#2563eb" : "#d97706",
-              color: "#FFFFFF",
-              padding: "0.25rem 0.6rem",
-              borderRadius: "6px",
-              fontSize: "0.72rem",
-              fontWeight: 700,
-              textTransform: "uppercase"
-            }}>
-              {prod.type === "service" ? "📅 Servicio" : "🛍️ Producto"}
-            </span>
-          </div>
-
-          <h1 style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--text-primary)", lineHeight: 1.25, letterSpacing: "-0.015em", marginBottom: "0.6rem" }}>
-            {prod.name}
-          </h1>
-
-          {/* Insignia y Enlace a la Marca Personalizada */}
-          <div 
-            style={{ 
-              display: "inline-flex", 
-              alignItems: "center", 
-              gap: "10px", 
-              marginBottom: "1.5rem",
-              padding: "0.5rem 0.9rem",
-              borderRadius: "10px",
-              background: `${brandThemeColor}10`,
-              border: `1px solid ${brandThemeColor}28`,
-              cursor: "pointer",
-              transition: "transform 0.2s ease"
-            }}
-            onClick={() => router.push(`/brands/${brand?.slug || prod.brandId}`)}
-          >
-            {brand?.logo && (
-              <img 
-                src={brand.logo} 
-                alt={brand.name} 
-                style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `1.5px solid ${brandThemeColor}` }} 
-              />
-            )}
-            <span style={{ fontSize: "0.85rem", color: "var(--text-primary)" }}>
-              Elaborado y vendido por: <strong style={{ color: brandThemeColor }}>{brand ? brand.name : "Marca Local"}</strong>
-            </span>
-            <i className="fa-solid fa-chevron-right" style={{ fontSize: "0.75rem", color: brandThemeColor, marginLeft: "4px" }}></i>
-          </div>
-
-          {/* Sección de Precio */}
-          <div style={{ background: "var(--bg-input)", padding: "1.2rem 1.5rem", borderRadius: "12px", border: "1px solid var(--border-color)", marginBottom: "1.8rem" }}>
-            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "block", marginBottom: "2px", fontWeight: 500 }}>
-              {prod.priceAourum ? "Oferta Especial AOURUM" : "Precio Exclusivo"}
-            </span>
-            <div style={{ display: "flex", alignItems: "baseline", gap: "12px", flexWrap: "wrap" }}>
-              {prod.priceAourum ? (
-                <>
-                  <span style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--text-gold)", letterSpacing: "-0.02em" }}>
-                    S/ {formatPrice(prod.priceAourum)}
+          {(() => {
+            const isVirtualMenu = isVirtualMenuBrand(brand);
+            return (
+              <>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "0.5rem", flexWrap: "wrap" }}>
+                  <span style={{
+                    background: `${brandThemeColor}15`,
+                    border: `1px solid ${brandThemeColor}35`,
+                    color: brandThemeColor,
+                    padding: "0.25rem 0.6rem",
+                    borderRadius: "6px",
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    textTransform: "uppercase"
+                  }}>
+                    {prod.category || "General"}
                   </span>
-                  <span style={{ fontSize: "1.3rem", color: "var(--text-muted)", textDecoration: "line-through", fontWeight: 500 }}>
-                    S/ {formatPrice(prod.price)}
+                  <span style={{
+                    background: isVirtualMenu ? "#10B981" : (prod.type === "service" ? "#2563eb" : "#d97706"),
+                    color: "#FFFFFF",
+                    padding: "0.25rem 0.6rem",
+                    borderRadius: "6px",
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    textTransform: "uppercase"
+                  }}>
+                    {isVirtualMenu ? "🍽️ Platillo / Menú Virtual" : (prod.type === "service" ? "📅 Servicio" : "🛍️ Producto")}
                   </span>
-                  <span style={{ fontSize: "0.85rem", color: "var(--text-gold)", fontWeight: 700 }}>
-                    <i className="fa-solid fa-gift"></i> Precio Especial
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
-                    S/ {formatPrice(prod.price)}
-                  </span>
-                  <span style={{ fontSize: "0.85rem", color: "var(--text-gold)", fontWeight: 700 }}>
-                    <i className="fa-solid fa-shield-halved"></i> Precio Justo Local
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
+                </div>
 
-          {/* Tabla de Especificaciones */}
-          <div style={{ marginBottom: "2rem" }}>
-            <h3 style={{ fontSize: "1.05rem", fontWeight: 700, borderBottom: "1.5px solid var(--border-color)", paddingBottom: "0.4rem", marginBottom: "0.8rem", color: "var(--text-primary)" }}>
-              <i className="fa-solid fa-list-check" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Especificaciones Técnicas
-            </h3>
-            <table className="specs-table">
-              <tbody>
-                <tr>
-                  <td className="label">Rubro o Categoría</td>
-                  <td className="value">{prod.category || "General"}</td>
-                </tr>
-                <tr>
-                  <td className="label">Tipo de Catálogo</td>
-                  <td className="value">{prod.type === "service" ? "Servicio / Experiencia" : "Producto Físico"}</td>
-                </tr>
-                
-                {prod.type === "service" && (
-                  <tr>
-                    <td className="label">Disponibilidad</td>
-                    <td className="value" style={{ color: "#2563eb", fontWeight: 700 }}>Por Agenda / Cita</td>
-                  </tr>
-                )}
-                {prod.type !== "service" && (
-                  <tr>
-                    <td className="label">Disponibilidad</td>
-                    <td className="value" style={{ color: (prod.stock == null || prod.stock > 0) ? "var(--text-primary)" : "#ef4444", fontWeight: 700 }}>
-                      {prod.stock == null ? "En Stock (Disponibilidad continua)" : prod.stock > 0 ? `En Stock (${prod.stock} unidades)` : "Agotado Temporalmente"}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                <h1 style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--text-primary)", lineHeight: 1.25, letterSpacing: "-0.015em", marginBottom: "0.6rem" }}>
+                  {prod.name}
+                </h1>
 
-          {/* Aviso informativo */}
-          <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: "12px", padding: "1.2rem", marginBottom: "1.8rem" }}>
-            <p style={{ fontSize: "0.85rem", color: "var(--gold-dark)", lineHeight: 1.5, display: "flex", gap: "8px", margin: 0 }}>
-              <i className="fa-solid fa-circle-info" style={{ marginTop: "3px", fontSize: "0.95rem" }}></i>
-              <span>Este es un catálogo virtual de economía circular y cultural. No realizamos transacciones de pago directo. Para comprar o agendar, coordina directamente con el productor.</span>
-            </p>
-          </div>
-
-          {/* Botones de Acción */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {brand?.whatsappNumber ? (
-              activeRole ? (
-                <a 
-                  href={whatsappLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-gold"
-                  style={{ width: "100%", textDecoration: "none", fontSize: "0.95rem", padding: "0.8rem", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
-                >
-                  <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.2rem" }}></i> Coordinar Adquisición vía WhatsApp
-                </a>
-              ) : (
-                <button 
-                  onClick={() => {
-                    triggerNotification(false, "Debes iniciar sesión para coordinar la adquisición.");
-                    setShowLoginModal(true);
+                {/* Insignia y Enlace a la Marca Personalizada */}
+                <div 
+                  style={{ 
+                    display: "inline-flex", 
+                    alignItems: "center", 
+                    gap: "10px", 
+                    marginBottom: "1.5rem",
+                    padding: "0.5rem 0.9rem",
+                    borderRadius: "10px",
+                    background: `${brandThemeColor}10`,
+                    border: `1px solid ${brandThemeColor}28`,
+                    cursor: "pointer",
+                    transition: "transform 0.2s ease"
                   }}
-                  className="btn-gold"
-                  style={{ width: "100%", fontSize: "0.95rem", cursor: "pointer", padding: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+                  onClick={() => router.push(`/brands/${brand?.slug || prod.brandId}`)}
                 >
-                  <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.2rem" }}></i> Coordinar Adquisición vía WhatsApp
-                </button>
-              )
-            ) : (
-              <div style={{ background: "rgba(212,175,55,0.06)", border: "1px dashed rgba(212,175,55,0.4)", borderRadius: "10px", padding: "1rem", textAlign: "center" }}>
-                <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: "0 0 6px 0" }}>
-                  <i className="fa-brands fa-whatsapp" style={{ color: "#25d366", marginRight: 6 }}></i>
-                  <strong>WhatsApp de la marca:</strong>
-                </p>
-                <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: 0 }}>
-                  Esta marca aún no ha configurado su número de contacto.
-                  <br />Visita su galería para más información.
-                </p>
-              </div>
-            )}
-            <button 
-              onClick={() => router.push(`/brands/${brand?.slug || prod.brandId}`)}
-              className="btn-outline-gold"
-              style={{ width: "100%", fontSize: "0.95rem", padding: "0.8rem" }}
-            >
-              <i className="fa-solid fa-store" style={{ marginRight: 6 }}></i> Visitar Galería de la Marca
-            </button>
-          </div>
+                  {brand?.logo && (
+                    <img 
+                      src={brand.logo} 
+                      alt={brand.name} 
+                      style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `1.5px solid ${brandThemeColor}` }} 
+                    />
+                  )}
+                  <span style={{ fontSize: "0.85rem", color: "var(--text-primary)" }}>
+                    Elaborado y vendido por: <strong style={{ color: brandThemeColor }}>{brand ? brand.name : "Marca Local"}</strong>
+                  </span>
+                  <i className="fa-solid fa-chevron-right" style={{ fontSize: "0.75rem", color: brandThemeColor, marginLeft: "4px" }}></i>
+                </div>
+
+                {/* Sección de Precio */}
+                <div style={{ background: "var(--bg-input)", padding: "1.2rem 1.5rem", borderRadius: "12px", border: "1px solid var(--border-color)", marginBottom: "1.8rem" }}>
+                  <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "block", marginBottom: "2px", fontWeight: 500 }}>
+                    {prod.priceAourum ? "Oferta Especial AOURUM" : "Precio Exclusivo"}
+                  </span>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: "12px", flexWrap: "wrap" }}>
+                    {prod.priceAourum ? (
+                      <>
+                        <span style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--text-gold)", letterSpacing: "-0.02em" }}>
+                          S/ {formatPrice(prod.priceAourum)}
+                        </span>
+                        <span style={{ fontSize: "1.3rem", color: "var(--text-muted)", textDecoration: "line-through", fontWeight: 500 }}>
+                          S/ {formatPrice(prod.price)}
+                        </span>
+                        <span style={{ fontSize: "0.85rem", color: "var(--text-gold)", fontWeight: 700 }}>
+                          <i className="fa-solid fa-gift"></i> Precio Especial
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
+                          S/ {formatPrice(prod.price)}
+                        </span>
+                        <span style={{ fontSize: "0.85rem", color: "var(--text-gold)", fontWeight: 700 }}>
+                          <i className="fa-solid fa-shield-halved"></i> Precio Justo Local
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Tabla de Especificaciones */}
+                <div style={{ marginBottom: "2rem" }}>
+                  <h3 style={{ fontSize: "1.05rem", fontWeight: 700, borderBottom: "1.5px solid var(--border-color)", paddingBottom: "0.4rem", marginBottom: "0.8rem", color: "var(--text-primary)" }}>
+                    <i className="fa-solid fa-list-check" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Especificaciones Técnicas
+                  </h3>
+                  <table className="specs-table">
+                    <tbody>
+                      <tr>
+                        <td className="label">Rubro o Categoría</td>
+                        <td className="value">{prod.category || "General"}</td>
+                      </tr>
+                      <tr>
+                        <td className="label">Tipo de Catálogo</td>
+                        <td className="value">{isVirtualMenu ? "Platillo Gastronómico (Carta Virtual)" : (prod.type === "service" ? "Servicio / Experiencia" : "Producto Físico")}</td>
+                      </tr>
+                      
+                      {isVirtualMenu ? (
+                        <tr>
+                          <td className="label">Disponibilidad</td>
+                          <td className="value" style={{ color: "#10B981", fontWeight: 700 }}>En Carta / Preparación Fresca</td>
+                        </tr>
+                      ) : prod.type === "service" ? (
+                        <tr>
+                          <td className="label">Disponibilidad</td>
+                          <td className="value" style={{ color: "#2563eb", fontWeight: 700 }}>Por Agenda / Cita</td>
+                        </tr>
+                      ) : (
+                        <tr>
+                          <td className="label">Disponibilidad</td>
+                          <td className="value" style={{ color: (prod.stock == null || prod.stock > 0) ? "var(--text-primary)" : "#ef4444", fontWeight: 700 }}>
+                            {prod.stock == null ? "En Stock (Disponibilidad continua)" : prod.stock > 0 ? `En Stock (${prod.stock} unidades)` : "Agotado Temporalmente"}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Aviso informativo */}
+                <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: "12px", padding: "1.2rem", marginBottom: "1.8rem" }}>
+                  <p style={{ fontSize: "0.85rem", color: "var(--gold-dark)", lineHeight: 1.5, display: "flex", gap: "8px", margin: 0 }}>
+                    <i className="fa-solid fa-circle-info" style={{ marginTop: "3px", fontSize: "0.95rem" }}></i>
+                    <span>
+                      {isVirtualMenu
+                        ? "Este es un plato/ítem de la carta virtual gastronómica. No realizamos transacciones de pago directo. Para realizar tu pedido o consultar, coordina directamente con el restaurante o productor."
+                        : "Este es un catálogo virtual de economía circular y cultural. No realizamos transacciones de pago directo. Para comprar o agendar, coordina directamente con el productor."}
+                    </span>
+                  </p>
+                </div>
+
+                {/* Botones de Acción */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {brand?.whatsappNumber ? (
+                    activeRole ? (
+                      <a 
+                        href={whatsappLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-gold"
+                        style={{ width: "100%", textDecoration: "none", fontSize: "0.95rem", padding: "0.8rem", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+                      >
+                        <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.2rem" }}></i> {isVirtualMenu ? "Coordinar Pedido de Platillo vía WhatsApp" : "Coordinar Adquisición vía WhatsApp"}
+                      </a>
+                    ) : (
+                      <button 
+                        onClick={() => {
+                          triggerNotification(false, isVirtualMenu ? "Debes iniciar sesión para pedir este platillo." : "Debes iniciar sesión para coordinar la adquisición.");
+                          setShowLoginModal(true);
+                        }}
+                        className="btn-gold"
+                        style={{ width: "100%", fontSize: "0.95rem", cursor: "pointer", padding: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+                      >
+                        <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.2rem" }}></i> {isVirtualMenu ? "Coordinar Pedido de Platillo vía WhatsApp" : "Coordinar Adquisición vía WhatsApp"}
+                      </button>
+                    )
+                  ) : (
+                    <div style={{ background: "rgba(212,175,55,0.06)", border: "1px dashed rgba(212,175,55,0.4)", borderRadius: "10px", padding: "1rem", textAlign: "center" }}>
+                      <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: "0 0 6px 0" }}>
+                        <i className="fa-brands fa-whatsapp" style={{ color: "#25d366", marginRight: 6 }}></i>
+                        <strong>WhatsApp de la marca:</strong>
+                      </p>
+                      <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: 0 }}>
+                        Esta marca aún no ha configurado su número de contacto.
+                        <br />Visita su galería para más información.
+                      </p>
+                    </div>
+                  )}
+                  <button 
+                    onClick={() => router.push(`/brands/${brand?.slug || prod.brandId}`)}
+                    className="btn-outline-gold"
+                    style={{ width: "100%", fontSize: "0.95rem", padding: "0.8rem" }}
+                  >
+                    <i className="fa-solid fa-store" style={{ marginRight: 6 }}></i> Visitar Galería de la Marca
+                  </button>
+                </div>
+              </>
+            );
+          })()}
         </div>
       </div>
 
