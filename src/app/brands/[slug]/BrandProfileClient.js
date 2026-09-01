@@ -851,7 +851,6 @@ export default function BrandProfileClient({ initialBrand }) {
 }
 
 function BrandProductCard({ prod }) {
-    const isVirtualMenu = isVirtualMenuBrand(brand);
     const rawCardBg = (design.cardBgColor && design.cardBgColor !== "transparent") ? design.cardBgColor : null;
     const rawCardText = design.cardTextColor || "auto";
     const rawCardBorder = design.cardBorderColor || "auto";
@@ -948,7 +947,7 @@ function BrandProductCard({ prod }) {
     } else if (cardStyle === "bordered") {
       cardStyleObj.border = `2px solid ${palette.c1}`;
     } else {
-      cardStyleObj.border = isVirtualMenu ? "1.5px solid rgba(16, 185, 129, 0.4)" : (isCardDark ? "1px solid rgba(255,255,255,0.15)" : `1px solid ${palette.c1}30`);
+      cardStyleObj.border = isCardDark ? "1px solid rgba(255,255,255,0.15)" : `1px solid ${palette.c1}30`;
     }
 
     const views = getProductViews(prod);
@@ -990,11 +989,7 @@ function BrandProductCard({ prod }) {
 
           {/* Badges on Image top-left */}
           <div style={{ position: "absolute", top: "10px", left: "10px", display: "flex", flexDirection: "column", gap: "6px", zIndex: 3 }}>
-            {isVirtualMenu ? (
-              <span style={{ background: "linear-gradient(135deg, #10B981, #059669)", color: "#FFFFFF", fontSize: "0.62rem", padding: "3px 8px", borderRadius: "12px", fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", boxShadow: "0 2px 6px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", gap: "3px" }}>
-                <i className="fa-solid fa-utensils" style={{ fontSize: "0.65rem" }}></i> Carta Virtual
-              </span>
-            ) : isPopular ? (
+            {isPopular ? (
               <span style={{ background: "linear-gradient(135deg, #ef4444, #f97316)", color: "#FFFFFF", fontSize: "0.62rem", padding: "3px 8px", borderRadius: "12px", fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", boxShadow: "0 2px 6px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", gap: "3px" }}>
                 <i className="fa-solid fa-fire" style={{ fontSize: "0.7rem" }}></i> Popular
               </span>
@@ -1008,22 +1003,15 @@ function BrandProductCard({ prod }) {
 
         {/* Bottom Details Body */}
         <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "6px" }}>
-            <span style={{ 
-              fontSize: "0.72rem", 
-              color: categoryTextColor, 
-              letterSpacing: "0.05em", 
-              textTransform: "uppercase", 
-              fontWeight: 800
-            }}>
-              {prod.category || brand?.rubro_general || "General"}
-            </span>
-            {isVirtualMenu && (
-              <span style={{ fontSize: "0.65rem", fontWeight: 800, color: "#10B981", background: "rgba(16, 185, 129, 0.12)", padding: "1px 6px", borderRadius: "6px" }}>
-                🍽️ Gastronomía
-              </span>
-            )}
-          </div>
+          <span style={{ 
+            fontSize: "0.72rem", 
+            color: categoryTextColor, 
+            letterSpacing: "0.05em", 
+            textTransform: "uppercase", 
+            fontWeight: 800
+          }}>
+            {prod.category || brand?.rubro_general || "General"}
+          </span>
 
           <h3 style={{ 
             fontSize: "1.02rem", 
@@ -1081,10 +1069,10 @@ function BrandProductCard({ prod }) {
                 fontSize: "0.65rem",
                 fontWeight: 700,
                 textTransform: "uppercase",
-                color: isVirtualMenu ? "#059669" : (prod.type === "service" ? (isCardDark ? "#93c5fd" : "#1e3a8a") : (isCardDark ? "#fde68a" : "#78350f")),
+                color: prod.type === "service" ? (isCardDark ? "#93c5fd" : "#1e3a8a") : (isCardDark ? "#fde68a" : "#78350f"),
                 letterSpacing: "0.03em"
               }}>
-                {isVirtualMenu ? "Platillo" : (prod.type === "service" ? "Servicio" : "Producto")}
+                {prod.type === "service" ? "Servicio" : "Producto"}
               </span>
               <span className="card-stock-label" style={{
                 fontSize: "0.65rem",
@@ -1093,10 +1081,10 @@ function BrandProductCard({ prod }) {
                 borderRadius: "8px",
                 textTransform: "uppercase",
                 letterSpacing: "0.02em",
-                background: isVirtualMenu ? "#d1fae5" : (prod.type === "service" ? "#dbeafe" : (prod.stock == null || prod.stock > 0) ? "#dcfce7" : "#fee2e2"),
-                color: isVirtualMenu ? "#065f46" : (prod.type === "service" ? "#1e40af" : (prod.stock == null || prod.stock > 0) ? "#15803d" : "#b91c1c")
+                background: prod.type === "service" ? "#dbeafe" : (prod.stock == null || prod.stock > 0) ? "#dcfce7" : "#fee2e2",
+                color: prod.type === "service" ? "#1e40af" : (prod.stock == null || prod.stock > 0) ? "#15803d" : "#b91c1c"
               }}>
-                {isVirtualMenu ? "En Carta" : (prod.type === "service" ? "Agenda" : (prod.stock == null || prod.stock > 0) ? "Stock" : "Agotado")}
+                {prod.type === "service" ? "Agenda" : (prod.stock == null || prod.stock > 0) ? "Stock" : "Agotado"}
               </span>
             </div>
           </div>

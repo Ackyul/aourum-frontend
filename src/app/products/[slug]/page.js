@@ -172,6 +172,11 @@ export default function ProductDetailPage() {
     return getBalancedSuggestions(brandCandidates, 6);
   }, [prod, products]);
 
+  const allBrandProducts = useMemo(() => {
+    if (!prod || !products) return [];
+    return products.filter((p) => p.brandId === prod.brandId && p.isVisible !== false);
+  }, [prod, products]);
+
   const suggestedCategoryProds = useMemo(() => {
     if (!prod) return [];
     const categoryCandidates = products.filter(
@@ -291,7 +296,6 @@ export default function ProductDetailPage() {
 
   const renderSuggestedCard = (rp) => {
     const rpBrand = brands.find((b) => b.id === rp.brandId);
-    const isVirtualMenu = isVirtualMenuBrand(rpBrand);
     const rpDesign = rpBrand?.brandDesign || {};
     const rpParsedBrand = rpBrand ? parseDescription(rpBrand.description) : null;
     const rpPalette = (rpBrand && getBrandPalette)
@@ -387,7 +391,7 @@ export default function ProductDetailPage() {
     } else if (rpCardStyle === "bordered") {
       cardStyleObj.border = `2px solid ${rpPalette.c1}`;
     } else {
-      cardStyleObj.border = isVirtualMenu ? "1.5px solid rgba(16, 185, 129, 0.4)" : (isCardDark ? "1px solid rgba(255,255,255,0.15)" : (isStoreBgLight ? "1px solid rgba(0, 0, 0, 0.12)" : `1px solid ${rpPalette.c1}30`));
+      cardStyleObj.border = isCardDark ? "1px solid rgba(255,255,255,0.15)" : (isStoreBgLight ? "1px solid rgba(0, 0, 0, 0.12)" : `1px solid ${rpPalette.c1}30`);
     }
 
     const views = getProductViews(rp);
@@ -445,11 +449,7 @@ export default function ProductDetailPage() {
 
           {/* Badges on Image top-left */}
           <div style={{ position: "absolute", top: "10px", left: "10px", display: "flex", flexDirection: "column", gap: "6px", zIndex: 3 }}>
-            {isVirtualMenu ? (
-              <span style={{ background: "linear-gradient(135deg, #10B981, #059669)", color: "#FFFFFF", fontSize: "0.62rem", padding: "3px 8px", borderRadius: "12px", fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", boxShadow: "0 2px 6px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", gap: "3px" }}>
-                <i className="fa-solid fa-utensils" style={{ fontSize: "0.65rem" }}></i> Carta Virtual
-              </span>
-            ) : isPopular ? (
+            {isPopular ? (
               <span style={{ background: "linear-gradient(135deg, #ef4444, #f97316)", color: "#FFFFFF", fontSize: "0.62rem", padding: "3px 8px", borderRadius: "12px", fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", boxShadow: "0 2px 6px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", gap: "3px" }}>
                 <i className="fa-solid fa-fire" style={{ fontSize: "0.7rem" }}></i> Popular
               </span>
@@ -463,22 +463,15 @@ export default function ProductDetailPage() {
 
         {/* Bottom Details Body */}
         <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "6px" }}>
-            <span style={{ 
-              fontSize: "0.72rem", 
-              color: categoryTextColor, 
-              letterSpacing: "0.05em", 
-              textTransform: "uppercase", 
-              fontWeight: 800
-            }}>
-              {rp.category || rpBrand?.rubro_general || "General"}
-            </span>
-            {isVirtualMenu && (
-              <span style={{ fontSize: "0.65rem", fontWeight: 800, color: "#10B981", background: "rgba(16, 185, 129, 0.12)", padding: "1px 6px", borderRadius: "6px" }}>
-                🍽️ Gastronomía
-              </span>
-            )}
-          </div>
+          <span style={{ 
+            fontSize: "0.72rem", 
+            color: categoryTextColor, 
+            letterSpacing: "0.05em", 
+            textTransform: "uppercase", 
+            fontWeight: 800
+          }}>
+            {rp.category || rpBrand?.rubro_general || "General"}
+          </span>
 
           <h3 style={{ 
             fontSize: "1.02rem", 
@@ -536,10 +529,10 @@ export default function ProductDetailPage() {
                 fontSize: "0.65rem",
                 fontWeight: 700,
                 textTransform: "uppercase",
-                color: isVirtualMenu ? "#059669" : (rp.type === "service" ? (isCardDark ? "#93c5fd" : "#1e3a8a") : (isCardDark ? "#fde68a" : "#78350f")),
+                color: rp.type === "service" ? (isCardDark ? "#93c5fd" : "#1e3a8a") : (isCardDark ? "#fde68a" : "#78350f"),
                 letterSpacing: "0.03em"
               }}>
-                {isVirtualMenu ? "Platillo" : (rp.type === "service" ? "Servicio" : "Producto")}
+                {rp.type === "service" ? "Servicio" : "Producto"}
               </span>
               <span className="card-stock-label" style={{
                 fontSize: "0.65rem",
@@ -548,10 +541,10 @@ export default function ProductDetailPage() {
                 borderRadius: "8px",
                 textTransform: "uppercase",
                 letterSpacing: "0.02em",
-                background: isVirtualMenu ? "#d1fae5" : (rp.type === "service" ? "#dbeafe" : (rp.stock == null || rp.stock > 0) ? "#dcfce7" : "#fee2e2"),
-                color: isVirtualMenu ? "#065f46" : (rp.type === "service" ? "#1e40af" : (rp.stock == null || rp.stock > 0) ? "#15803d" : "#b91c1c")
+                background: rp.type === "service" ? "#dbeafe" : (rp.stock == null || rp.stock > 0) ? "#dcfce7" : "#fee2e2",
+                color: rp.type === "service" ? "#1e40af" : (rp.stock == null || rp.stock > 0) ? "#15803d" : "#b91c1c"
               }}>
-                {isVirtualMenu ? "En Carta" : (rp.type === "service" ? "Agenda" : (rp.stock == null || rp.stock > 0) ? "Stock" : "Agotado")}
+                {rp.type === "service" ? "Agenda" : (rp.stock == null || rp.stock > 0) ? "Stock" : "Agotado"}
               </span>
             </div>
           </div>
@@ -900,25 +893,149 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      {/* Descripción Detallada */}
+      {/* Información & Contenido del Plato */}
       {prod.description && (
-        <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
-          <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)" }}>Descripción Detallada</h3>
-          <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", lineHeight: 1.7, whiteSpace: "pre-line" }}>
-            {prod.description}
-          </p>
+        <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "2.5rem", marginBottom: "3rem", position: "relative", zIndex: 1 }}>
+          <h3 style={{ fontSize: "1.3rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
+            <i className="fa-solid fa-circle-info" style={{ color: brandThemeColor }}></i>
+            <span>Información y Contenido del Platillo</span>
+          </h3>
+          <div style={{ background: "var(--bg-card)", padding: "1.5rem", borderRadius: "16px", border: "1px solid var(--border-color)", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
+            <p style={{ fontSize: "0.98rem", color: "var(--text-primary)", lineHeight: 1.7, whiteSpace: "pre-line", margin: 0 }}>
+              {prod.description}
+            </p>
+          </div>
         </div>
       )}
 
-      {/* Sugerencias de la misma marca */}
-      {suggestedBrandProds.length > 0 && (
+      {/* Carta & Menú Gastronómico de la Marca */}
+      {brand && allBrandProducts.length > 0 && (
         <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
-          <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "1.5rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
-            <i className="fa-solid fa-boxes-stacked" style={{ color: "var(--gold-primary)" }}></i>
-            Otros productos de <span style={{ color: "var(--gold-dark)" }}>{brand ? brand.name : "esta marca"}</span>
-          </h3>
-          <div className="grid-catalog">
-            {suggestedBrandProds.map(renderSuggestedCard)}
+          <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+            <div>
+              <h3 style={{ fontSize: "1.4rem", fontWeight: 800, margin: 0, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
+                <i className="fa-solid fa-utensils" style={{ color: brandThemeColor }}></i>
+                <span>Carta & Menú Gastronómico de {brand.name}</span>
+              </h3>
+              <p style={{ fontSize: "0.88rem", color: "var(--text-muted)", margin: "4px 0 0 0" }}>
+                Explora la selección de platillos, bebidas y especialidades de {brand.name}
+              </p>
+            </div>
+            <button 
+              onClick={() => router.push(`/brands/${brand.slug || brand.id}`)}
+              className="btn-outline-gold"
+              style={{ padding: "0.55rem 1.3rem", fontSize: "0.85rem", borderRadius: "20px", cursor: "pointer", fontWeight: 700 }}
+            >
+              Ver perfil de la marca
+            </button>
+          </div>
+
+          {/* Menú de Platos */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {allBrandProducts.map((item) => {
+              const isCurrent = item.id === prod.id;
+              const waNumber = brand?.whatsappNumber;
+              const cleanWa = waNumber ? waNumber.replace(/[^0-9]/g, "") : null;
+              const waMsg = encodeURIComponent(`¡Hola! Quisiera realizar un pedido de "${item.name}" desde la Carta Virtual de ${brand?.name || 'la marca'} en AOURUM.`);
+              const waLink = cleanWa ? `https://wa.me/${cleanWa}?text=${waMsg}` : null;
+
+              return (
+                <div 
+                  key={item.id}
+                  className="glass-panel"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "1.25rem",
+                    padding: "1.1rem 1.3rem",
+                    borderRadius: "16px",
+                    border: isCurrent ? `2px solid ${brandThemeColor}` : "1px solid var(--border-color)",
+                    background: isCurrent ? `${brandThemeColor}10` : "var(--bg-card)",
+                    flexWrap: "wrap",
+                    transition: "transform 0.2s ease"
+                  }}
+                >
+                  {item.image && (
+                    <div 
+                      style={{ 
+                        width: "80px", 
+                        height: "80px", 
+                        borderRadius: "12px", 
+                        overflow: "hidden", 
+                        flexShrink: 0,
+                        border: "1px solid var(--border-color)",
+                        cursor: "pointer"
+                      }}
+                      onClick={() => router.push(`/products/${item.slug || item.id}`)}
+                    >
+                      <img src={item.image} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </div>
+                  )}
+                  <div style={{ flex: 1, minWidth: "200px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                      {item.category && (
+                        <span style={{ fontSize: "0.68rem", fontWeight: 800, textTransform: "uppercase", color: brandThemeColor, background: `${brandThemeColor}18`, padding: "2px 8px", borderRadius: "6px" }}>
+                          {item.category}
+                        </span>
+                      )}
+                      {isCurrent && (
+                        <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#10B981", background: "rgba(16, 185, 129, 0.15)", padding: "2px 8px", borderRadius: "6px" }}>
+                          Plato Viendo Ahora
+                        </span>
+                      )}
+                    </div>
+                    <h4 
+                      style={{ fontSize: "1.05rem", fontWeight: 800, margin: "2px 0 4px 0", color: "var(--text-primary)", cursor: "pointer" }}
+                      onClick={() => router.push(`/products/${item.slug || item.id}`)}
+                    >
+                      {item.name}
+                    </h4>
+                    {item.description && (
+                      <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: "0 0 6px 0", lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                        {item.description}
+                      </p>
+                    )}
+                    <span style={{ fontSize: "1.1rem", fontWeight: 800, color: brandThemeColor }}>
+                      S/ {item.price ? item.price.toLocaleString("es-PE") : "0.00"}
+                    </span>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    {waLink ? (
+                      <a 
+                        href={waLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          background: "#25D366",
+                          color: "#FFFFFF",
+                          textDecoration: "none",
+                          padding: "0.55rem 1.2rem",
+                          borderRadius: "20px",
+                          fontSize: "0.82rem",
+                          fontWeight: 800,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          whiteSpace: "nowrap"
+                        }}
+                      >
+                        <i className="fa-brands fa-whatsapp"></i>
+                        <span>Pedir Plato</span>
+                      </a>
+                    ) : (
+                      <button 
+                        onClick={() => router.push(`/products/${item.slug || item.id}`)}
+                        className="btn-gold"
+                        style={{ padding: "0.55rem 1.2rem", borderRadius: "20px", fontSize: "0.82rem", fontWeight: 800 }}
+                      >
+                        Ver Plato
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

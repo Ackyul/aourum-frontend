@@ -583,7 +583,6 @@ export default function Home() {
   function ProductCard({ prod }) {
     const brand = brands.find((b) => b.id === prod.brandId);
     const brandRubro = brand ? (brand.rubro_especifico || brand.rubro_general || brand.category) : "Marca Local";
-    const isVirtualMenu = isVirtualMenuBrand(brand);
     const views = getProductViews(prod);
 
     const categoryTextColor = "var(--text-gold)";
@@ -595,15 +594,7 @@ export default function Home() {
     return (
       <div 
         className="glass-panel product-card" 
-        style={{ 
-          overflow: "hidden", 
-          display: "flex", 
-          flexDirection: "column", 
-          cursor: "pointer", 
-          height: "100%",
-          border: isVirtualMenu ? "1.5px solid rgba(16, 185, 129, 0.35)" : undefined,
-          boxShadow: isVirtualMenu ? "0 4px 20px rgba(16, 185, 129, 0.08)" : undefined
-        }}
+        style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer", height: "100%" }}
         onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
       >
         <div 
@@ -616,29 +607,6 @@ export default function Home() {
             transition: "background-color 0.3s ease"
           }}
         >
-          {isVirtualMenu && (
-            <div style={{
-              position: "absolute",
-              top: "10px",
-              right: "10px",
-              background: "linear-gradient(135deg, #10B981, #059669)",
-              color: "#FFFFFF",
-              padding: "3px 9px",
-              borderRadius: "12px",
-              fontSize: "0.68rem",
-              fontWeight: 800,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-              display: "flex",
-              alignItems: "center",
-              gap: "4px",
-              zIndex: 2,
-              backdropFilter: "blur(4px)",
-              letterSpacing: "0.02em"
-            }}>
-              <i className="fa-solid fa-utensils" style={{ fontSize: "0.65rem" }}></i>
-              <span>Carta Virtual</span>
-            </div>
-          )}
           <img 
             src={prod.image} 
             alt={prod.name} 
@@ -650,16 +618,9 @@ export default function Home() {
           />
         </div>
         <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "6px" }}>
-            <span style={{ fontSize: "0.72rem", color: categoryTextColor, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
-              {prod.category}
-            </span>
-            {isVirtualMenu && (
-              <span style={{ fontSize: "0.65rem", fontWeight: 800, color: "#10B981", background: "rgba(16, 185, 129, 0.12)", padding: "1px 6px", borderRadius: "6px" }}>
-                🍽️ Gastronomía
-              </span>
-            )}
-          </div>
+          <span style={{ fontSize: "0.72rem", color: categoryTextColor, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
+            {prod.category}
+          </span>
           <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: titleTextColor }}>{prod.name}</h3>
           
           <div 
@@ -710,10 +671,10 @@ export default function Home() {
                 fontSize: "0.65rem",
                 fontWeight: 700,
                 textTransform: "uppercase",
-                color: isVirtualMenu ? "#059669" : (prod.type === "service" ? (isDarkBg ? "#93c5fd" : "#1e3a8a") : (isDarkBg ? "#fde68a" : "#78350f")),
+                color: prod.type === "service" ? (isDarkBg ? "#93c5fd" : "#1e3a8a") : (isDarkBg ? "#fde68a" : "#78350f"),
                 letterSpacing: "0.03em"
               }}>
-                {isVirtualMenu ? "Platillo" : (prod.type === "service" ? "Servicio" : "Producto")}
+                {prod.type === "service" ? "Servicio" : "Producto"}
               </span>
               <span className="card-stock-label" style={{
                 fontSize: "0.65rem",
@@ -722,10 +683,10 @@ export default function Home() {
                 borderRadius: "8px",
                 textTransform: "uppercase",
                 letterSpacing: "0.02em",
-                background: isVirtualMenu ? "#d1fae5" : (prod.type === "service" ? "#dbeafe" : (prod.stock == null || prod.stock > 0) ? "#dcfce7" : "#fee2e2"),
-                color: isVirtualMenu ? "#065f46" : (prod.type === "service" ? "#1e40af" : (prod.stock == null || prod.stock > 0) ? "#15803d" : "#b91c1c")
+                background: prod.type === "service" ? "#dbeafe" : (prod.stock == null || prod.stock > 0) ? "#dcfce7" : "#fee2e2",
+                color: prod.type === "service" ? "#1e40af" : (prod.stock == null || prod.stock > 0) ? "#15803d" : "#b91c1c"
               }}>
-                {isVirtualMenu ? "En Carta" : (prod.type === "service" ? "Agenda" : (prod.stock == null || prod.stock > 0) ? "Stock" : "Agotado")}
+                {prod.type === "service" ? "Agenda" : (prod.stock == null || prod.stock > 0) ? "Stock" : "Agotado"}
               </span>
             </div>
           </div>
