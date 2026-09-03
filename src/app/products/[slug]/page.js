@@ -952,8 +952,10 @@ export default function ProductDetailPage() {
                     border: isCurrent ? `2px solid ${brandThemeColor}` : "1px solid var(--border-color)",
                     background: isCurrent ? `${brandThemeColor}10` : "var(--bg-card)",
                     flexWrap: "wrap",
-                    transition: "transform 0.2s ease"
+                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                    cursor: "pointer"
                   }}
+                  onClick={() => router.push(`/products/${item.slug || item.id}`)}
                 >
                   {item.image && (
                     <div 
@@ -963,10 +965,8 @@ export default function ProductDetailPage() {
                         borderRadius: "12px", 
                         overflow: "hidden", 
                         flexShrink: 0,
-                        border: "1px solid var(--border-color)",
-                        cursor: "pointer"
+                        border: "1px solid var(--border-color)"
                       }}
-                      onClick={() => router.push(`/products/${item.slug || item.id}`)}
                     >
                       <img src={item.image} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>
@@ -985,8 +985,7 @@ export default function ProductDetailPage() {
                       )}
                     </div>
                     <h4 
-                      style={{ fontSize: "1.05rem", fontWeight: 800, margin: "2px 0 4px 0", color: "var(--text-primary)", cursor: "pointer" }}
-                      onClick={() => router.push(`/products/${item.slug || item.id}`)}
+                      style={{ fontSize: "1.05rem", fontWeight: 800, margin: "2px 0 4px 0", color: "var(--text-primary)" }}
                     >
                       {item.name}
                     </h4>
@@ -1000,12 +999,13 @@ export default function ProductDetailPage() {
                     </span>
                   </div>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div onClick={(e) => e.stopPropagation()} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     {waLink ? (
                       <a 
                         href={waLink}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
                         style={{
                           background: "#25D366",
                           color: "#FFFFFF",
@@ -1025,7 +1025,10 @@ export default function ProductDetailPage() {
                       </a>
                     ) : (
                       <button 
-                        onClick={() => router.push(`/products/${item.slug || item.id}`)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/products/${item.slug || item.id}`);
+                        }}
                         className="btn-gold"
                         style={{ padding: "0.55rem 1.2rem", borderRadius: "20px", fontSize: "0.82rem", fontWeight: 800 }}
                       >

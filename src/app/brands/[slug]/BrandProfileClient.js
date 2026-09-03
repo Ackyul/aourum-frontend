@@ -754,8 +754,10 @@ export default function BrandProfileClient({ initialBrand }) {
         border: `1.5px solid ${primaryColor}40`,
         boxShadow: "0 4px 16px rgba(0,0,0,0.03)",
         flexWrap: "wrap",
-        transition: "transform 0.2s ease"
+        transition: "transform 0.2s ease, box-shadow 0.2s ease",
+        cursor: "pointer"
       }}
+      onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
     >
       {/* Dish Thumbnail */}
       {prod.image && (
@@ -812,12 +814,13 @@ export default function BrandProfileClient({ initialBrand }) {
       </div>
 
       {/* Order Action Button */}
-      <div className="menu-dish-action-wrapper" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      <div className="menu-dish-action-wrapper" onClick={(e) => e.stopPropagation()} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         {waLink ? (
           <a
             href={waLink}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
             style={{
               background: "#25D366",
               color: "#FFFFFF",
@@ -840,6 +843,10 @@ export default function BrandProfileClient({ initialBrand }) {
           <button
             type="button"
             className="btn-gold"
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/products/${prod.slug || prod.id}`);
+            }}
             style={{ padding: "0.6rem 1.3rem", borderRadius: "20px", fontSize: "0.85rem", fontWeight: 800 }}
           >
             Consultar
@@ -1633,6 +1640,12 @@ function BrandProductCard({ prod }) {
           gap: 1.25rem !important;
           padding: 1.25rem 1.5rem !important;
           border-radius: 18px !important;
+          cursor: pointer !important;
+          transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        }
+        .menu-dish-card:hover {
+          transform: translateY(-2px) !important;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.1) !important;
         }
         .menu-dish-img-wrapper {
           width: 170px !important;
