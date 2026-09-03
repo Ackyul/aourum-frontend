@@ -792,6 +792,27 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
 
+                {/* Información & Contenido del Platillo / Producto */}
+                <div style={{ marginBottom: "1.8rem" }}>
+                  <h3 style={{ fontSize: "1.05rem", fontWeight: 700, borderBottom: "1.5px solid var(--border-color)", paddingBottom: "0.4rem", marginBottom: "0.8rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <i className="fa-solid fa-circle-info" style={{ color: brandThemeColor }}></i>
+                    <span>{isVirtualMenu ? "Información y Descripción del Platillo" : "Información y Descripción"}</span>
+                  </h3>
+                  <div style={{ background: "var(--bg-input)", padding: "1.2rem 1.4rem", borderRadius: "12px", border: "1px solid var(--border-color)" }}>
+                    <p style={{ fontSize: "0.92rem", color: "var(--text-primary)", lineHeight: 1.65, whiteSpace: "pre-line", margin: 0 }}>
+                      {prod.description && prod.description.trim() ? (
+                        prod.description
+                      ) : (
+                        <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>
+                          {isVirtualMenu 
+                            ? `Especialidad gastronómica de ${brand?.name || 'la marca'}. Platillo preparado fresco al momento de realizar tu pedido.`
+                            : `Artículo disponible en la vitrina de ${brand?.name || 'la marca'}. Para más detalles, coordina directamente con el vendedor.`}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
                 {/* Tabla de Especificaciones */}
                 <div style={{ marginBottom: "2rem" }}>
                   <h3 style={{ fontSize: "1.05rem", fontWeight: 700, borderBottom: "1.5px solid var(--border-color)", paddingBottom: "0.4rem", marginBottom: "0.8rem", color: "var(--text-primary)" }}>
@@ -892,21 +913,6 @@ export default function ProductDetailPage() {
           })()}
         </div>
       </div>
-
-      {/* Información & Contenido del Plato */}
-      {prod.description && (
-        <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "2.5rem", marginBottom: "3rem", position: "relative", zIndex: 1 }}>
-          <h3 style={{ fontSize: "1.3rem", fontWeight: 800, marginBottom: "1rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
-            <i className="fa-solid fa-circle-info" style={{ color: brandThemeColor }}></i>
-            <span>Información y Contenido del Platillo</span>
-          </h3>
-          <div style={{ background: "var(--bg-card)", padding: "1.5rem", borderRadius: "16px", border: "1px solid var(--border-color)", boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}>
-            <p style={{ fontSize: "0.98rem", color: "var(--text-primary)", lineHeight: 1.7, whiteSpace: "pre-line", margin: 0 }}>
-              {prod.description}
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Carta & Menú Gastronómico de la Marca */}
       {brand && allBrandProducts.length > 0 && (
