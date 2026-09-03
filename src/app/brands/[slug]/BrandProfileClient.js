@@ -328,12 +328,20 @@ export default function BrandProfileClient({ initialBrand }) {
     return unique;
   }, [products]);
 
+  const defaultCategoryOptions = useMemo(() => {
+    if (isBrandVirtualMenu) {
+      return ["Salchipapas", "Alitas", "Pizzas", "Hamburguesas", "Sánguches & Wraps", "Bebidas & Refrescos", "Postres", "Combos & Promociones", "Entradas & Piqueos"];
+    }
+    return ["Joyas & Accesorios", "Moda & Textil", "Bienestar & Cuidado", "Arte & Decoración", "Artesanía Local", "Café & Repostería", "Experiencias & Cursos"];
+  }, [isBrandVirtualMenu]);
+
   const filteredCategoryOptions = useMemo(() => {
-    if (!prodCategory) return allCategories;
-    return allCategories.filter(cat => 
+    const merged = Array.from(new Set([...defaultCategoryOptions, ...allCategories]));
+    if (!prodCategory) return merged;
+    return merged.filter(cat => 
       cat.toLowerCase().includes(prodCategory.toLowerCase())
     );
-  }, [allCategories, prodCategory]);
+  }, [defaultCategoryOptions, allCategories, prodCategory]);
 
   // States for the interactive image editor
   const [editorOpen, setEditorOpen] = useState(false);
@@ -763,6 +771,15 @@ export default function BrandProfileClient({ initialBrand }) {
     });
     return unique;
   }, [brandProducts]);
+
+  const isBrandVirtualMenu = useMemo(() => {
+    if (!brand) return false;
+    const parsedDesc = parseDescription(brand.description);
+    const brandDesign = brand.brandDesign || parsedDesc.brandDesign || {};
+    const categoryStr = (brand.category || parsedDesc.rubro_especifico || parsedDesc.rubro_general || "").toLowerCase();
+    const isFoodCategory = Boolean(/comida|gastronom|restauran|snack|bebida|infusio|postre|alimento|fruta/i.test(categoryStr));
+    return brandDesign.catalogDisplayMode === "menu" || (brandDesign.catalogDisplayMode !== "grid" && isFoodCategory);
+  }, [brand]);
 
   function MenuDishCard({ prod, brand, palette, isStoreBgLight, resolvedCardBg, resolvedCardTextColor }) {
   const primaryColor = palette?.c1 || "#95B721";
@@ -2657,15 +2674,15 @@ function BrandProductCard({ prod }) {
             <form onSubmit={(e) => handleProductSubmit(e, brand.id)} className="modal-body">
               <div className="grid-2-to-1">
                 <div className="form-group">
-                  <label>Nombre del Item *</label>
-                  <input type="text" className="form-control" placeholder="Ej: Anillo de Plata 950" value={prodName} onChange={(e) => setProdName(e.target.value)} required />
+                  <label>{isBrandVirtualMenu ? "Nombre del Platillo / Ítem *" : "Nombre del Item *"}</label>
+                  <input type="text" className="form-control" placeholder={isBrandVirtualMenu ? "Ej: Salchialitas Personal" : "Ej: Anillo de Plata 950"} value={prodName} onChange={(e) => setProdName(e.target.value)} required />
                 </div>
                 <div className="form-group" style={{ position: "relative" }}>
-                  <label>Categoría / Rubro *</label>
+                  <label>{isBrandVirtualMenu ? "Sección de la Carta Virtual *" : "Categoría / Rubro *"}</label>
                   <input 
                     type="text" 
                     className="form-control" 
-                    placeholder="Ej: Joyería, Bienestar" 
+                    placeholder={isBrandVirtualMenu ? "Ej: Salchipapas, Pizzas, Bebidas, Postres" : "Ej: Joyería, Bienestar"} 
                     value={prodCategory} 
                     onChange={(e) => {
                       setProdCategory(e.target.value);
@@ -2678,6 +2695,11 @@ function BrandProductCard({ prod }) {
                     required 
                     autoComplete="off"
                   />
+                  {isBrandVirtualMenu && (
+                    <small style={{ display: "block", marginTop: "4px", color: "var(--text-muted)", fontSize: "0.78rem" }}>
+                      💡 Esta sección agrupará tu platillo en la Carta Digital de tu local.
+                    </small>
+                  )}
                   {categorySuggestionsOpen && filteredCategoryOptions.length > 0 && (
                     <div 
                       className="glass-panel" 
