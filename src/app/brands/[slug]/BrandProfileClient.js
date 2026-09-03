@@ -723,12 +723,37 @@ export default function BrandProfileClient({ initialBrand }) {
       .slice(0, 8);
   }, [brandProducts]);
 
+  const getDishMenuCategory = (prod) => {
+    if (!prod) return "Especialidades";
+    const cat = prod.category ? prod.category.trim() : "";
+    const catLower = cat.toLowerCase();
+    
+    // If category is specific (not generic "comida", "gastronomia", "general", etc.)
+    if (cat && !/^(comida|gastronomía|gastronomia|general|varios|plato|platillo|comidas)$/i.test(catLower)) {
+      return cat;
+    }
+    
+    // Smart auto-detection based on dish name and description
+    const text = ((prod.name || "") + " " + (prod.description || "")).toLowerCase();
+    if (/salchi|salchich/i.test(text)) return "Salchipapas";
+    if (/alita|wings/i.test(text)) return "Alitas";
+    if (/pizza/i.test(text)) return "Pizzas";
+    if (/hamburgues|burger/i.test(text)) return "Hamburguesas";
+    if (/sanguche|sándwich|sandwich|chicharrón|taco|burrito|wrap/i.test(text)) return "Sánguches & Wraps";
+    if (/gaseosa|bebida|refresco|chicha|limonada|jugo|cerveza|agua|inca kola|coca|fanta|sprite/i.test(text)) return "Bebidas & Refrescos";
+    if (/postre|torta|pie|helado|flan|picarón|dulce/i.test(text)) return "Postres";
+    if (/combo|promoción|promocion|pack/i.test(text)) return "Combos & Promociones";
+    
+    return cat || "Especialidades Gastronómicas";
+  };
+
   const brandCategories = useMemo(() => {
     const seen = new Set();
     const unique = [];
     brandProducts.forEach(p => {
-      if (p.category) {
-        const trimmed = p.category.trim();
+      const cat = getDishMenuCategory(p);
+      if (cat) {
+        const trimmed = cat.trim();
         const lower = trimmed.toLowerCase();
         if (!seen.has(lower)) {
           seen.add(lower);
@@ -784,9 +809,9 @@ export default function BrandProfileClient({ initialBrand }) {
       {/* Dish Details */}
       <div className="menu-dish-details-wrapper" style={{ flex: 1, minWidth: "220px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "4px" }}>
-          {prod.category && (
+          {(prod.category || getDishMenuCategory(prod)) && (
             <span style={{ fontSize: "0.7rem", fontWeight: 800, textTransform: "uppercase", color: primaryColor, background: `${primaryColor}18`, padding: "2px 8px", borderRadius: "6px", border: `1px solid ${primaryColor}30` }}>
-              {prod.category}
+              {getDishMenuCategory(prod)}
             </span>
           )}
           {prod.type === "service" && (
@@ -2327,12 +2352,12 @@ function BrandProductCard({ prod }) {
               if (activeCategory === "ALL") {
                 if (brandCategories.length > 0) {
                   brandCategories.forEach((cat) => {
-                    const prodsInCat = searchFiltered.filter(p => p.category && p.category.trim().toLowerCase() === cat.trim().toLowerCase());
+                    const prodsInCat = searchFiltered.filter(p => getDishMenuCategory(p).trim().toLowerCase() === cat.trim().toLowerCase());
                     if (prodsInCat.length > 0) {
                       displaySections.push({ title: cat, products: prodsInCat });
                     }
                   });
-                  const uncategorized = searchFiltered.filter(p => !p.category || !brandCategories.some(c => c.toLowerCase() === p.category.trim().toLowerCase()));
+                  const uncategorized = searchFiltered.filter(p => !brandCategories.some(c => c.toLowerCase() === getDishMenuCategory(p).trim().toLowerCase()));
                   if (uncategorized.length > 0) {
                     displaySections.push({ title: "Otras Especialidades", products: uncategorized });
                   }
@@ -2340,7 +2365,7 @@ function BrandProductCard({ prod }) {
                   displaySections.push({ title: "Todos los Platillos & Bebidas", products: searchFiltered });
                 }
               } else {
-                const prodsInCat = searchFiltered.filter(p => p.category && p.category.trim().toLowerCase() === activeCategory.trim().toLowerCase());
+                const prodsInCat = searchFiltered.filter(p => getDishMenuCategory(p).trim().toLowerCase() === activeCategory.trim().toLowerCase());
                 displaySections.push({ title: activeCategory, products: prodsInCat });
               }
 
