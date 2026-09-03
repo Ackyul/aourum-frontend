@@ -275,6 +275,15 @@ export default function BrandProfileClient({ initialBrand }) {
     return initialBrand || null;
   }, [initialBrand, brands, brandId, isNumeric, slug]);
 
+  const isBrandVirtualMenu = useMemo(() => {
+    if (!brand) return false;
+    const parsedDesc = parseDescription(brand.description);
+    const brandDesign = brand.brandDesign || parsedDesc.brandDesign || {};
+    const categoryStr = (brand.category || parsedDesc.rubro_especifico || parsedDesc.rubro_general || "").toLowerCase();
+    const isFoodCategory = Boolean(/comida|gastronom|restauran|snack|bebida|infusio|postre|alimento|fruta/i.test(categoryStr));
+    return brandDesign.catalogDisplayMode === "menu" || (brandDesign.catalogDisplayMode !== "grid" && isFoodCategory);
+  }, [brand, parseDescription]);
+
   // Check collaborator role of the logged-in persona
   const currentPerson = useMemo(() => people.find((p) => Number(p.id) === Number(activePersonId)), [people, activePersonId]);
   const isBrandSessionOwner = (activeRole === 'brand' && activeBrandId != null && brand?.id != null && Number(activeBrandId) === Number(brand.id));
@@ -772,14 +781,7 @@ export default function BrandProfileClient({ initialBrand }) {
     return unique;
   }, [brandProducts]);
 
-  const isBrandVirtualMenu = useMemo(() => {
-    if (!brand) return false;
-    const parsedDesc = parseDescription(brand.description);
-    const brandDesign = brand.brandDesign || parsedDesc.brandDesign || {};
-    const categoryStr = (brand.category || parsedDesc.rubro_especifico || parsedDesc.rubro_general || "").toLowerCase();
-    const isFoodCategory = Boolean(/comida|gastronom|restauran|snack|bebida|infusio|postre|alimento|fruta/i.test(categoryStr));
-    return brandDesign.catalogDisplayMode === "menu" || (brandDesign.catalogDisplayMode !== "grid" && isFoodCategory);
-  }, [brand]);
+
 
   function MenuDishCard({ prod, brand, palette, isStoreBgLight, resolvedCardBg, resolvedCardTextColor }) {
   const primaryColor = palette?.c1 || "#95B721";
