@@ -155,6 +155,11 @@ export default function BrandProfileClient({ initialBrand }) {
   const [qrModalOpen, setQrModalOpen] = useState(false);
   const [selectedEventModal, setSelectedEventModal] = useState(null);
 
+  // States for Virtual Menu (Carta Digital) Section Filtering & Search
+  const [selectedMenuCategory, setSelectedMenuCategory] = useState("ALL");
+  const [menuSearchQuery, setMenuSearchQuery] = useState("");
+  const [showMenuSearch, setShowMenuSearch] = useState(false);
+
   const evtMapContainerRef = useRef(null);
   const evtLeafletMapRef = useRef(null);
   const evtMarkerRef = useRef(null);
@@ -2305,9 +2310,44 @@ function BrandProductCard({ prod }) {
             const isVirtualMenu = design.catalogDisplayMode === "menu" || (design.catalogDisplayMode !== "grid" && isFoodCategory);
 
             if (isVirtualMenu) {
+              // Filter by search query first if entered
+              const searchFiltered = brandProducts.filter((p) => {
+                if (!menuSearchQuery) return true;
+                const q = menuSearchQuery.toLowerCase();
+                const nameMatch = p.name && p.name.toLowerCase().includes(q);
+                const descMatch = p.description && p.description.toLowerCase().includes(q);
+                const catMatch = p.category && p.category.toLowerCase().includes(q);
+                return nameMatch || descMatch || catMatch;
+              });
+
+              // Determine display sections based on selected category tab
+              const activeCategory = selectedMenuCategory;
+              let displaySections = [];
+
+              if (activeCategory === "ALL") {
+                if (brandCategories.length > 0) {
+                  brandCategories.forEach((cat) => {
+                    const prodsInCat = searchFiltered.filter(p => p.category && p.category.trim().toLowerCase() === cat.trim().toLowerCase());
+                    if (prodsInCat.length > 0) {
+                      displaySections.push({ title: cat, products: prodsInCat });
+                    }
+                  });
+                  const uncategorized = searchFiltered.filter(p => !p.category || !brandCategories.some(c => c.toLowerCase() === p.category.trim().toLowerCase()));
+                  if (uncategorized.length > 0) {
+                    displaySections.push({ title: "Otras Especialidades", products: uncategorized });
+                  }
+                } else {
+                  displaySections.push({ title: "Todos los Platillos & Bebidas", products: searchFiltered });
+                }
+              } else {
+                const prodsInCat = searchFiltered.filter(p => p.category && p.category.trim().toLowerCase() === activeCategory.trim().toLowerCase());
+                displaySections.push({ title: activeCategory, products: prodsInCat });
+              }
+
               return (
-                <div style={{ marginTop: "2.5rem", paddingTop: "0.5rem" }}>
-                  <div style={{ marginBottom: "2rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+                <div style={{ marginTop: "2rem", paddingTop: "0.5rem" }}>
+                  {/* Menu Title Header */}
+                  <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                     <div>
                       <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", margin: 0, color: isStoreBgLight ? "#1C1C1E" : "#FFFFFF", display: "flex", alignItems: "center", gap: "10px" }}>
                         <span>🍽️ Carta Digital & Menú Virtual</span>
@@ -2316,25 +2356,187 @@ function BrandProductCard({ prod }) {
                         </span>
                       </h2>
                       <p style={{ fontSize: "0.88rem", color: isStoreBgLight ? "#4B5563" : "#9CA3AF", margin: "4px 0 0 0" }}>
-                        Explora la selección gastronómica, especialidades y bebidas de {brand.name}
+                        Explora las especialidades, combos, platillos y bebidas de {brand.name}
                       </p>
                     </div>
                   </div>
 
-                  {/* Lista Estilo Carta Digital de Restaurante */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
-                    {brandProducts.map((prod) => (
-                      <MenuDishCard
-                        key={prod.id}
-                        prod={prod}
-                        brand={brand}
-                        palette={palette}
-                        isStoreBgLight={isStoreBgLight}
-                        resolvedCardBg={resolvedCardBg}
-                        resolvedCardTextColor={resolvedCardTextColor}
-                      />
-                    ))}
+                  {/* Horizontal Category Navigation Bar & Search Toggle */}
+                  <div 
+                    className="virtual-menu-nav-bar"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      overflowX: "auto",
+                      padding: "10px 12px",
+                      marginBottom: "1.8rem",
+                      position: "sticky",
+                      top: "70px",
+                      zIndex: 10,
+                      background: resolvedCardBg || (isStoreBgLight ? "rgba(250, 249, 240, 0.94)" : "rgba(24, 24, 27, 0.94)"),
+                      backdropFilter: "blur(14px)",
+                      WebkitBackdropFilter: "blur(14px)",
+                      borderRadius: "16px",
+                      border: `1.5px solid ${palette.c1}35`,
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+                      scrollbarWidth: "none"
+                    }}
+                  >
+                    {/* Search trigger button */}
+                    <button
+                      type="button"
+                      onClick={() => setShowMenuSearch(prev => !prev)}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px",
+                        padding: "8px 14px",
+                        borderRadius: "20px",
+                        border: `1.5px solid ${showMenuSearch ? palette.c1 : (isStoreBgLight ? "#E5E7EB" : "#3F3F46")}`,
+                        background: showMenuSearch ? `${palette.c1}20` : (isStoreBgLight ? "#FFFFFF" : "#27272A"),
+                        color: showMenuSearch ? palette.c1 : (isStoreBgLight ? "#374151" : "#D4D4D8"),
+                        cursor: "pointer",
+                        flexShrink: 0,
+                        fontSize: "0.82rem",
+                        fontWeight: 700,
+                        transition: "all 0.2s ease"
+                      }}
+                      title="Buscar en el menú"
+                    >
+                      <i className="fa-solid fa-magnifying-glass"></i>
+                      <span>Buscar</span>
+                    </button>
+
+                    <div style={{ width: "1px", height: "22px", background: isStoreBgLight ? "#E5E7EB" : "#3F3F46", margin: "0 4px", flexShrink: 0 }} />
+
+                    {/* Category Tabs (Sin Destacados) */}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedMenuCategory("ALL")}
+                      style={{
+                        padding: "8px 18px",
+                        borderRadius: "20px",
+                        fontSize: "0.82rem",
+                        fontWeight: 800,
+                        letterSpacing: "0.03em",
+                        textTransform: "uppercase",
+                        whiteSpace: "nowrap",
+                        border: activeCategory === "ALL" ? `1.5px solid ${palette.c1}` : `1px solid ${isStoreBgLight ? "#E5E7EB" : "#3F3F46"}`,
+                        background: activeCategory === "ALL" ? palette.c1 : (isStoreBgLight ? "#FFFFFF" : "#27272A"),
+                        color: activeCategory === "ALL" ? "#FFFFFF" : (isStoreBgLight ? "#4B5563" : "#D4D4D8"),
+                        cursor: "pointer",
+                        flexShrink: 0,
+                        transition: "all 0.2s ease",
+                        boxShadow: activeCategory === "ALL" ? `0 4px 14px ${palette.c1}45` : "none"
+                      }}
+                    >
+                      TODAS LAS SECCIONES
+                    </button>
+
+                    {brandCategories.map((cat) => {
+                      const isSelected = activeCategory.toLowerCase() === cat.toLowerCase();
+                      return (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setSelectedMenuCategory(cat)}
+                          style={{
+                            padding: "8px 18px",
+                            borderRadius: "20px",
+                            fontSize: "0.82rem",
+                            fontWeight: 800,
+                            letterSpacing: "0.03em",
+                            textTransform: "uppercase",
+                            whiteSpace: "nowrap",
+                            border: isSelected ? `1.5px solid ${palette.c1}` : `1px solid ${isStoreBgLight ? "#E5E7EB" : "#3F3F46"}`,
+                            background: isSelected ? palette.c1 : (isStoreBgLight ? "#FFFFFF" : "#27272A"),
+                            color: isSelected ? "#FFFFFF" : (isStoreBgLight ? "#4B5563" : "#D4D4D8"),
+                            cursor: "pointer",
+                            flexShrink: 0,
+                            transition: "all 0.2s ease",
+                            boxShadow: isSelected ? `0 4px 14px ${palette.c1}45` : "none"
+                          }}
+                        >
+                          {cat}
+                        </button>
+                      );
+                    })}
                   </div>
+
+                  {/* Quick Search Input */}
+                  {showMenuSearch && (
+                    <div style={{ marginBottom: "2rem", position: "relative" }}>
+                      <input
+                        type="text"
+                        placeholder="Buscar platillo, bebida o ingrediente..."
+                        value={menuSearchQuery}
+                        onChange={(e) => setMenuSearchQuery(e.target.value)}
+                        autoFocus
+                        style={{
+                          width: "100%",
+                          padding: "0.8rem 1rem 0.8rem 2.8rem",
+                          borderRadius: "14px",
+                          border: `1.5px solid ${palette.c1}`,
+                          background: isStoreBgLight ? "#FFFFFF" : "#18181B",
+                          color: isStoreBgLight ? "#1C1C1E" : "#FFFFFF",
+                          fontSize: "0.92rem",
+                          outline: "none",
+                          boxShadow: "0 4px 16px rgba(0,0,0,0.06)"
+                        }}
+                      />
+                      <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "1.1rem", top: "50%", transform: "translateY(-50%)", color: palette.c1, fontSize: "0.95rem" }}></i>
+                      {menuSearchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setMenuSearchQuery("")}
+                          style={{ position: "absolute", right: "0.9rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "0.9rem" }}
+                        >
+                          <i className="fa-solid fa-xmark"></i>
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Render Dishes by Category Sections */}
+                  {displaySections.length === 0 || displaySections.every(s => s.products.length === 0) ? (
+                    <div className="glass-panel" style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--text-muted)", borderRadius: "16px" }}>
+                      <i className="fa-solid fa-utensils" style={{ fontSize: "2rem", opacity: 0.4, marginBottom: "0.8rem", display: "block" }}></i>
+                      <p style={{ margin: 0, fontSize: "0.9rem" }}>No se encontraron platillos o bebidas en esta categoría o búsqueda.</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "2.5rem" }}>
+                      {displaySections.map((sec) => (
+                        <div key={sec.title}>
+                          {/* Category Section Header */}
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1.2rem", borderBottom: `2px solid ${palette.c1}30`, paddingBottom: "0.5rem" }}>
+                            <h3 style={{ fontSize: "1.25rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.02em", margin: 0, color: isStoreBgLight ? "#1C1C1E" : "#FFFFFF" }}>
+                              {sec.title}
+                            </h3>
+                            <span style={{ fontSize: "0.75rem", background: `${palette.c1}20`, color: palette.c1, padding: "2px 10px", borderRadius: "12px", fontWeight: 700 }}>
+                              {sec.products.length} {sec.products.length === 1 ? "opción" : "opciones"}
+                            </span>
+                          </div>
+
+                          {/* Dishes Grid/List under this category */}
+                          <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+                            {sec.products.map((prod) => (
+                              <MenuDishCard
+                                key={prod.id}
+                                prod={prod}
+                                brand={brand}
+                                palette={palette}
+                                isStoreBgLight={isStoreBgLight}
+                                resolvedCardBg={resolvedCardBg}
+                                resolvedCardTextColor={resolvedCardTextColor}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             }
