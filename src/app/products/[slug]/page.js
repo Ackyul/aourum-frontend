@@ -586,12 +586,14 @@ export default function ProductDetailPage() {
           box-shadow: 0 8px 24px ${palette.c1}08 !important;
         }
         header {
-          background: linear-gradient(180deg, ${palette.c1}18 0%, rgba(255, 255, 255, 0.96) 100%) !important;
-          border-bottom: 1.5px solid ${palette.c1}40 !important;
+          background: ${bgStyle === "image" ? "rgba(255, 255, 255, 0.85) !important" : `linear-gradient(180deg, ${palette.c1}18 0%, rgba(255, 255, 255, 0.85) 100%) !important`};
+          backdrop-filter: blur(12px) !important;
+          -webkit-backdrop-filter: blur(12px) !important;
+          border-bottom: 1.5px solid ${palette.c1}30 !important;
           box-shadow: 0 4px 20px ${palette.c1}12 !important;
         }
         footer.site-footer {
-          background: linear-gradient(0deg, ${palette.c1}15 0%, ${palette.c4}08 50%, #FFFFFF 100%) !important;
+          background: ${bgStyle === "image" ? "transparent !important" : `linear-gradient(0deg, ${palette.c1}15 0%, ${palette.c4}08 50%, transparent 100%) !important`};
           border-top: 1.5px solid ${palette.c1}35 !important;
         }
         footer.site-footer a {

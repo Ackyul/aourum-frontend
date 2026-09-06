@@ -861,7 +861,7 @@ function AppLayoutShell({ children }) {
       </main>
 
       {/* ── FOOTER ─────────────────────────────────────────────────────────── */}
-      <footer className="site-footer" style={{ background: "#FFFFFF", borderTop: "1px solid var(--border-color)", padding: "2rem 0", marginTop: "4rem", textAlign: "center", fontSize: "0.88rem", color: "var(--text-muted)" }}>
+      <footer className="site-footer" style={{ background: "transparent", borderTop: "1px solid var(--border-color)", padding: "2rem 0", marginTop: "4rem", textAlign: "center", fontSize: "0.88rem", color: "var(--text-muted)" }}>
         <div className="container">
           <p>© {new Date().getFullYear()} AOURUM.</p>
           <p style={{ margin: "4px 0 0 0", fontSize: "0.82rem" }}>
