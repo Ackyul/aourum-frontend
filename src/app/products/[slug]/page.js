@@ -231,6 +231,67 @@ export default function ProductDetailPage() {
   const bgImageFit = brandDesign.bgImageFit || "cover";
   const fontFamily = brandDesign.fontFamily || "Inter";
 
+  // Helper to safely calculate luminance for hex colors (including #RRGGBBAA and 3-digit hex)
+  const getBgBrightness = (colorStr, fallbackColor = "#FAF9F0") => {
+    let target = colorStr || fallbackColor;
+    if (target === "brand") target = palette.c1;
+    else if (target === "brand-soft") target = palette.c1 ? `${palette.c1}15` : fallbackColor;
+    if (typeof target !== "string" || !target.startsWith("#")) return 240;
+
+    let hex = target.replace("#", "").substring(0, 6);
+    if (hex.length === 3) {
+      hex = hex.split("").map(c => c + c).join("");
+    }
+    if (hex.length !== 6) return 240;
+
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+    return (r * 299 + g * 587 + b * 114) / 1000;
+  };
+
+  const rawCardBg = (brandDesign.cardBgColor && brandDesign.cardBgColor !== "transparent") ? brandDesign.cardBgColor : null;
+  const rawCardText = brandDesign.cardTextColor || "auto";
+
+  // 1. Calculate overall store background luminance
+  const storeLuminance = getBgBrightness(customBgColor, "#FAF9F0");
+  const isStoreBgLight = storeLuminance >= 130;
+
+  // 2. Determine card background color from DB brand design settings
+  let resolvedCardBg = rawCardBg;
+  if (!resolvedCardBg) {
+    resolvedCardBg = isStoreBgLight ? "rgba(255, 255, 255, 0.85)" : "rgba(24, 24, 27, 0.85)";
+  } else if (resolvedCardBg === "brand") {
+    resolvedCardBg = palette.c1;
+  } else if (resolvedCardBg === "brand-soft") {
+    resolvedCardBg = `${palette.c1}20`;
+  }
+
+  // 3. Determine brightness of card background
+  const cardLuminance = getBgBrightness(resolvedCardBg, isStoreBgLight ? "#FFFFFF" : "#18181B");
+  const isCardDark = cardLuminance < 140;
+
+  // 4. Text and badge color schemes
+  let resolvedCardTextColor = isCardDark ? "#FFFFFF" : "#1C1C1E";
+  let mutedTextColor = isCardDark ? "#D1D5DB" : "#4B5563";
+
+  if (rawCardText === "brand") {
+    resolvedCardTextColor = palette.c1;
+  } else if (rawCardText && rawCardText !== "auto" && rawCardText.startsWith("#")) {
+    const textLuminance = getBgBrightness(rawCardText, "#1C1C1E");
+    if ((isCardDark && textLuminance > 120) || (!isCardDark && textLuminance < 150)) {
+      resolvedCardTextColor = rawCardText;
+    }
+  }
+
+  // Safety guard: Never allow white text on light card backgrounds
+  if (!isCardDark) {
+    const titleLuminance = getBgBrightness(resolvedCardTextColor, "#1C1C1E");
+    if (titleLuminance > 180) {
+      resolvedCardTextColor = "#1C1C1E";
+    }
+  }
+
   let pageBgCss = {};
   if (bgStyle === "image" && bgImage) {
     const fitMode = bgImageFit || "repeat-small";
@@ -607,21 +668,35 @@ export default function ProductDetailPage() {
           box-shadow: 0 8px 24px ${palette.c1}08 !important;
         }
         header {
-          background: ${bgStyle === "image" ? "rgba(255, 255, 255, 0.85) !important" : `linear-gradient(180deg, ${palette.c1}18 0%, rgba(255, 255, 255, 0.85) 100%) !important`};
-          backdrop-filter: blur(16px) !important;
-          -webkit-backdrop-filter: blur(16px) !important;
+          background: ${resolvedCardBg} !important;
+          backdrop-filter: blur(16px) saturate(180%) !important;
+          -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
           border-bottom: 1.5px solid ${palette.c1}30 !important;
           box-shadow: 0 4px 20px ${palette.c1}12 !important;
+          color: ${resolvedCardTextColor} !important;
+        }
+        header a, header nav, header span, header div, header p, header button {
+          color: ${resolvedCardTextColor} !important;
         }
         footer.site-footer {
-          background: ${bgStyle === "image" ? "rgba(255, 255, 255, 0.85) !important" : `linear-gradient(0deg, ${palette.c1}18 0%, rgba(255, 255, 255, 0.85) 100%) !important`};
-          backdrop-filter: blur(16px) !important;
-          -webkit-backdrop-filter: blur(16px) !important;
+          background: ${resolvedCardBg} !important;
+          backdrop-filter: blur(16px) saturate(180%) !important;
+          -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
           border-top: 1.5px solid ${palette.c1}30 !important;
           box-shadow: 0 -4px 20px ${palette.c1}12 !important;
+          color: ${resolvedCardTextColor} !important;
         }
-        footer.site-footer a {
-          color: ${palette.c1} !important;
+        footer.site-footer a, footer.site-footer span, footer.site-footer p, footer.site-footer h1, footer.site-footer h2, footer.site-footer h3, footer.site-footer h4, footer.site-footer div {
+          color: ${resolvedCardTextColor} !important;
+        }
+        .specs-table td.label {
+          color: ${mutedTextColor} !important;
+        }
+        .specs-table td.value {
+          color: ${resolvedCardTextColor} !important;
+        }
+        .specs-table tr {
+          border-bottom: ${isCardDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(0,0,0,0.08)"} !important;
         }
         .product-theme-scope .grid-catalog .product-card,
         .product-theme-scope .product-card {
@@ -689,7 +764,7 @@ export default function ProductDetailPage() {
         <button 
           onClick={() => router.push("/")} 
           className="btn-outline-gold" 
-          style={{ padding: "0.5rem 1.2rem", fontSize: "0.85rem", borderRadius: "8px", border: "1.5px solid var(--gold-primary)", cursor: "pointer", transition: "var(--transition-smooth)" }}
+          style={{ padding: "0.5rem 1.2rem", fontSize: "0.85rem", borderRadius: "8px", border: `1.5px solid ${palette.c1}40`, background: resolvedCardBg, color: resolvedCardTextColor, backdropFilter: "blur(12px)", cursor: "pointer", transition: "var(--transition-smooth)" }}
         >
           <i className="fa-solid fa-arrow-left" style={{ marginRight: 6 }}></i> Volver al Catálogo
         </button>
@@ -701,7 +776,10 @@ export default function ProductDetailPage() {
         <div 
           className="product-image-box"
           style={{
-            backgroundColor: prod.imgBgColor === "brand" ? palette.c1 : (prod.imgBgColor || "transparent"),
+            backgroundColor: prod.imgBgColor === "brand" ? palette.c1 : (prod.imgBgColor && prod.imgBgColor !== "transparent" ? prod.imgBgColor : resolvedCardBg),
+            backdropFilter: "blur(12px)",
+            border: `1.5px solid ${palette.c1}30`,
+            borderRadius: "16px",
             transition: "background-color 0.3s ease"
           }}
         >
@@ -715,7 +793,7 @@ export default function ProductDetailPage() {
               }}
             />
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "350px", color: "var(--text-muted)" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "350px", color: mutedTextColor }}>
               <i className="fa-solid fa-image" style={{ fontSize: "4rem", marginBottom: "1rem", opacity: 0.5 }}></i>
               <p>Sin imagen disponible</p>
             </div>
@@ -754,7 +832,7 @@ export default function ProductDetailPage() {
                   </span>
                 </div>
 
-                <h1 style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--text-primary)", lineHeight: 1.25, letterSpacing: "-0.015em", marginBottom: "0.6rem" }}>
+                <h1 style={{ fontSize: "2.2rem", fontWeight: 800, color: resolvedCardTextColor, lineHeight: 1.25, letterSpacing: "-0.015em", marginBottom: "0.6rem" }}>
                   {prod.name}
                 </h1>
 
@@ -767,8 +845,9 @@ export default function ProductDetailPage() {
                     marginBottom: "1.5rem",
                     padding: "0.5rem 0.9rem",
                     borderRadius: "10px",
-                    background: `${brandThemeColor}10`,
-                    border: `1px solid ${brandThemeColor}28`,
+                    background: resolvedCardBg,
+                    backdropFilter: "blur(10px)",
+                    border: `1.5px solid ${palette.c1}30`,
                     cursor: "pointer",
                     transition: "transform 0.2s ease"
                   }}
@@ -781,36 +860,36 @@ export default function ProductDetailPage() {
                       style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `1.5px solid ${brandThemeColor}` }} 
                     />
                   )}
-                  <span style={{ fontSize: "0.85rem", color: "var(--text-primary)" }}>
+                  <span style={{ fontSize: "0.85rem", color: resolvedCardTextColor }}>
                     Elaborado y vendido por: <strong style={{ color: brandThemeColor }}>{brand ? brand.name : "Marca Local"}</strong>
                   </span>
                   <i className="fa-solid fa-chevron-right" style={{ fontSize: "0.75rem", color: brandThemeColor, marginLeft: "4px" }}></i>
                 </div>
 
                 {/* Sección de Precio */}
-                <div style={{ background: "var(--bg-input)", padding: "1.2rem 1.5rem", borderRadius: "12px", border: "1px solid var(--border-color)", marginBottom: "1.8rem" }}>
-                  <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "block", marginBottom: "2px", fontWeight: 500 }}>
+                <div style={{ background: resolvedCardBg, backdropFilter: "blur(12px)", padding: "1.2rem 1.5rem", borderRadius: "12px", border: `1.5px solid ${palette.c1}30`, boxShadow: `0 8px 24px ${palette.c1}08`, marginBottom: "1.8rem" }}>
+                  <span style={{ fontSize: "0.8rem", color: mutedTextColor, display: "block", marginBottom: "2px", fontWeight: 500 }}>
                     {prod.priceAourum ? "Oferta Especial AOURUM" : "Precio Exclusivo"}
                   </span>
                   <div style={{ display: "flex", alignItems: "baseline", gap: "12px", flexWrap: "wrap" }}>
                     {prod.priceAourum ? (
                       <>
-                        <span style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--text-gold)", letterSpacing: "-0.02em" }}>
+                        <span style={{ fontSize: "2.2rem", fontWeight: 800, color: isCardDark ? "#FACC15" : "var(--text-gold)", letterSpacing: "-0.02em" }}>
                           S/ {formatPrice(prod.priceAourum)}
                         </span>
-                        <span style={{ fontSize: "1.3rem", color: "var(--text-muted)", textDecoration: "line-through", fontWeight: 500 }}>
+                        <span style={{ fontSize: "1.3rem", color: mutedTextColor, textDecoration: "line-through", fontWeight: 500 }}>
                           S/ {formatPrice(prod.price)}
                         </span>
-                        <span style={{ fontSize: "0.85rem", color: "var(--text-gold)", fontWeight: 700 }}>
+                        <span style={{ fontSize: "0.85rem", color: isCardDark ? "#FACC15" : "var(--text-gold)", fontWeight: 700 }}>
                           <i className="fa-solid fa-gift"></i> Precio Especial
                         </span>
                       </>
                     ) : (
                       <>
-                        <span style={{ fontSize: "2.2rem", fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
+                        <span style={{ fontSize: "2.2rem", fontWeight: 800, color: resolvedCardTextColor, letterSpacing: "-0.02em" }}>
                           S/ {formatPrice(prod.price)}
                         </span>
-                        <span style={{ fontSize: "0.85rem", color: "var(--text-gold)", fontWeight: 700 }}>
+                        <span style={{ fontSize: "0.85rem", color: isCardDark ? "#FACC15" : "var(--text-gold)", fontWeight: 700 }}>
                           <i className="fa-solid fa-shield-halved"></i> Precio Justo Local
                         </span>
                       </>
@@ -820,16 +899,16 @@ export default function ProductDetailPage() {
 
                 {/* Información & Contenido del Platillo / Producto */}
                 <div style={{ marginBottom: "1.8rem" }}>
-                  <h3 style={{ fontSize: "1.05rem", fontWeight: 700, borderBottom: "1.5px solid var(--border-color)", paddingBottom: "0.4rem", marginBottom: "0.8rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <h3 style={{ fontSize: "1.05rem", fontWeight: 700, borderBottom: `1.5px solid ${palette.c1}30`, paddingBottom: "0.4rem", marginBottom: "0.8rem", color: resolvedCardTextColor, display: "flex", alignItems: "center", gap: "8px" }}>
                     <i className="fa-solid fa-circle-info" style={{ color: brandThemeColor }}></i>
                     <span>{isVirtualMenu ? "Información y Descripción del Platillo" : "Información y Descripción"}</span>
                   </h3>
-                  <div style={{ background: "var(--bg-input)", padding: "1.2rem 1.4rem", borderRadius: "12px", border: "1px solid var(--border-color)" }}>
-                    <p style={{ fontSize: "0.92rem", color: "var(--text-primary)", lineHeight: 1.65, whiteSpace: "pre-line", margin: 0 }}>
+                  <div style={{ background: resolvedCardBg, backdropFilter: "blur(12px)", padding: "1.2rem 1.4rem", borderRadius: "12px", border: `1.5px solid ${palette.c1}30`, boxShadow: `0 8px 24px ${palette.c1}08` }}>
+                    <p style={{ fontSize: "0.92rem", color: resolvedCardTextColor, lineHeight: 1.65, whiteSpace: "pre-line", margin: 0 }}>
                       {prod.description && prod.description.trim() ? (
                         prod.description
                       ) : (
-                        <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>
+                        <span style={{ color: mutedTextColor, fontStyle: "italic" }}>
                           {isVirtualMenu 
                             ? `Especialidad gastronómica de ${brand?.name || 'la marca'}. Platillo preparado fresco al momento de realizar tu pedido.`
                             : `Artículo disponible en la vitrina de ${brand?.name || 'la marca'}. Para más detalles, coordina directamente con el vendedor.`}
@@ -841,8 +920,8 @@ export default function ProductDetailPage() {
 
                 {/* Tabla de Especificaciones */}
                 <div style={{ marginBottom: "2rem" }}>
-                  <h3 style={{ fontSize: "1.05rem", fontWeight: 700, borderBottom: "1.5px solid var(--border-color)", paddingBottom: "0.4rem", marginBottom: "0.8rem", color: "var(--text-primary)" }}>
-                    <i className="fa-solid fa-list-check" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Especificaciones Técnicas
+                  <h3 style={{ fontSize: "1.05rem", fontWeight: 700, borderBottom: `1.5px solid ${palette.c1}30`, paddingBottom: "0.4rem", marginBottom: "0.8rem", color: resolvedCardTextColor }}>
+                    <i className="fa-solid fa-list-check" style={{ color: palette.c1, marginRight: 8 }}></i> Especificaciones Técnicas
                   </h3>
                   <table className="specs-table">
                     <tbody>
@@ -868,7 +947,7 @@ export default function ProductDetailPage() {
                       ) : (
                         <tr>
                           <td className="label">Disponibilidad</td>
-                          <td className="value" style={{ color: (prod.stock == null || prod.stock > 0) ? "var(--text-primary)" : "#ef4444", fontWeight: 700 }}>
+                          <td className="value" style={{ color: (prod.stock == null || prod.stock > 0) ? resolvedCardTextColor : "#ef4444", fontWeight: 700 }}>
                             {prod.stock == null ? "En Stock (Disponibilidad continua)" : prod.stock > 0 ? `En Stock (${prod.stock} unidades)` : "Agotado Temporalmente"}
                           </td>
                         </tr>
@@ -878,9 +957,9 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Aviso informativo */}
-                <div style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.2)", borderRadius: "12px", padding: "1.2rem", marginBottom: "1.8rem" }}>
-                  <p style={{ fontSize: "0.85rem", color: "var(--gold-dark)", lineHeight: 1.5, display: "flex", gap: "8px", margin: 0 }}>
-                    <i className="fa-solid fa-circle-info" style={{ marginTop: "3px", fontSize: "0.95rem" }}></i>
+                <div style={{ background: resolvedCardBg, backdropFilter: "blur(10px)", border: `1.5px solid ${palette.c1}30`, borderRadius: "12px", padding: "1.2rem", marginBottom: "1.8rem" }}>
+                  <p style={{ fontSize: "0.85rem", color: resolvedCardTextColor, lineHeight: 1.5, display: "flex", gap: "8px", margin: 0 }}>
+                    <i className="fa-solid fa-circle-info" style={{ marginTop: "3px", fontSize: "0.95rem", color: palette.c1 }}></i>
                     <span>
                       {isVirtualMenu
                         ? "Este es un plato/ítem de la carta virtual gastronómica. No realizamos transacciones de pago directo. Para realizar tu pedido o consultar, coordina directamente con el restaurante o productor."
@@ -942,14 +1021,14 @@ export default function ProductDetailPage() {
 
       {/* Carta & Menú Gastronómico de la Marca */}
       {brand && allBrandProducts.length > 0 && (
-        <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
+        <div style={{ borderTop: `1px solid ${palette.c1}30`, paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
           <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
             <div>
-              <h3 style={{ fontSize: "1.4rem", fontWeight: 800, margin: 0, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
+              <h3 style={{ fontSize: "1.4rem", fontWeight: 800, margin: 0, color: resolvedCardTextColor, display: "flex", alignItems: "center", gap: "8px" }}>
                 <i className="fa-solid fa-utensils" style={{ color: brandThemeColor }}></i>
                 <span>Carta & Menú Gastronómico de {brand.name}</span>
               </h3>
-              <p style={{ fontSize: "0.88rem", color: "var(--text-muted)", margin: "4px 0 0 0" }}>
+              <p style={{ fontSize: "0.88rem", color: mutedTextColor, margin: "4px 0 0 0" }}>
                 Explora la selección de platillos, bebidas y especialidades de {brand.name}
               </p>
             </div>
@@ -981,8 +1060,9 @@ export default function ProductDetailPage() {
                     gap: "1.25rem",
                     padding: "1.1rem 1.3rem",
                     borderRadius: "16px",
-                    border: isCurrent ? `2px solid ${brandThemeColor}` : "1px solid var(--border-color)",
-                    background: isCurrent ? `${brandThemeColor}10` : "var(--bg-card)",
+                    border: isCurrent ? `2px solid ${brandThemeColor}` : `1.5px solid ${palette.c1}30`,
+                    background: isCurrent ? `${brandThemeColor}18` : resolvedCardBg,
+                    backdropFilter: "blur(12px)",
                     flexWrap: "wrap",
                     transition: "transform 0.2s ease, box-shadow 0.2s ease",
                     cursor: "pointer"
@@ -997,7 +1077,7 @@ export default function ProductDetailPage() {
                         borderRadius: "12px", 
                         overflow: "hidden", 
                         flexShrink: 0,
-                        border: "1px solid var(--border-color)"
+                        border: `1px solid ${palette.c1}30`
                       }}
                     >
                       <img src={item.image} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -1017,12 +1097,12 @@ export default function ProductDetailPage() {
                       )}
                     </div>
                     <h4 
-                      style={{ fontSize: "1.05rem", fontWeight: 800, margin: "2px 0 4px 0", color: "var(--text-primary)" }}
+                      style={{ fontSize: "1.05rem", fontWeight: 800, margin: "2px 0 4px 0", color: resolvedCardTextColor }}
                     >
                       {item.name}
                     </h4>
                     {item.description && (
-                      <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: "0 0 6px 0", lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                      <p style={{ fontSize: "0.82rem", color: mutedTextColor, margin: "0 0 6px 0", lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                         {item.description}
                       </p>
                     )}
@@ -1077,10 +1157,10 @@ export default function ProductDetailPage() {
 
       {/* Sugerencias de la misma categoría */}
       {suggestedCategoryProds.length > 0 && (
-        <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
-          <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "1.5rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
-            <i className="fa-solid fa-tags" style={{ color: "var(--gold-primary)" }}></i>
-            Productos recomendados en <span style={{ color: "var(--gold-dark)" }}>{prod.category || "esta categoría"}</span>
+        <div style={{ borderTop: `1px solid ${palette.c1}30`, paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
+          <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "1.5rem", color: resolvedCardTextColor, display: "flex", alignItems: "center", gap: 8 }}>
+            <i className="fa-solid fa-tags" style={{ color: palette.c1 }}></i>
+            Productos recomendados en <span style={{ color: brandThemeColor }}>{prod.category || "esta categoría"}</span>
           </h3>
           <div className="grid-catalog">
             {suggestedCategoryProds.map(renderSuggestedCard)}
@@ -1090,15 +1170,16 @@ export default function ProductDetailPage() {
 
       {/* Banner de la Marca */}
       {brand && (
-        <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
-          <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "1.2rem", color: "var(--text-primary)" }}>
+        <div style={{ borderTop: `1px solid ${palette.c1}30`, paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
+          <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "1.2rem", color: resolvedCardTextColor }}>
             <i className="fa-solid fa-user-tie" style={{ color: brandThemeColor, marginRight: 8 }}></i> Sobre la Marca / Productor
           </h3>
           <div 
             className="brand-banner-card"
             style={{ 
               border: `1.5px solid ${brandThemeColor}35`,
-              background: `linear-gradient(135deg, ${brandThemeColor}0A 0%, var(--bg-card) 100%)`,
+              background: resolvedCardBg,
+              backdropFilter: "blur(12px)",
               boxShadow: `0 8px 30px ${brandThemeColor}15`,
               borderRadius: "16px",
               padding: "1.5rem"
@@ -1116,16 +1197,16 @@ export default function ProductDetailPage() {
               <span style={{ fontSize: "0.78rem", color: brandThemeColor, textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>
                 {brand.category || "Marca Local"}
               </span>
-              <h4 style={{ fontSize: "1.5rem", fontWeight: 800, margin: "2px 0 6px 0", letterSpacing: "-0.015em" }}>
+              <h4 style={{ fontSize: "1.5rem", fontWeight: 800, margin: "2px 0 6px 0", color: resolvedCardTextColor, letterSpacing: "-0.015em" }}>
                 {brand.name}
               </h4>
               {brand.owner && (
-                <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: "0.8rem" }}>
+                <p style={{ fontSize: "0.82rem", color: mutedTextColor, marginBottom: "0.8rem" }}>
                   <i className="fa-solid fa-user-tag" style={{ marginRight: 6 }}></i> Fundador: <strong>{brand.owner}</strong>
                 </p>
               )}
               {brand.whatsappNumber && (
-                <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: 6 }}>
+                <p style={{ fontSize: "0.82rem", color: mutedTextColor, marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: 6 }}>
                   <i className="fa-brands fa-whatsapp" style={{ color: "#25d366", fontSize: "1rem" }}></i>
                   <strong>WhatsApp:</strong>
                   {activeRole ? (
@@ -1141,7 +1222,7 @@ export default function ProductDetailPage() {
                     </span>
                   ) : (
                     <span 
-                      style={{ cursor: "pointer", color: "var(--text-muted)", textDecoration: "underline" }}
+                      style={{ cursor: "pointer", color: mutedTextColor, textDecoration: "underline" }}
                       onClick={() => {
                         triggerNotification(false, "Debes iniciar sesión para ver el número de contacto.");
                         setShowLoginModal(true);
@@ -1154,7 +1235,7 @@ export default function ProductDetailPage() {
                 </p>
               )}
               {brand.description && (
-                <p style={{ fontSize: "0.88rem", color: "var(--text-primary)", lineHeight: 1.55, marginBottom: "1.2rem" }}>
+                <p style={{ fontSize: "0.88rem", color: resolvedCardTextColor, lineHeight: 1.55, marginBottom: "1.2rem" }}>
                   {parseDescription(brand.description).text}
                 </p>
               )}
