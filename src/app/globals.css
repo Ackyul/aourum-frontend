@@ -388,7 +388,7 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: var(--gold-glow);
 }
 
-/* Premium Navigation Headers */
+/* Premium Navigation Headers & Footers */
 header {
   background: rgba(255, 255, 255, 0.92) !important;
   backdrop-filter: blur(16px);
@@ -397,6 +397,13 @@ header {
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+.site-footer {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
 }
 
 /* ── HEADER LAYOUT ─────────────────────────────────────────── */
