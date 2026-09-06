@@ -1332,10 +1332,31 @@ function BrandProductCard({ prod }) {
   
   let profileBgCss = {};
   if (bgStyle === "image" && bgImage) {
+    const fitMode = bgImageFit || "repeat-small";
+    let bgSize = "280px auto";
+    let bgRepeat = "repeat";
+
+    if (fitMode === "cover") {
+      bgSize = "cover";
+      bgRepeat = "no-repeat";
+    } else if (fitMode === "contain") {
+      bgSize = "contain";
+      bgRepeat = "repeat";
+    } else if (fitMode === "repeat-medium") {
+      bgSize = "480px auto";
+      bgRepeat = "repeat";
+    } else if (fitMode === "auto") {
+      bgSize = "auto";
+      bgRepeat = "repeat";
+    } else {
+      bgSize = "280px auto";
+      bgRepeat = "repeat";
+    }
+
     profileBgCss = {
       backgroundImage: `url(${bgImage})`,
-      backgroundSize: bgImageFit === "repeat" ? "auto" : bgImageFit,
-      backgroundRepeat: bgImageFit === "repeat" ? "repeat" : "no-repeat",
+      backgroundSize: bgSize,
+      backgroundRepeat: bgRepeat,
       backgroundPosition: "center top"
     };
   } else if (bgStyle === "solid") {

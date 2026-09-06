@@ -2264,11 +2264,14 @@ function AppLayoutShell({ children }) {
 
                         let previewBgStyle = {};
                         if (design.bgStyle === "image" && design.bgImage) {
+                          const fit = design.bgImageFit || "repeat-small";
+                          const size = fit === "cover" ? "cover" : fit === "repeat-medium" ? "160px auto" : "90px auto";
+                          const repeat = fit === "cover" ? "no-repeat" : "repeat";
                           previewBgStyle = {
                             backgroundImage: `url(${design.bgImage})`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                            backgroundRepeat: "no-repeat"
+                            backgroundSize: size,
+                            backgroundPosition: "center top",
+                            backgroundRepeat: repeat
                           };
                         } else if (design.bgStyle === "gradient") {
                           previewBgStyle = {
@@ -2347,10 +2350,10 @@ function AppLayoutShell({ children }) {
                               </div>
 
                               {design.bgStyle === "image" && (
-                                <div style={{ display: "flex", flexDirection: "column", gap: "8px", background: "rgba(212,175,55,0.05)", padding: "10px", borderRadius: "10px", marginTop: "10px" }}>
+                                <div style={{ display: "flex", flexDirection: "column", gap: "10px", background: "rgba(212,175,55,0.05)", padding: "10px 12px", borderRadius: "10px", marginTop: "10px" }}>
                                   <label style={{ fontSize: "0.76rem", fontWeight: 700, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                    <span>{isBrand ? "Imagen de Fondo de Tienda" : "Imagen de Fondo de Perfil"}</span>
-                                    <span style={{ fontSize: "0.72rem", color: "var(--text-gold)", fontWeight: 700 }}>📐 Recomendado: 1920 × 1080 px (SVG, PNG, JPG)</span>
+                                    <span>{isBrand ? "Imagen / Textura de Fondo" : "Imagen / Textura de Perfil"}</span>
+                                    <span style={{ fontSize: "0.72rem", color: "var(--text-gold)", fontWeight: 700 }}>📐 Recomendado: SVG o 1920×1080 px</span>
                                   </label>
                                   <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
                                     <label 
@@ -2368,7 +2371,7 @@ function AppLayoutShell({ children }) {
                                       }}
                                     >
                                       <i className={uploadingEdit ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-upload"}></i> 
-                                      {uploadingEdit ? "Subiendo..." : "Subir Imagen de Fondo"}
+                                      {uploadingEdit ? "Subiendo..." : "Subir Imagen / Textura"}
                                     </label>
                                     <input 
                                       id="brand-bg-image-upload" 
@@ -2380,7 +2383,10 @@ function AppLayoutShell({ children }) {
                                         const file = e.target.files?.[0];
                                         if (!file) return;
                                         const url = await uploadImage(file, setUploadingEdit);
-                                        if (url) updateDesignKey("bgImage", url);
+                                        if (url) {
+                                          updateDesignKey("bgImage", url);
+                                          if (!design.bgImageFit) updateDesignKey("bgImageFit", "repeat-small");
+                                        }
                                         e.target.value = "";
                                       }}
                                     />
@@ -2392,9 +2398,9 @@ function AppLayoutShell({ children }) {
                                           borderRadius: "6px",
                                           border: "1px solid var(--border-color)",
                                           backgroundImage: `url(${design.bgImage})`,
-                                          backgroundSize: "cover",
+                                          backgroundSize: (design.bgImageFit === "cover") ? "cover" : "90px auto",
                                           backgroundPosition: "center",
-                                          backgroundRepeat: "no-repeat",
+                                          backgroundRepeat: (design.bgImageFit === "cover") ? "no-repeat" : "repeat",
                                           boxShadow: "0 2px 6px rgba(0,0,0,0.1)"
                                         }} title="Vista previa del fondo cargado" />
                                         <button 
@@ -2407,6 +2413,48 @@ function AppLayoutShell({ children }) {
                                       </div>
                                     )}
                                   </div>
+
+                                  {/* Selector de Tamaño del Mosaico / Ajuste */}
+                                  {design.bgImage && (
+                                    <div style={{ marginTop: "4px" }}>
+                                      <div style={{ fontSize: "0.73rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "6px" }}>
+                                        🧩 Escala y Tamaño del Fondo / Mosaico:
+                                      </div>
+                                      <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                                        {[
+                                          { id: "repeat-small", label: "Mosaico Pequeño (Recomendado)", icon: "fa-border-all" },
+                                          { id: "repeat-medium", label: "Mosaico Mediano", icon: "fa-grip" },
+                                          { id: "cover", label: "Pantalla Completa", icon: "fa-expand" }
+                                        ].map((item) => {
+                                          const activeFit = design.bgImageFit || "repeat-small";
+                                          const isSelected = activeFit === item.id;
+                                          return (
+                                            <button
+                                              key={item.id}
+                                              type="button"
+                                              onClick={() => updateDesignKey("bgImageFit", item.id)}
+                                              style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: "5px",
+                                                background: isSelected ? "var(--bg-card)" : "var(--bg-input)",
+                                                border: isSelected ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                                color: isSelected ? "var(--gold-dark)" : "var(--text-primary)",
+                                                borderRadius: "8px",
+                                                padding: "4px 8px",
+                                                cursor: "pointer",
+                                                fontSize: "0.72rem",
+                                                fontWeight: isSelected ? 700 : 500
+                                              }}
+                                            >
+                                              <i className={`fa-solid ${item.icon}`} style={{ fontSize: "0.7rem" }}></i>
+                                              <span>{item.label}</span>
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>
