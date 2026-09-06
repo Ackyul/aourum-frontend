@@ -1453,7 +1453,7 @@ function BrandProductCard({ prod }) {
   }
 
   return (
-    <div className="brand-profile-page-wrapper" style={{ minHeight: "100vh", width: "100%", position: "relative", ...profileBgCss }}>
+    <div className="brand-profile-page-wrapper" style={{ minHeight: "100vh", width: "100%", position: "relative" }}>
       <div className="container brand-profile-theme-scope" style={{ maxWidth: "1400px", padding: "1.5rem 1.5rem 3rem 1.5rem", position: "relative", minHeight: "100vh", fontFamily: fontFamily !== "Inter" ? `"${fontFamily}", sans-serif` : "inherit" }}>
         {/* Import de la fuente de Google seleccionada si no es Inter */}
         {fontFamily !== "Inter" && (
