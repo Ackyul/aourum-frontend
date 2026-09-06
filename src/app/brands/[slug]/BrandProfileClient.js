@@ -938,12 +938,16 @@ function BrandProductCard({ prod }) {
 
     // 2. Determine card background color from DB brand design settings
     let cardBg = rawCardBg;
-    if (!cardBg) {
-      cardBg = isStoreBgLight ? "rgba(255, 255, 255, 0.85)" : "rgba(24, 24, 27, 0.85)";
+    if (!cardBg || cardBg === "auto") {
+      cardBg = (customBgColor && customBgColor.startsWith("#")) ? customBgColor : (isStoreBgLight ? "#FFFFFF" : "#18181B");
     } else if (cardBg === "brand") {
       cardBg = palette.c1;
     } else if (cardBg === "brand-soft") {
-      cardBg = `${palette.c1}20`;
+      cardBg = (customBgColor && customBgColor.startsWith("#")) ? customBgColor : (isStoreBgLight ? "#FAF9F0" : "#242427");
+    }
+
+    if (typeof cardBg === "string" && cardBg.startsWith("#") && cardBg.length === 9) {
+      cardBg = cardBg.substring(0, 7);
     }
 
     // 3. Determine brightness of card background
@@ -1420,17 +1424,15 @@ function BrandProductCard({ prod }) {
   if (design.cardBgColor && design.cardBgColor !== "transparent" && design.cardBgColor !== "auto") {
     let resolvedBg = design.cardBgColor;
     if (resolvedBg === "brand") resolvedBg = palette.c1;
-    else if (resolvedBg === "brand-soft") resolvedBg = customBgColor || (palette.c1 ? `${palette.c1}20` : "#f2f6e4");
+    else if (resolvedBg === "brand-soft") resolvedBg = (customBgColor && customBgColor.startsWith("#")) ? customBgColor : (isStoreBgLight ? "#FAF9F0" : "#242427");
+    if (typeof resolvedBg === "string" && resolvedBg.startsWith("#") && resolvedBg.length === 9) {
+      resolvedBg = resolvedBg.substring(0, 7);
+    }
     resolvedCardBg = resolvedBg;
     cardCss += `background: ${resolvedBg} !important; background-color: ${resolvedBg} !important;`;
   } else {
-    // Default soft tint for glass style, or white for flat/elevated/bordered
-    if (cardStyle === "glass") {
-      resolvedCardBg = isStoreBgLight ? "rgba(255, 255, 255, 0.85)" : "rgba(24, 24, 27, 0.88)";
-    } else {
-      resolvedCardBg = isStoreBgLight ? "rgba(255, 255, 255, 0.85)" : "rgba(24, 24, 27, 0.88)";
-    }
-    cardCss += `background: ${resolvedCardBg} !important; background-color: ${resolvedCardBg} !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;`;
+    resolvedCardBg = (customBgColor && customBgColor.startsWith("#")) ? customBgColor : (isStoreBgLight ? "#FFFFFF" : "#18181B");
+    cardCss += `background: ${resolvedCardBg} !important; background-color: ${resolvedCardBg} !important;`;
   }
 
   if (design.cardBorderColor && design.cardBorderColor !== "auto") {

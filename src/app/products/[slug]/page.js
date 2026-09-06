@@ -257,14 +257,21 @@ export default function ProductDetailPage() {
   const storeLuminance = getBgBrightness(customBgColor, "#FAF9F0");
   const isStoreBgLight = storeLuminance >= 130;
 
-  // 2. Determine card background color from DB brand design settings
+  // 2. Determine solid card background color from DB brand design settings
   let resolvedCardBg = rawCardBg;
-  if (!resolvedCardBg) {
-    resolvedCardBg = isStoreBgLight ? "rgba(255, 255, 255, 0.85)" : "rgba(24, 24, 27, 0.85)";
+  if (!resolvedCardBg || resolvedCardBg === "auto") {
+    resolvedCardBg = isStoreBgLight ? "#FFFFFF" : "#18181B";
   } else if (resolvedCardBg === "brand") {
     resolvedCardBg = palette.c1;
   } else if (resolvedCardBg === "brand-soft") {
-    resolvedCardBg = `${palette.c1}20`;
+    resolvedCardBg = (customBgColor && customBgColor.startsWith("#"))
+      ? customBgColor
+      : (isStoreBgLight ? "#FAF9F0" : "#242427");
+  }
+
+  // Ensure resolvedCardBg is solid 6-digit hex without transparency alpha channel
+  if (typeof resolvedCardBg === "string" && resolvedCardBg.startsWith("#") && resolvedCardBg.length === 9) {
+    resolvedCardBg = resolvedCardBg.substring(0, 7);
   }
 
   // 3. Determine brightness of card background
@@ -411,16 +418,16 @@ export default function ProductDetailPage() {
     const isStoreBgLight = storeLuminance >= 130;
 
     let cardBg = rawCardBg;
-    if (!cardBg) {
-      if (rpCardStyle === "flat" || rpCardStyle === "elevated" || rpCardStyle === "bordered") {
-        cardBg = "#FFFFFF";
-      } else {
-        cardBg = isStoreBgLight ? `${rpPalette.c1}18` : "rgba(24, 24, 27, 0.88)";
-      }
+    if (!cardBg || cardBg === "auto") {
+      cardBg = (rpDesign.customBgColor && rpDesign.customBgColor.startsWith("#")) ? rpDesign.customBgColor : (isStoreBgLight ? "#FFFFFF" : "#18181B");
     } else if (cardBg === "brand") {
       cardBg = rpPalette.c1;
     } else if (cardBg === "brand-soft") {
-      cardBg = `${rpPalette.c1}20`;
+      cardBg = (rpDesign.customBgColor && rpDesign.customBgColor.startsWith("#")) ? rpDesign.customBgColor : (isStoreBgLight ? "#FAF9F0" : "#242427");
+    }
+
+    if (typeof cardBg === "string" && cardBg.startsWith("#") && cardBg.length === 9) {
+      cardBg = cardBg.substring(0, 7);
     }
 
     const cardLuminance = getBgBrightness(cardBg, isStoreBgLight ? "#FFFFFF" : "#18181B");
