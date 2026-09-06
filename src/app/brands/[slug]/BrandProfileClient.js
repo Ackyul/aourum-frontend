@@ -799,7 +799,9 @@ export default function BrandProfileClient({ initialBrand }) {
         gap: "1.25rem",
         padding: "1.25rem 1.5rem",
         borderRadius: "18px",
-        background: resolvedCardBg || (isStoreBgLight ? "#FAF9F0" : "#18181B"),
+        background: resolvedCardBg || (isStoreBgLight ? "rgba(255, 255, 255, 0.85)" : "rgba(24, 24, 27, 0.85)"),
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
         border: `1.5px solid ${primaryColor}40`,
         boxShadow: "0 4px 16px rgba(0,0,0,0.03)",
         flexWrap: "wrap",
@@ -937,12 +939,7 @@ function BrandProductCard({ prod }) {
     // 2. Determine card background color from DB brand design settings
     let cardBg = rawCardBg;
     if (!cardBg) {
-      if (cardStyle === "flat" || cardStyle === "elevated" || cardStyle === "bordered") {
-        cardBg = "#FFFFFF";
-      } else {
-        // default glass style with soft brand tint
-        cardBg = isStoreBgLight ? `${palette.c1}18` : "rgba(24, 24, 27, 0.88)";
-      }
+      cardBg = isStoreBgLight ? "rgba(255, 255, 255, 0.85)" : "rgba(24, 24, 27, 0.85)";
     } else if (cardBg === "brand") {
       cardBg = palette.c1;
     } else if (cardBg === "brand-soft") {
@@ -1429,11 +1426,11 @@ function BrandProductCard({ prod }) {
   } else {
     // Default soft tint for glass style, or white for flat/elevated/bordered
     if (cardStyle === "glass") {
-      resolvedCardBg = isStoreBgLight ? (customBgColor || `${palette.c1}18`) : "rgba(24, 24, 27, 0.88)";
+      resolvedCardBg = isStoreBgLight ? "rgba(255, 255, 255, 0.85)" : "rgba(24, 24, 27, 0.88)";
     } else {
-      resolvedCardBg = isStoreBgLight ? "#FFFFFF" : "#18181B";
+      resolvedCardBg = isStoreBgLight ? "rgba(255, 255, 255, 0.85)" : "rgba(24, 24, 27, 0.88)";
     }
-    cardCss += `background: ${resolvedCardBg} !important; background-color: ${resolvedCardBg} !important;`;
+    cardCss += `background: ${resolvedCardBg} !important; background-color: ${resolvedCardBg} !important; backdrop-filter: blur(12px) !important; -webkit-backdrop-filter: blur(12px) !important;`;
   }
 
   if (design.cardBorderColor && design.cardBorderColor !== "auto") {
@@ -1535,7 +1532,9 @@ function BrandProductCard({ prod }) {
         .brand-profile-theme-scope .glass-panel {
           border: ${design.cardBorderColor === "brand" || cardStyle === "bordered" ? `1.5px solid ${palette.c1}` : (isStoreBgLight ? "1px solid rgba(0,0,0,0.12)" : `1px solid ${palette.c1}25`)} !important;
           box-shadow: ${isStoreBgLight ? "0 4px 16px rgba(0,0,0,0.06)" : `0 8px 24px ${palette.c1}08`} !important;
-          background-color: ${resolvedCardBg || (isStoreBgLight ? "#FFFFFF" : "#18181B")} !important;
+          background-color: ${resolvedCardBg || (isStoreBgLight ? "rgba(255, 255, 255, 0.85)" : "rgba(24, 24, 27, 0.88)")} !important;
+          backdrop-filter: blur(12px) !important;
+          -webkit-backdrop-filter: blur(12px) !important;
         }
         header {
           background: ${bgStyle === "image" ? "rgba(255, 255, 255, 0.85) !important" : `linear-gradient(180deg, ${palette.c1}18 0%, rgba(255, 255, 255, 0.85) 100%) !important`};
@@ -1609,7 +1608,7 @@ function BrandProductCard({ prod }) {
         .brand-profile-theme-scope select,
         .brand-profile-theme-scope .post-card-image-wrapper,
         .brand-profile-theme-scope .card-img-container {
-          background-color: ${resolvedCardBg || (customBgColor || "#FAF9F0")} !important;
+          background-color: ${resolvedCardBg || (isStoreBgLight ? "rgba(255, 255, 255, 0.85)" : "rgba(24, 24, 27, 0.88)")} !important;
           color: ${resolvedCardTextColor || (isStoreBgLight ? "#1C1C1E" : "#FFFFFF")} !important;
           border-color: ${palette.c1}35 !important;
         }
