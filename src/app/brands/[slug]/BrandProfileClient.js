@@ -2835,7 +2835,7 @@ function BrandProductCard({ prod }) {
                   <input 
                     id="prod-img-upload" 
                     type="file" 
-                    accept="image/*" 
+                    accept="image/*,.svg,image/svg+xml" 
                     style={{ display: "none" }} 
                     disabled={uploadingProd} 
                     onChange={(e) => {
@@ -3769,7 +3769,7 @@ function BrandProductCard({ prod }) {
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "4px" }}>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/*,.svg,image/svg+xml"
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (file) {

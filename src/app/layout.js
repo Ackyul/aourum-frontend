@@ -1057,7 +1057,7 @@ function AppLayoutShell({ children }) {
                     <input 
                       id="profile-logo-upload" 
                       type="file" 
-                      accept="image/*" 
+                      accept="image/*,.svg,image/svg+xml" 
                       style={{ display: "none" }} 
                       onChange={async (e) => {
                         const file = e.target.files[0];
@@ -1543,7 +1543,7 @@ function AppLayoutShell({ children }) {
                       </div>
                     </div>
                     <input 
-                      id="edit-logo-upload" type="file" accept="image/*" style={{ display: "none" }} disabled={uploadingEdit}
+                      id="edit-logo-upload" type="file" accept="image/*,.svg,image/svg+xml" style={{ display: "none" }} disabled={uploadingEdit}
                       onChange={async (e) => {
                         const file = e.target.files[0];
                         if (!file) return;
@@ -1923,7 +1923,7 @@ function AppLayoutShell({ children }) {
                       )}
                       <input 
                         type="file" 
-                        accept="image/*"
+                        accept="image/*,.svg,image/svg+xml"
                         onChange={async (e) => {
                           const file = e.target.files[0];
                           if (file) {
@@ -2262,11 +2262,29 @@ function AppLayoutShell({ children }) {
 
                         const logoRadius = logoShp === "square" ? "4px" : logoShp === "rounded" ? "14px" : "50%";
 
+                        let previewBgStyle = {};
+                        if (design.bgStyle === "image" && design.bgImage) {
+                          previewBgStyle = {
+                            backgroundImage: `url(${design.bgImage})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            backgroundRepeat: "no-repeat"
+                          };
+                        } else if (design.bgStyle === "gradient") {
+                          previewBgStyle = {
+                            background: `linear-gradient(135deg, ${primaryCol}22, ${primaryCol}55)`
+                          };
+                        } else {
+                          previewBgStyle = {
+                            background: (typeof generalBgCol === "string" && generalBgCol.startsWith("#")) ? generalBgCol : "#FAF9F0"
+                          };
+                        }
+
                         return (
                           <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
                             {/* 📱 VISTA PREVIA EN VIVO */}
                             <div style={{
-                              background: (typeof generalBgCol === "string" && generalBgCol.startsWith("#")) ? generalBgCol : "#FAF9F0",
+                              ...previewBgStyle,
                               border: "1px solid var(--border-color)",
                               borderRadius: "16px",
                               padding: "1rem",
@@ -2274,7 +2292,7 @@ function AppLayoutShell({ children }) {
                               position: "relative",
                               overflow: "hidden"
                             }}>
-                              <div style={{ fontSize: "0.68rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)", marginBottom: "8px", display: "flex", alignItems: "center", gap: "5px" }}>
+                              <div style={{ fontSize: "0.68rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)", marginBottom: "8px", display: "flex", alignItems: "center", gap: "5px", background: "rgba(255,255,255,0.7)", backdropFilter: "blur(4px)", padding: "2px 6px", borderRadius: "6px", width: "fit-content" }}>
                                 <i className="fa-solid fa-eye" style={{ color: "var(--gold-primary)" }}></i> Vista Previa en Tiempo Real
                               </div>
                               <div style={{ display: "flex", gap: "12px", alignItems: "center", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(8px)", padding: "10px 14px", borderRadius: "12px", border: `1.5px solid ${primaryCol}40` }}>
@@ -2332,36 +2350,61 @@ function AppLayoutShell({ children }) {
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px", background: "rgba(212,175,55,0.05)", padding: "10px", borderRadius: "10px", marginTop: "10px" }}>
                                   <label style={{ fontSize: "0.76rem", fontWeight: 700, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                     <span>{isBrand ? "Imagen de Fondo de Tienda" : "Imagen de Fondo de Perfil"}</span>
-                                    <span style={{ fontSize: "0.72rem", color: "var(--text-gold)", fontWeight: 700 }}>📐 Recomendado: 1920 × 1080 px (16:9 o textura continua)</span>
+                                    <span style={{ fontSize: "0.72rem", color: "var(--text-gold)", fontWeight: 700 }}>📐 Recomendado: 1920 × 1080 px (SVG, PNG, JPG)</span>
                                   </label>
-                                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                                  <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
                                     <label 
                                       htmlFor="brand-bg-image-upload" 
                                       className="btn-outline-gold" 
-                                      style={{ padding: "0.4rem 0.9rem", fontSize: "0.78rem", borderRadius: "8px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}
+                                      style={{ 
+                                        padding: "0.4rem 0.9rem", 
+                                        fontSize: "0.78rem", 
+                                        borderRadius: "8px", 
+                                        cursor: uploadingEdit ? "not-allowed" : "pointer", 
+                                        display: "inline-flex", 
+                                        alignItems: "center", 
+                                        gap: "6px",
+                                        opacity: uploadingEdit ? 0.6 : 1
+                                      }}
                                     >
-                                      <i className="fa-solid fa-upload"></i> Subir Imagen de Fondo
+                                      <i className={uploadingEdit ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-upload"}></i> 
+                                      {uploadingEdit ? "Subiendo..." : "Subir Imagen de Fondo"}
                                     </label>
                                     <input 
                                       id="brand-bg-image-upload" 
                                       type="file" 
-                                      accept="image/*" 
+                                      accept="image/*,.svg,image/svg+xml" 
+                                      disabled={uploadingEdit}
                                       style={{ display: "none" }} 
                                       onChange={async (e) => {
                                         const file = e.target.files?.[0];
                                         if (!file) return;
                                         const url = await uploadImage(file, setUploadingEdit);
                                         if (url) updateDesignKey("bgImage", url);
+                                        e.target.value = "";
                                       }}
                                     />
                                     {design.bgImage && (
-                                      <button 
-                                        type="button" 
-                                        onClick={() => updateDesignKey("bgImage", "")}
-                                        style={{ background: "none", border: "none", color: "#ef4444", fontSize: "0.75rem", cursor: "pointer", fontWeight: 700 }}
-                                      >
-                                        Quitar
-                                      </button>
+                                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                        <div style={{
+                                          width: "48px",
+                                          height: "32px",
+                                          borderRadius: "6px",
+                                          border: "1px solid var(--border-color)",
+                                          backgroundImage: `url(${design.bgImage})`,
+                                          backgroundSize: "cover",
+                                          backgroundPosition: "center",
+                                          backgroundRepeat: "no-repeat",
+                                          boxShadow: "0 2px 6px rgba(0,0,0,0.1)"
+                                        }} title="Vista previa del fondo cargado" />
+                                        <button 
+                                          type="button" 
+                                          onClick={() => updateDesignKey("bgImage", "")}
+                                          style={{ background: "none", border: "none", color: "#ef4444", fontSize: "0.75rem", cursor: "pointer", fontWeight: 700 }}
+                                        >
+                                          Quitar
+                                        </button>
+                                      </div>
                                     )}
                                   </div>
                                 </div>
