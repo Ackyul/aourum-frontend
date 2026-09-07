@@ -1021,7 +1021,7 @@ export default function ProductDetailPage() {
       </div>
 
       {/* Carta & Menú Gastronómico de la Marca */}
-      {brand && allBrandProducts.length > 0 && (
+      {brand && isVirtualMenuBrand(brand) && allBrandProducts.length > 0 && (
         <div style={{ borderTop: `1px solid ${palette.c1}30`, paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
           <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
             <div>
