@@ -1782,7 +1782,7 @@ function BrandProductCard({ prod }) {
 
       {/* Cabezal de Perfil Extremo a Extremo 1200x500 */}
       <div style={{ position: "relative", marginBottom: "2.5rem", zIndex: 1 }}>
-        <div className="profile-header-banner" style={{ ...bannerStyle, overflow: "hidden", position: "relative" }}>
+        <div className="profile-header-banner" style={{ ...bannerStyle, overflow: "hidden", position: "relative", borderRadius: "20px 20px 0 0" }}>
           {effectiveBanner && (
             <img src={effectiveBanner} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "cover", filter: bannerOverlay === "blur" ? "blur(3px)" : "none" }} />
           )}
@@ -1796,11 +1796,26 @@ function BrandProductCard({ prod }) {
           )}
         </div>
 
-        <div className="profile-avatar-wrapper" style={{ borderRadius: logoBorderRadius, boxShadow: `0 10px 30px ${palette.c1}30, 0 4px 16px ${palette.c2}25, 0 0 40px ${palette.c4}20` }}>
+        <div className="profile-avatar-wrapper" style={{ borderRadius: logoBorderRadius, boxShadow: `0 10px 30px ${palette.c1}30, 0 4px 16px ${palette.c2}25, 0 0 40px ${palette.c4}20`, position: "relative", zIndex: 5 }}>
           <img src={brand.logo} alt={brand.name} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: logoBorderRadius }} />
         </div>
 
-        <div className="profile-body">
+        <div 
+          className="profile-body"
+          style={{
+            backgroundColor: resolvedCardBg,
+            border: `1.5px solid ${palette.c1}30`,
+            borderRadius: "0 0 20px 20px",
+            paddingTop: "4.5rem",
+            paddingLeft: "1.8rem",
+            paddingRight: "1.8rem",
+            paddingBottom: "1.8rem",
+            marginTop: "-65px",
+            position: "relative",
+            zIndex: 1,
+            boxShadow: `0 8px 30px ${palette.c1}12`
+          }}
+        >
           <div className="profile-info-row">
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
