@@ -675,26 +675,21 @@ export default function ProductDetailPage() {
           box-shadow: 0 8px 24px ${palette.c1}08 !important;
         }
         header {
-          background: ${resolvedCardBg} !important;
-          backdrop-filter: blur(16px) saturate(180%) !important;
-          -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+          background: ${bgStyle === "image" ? "rgba(255, 255, 255, 0.85) !important" : `linear-gradient(180deg, ${palette.c1}18 0%, rgba(255, 255, 255, 0.85) 100%) !important`};
+          backdrop-filter: blur(16px) !important;
+          -webkit-backdrop-filter: blur(16px) !important;
           border-bottom: 1.5px solid ${palette.c1}30 !important;
           box-shadow: 0 4px 20px ${palette.c1}12 !important;
-          color: ${resolvedCardTextColor} !important;
-        }
-        header a, header nav, header span, header div, header p, header button {
-          color: ${resolvedCardTextColor} !important;
         }
         footer.site-footer {
-          background: ${resolvedCardBg} !important;
-          backdrop-filter: blur(16px) saturate(180%) !important;
-          -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+          background: ${bgStyle === "image" ? "rgba(255, 255, 255, 0.85) !important" : `linear-gradient(0deg, ${palette.c1}18 0%, rgba(255, 255, 255, 0.85) 100%) !important`};
+          backdrop-filter: blur(16px) !important;
+          -webkit-backdrop-filter: blur(16px) !important;
           border-top: 1.5px solid ${palette.c1}30 !important;
           box-shadow: 0 -4px 20px ${palette.c1}12 !important;
-          color: ${resolvedCardTextColor} !important;
         }
-        footer.site-footer a, footer.site-footer span, footer.site-footer p, footer.site-footer h1, footer.site-footer h2, footer.site-footer h3, footer.site-footer h4, footer.site-footer div {
-          color: ${resolvedCardTextColor} !important;
+        footer.site-footer a {
+          color: ${palette.c1} !important;
         }
         .specs-table td.label {
           color: ${mutedTextColor} !important;
@@ -753,14 +748,13 @@ export default function ProductDetailPage() {
       {bgStyle !== "none" && (
         <div 
           style={{ 
-            position: "absolute", 
-            top: "-30px", 
-            left: "50%", 
-            transform: "translateX(-50%)",
-            width: "100vw", 
-            bottom: "-3rem", 
+            position: "fixed", 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0, 
             pointerEvents: "none", 
-            zIndex: 0,
+            zIndex: -1,
             ...pageBgCss
           }} 
         />
