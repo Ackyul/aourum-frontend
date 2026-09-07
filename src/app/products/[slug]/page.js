@@ -635,7 +635,7 @@ export default function ProductDetailPage() {
                       Aourum
                     </span>
                   </div>
-                  <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: "var(--text-gold)", lineHeight: 1 }}>
+                  <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: priceTextColor, lineHeight: 1 }}>
                     S/ {formattedPriceAourum}
                   </span>
                 </div>
@@ -908,13 +908,13 @@ export default function ProductDetailPage() {
                   <div style={{ display: "flex", alignItems: "baseline", gap: "12px", flexWrap: "wrap" }}>
                     {prod.priceAourum ? (
                       <>
-                        <span style={{ fontSize: "2.2rem", fontWeight: 800, color: isCardDark ? "#FACC15" : "var(--text-gold)", letterSpacing: "-0.02em" }}>
+                        <span style={{ fontSize: "2.2rem", fontWeight: 800, color: resolvedCardTextColor, letterSpacing: "-0.02em" }}>
                           S/ {formatPrice(prod.priceAourum)}
                         </span>
                         <span style={{ fontSize: "1.3rem", color: mutedTextColor, textDecoration: "line-through", fontWeight: 500 }}>
                           S/ {formatPrice(prod.price)}
                         </span>
-                        <span style={{ fontSize: "0.85rem", color: isCardDark ? "#FACC15" : "var(--text-gold)", fontWeight: 700 }}>
+                        <span style={{ fontSize: "0.85rem", color: resolvedCardTextColor, fontWeight: 700 }}>
                           <i className="fa-solid fa-gift"></i> Precio Especial
                         </span>
                       </>
@@ -923,7 +923,7 @@ export default function ProductDetailPage() {
                         <span style={{ fontSize: "2.2rem", fontWeight: 800, color: resolvedCardTextColor, letterSpacing: "-0.02em" }}>
                           S/ {formatPrice(prod.price)}
                         </span>
-                        <span style={{ fontSize: "0.85rem", color: isCardDark ? "#FACC15" : "var(--text-gold)", fontWeight: 700 }}>
+                        <span style={{ fontSize: "0.85rem", color: resolvedCardTextColor, fontWeight: 700 }}>
                           <i className="fa-solid fa-shield-halved"></i> Precio Justo Local
                         </span>
                       </>
@@ -957,37 +957,39 @@ export default function ProductDetailPage() {
                   <h3 style={{ fontSize: "1.05rem", fontWeight: 700, borderBottom: `1.5px solid ${palette.c1}30`, paddingBottom: "0.4rem", marginBottom: "0.8rem", color: resolvedCardTextColor }}>
                     <i className="fa-solid fa-list-check" style={{ color: palette.c1, marginRight: 8 }}></i> Especificaciones Técnicas
                   </h3>
-                  <table className="specs-table">
-                    <tbody>
-                      <tr>
-                        <td className="label">Rubro o Categoría</td>
-                        <td className="value">{prod.category || "General"}</td>
-                      </tr>
-                      <tr>
-                        <td className="label">Tipo de Catálogo</td>
-                        <td className="value">{isVirtualMenu ? "Platillo Gastronómico (Carta Virtual)" : (prod.type === "service" ? "Servicio / Experiencia" : "Producto Físico")}</td>
-                      </tr>
-                      
-                      {isVirtualMenu ? (
+                  <div style={{ background: resolvedCardBg, backdropFilter: "blur(12px)", padding: "0.8rem 1.4rem", borderRadius: "12px", border: `1.5px solid ${palette.c1}30`, boxShadow: `0 8px 24px ${palette.c1}08` }}>
+                    <table className="specs-table" style={{ marginTop: 0 }}>
+                      <tbody>
                         <tr>
-                          <td className="label">Disponibilidad</td>
-                          <td className="value" style={{ color: "#10B981", fontWeight: 700 }}>En Carta / Preparación Fresca</td>
+                          <td className="label">Rubro o Categoría</td>
+                          <td className="value">{prod.category || "General"}</td>
                         </tr>
-                      ) : prod.type === "service" ? (
                         <tr>
-                          <td className="label">Disponibilidad</td>
-                          <td className="value" style={{ color: "#2563eb", fontWeight: 700 }}>Por Agenda / Cita</td>
+                          <td className="label">Tipo de Catálogo</td>
+                          <td className="value">{isVirtualMenu ? "Platillo Gastronómico (Carta Virtual)" : (prod.type === "service" ? "Servicio / Experiencia" : "Producto Físico")}</td>
                         </tr>
-                      ) : (
-                        <tr>
-                          <td className="label">Disponibilidad</td>
-                          <td className="value" style={{ color: (prod.stock == null || prod.stock > 0) ? resolvedCardTextColor : "#ef4444", fontWeight: 700 }}>
-                            {prod.stock == null ? "En Stock (Disponibilidad continua)" : prod.stock > 0 ? `En Stock (${prod.stock} unidades)` : "Agotado Temporalmente"}
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                        
+                        {isVirtualMenu ? (
+                          <tr>
+                            <td className="label">Disponibilidad</td>
+                            <td className="value" style={{ color: "#10B981", fontWeight: 700 }}>En Carta / Preparación Fresca</td>
+                          </tr>
+                        ) : prod.type === "service" ? (
+                          <tr>
+                            <td className="label">Disponibilidad</td>
+                            <td className="value" style={{ color: "#2563eb", fontWeight: 700 }}>Por Agenda / Cita</td>
+                          </tr>
+                        ) : (
+                          <tr>
+                            <td className="label">Disponibilidad</td>
+                            <td className="value" style={{ color: (prod.stock == null || prod.stock > 0) ? resolvedCardTextColor : "#ef4444", fontWeight: 700 }}>
+                              {prod.stock == null ? "En Stock (Disponibilidad continua)" : prod.stock > 0 ? `En Stock (${prod.stock} unidades)` : "Agotado Temporalmente"}
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
                 {/* Aviso informativo */}

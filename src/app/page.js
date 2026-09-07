@@ -656,7 +656,7 @@ export default function Home() {
                       Aourum
                     </span>
                   </div>
-                  <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: "var(--text-gold)", lineHeight: 1 }}>
+                  <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: priceTextColor, lineHeight: 1 }}>
                     S/ {prod.priceAourum.toLocaleString("es-PE")}
                   </span>
                 </div>
