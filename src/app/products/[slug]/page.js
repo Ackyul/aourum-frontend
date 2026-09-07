@@ -1055,46 +1055,6 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      {/* Sugerencias de la misma categoría */}
-      {suggestedCategoryProds.length > 0 && (
-        <div style={{ borderTop: `1px solid ${palette.c1}30`, paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
-          <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "1.5rem", color: resolvedCardTextColor, display: "flex", alignItems: "center", gap: 8 }}>
-            <i className="fa-solid fa-tags" style={{ color: palette.c1 }}></i>
-            Productos recomendados en <span style={{ color: brandThemeColor }}>{prod.category || "esta categoría"}</span>
-          </h3>
-          <div className="grid-catalog">
-            {suggestedCategoryProds.map(renderSuggestedCard)}
-          </div>
-        </div>
-      )}
-
-      {/* Más productos de la misma Marca (Vitrina Virtual) */}
-      {brand && !isVirtualMenuBrand(brand) && otherBrandProds.length > 0 && (
-        <div style={{ borderTop: `1px solid ${palette.c1}30`, paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
-          <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
-            <div>
-              <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0, color: resolvedCardTextColor, display: "flex", alignItems: "center", gap: "8px" }}>
-                <i className="fa-solid fa-store" style={{ color: brandThemeColor }}></i>
-                <span>Más productos de {brand.name}</span>
-              </h3>
-              <p style={{ fontSize: "0.88rem", color: mutedTextColor, margin: "4px 0 0 0" }}>
-                Explora el catálogo completo y otros artículos disponibles de {brand.name}
-              </p>
-            </div>
-            <button 
-              onClick={() => router.push(`/brands/${brand.slug || brand.id}`)}
-              className="btn-outline-gold"
-              style={{ padding: "0.55rem 1.3rem", fontSize: "0.85rem", borderRadius: "20px", cursor: "pointer", fontWeight: 700 }}
-            >
-              Ver galería de la marca
-            </button>
-          </div>
-          <div className="grid-catalog">
-            {otherBrandProds.map(renderSuggestedCard)}
-          </div>
-        </div>
-      )}
-
       {/* Carta & Menú Gastronómico de la Marca (Solo en Modo Menú Virtual) */}
       {brand && isVirtualMenuBrand(brand) && allBrandProducts.length > 0 && (
         <div style={{ borderTop: `1px solid ${palette.c1}30`, paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
@@ -1227,6 +1187,46 @@ export default function ProductDetailPage() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Más productos de la misma Marca (Vitrina Virtual) */}
+      {brand && !isVirtualMenuBrand(brand) && otherBrandProds.length > 0 && (
+        <div style={{ borderTop: `1px solid ${palette.c1}30`, paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
+          <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+            <div>
+              <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0, color: resolvedCardTextColor, display: "flex", alignItems: "center", gap: "8px" }}>
+                <i className="fa-solid fa-store" style={{ color: brandThemeColor }}></i>
+                <span>Más productos de {brand.name}</span>
+              </h3>
+              <p style={{ fontSize: "0.88rem", color: mutedTextColor, margin: "4px 0 0 0" }}>
+                Explora el catálogo completo y otros artículos disponibles de {brand.name}
+              </p>
+            </div>
+            <button 
+              onClick={() => router.push(`/brands/${brand.slug || brand.id}`)}
+              className="btn-outline-gold"
+              style={{ padding: "0.55rem 1.3rem", fontSize: "0.85rem", borderRadius: "20px", cursor: "pointer", fontWeight: 700 }}
+            >
+              Ver galería de la marca
+            </button>
+          </div>
+          <div className="grid-catalog">
+            {otherBrandProds.map(renderSuggestedCard)}
+          </div>
+        </div>
+      )}
+
+      {/* Sugerencias de la misma categoría */}
+      {suggestedCategoryProds.length > 0 && (
+        <div style={{ borderTop: `1px solid ${palette.c1}30`, paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
+          <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "1.5rem", color: resolvedCardTextColor, display: "flex", alignItems: "center", gap: 8 }}>
+            <i className="fa-solid fa-tags" style={{ color: palette.c1 }}></i>
+            Productos recomendados en <span style={{ color: brandThemeColor }}>{prod.category || "esta categoría"}</span>
+          </h3>
+          <div className="grid-catalog">
+            {suggestedCategoryProds.map(renderSuggestedCard)}
           </div>
         </div>
       )}
