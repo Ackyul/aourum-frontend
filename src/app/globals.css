@@ -2119,7 +2119,7 @@ header {
 @media (max-width: 480px) {
   /* Reduce excessive top padding on profile body on small screens */
   .profile-body {
-    padding-top: 2.8rem !important;
+    padding-top: 2.8rem;
   }
 
   /* Fix person profile negative offset */

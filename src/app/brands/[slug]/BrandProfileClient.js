@@ -1631,6 +1631,13 @@ function BrandProductCard({ prod }) {
           border-radius: ${logoBorderRadius} !important;
         }
 
+        .brand-profile-body {
+          padding-top: 5.2rem !important;
+          padding-left: 1.8rem !important;
+          padding-right: 1.8rem !important;
+          padding-bottom: 1.8rem !important;
+        }
+
         .tab-label-mobile {
           display: none !important;
         }
@@ -1638,6 +1645,12 @@ function BrandProductCard({ prod }) {
           display: inline !important;
         }
         @media (max-width: 768px) {
+          .brand-profile-body {
+            padding-top: 4.6rem !important;
+            padding-left: 1.2rem !important;
+            padding-right: 1.2rem !important;
+            padding-bottom: 1.4rem !important;
+          }
           .tab-label-mobile {
             display: inline !important;
           }
@@ -1646,12 +1659,16 @@ function BrandProductCard({ prod }) {
           }
           .brand-admin-actions-row {
             width: 100% !important;
-            margin-top: 6px !important;
+            margin-top: 10px !important;
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 8px !important;
           }
           .brand-admin-actions-row button {
-            flex: 1 1 45% !important;
-            font-size: 0.78rem !important;
+            flex: 1 1 calc(50% - 6px) !important;
+            font-size: 0.8rem !important;
             padding: 0.6rem 0.8rem !important;
+            justify-content: center !important;
           }
           .aourum-tabs-container {
             width: 100% !important;
@@ -1801,15 +1818,11 @@ function BrandProductCard({ prod }) {
         </div>
 
         <div 
-          className="profile-body"
+          className="profile-body brand-profile-body"
           style={{
             backgroundColor: resolvedCardBg,
             border: `1.5px solid ${palette.c1}30`,
             borderRadius: "0 0 20px 20px",
-            paddingTop: "4.5rem",
-            paddingLeft: "1.8rem",
-            paddingRight: "1.8rem",
-            paddingBottom: "1.8rem",
             marginTop: "-65px",
             position: "relative",
             zIndex: 1,
@@ -1909,7 +1922,7 @@ function BrandProductCard({ prod }) {
             </div>
 
             {isCollaborator && (
-               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+               <div className="brand-admin-actions-row" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                  {isOwner && (
                    <button
                      onClick={() => setProdFormOpen(true)}
