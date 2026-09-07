@@ -808,7 +808,7 @@ export default function BrandProfileClient({ initialBrand }) {
         transition: "transform 0.2s ease, box-shadow 0.2s ease",
         cursor: "pointer"
       }}
-      onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
+      onClick={() => router.push(`/products/${prod.slug || prod.id}?from=brand`)}
     >
       {/* Dish Thumbnail */}
       {prod.image && (
@@ -896,7 +896,7 @@ export default function BrandProfileClient({ initialBrand }) {
             className="btn-gold"
             onClick={(e) => {
               e.stopPropagation();
-              router.push(`/products/${prod.slug || prod.id}`);
+              router.push(`/products/${prod.slug || prod.id}?from=brand`);
             }}
             style={{ padding: "0.6rem 1.3rem", borderRadius: "20px", fontSize: "0.85rem", fontWeight: 800 }}
           >
@@ -1016,7 +1016,7 @@ function BrandProductCard({ prod }) {
       <div 
         className="product-card glass-panel" 
         style={cardStyleObj}
-        onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
+        onClick={() => router.push(`/products/${prod.slug || prod.id}?from=brand`)}
       >
         {/* Top Image Box with Badge Overlays */}
         <div 

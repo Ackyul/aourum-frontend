@@ -2,7 +2,7 @@
 
 import { useMemo, useEffect } from "react";
 import { useApp } from "../../../context/AppContext";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { isVirtualMenuBrand } from "@/utils/brandUtils";
 
 // Helper for URL slug generation
@@ -99,6 +99,8 @@ export default function ProductDetailPage() {
   } = useApp();
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromParam = searchParams ? searchParams.get("from") : null;
 
   useEffect(() => {
     loadProducts();
@@ -145,6 +147,28 @@ export default function ProductDetailPage() {
     if (!prod) return null;
     return brands.find((b) => b.id === prod.brandId);
   }, [prod, brands]);
+
+  const isFromBrand = useMemo(() => {
+    if (fromParam === "brand") return true;
+    if (typeof document !== "undefined" && document.referrer) {
+      return document.referrer.includes("/brands/");
+    }
+    return false;
+  }, [fromParam]);
+
+  const handleBack = () => {
+    if (isFromBrand) {
+      if (brand) {
+        router.push(`/brands/${brand.slug || brand.id}`);
+      } else if (prod?.brandId) {
+        router.push(`/brands/${prod.brandId}`);
+      } else {
+        router.push("/");
+      }
+    } else {
+      router.push("/");
+    }
+  };
 
   const isCreatorOrOwner = useMemo(() => {
     if (!prod || !brand) return false;
@@ -502,7 +526,7 @@ export default function ProductDetailPage() {
         key={rp.id}
         className="product-card glass-panel" 
         style={cardStyleObj}
-        onClick={() => router.push(`/products/${rp.slug || rp.id}`)}
+        onClick={() => router.push(`/products/${rp.slug || rp.id}${fromParam ? `?from=${fromParam}` : ""}`)}
       >
         {/* Top Image Box with Badge Overlays */}
         <div 
@@ -772,11 +796,11 @@ export default function ProductDetailPage() {
       {/* Botón Volver */}
       <div style={{ marginBottom: "2rem", position: "relative", zIndex: 1, paddingTop: "1rem" }}>
         <button 
-          onClick={() => router.push("/")} 
+          onClick={handleBack} 
           className="btn-outline-gold" 
           style={{ padding: "0.5rem 1.2rem", fontSize: "0.85rem", borderRadius: "8px", border: `1.5px solid ${palette.c1}40`, background: resolvedCardBg, color: resolvedCardTextColor, backdropFilter: "blur(12px)", cursor: "pointer", transition: "var(--transition-smooth)" }}
         >
-          <i className="fa-solid fa-arrow-left" style={{ marginRight: 6 }}></i> Volver al Catálogo
+          <i className="fa-solid fa-arrow-left" style={{ marginRight: 6 }}></i> {isFromBrand ? `Volver a ${brand?.name || "la Marca"}` : "Volver al Catálogo"}
         </button>
       </div>
 
@@ -1117,7 +1141,7 @@ export default function ProductDetailPage() {
                     transition: "transform 0.2s ease, box-shadow 0.2s ease",
                     cursor: "pointer"
                   }}
-                  onClick={() => router.push(`/products/${item.slug || item.id}`)}
+                  onClick={() => router.push(`/products/${item.slug || item.id}${fromParam ? `?from=${fromParam}` : ""}`)}
                 >
                   {item.image && (
                     <div 
@@ -1189,7 +1213,7 @@ export default function ProductDetailPage() {
                       <button 
                         onClick={(e) => {
                           e.stopPropagation();
-                          router.push(`/products/${item.slug || item.id}`);
+                          router.push(`/products/${item.slug || item.id}${fromParam ? `?from=${fromParam}` : ""}`);
                         }}
                         className="btn-gold"
                         style={{ padding: "0.55rem 1.2rem", borderRadius: "20px", fontSize: "0.82rem", fontWeight: 800 }}
