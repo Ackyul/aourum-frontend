@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import QRCode from "qrcode";
 
-export default function BrandQRModal({ isOpen, onClose, brand }) {
+export default function BrandQRModal({ isOpen, onClose, brand, profileType = "brand" }) {
   const [theme, setTheme] = useState("light"); // "light" | "gold"
   const [includeCardFrame, setIncludeCardFrame] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
@@ -14,13 +14,15 @@ export default function BrandQRModal({ isOpen, onClose, brand }) {
   const canvasRef = useRef(null);
   const standCanvasRef = useRef(null);
 
-  // Canonical permanent URL for the brand
+  // Canonical permanent URL for the brand / band
   const getBrandUrl = () => {
+    const isBand = profileType === "band" || brand?.profileType === "band" || !!brand?.genre;
+    const pathType = isBand ? "bands" : "brands";
     if (typeof window !== "undefined") {
       const origin = window.location.origin;
-      return `${origin}/brands/${brand?.slug || brand?.id}`;
+      return `${origin}/${pathType}/${brand?.slug || brand?.id}`;
     }
-    return `https://aourum.com/brands/${brand?.slug || brand?.id}`;
+    return `https://aourum.com/${pathType}/${brand?.slug || brand?.id}`;
   };
 
   const brandUrl = getBrandUrl();
