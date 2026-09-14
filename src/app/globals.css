@@ -2563,3 +2563,59 @@ header {
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
+
+/* ── Performance & Rendering Optimizations (GPU Acceleration & Smooth Animations) ── */
+.card-img-hover,
+.carousel-track,
+.btn-outline-gold,
+.carousel-arrow-btn,
+.reactive-ticket-container,
+.reactive-red-dot-container,
+.aourum-tab-btn,
+.modal-overlay,
+.modal-container {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Optimized Image Loading & Prevention of Layout Shifts */
+img {
+  content-visibility: auto;
+}
+
+.card-img-container img {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease-in-out;
+}
+
+/* Smooth Touch Scrolling & Carousel Physics */
+.carousel-track {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+}
+
+/* Hardware Accelerated Animations */
+@keyframes aourumFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+  }
+}
+
+.fade-in {
+  animation: aourumFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Micro-interactions */
+.carousel-arrow-btn:active,
+.btn-outline-gold:active,
+.aourum-tab-btn:active {
+  transform: scale(0.96) translateZ(0);
+}
+
