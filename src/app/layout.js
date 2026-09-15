@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AppContextProvider, useApp } from "../context/AppContext";
@@ -24,14 +24,6 @@ const PERU_CITIES = [
   "Juliaca", "Ayacucho", "Huánuco", "Tarapoto", "Chincha Alta", "Ica",
   "Sullana", "Moquegua", "Puno", "Tumbes", "Huaraz", "Cerro de Pasco",
   "Abancay", "Puerto Maldonado"
-];
-
-const POPULAR_INTERESTS = [
-  "Perfumería", "Esoterismo & Astrología", "Tarot & Oráculos",
-  "Masajes & Holístico", "Artefactos & Místicos", "Duendes",
-  "Moda & Indumentaria", "Joyería & Cristales", "Gastronomía & Repostería",
-  "Bienestar & Cuidado Personal", "Música & Festivales", "Fotografía & Arte",
-  "Artesanías & Coleccionables"
 ];
 
 const DEFAULT_USER_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' fill='%23E5E7EB'/%3E%3Cpath d='M64 24a24 24 0 100 48 24 24 0 000-48zM32 104a32 32 0 0164 0H32z' fill='%239CA3AF'/%3E%3C/svg%3E";
@@ -142,6 +134,28 @@ function AppLayoutShell({ children }) {
 
   const [mounted, setMounted] = useState(false);
   const [customInterestInput, setCustomInterestInput] = useState("");
+
+  // Extracción dinámica de categorías de productos y marcas de la BD
+  const dynamicDbCategories = useMemo(() => {
+    const set = new Set();
+    if (Array.isArray(products)) {
+      products.forEach(p => {
+        if (p && p.category && typeof p.category === "string") {
+          const trimmed = p.category.trim();
+          if (trimmed) set.add(trimmed);
+        }
+      });
+    }
+    if (Array.isArray(brands)) {
+      brands.forEach(b => {
+        if (b && b.category && typeof b.category === "string") {
+          const trimmed = b.category.trim();
+          if (trimmed) set.add(trimmed);
+        }
+      });
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "es"));
+  }, [products, brands]);
   
   // Estados para configuración de seguridad del perfil
   const [configEmail, setConfigEmail] = useState("");
@@ -1297,21 +1311,17 @@ function AppLayoutShell({ children }) {
                         <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", fontWeight: 400 }}>Haz clic en las etiquetas o añade las tuyas</span>
                       </label>
 
-                      {/* Chips list container */}
+                      {/* Dynamic Interests selector connected to DB categories */}
                       {(() => {
                         const selectedList = (editInterests || "").split(",").map(s => s.trim()).filter(Boolean);
-                        // Combine popular interests with any user-custom selected interests
-                        const combinedChips = Array.from(new Set([...POPULAR_INTERESTS, ...selectedList]));
+                        const filterQuery = customInterestInput.toLowerCase().trim();
 
-                        const handleAddTag = (tagToAdd) => {
-                          const clean = tagToAdd.trim();
-                          if (!clean) return;
-                          if (!selectedList.map(s => s.toLowerCase()).includes(clean.toLowerCase())) {
-                            const next = [...selectedList, clean];
-                            setEditInterests(next.join(", "));
-                          }
-                          setCustomInterestInput("");
-                        };
+                        // Combine dynamic DB categories with any user-custom selected interests
+                        const availableCategories = Array.from(new Set([...dynamicDbCategories, ...selectedList]));
+                        
+                        const filteredChips = availableCategories.filter(cat => 
+                          cat.toLowerCase().includes(filterQuery)
+                        );
 
                         const handleToggleTag = (interest) => {
                           const isSelected = selectedList.some(s => s.toLowerCase() === interest.toLowerCase());
@@ -1324,45 +1334,59 @@ function AppLayoutShell({ children }) {
                           setEditInterests(nextList.join(", "));
                         };
 
+                        const handleAddTag = (tagToAdd) => {
+                          const clean = tagToAdd.trim();
+                          if (!clean) return;
+                          if (!selectedList.some(s => s.toLowerCase() === clean.toLowerCase())) {
+                            const next = [...selectedList, clean];
+                            setEditInterests(next.join(", "));
+                          }
+                          setCustomInterestInput("");
+                        };
+
                         return (
                           <>
-                            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "12px", padding: "2px" }}>
-                              {combinedChips.map((interest) => {
-                                const isSelected = selectedList.some(s => s.toLowerCase() === interest.toLowerCase());
-                                return (
-                                  <button
-                                    key={interest}
-                                    type="button"
-                                    onClick={() => handleToggleTag(interest)}
-                                    style={{
-                                      background: isSelected ? "var(--gold-gradient)" : "rgba(255,255,255,0.06)",
-                                      color: isSelected ? "#1C1C1E" : "var(--text-color)",
-                                      border: isSelected ? "1px solid var(--gold-primary)" : "1px solid var(--border-color)",
-                                      padding: "0.35rem 0.85rem",
-                                      borderRadius: "20px",
-                                      fontSize: "0.78rem",
-                                      fontWeight: isSelected ? 700 : 500,
-                                      cursor: "pointer",
-                                      transition: "all 0.2s ease",
-                                      boxShadow: isSelected ? "0 2px 8px rgba(212,175,55,0.25)" : "none",
-                                      display: "inline-flex",
-                                      alignItems: "center",
-                                      gap: "5px"
-                                    }}
-                                  >
-                                    {isSelected ? <i className="fa-solid fa-check" style={{ fontSize: "0.68rem" }}></i> : <i className="fa-solid fa-plus" style={{ fontSize: "0.65rem", opacity: 0.6 }}></i>}
-                                    {interest}
-                                  </button>
-                                );
-                              })}
-                            </div>
+                            {/* Selected Tags Badge Bar */}
+                            {selectedList.length > 0 && (
+                              <div style={{ marginBottom: "10px" }}>
+                                <span style={{ fontSize: "0.74rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
+                                  Intereses Seleccionados ({selectedList.length}):
+                                </span>
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                                  {selectedList.map((interest) => (
+                                    <span
+                                      key={interest}
+                                      onClick={() => handleToggleTag(interest)}
+                                      style={{
+                                        background: "var(--gold-gradient)",
+                                        color: "#1C1C1E",
+                                        border: "1px solid var(--gold-primary)",
+                                        padding: "0.3rem 0.75rem",
+                                        borderRadius: "20px",
+                                        fontSize: "0.78rem",
+                                        fontWeight: 700,
+                                        cursor: "pointer",
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: "6px",
+                                        boxShadow: "0 2px 8px rgba(212,175,55,0.25)"
+                                      }}
+                                      title="Haz clic para quitar"
+                                    >
+                                      {interest}
+                                      <i className="fa-solid fa-xmark" style={{ fontSize: "0.7rem", opacity: 0.8 }}></i>
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
 
-                            {/* Custom Tag Creator */}
-                            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                            {/* Search / Add Input */}
+                            <div style={{ display: "flex", gap: "6px", alignItems: "center", marginBottom: "8px" }}>
                               <input 
                                 type="text" 
                                 className="form-control" 
-                                style={{ fontSize: "0.85rem" }}
+                                style={{ fontSize: "0.84rem" }}
                                 value={customInterestInput} 
                                 onChange={(e) => setCustomInterestInput(e.target.value)} 
                                 onKeyDown={(e) => {
@@ -1371,7 +1395,7 @@ function AppLayoutShell({ children }) {
                                     handleAddTag(customInterestInput);
                                   }
                                 }}
-                                placeholder="Escribe otro interés (ej: Skincare, Cerveza Artesanal, Alquimia...)" 
+                                placeholder="Buscar o escribir una nueva categoría/interés..." 
                               />
                               <button
                                 type="button"
@@ -1382,8 +1406,45 @@ function AppLayoutShell({ children }) {
                                 + Añadir
                               </button>
                             </div>
+
+                            {/* Dynamic Chips Pool from DB */}
+                            <div style={{ maxHeight: "150px", overflowY: "auto", display: "flex", flexWrap: "wrap", gap: "6px", padding: "6px", border: "1px solid var(--border-color)", borderRadius: "10px", background: "rgba(0,0,0,0.02)" }}>
+                              {filteredChips.length === 0 ? (
+                                <div style={{ padding: "6px", fontSize: "0.78rem", color: "var(--text-muted)" }}>
+                                  No se encontró "{customInterestInput}". Haz clic en <strong>+ Añadir</strong> para agregarlo.
+                                </div>
+                              ) : (
+                                filteredChips.map((interest) => {
+                                  const isSelected = selectedList.some(s => s.toLowerCase() === interest.toLowerCase());
+                                  return (
+                                    <button
+                                      key={interest}
+                                      type="button"
+                                      onClick={() => handleToggleTag(interest)}
+                                      style={{
+                                        background: isSelected ? "var(--gold-gradient)" : "rgba(255,255,255,0.06)",
+                                        color: isSelected ? "#1C1C1E" : "var(--text-color)",
+                                        border: isSelected ? "1px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                        padding: "0.3rem 0.75rem",
+                                        borderRadius: "20px",
+                                        fontSize: "0.76rem",
+                                        fontWeight: isSelected ? 700 : 500,
+                                        cursor: "pointer",
+                                        transition: "all 0.2s ease",
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: "5px"
+                                      }}
+                                    >
+                                      {isSelected ? <i className="fa-solid fa-check" style={{ fontSize: "0.68rem" }}></i> : <i className="fa-solid fa-plus" style={{ fontSize: "0.65rem", opacity: 0.6 }}></i>}
+                                      {interest}
+                                    </button>
+                                  );
+                                })
+                              )}
+                            </div>
                             <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "4px" }}>
-                              Puedes seleccionar las etiquetas prediseñadas o escribir cualquier interés personalizado.
+                              Las categorías se sincronizan dinámicamente con las marcas y productos existentes en la base de datos.
                             </p>
                           </>
                         );
