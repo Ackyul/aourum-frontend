@@ -312,8 +312,21 @@ export default function PersonProfileClient() {
 
   return (
     <div style={{ minHeight: "100vh", position: "relative" }}>
-      {/* Visual background container for custom profile design */}
-      <ProfileBackgroundContainer design={design} defaultBgColor="#FAF9F0" />
+      {bgStyle !== "none" && (customBgColor || bgImage) && (
+        <div 
+          style={{ 
+            position: "fixed", 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0, 
+            pointerEvents: "none", 
+            zIndex: -1,
+            transition: "all 0.3s ease",
+            ...pageBgStyle
+          }} 
+        />
+      )}
 
       {/* Modern Hero Section with Custom Banner */}
       <div style={{ position: "relative", width: "100%", height: "260px", overflow: "hidden", ...bannerStyle }}>
