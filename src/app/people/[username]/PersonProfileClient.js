@@ -258,6 +258,48 @@ export default function PersonProfileClient() {
     if (setEditProfileOpen) setEditProfileOpen(true);
   };
 
+  const handlePreferencesClick = () => {
+    const parsed = (parseDescription && typeof parseDescription === "function") 
+      ? parseDescription(person.description) 
+      : { text: person.description || "", tagline: "", theme_color: "", banner: "" };
+    if (setEditName) setEditName(person.name);
+    if (setEditLastName) setEditLastName(person.lastName || "");
+    if (setEditUsername) setEditUsername(person.username || "");
+    if (setEditOwner) setEditOwner("");
+    if (setEditCategory) setEditCategory("");
+    if (setEditDescription) setEditDescription(parsed.text);
+    if (setEditLogo) setEditLogo(person.logo || "");
+    if (setEditLogoPreview) setEditLogoPreview(person.logo || "");
+    if (setEditGenre) setEditGenre("");
+    if (setEditMembers) setEditMembers("");
+    if (setEditOccupation) setEditOccupation(person.occupation || "");
+    if (setEditMediaLink) setEditMediaLink("");
+    if (setEditBrandIds) setEditBrandIds(person.brandIds || []);
+    if (setEditOrganizerIds) setEditOrganizerIds(person.organizerIds || []);
+    if (setEditBandIds) setEditBandIds(person.bandIds || []);
+    if (setEditInstagram) setEditInstagram(parsed.instagram);
+    if (setEditFacebook) setEditFacebook(parsed.facebook);
+    if (setEditTiktok) setEditTiktok(parsed.tiktok);
+    if (setEditWebsite) setEditWebsite(parsed.website);
+    if (setEditBanner) setEditBanner(parsed.banner || "");
+    if (setEditBannerPreview) setEditBannerPreview(parsed.banner || "");
+    if (setEditThemeColor) setEditThemeColor(parsed.theme_color || "");
+    if (setEditTagline) setEditTagline(parsed.tagline || "");
+    if (setEditInterests) setEditInterests(person.interests || parsed.interests || "");
+    if (setEditCity) setEditCity(person.city || "");
+    if (setEditBrandDesign) {
+      setEditBrandDesign(parsed.brandDesign || {
+        customBgColor: parsed.customBgColor || "",
+        bgStyle: parsed.bgStyle || "solid",
+        bgImage: parsed.bgImage || ""
+      });
+    }
+    if (setEditProfileType) setEditProfileType("person");
+    if (setEditProfileId) setEditProfileId(person.id);
+    if (setActiveEditTab) setActiveEditTab("preferencias");
+    if (setEditProfileOpen) setEditProfileOpen(true);
+  };
+
   const parsed = (parseDescription && typeof parseDescription === "function") 
     ? parseDescription(person.description) 
     : { text: person.description || "", tagline: "", theme_color: "", banner: "" };
