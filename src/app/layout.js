@@ -1027,6 +1027,10 @@ function AppLayoutShell({ children }) {
                       <>
                         <i className="fa-solid fa-sparkles" style={{ color: "var(--gold-primary)" }}></i> ¡Bienvenido! Completa tus Datos Básicos
                       </>
+                    ) : activeEditTab === "preferencias" ? (
+                      <>
+                        <i className="fa-solid fa-sliders" style={{ color: "var(--gold-primary)" }}></i> Preferencias del Perfil
+                      </>
                     ) : activeEditTab === "configuracion" ? (
                       <>
                         <i className="fa-solid fa-gear" style={{ color: "var(--gold-primary)" }}></i> Configuración
@@ -1122,6 +1126,25 @@ function AppLayoutShell({ children }) {
                       }}
                     >
                       🎨 Diseño / Portada
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => setActiveEditTab("preferencias")} 
+                      style={{
+                        background: activeEditTab === "preferencias" ? "var(--gold-gradient)" : "transparent",
+                        color: activeEditTab === "preferencias" ? "#1C1C1E" : "var(--text-muted)",
+                        border: "1px solid " + (activeEditTab === "preferencias" ? "var(--gold-primary)" : "transparent"),
+                        padding: "0.45rem 1rem",
+                        borderRadius: "20px",
+                        fontSize: "0.82rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                        transition: "var(--transition-smooth)",
+                        boxShadow: activeEditTab === "preferencias" ? "0 4px 10px rgba(212,175,55,0.15)" : "none"
+                      }}
+                    >
+                      ✨ Preferencias
                     </button>
                     {editProfileType === "brand" && (
                       <button 
@@ -2447,6 +2470,180 @@ function AppLayoutShell({ children }) {
                       </div>
                     </>
                   )}
+                </div>
+              )}
+
+              {/* Tab: Preferencias del Perfil */}
+              {activeEditTab === "preferencias" && (
+                <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                  <div style={{ background: "rgba(212,175,55,0.06)", border: "1.5px solid var(--gold-primary)", borderRadius: "14px", padding: "1.25rem" }}>
+                    <h4 style={{ margin: "0 0 6px 0", fontSize: "1.0rem", fontWeight: 800, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
+                      <i className="fa-solid fa-sliders" style={{ color: "var(--gold-primary)" }}></i> Preferencias de Perfil e Intereses
+                    </h4>
+                    <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: 0, lineHeight: 1.4 }}>
+                      Personaliza tus gustos, etiquetas de interés y cómo te muestras en la plataforma.
+                    </p>
+                  </div>
+
+                  {/* Ocupación / Rol en la comunidad */}
+                  <div className="form-group">
+                    <label style={{ fontSize: "0.85rem", fontWeight: 800, display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
+                      <i className="fa-solid fa-briefcase" style={{ color: "var(--gold-primary)" }}></i> Ocupación o Profesión Principal
+                    </label>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      value={editOccupation} 
+                      onChange={(e) => setEditOccupation(e.target.value)} 
+                      placeholder="Ej: Desarrollador Web, Músico, Diseñador, Orfebre, Emprendedor" 
+                      style={{ fontSize: "0.86rem" }}
+                    />
+                    <span style={{ fontSize: "0.74rem", color: "var(--text-muted)", marginTop: "4px", display: "block" }}>
+                      Se mostrará destacadamente como etiqueta superior en tu perfil.
+                    </span>
+                  </div>
+
+                  {/* Frase / Lema Personal */}
+                  <div className="form-group">
+                    <label style={{ fontSize: "0.85rem", fontWeight: 800, display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
+                      <i className="fa-solid fa-quote-left" style={{ color: "var(--gold-primary)" }}></i> Frase o Lema Personal
+                    </label>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      value={editTagline} 
+                      onChange={(e) => setEditTagline(e.target.value)} 
+                      placeholder="Ej: Cuando es algo que amamos, es algo que podemos hacer por siempre" 
+                      style={{ fontSize: "0.86rem" }}
+                    />
+                  </div>
+
+                  {/* Intereses y Gustos Personalizados */}
+                  <div className="form-group">
+                    <label style={{ fontSize: "0.85rem", fontWeight: 800, display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                      <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "var(--gold-primary)" }}></i> Intereses y Categorías Favoritas
+                      </span>
+                      <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>Selecciona o añade etiquetas</span>
+                    </label>
+
+                    {(() => {
+                      const selectedList = (editInterests || "").split(",").map(s => s.trim()).filter(Boolean);
+                      const filterQuery = customInterestInput.toLowerCase().trim();
+                      const availableCategories = Array.from(new Set([...dynamicDbCategories, ...selectedList]));
+                      const filteredChips = availableCategories.filter(cat => cat.toLowerCase().includes(filterQuery));
+
+                      const handleToggleTag = (interest) => {
+                        const isSelected = selectedList.some(s => s.toLowerCase() === interest.toLowerCase());
+                        let nextList = [...selectedList];
+                        if (isSelected) {
+                          nextList = nextList.filter(item => item.toLowerCase() !== interest.toLowerCase());
+                        } else {
+                          nextList.push(interest);
+                        }
+                        setEditInterests(nextList.join(", "));
+                      };
+
+                      const handleAddTag = (tagToAdd) => {
+                        const clean = tagToAdd.trim();
+                        if (!clean) return;
+                        if (!selectedList.some(s => s.toLowerCase() === clean.toLowerCase())) {
+                          const next = [...selectedList, clean];
+                          setEditInterests(next.join(", "));
+                        }
+                        setCustomInterestInput("");
+                      };
+
+                      return (
+                        <div style={{ background: "var(--bg-input)", border: "1px solid var(--border-color)", padding: "1rem", borderRadius: "12px" }}>
+                          {selectedList.length > 0 && (
+                            <div style={{ marginBottom: "12px" }}>
+                              <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: "6px" }}>
+                                Preferencias Seleccionadas ({selectedList.length}):
+                              </span>
+                              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                                {selectedList.map((interest) => (
+                                  <span
+                                    key={interest}
+                                    onClick={() => handleToggleTag(interest)}
+                                    style={{
+                                      background: "var(--gold-gradient)",
+                                      color: "#1C1C1E",
+                                      border: "1px solid var(--gold-primary)",
+                                      padding: "0.35rem 0.8rem",
+                                      borderRadius: "20px",
+                                      fontSize: "0.78rem",
+                                      fontWeight: 700,
+                                      cursor: "pointer",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "6px",
+                                      boxShadow: "0 2px 8px rgba(212,175,55,0.2)"
+                                    }}
+                                    title="Haz clic para eliminar preferencia"
+                                  >
+                                    {interest}
+                                    <i className="fa-solid fa-xmark" style={{ fontSize: "0.7rem", opacity: 0.8 }}></i>
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          <div style={{ display: "flex", gap: "6px", alignItems: "center", marginBottom: "10px" }}>
+                            <input 
+                              type="text" 
+                              className="form-control" 
+                              style={{ fontSize: "0.84rem" }}
+                              value={customInterestInput} 
+                              onChange={(e) => setCustomInterestInput(e.target.value)} 
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  handleAddTag(customInterestInput);
+                                }
+                              }}
+                              placeholder="Buscar o escribir una nueva preferencia..." 
+                            />
+                            <button
+                              type="button"
+                              className="btn-gold"
+                              style={{ padding: "0.45rem 1rem", fontSize: "0.82rem", whiteSpace: "nowrap", borderRadius: "8px" }}
+                              onClick={() => handleAddTag(customInterestInput)}
+                            >
+                              + Añadir
+                            </button>
+                          </div>
+
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", maxHeight: "140px", overflowY: "auto", padding: "4px 2px" }}>
+                            {filteredChips.map((cat) => {
+                              const isSelected = selectedList.some(s => s.toLowerCase() === cat.toLowerCase());
+                              return (
+                                <button
+                                  key={cat}
+                                  type="button"
+                                  onClick={() => handleToggleTag(cat)}
+                                  style={{
+                                    background: isSelected ? "rgba(212,175,55,0.18)" : "var(--bg-card)",
+                                    color: isSelected ? "var(--gold-dark)" : "var(--text-muted)",
+                                    border: isSelected ? "1px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                    borderRadius: "16px",
+                                    padding: "3px 10px",
+                                    fontSize: "0.74rem",
+                                    fontWeight: isSelected ? 700 : 500,
+                                    cursor: "pointer",
+                                    transition: "all 0.15s ease"
+                                  }}
+                                >
+                                  {isSelected ? "✓ " : "+ "}{cat}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
               )}
 

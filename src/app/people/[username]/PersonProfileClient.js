@@ -311,42 +311,37 @@ export default function PersonProfileClient() {
   const bioBoxBg = isBgDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.01)";
 
   return (
-    <>
-      {bgStyle !== "none" && (customBgColor || bgImage) && (
-        <div 
-          style={{ 
-            position: "fixed", 
-            top: 0, 
-            left: 0, 
-            right: 0, 
-            bottom: 0, 
-            pointerEvents: "none", 
-            zIndex: -1,
-            transition: "all 0.3s ease",
-            ...pageBgStyle
-          }} 
-        />
-      )}
-      <div className="container" style={{ maxWidth: "1400px", padding: "1.5rem", position: "relative", minHeight: "100vh" }}>
-      <div style={{ position: "relative", marginBottom: "2.5rem" }}>
-        <button onClick={() => router.push("/")} className="profile-close-btn" style={{ position: "absolute", top: "15px", right: "15px", zIndex: 10 }}>&times;</button>
-        <button onClick={copyLink} className="profile-share-btn" style={{ position: "absolute", top: "15px", right: "60px", zIndex: 10 }} title="Copiar enlace de perfil">
-          <i className="fa-solid fa-share-nodes"></i>
-        </button>
-        
-        <div className="profile-header-banner" style={bannerStyle}>
-          {parsed.banner && (
-            <img src={parsed.banner} alt={person.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          )}
-        </div>
+    <div style={{ minHeight: "100vh", position: "relative" }}>
+      {/* Visual background container for custom profile design */}
+      <ProfileBackgroundContainer design={design} defaultBgColor="#FAF9F0" />
 
-        <div className="profile-body person-profile-body-offset" style={{ position: "relative", zIndex: 1, padding: "0 2rem 2rem 2rem" }}>
-          <div style={{ display: "flex", gap: "2rem", alignItems: "flex-end", flexWrap: "wrap", marginBottom: "2rem" }}>
+      {/* Modern Hero Section with Custom Banner */}
+      <div style={{ position: "relative", width: "100%", height: "260px", overflow: "hidden", ...bannerStyle }}>
+        {parsed.banner && (
+          <img 
+            src={parsed.banner} 
+            alt="Portada de perfil" 
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        )}
+        <div style={{ position: "absolute", top: "15px", right: "15px", display: "flex", gap: "8px", zIndex: 10 }}>
+          <button 
+            onClick={copyLink} 
+            style={{ background: "rgba(0,0,0,0.5)", color: "#fff", border: "none", width: "36px", height: "36px", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+            title="Compartir perfil"
+          >
+            <i className="fa-solid fa-share-nodes"></i>
+          </button>
+        </div>
+      </div>
+
+      <div className="container" style={{ position: "relative", zIndex: 2, marginTop: "-70px", paddingBottom: "4rem" }}>
+        <div style={{ background: isBgDark ? "rgba(20, 20, 20, 0.85)" : "rgba(255, 255, 255, 0.85)", backdropFilter: "blur(16px)", borderRadius: "20px", border: isBgDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid var(--border-color)", padding: "1.5rem 2rem", boxShadow: "0 10px 30px rgba(0,0,0,0.08)", marginBottom: "2rem" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem", alignItems: "flex-end" }}>
             <img 
               src={person.logo || DEFAULT_USER_AVATAR} 
               alt={person.name} 
-              className="person-avatar-large"
-              style={{ width: "140px", height: "140px", borderRadius: "50%", objectFit: "cover", border: "4px solid #FFFFFF", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", flexShrink: 0 }}
+              style={{ width: "140px", height: "140px", borderRadius: "50%", objectFit: "cover", border: `4px solid ${themeColor}`, boxShadow: "0 4px 14px rgba(0,0,0,0.15)", background: "#fff" }}
             />
             <div style={{ flex: 1, paddingBottom: "10px", display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "1rem" }}>
               <div>
@@ -363,13 +358,39 @@ export default function PersonProfileClient() {
                 )}
               </div>
               {isOwner && (
-                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
                   <button 
                     onClick={handleEditClick}
                     className="btn-gold"
                     style={{ padding: "0.55rem 1.4rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, background: themeColor, borderColor: themeColor }}
                   >
                     <i className="fa-solid fa-pen"></i> Editar Perfil
+                  </button>
+                  <button 
+                    onClick={handlePreferencesClick}
+                    style={{ 
+                      padding: "0.55rem 1.4rem", 
+                      borderRadius: "8px", 
+                      fontSize: "0.85rem", 
+                      fontWeight: 700, 
+                      background: themeColor,
+                      color: "#FFFFFF",
+                      border: `2px solid ${themeColor}`,
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      transition: "all 0.2s ease",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.12)"
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.opacity = "0.9";
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.opacity = "1";
+                    }}
+                  >
+                    <i className="fa-solid fa-sliders"></i> Preferencias
                   </button>
                   <button 
                     onClick={handleConfigClick}
@@ -626,6 +647,5 @@ export default function PersonProfileClient() {
         </div>
       </div>
     </div>
-  </>
   );
 }

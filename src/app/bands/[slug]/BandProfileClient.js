@@ -775,13 +775,25 @@ export default function BandProfileClient({ initialBand }) {
                 )}
 
                 {canEditProfile && (
-                  <button
-                    onClick={handleEditClick}
-                    className="btn-outline-gold"
-                    style={{ padding: "0.55rem 1.1rem", borderRadius: "12px", fontSize: "0.88rem", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: "8px" }}
-                  >
-                    <i className="fa-solid fa-gear"></i> Editar Perfil
-                  </button>
+                  <>
+                    <button
+                      onClick={handleEditClick}
+                      className="btn-outline-gold"
+                      style={{ padding: "0.55rem 1.1rem", borderRadius: "12px", fontSize: "0.88rem", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: "8px" }}
+                    >
+                      <i className="fa-solid fa-gear"></i> Editar Perfil
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (typeof handleEditClick === "function") handleEditClick();
+                        if (typeof setActiveEditTab === "function") setActiveEditTab("preferencias");
+                      }}
+                      className="btn-gold"
+                      style={{ padding: "0.55rem 1.1rem", borderRadius: "12px", fontSize: "0.88rem", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: "8px" }}
+                    >
+                      <i className="fa-solid fa-sliders"></i> Preferencias
+                    </button>
+                  </>
                 )}
 
                 {userRole === 'creador_original' && (
