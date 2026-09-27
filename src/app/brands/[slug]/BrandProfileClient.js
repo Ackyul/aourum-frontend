@@ -334,6 +334,9 @@ export default function BrandProfileClient({ initialBrand }) {
         }
       }
     });
+    return unique;
+  }, [products]);
+
   const topBrandProdIds = useMemo(() => {
     if (!products || !brand?.id) return new Set();
     const currentBrandProds = products.filter(p => p.brandId === brand.id && p.isVisible !== false);
