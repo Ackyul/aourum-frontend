@@ -518,10 +518,19 @@ export default function Home() {
     return result;
   };
 
-  const featuredProducts = getFeaturedProducts();
+  const featuredProducts = useMemo(() => getFeaturedProducts(), [visibleProducts]);
+  const featuredIds = useMemo(() => new Set(featuredProducts.map(p => p.id)), [featuredProducts]);
 
   const currentPerson = getCurrentPerson();
   const userCity = currentPerson?.city || "";
+
+  // Discover section with equalized rotation for non-featured / less-viewed products
+  const discoverProducts = useMemo(() => {
+    if (!visibleProducts || visibleProducts.length === 0) return [];
+    const nonFeatured = visibleProducts.filter(p => !featuredIds.has(p.id));
+    const pool = nonFeatured.length > 0 ? nonFeatured : visibleProducts;
+    return interleaveProducts(pool, brands, userCity);
+  }, [visibleProducts, featuredIds, brands, userCity]);
 
   const showcaseProducts = useMemo(() => {
     return interleaveProducts(visibleProducts, brands, userCity);
@@ -607,6 +616,54 @@ export default function Home() {
             transition: "background-color 0.3s ease"
           }}
         >
+          {featuredIds.has(prod.id) ? (
+            <span style={{
+              position: "absolute",
+              top: "10px",
+              left: "10px",
+              background: "linear-gradient(135deg, #d4af37 0%, #b8860b 100%)",
+              color: "#1C1C1E",
+              fontWeight: 800,
+              fontSize: "0.65rem",
+              padding: "3px 9px",
+              borderRadius: "12px",
+              backdropFilter: "blur(4px)",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              zIndex: 2,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px"
+            }}>
+              <i className="fa-solid fa-fire"></i>
+              Más Visto
+            </span>
+          ) : (
+            <span style={{
+              position: "absolute",
+              top: "10px",
+              left: "10px",
+              background: "rgba(15, 23, 42, 0.85)",
+              color: "#F8FAFC",
+              fontWeight: 700,
+              fontSize: "0.65rem",
+              padding: "3px 9px",
+              borderRadius: "12px",
+              backdropFilter: "blur(4px)",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              zIndex: 2,
+              border: "1px solid rgba(255, 255, 255, 0.2)",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px"
+            }}>
+              <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "#FCD34D" }}></i>
+              Descubre
+            </span>
+          )}
+
           <img 
             src={prod.image} 
             alt={prod.name} 
@@ -885,7 +942,8 @@ export default function Home() {
             )
           ) : (
             <div>
-              {renderCarousel("productos-destacados", "Productos Destacados", "Los articulos mas vistos y preferidos de la vitrina cultural", featuredProducts, "all")}
+              {renderCarousel("productos-mas-vistos", "🔥 Los Más Vistos", "Las creaciones que más atención e interés están generando en AOURUM", featuredProducts, "all")}
+              {renderCarousel("productos-descubre", "✨ Descubre: Joyas Ocultas", "Talentos independientes y propuestas únicas listas para ser exploradas", discoverProducts, "all")}
               {themeSpecs.map(spec => renderCarousel(spec.id, spec.title, spec.subtitle, getThemedProducts(spec), spec.fallbackCategory))}
               {remainingCategories.map(cat => renderCarousel(
                 cat.toLowerCase().replace(/[^a-z0-9]/g, ""),
