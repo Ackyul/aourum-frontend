@@ -1911,6 +1911,34 @@ function BrandProductCard({ prod }) {
         </button>
 
         <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+          {parsedDesc.has_local && (
+            <button 
+              onClick={() => {
+                const mapEl = document.getElementById("brand-location-section");
+                if (mapEl) {
+                  mapEl.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+              }} 
+              className="btn-outline-gold" 
+              style={{ 
+                padding: "5px 12px", 
+                fontSize: "0.78rem", 
+                borderRadius: "20px", 
+                border: "1px solid #16a34a", 
+                cursor: "pointer", 
+                transition: "var(--transition-smooth)", 
+                display: "inline-flex", 
+                alignItems: "center", 
+                gap: "5px", 
+                background: "rgba(22, 163, 74, 0.08)", 
+                color: "#16a34a", 
+                fontWeight: 700 
+              }} 
+              title="Ver ubicación del local físico"
+            >
+              <i className="fa-solid fa-location-dot" style={{ fontSize: "0.78rem", color: "#16a34a" }}></i> Ubicación
+            </button>
+          )}
           <button 
             onClick={() => setQrModalOpen(true)} 
             className="btn-gold" 
@@ -2033,20 +2061,35 @@ function BrandProductCard({ prod }) {
                 })()}
 
                 {parsed.has_local && (
-                  <span style={{
-                    fontSize: "0.75rem",
-                    background: "rgba(22, 163, 74, 0.12)",
-                    color: "#16a34a",
-                    border: "1px solid rgba(22, 163, 74, 0.35)",
-                    padding: "3px 10px",
-                    borderRadius: "20px",
-                    fontWeight: 700,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "5px"
-                  }}>
-                    <i className="fa-solid fa-store" style={{ color: "#16a34a" }}></i> Local Físico: {parsed.local_address || "Disponible"}
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const mapEl = document.getElementById("brand-location-section");
+                      if (mapEl) {
+                        mapEl.scrollIntoView({ behavior: "smooth", block: "center" });
+                      }
+                    }}
+                    style={{
+                      fontSize: "0.75rem",
+                      background: "rgba(22, 163, 74, 0.12)",
+                      color: "#16a34a",
+                      border: "1px solid rgba(22, 163, 74, 0.35)",
+                      padding: "4px 12px",
+                      borderRadius: "20px",
+                      fontWeight: 700,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.04)"}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
+                    title="Haz clic para ver ubicación en el mapa"
+                  >
+                    <i className="fa-solid fa-store" style={{ color: "#16a34a" }}></i> Local Físico: {parsed.local_address || "Ver Ubicación"}
+                    <i className="fa-solid fa-arrow-down" style={{ fontSize: "0.65rem", marginLeft: "2px" }}></i>
+                  </button>
                 )}
               </div>
               <h2 style={{ fontSize: "1.8rem", fontWeight: 800, marginTop: "0.8rem", letterSpacing: "-0.015em" }}>{brand.name}</h2>
@@ -2224,6 +2267,19 @@ function BrandProductCard({ prod }) {
                     <i className="fa-solid fa-globe"></i>
                   </a>
                 )}
+                {parsed.has_local && (
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((parsed.local_address ? parsed.local_address + ", Arequipa" : "") || `${parsed.local_lat || -16.39889},${parsed.local_lng || -71.53694}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "#ea4335", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
+                    title={`Abrir Google Maps (${parsed.local_address || "Local Físico"})`}
+                  >
+                    <i className="fa-solid fa-map-location-dot"></i>
+                  </a>
+                )}
               </div>
             );
           })()}
@@ -2232,16 +2288,30 @@ function BrandProductCard({ prod }) {
           {(() => {
             const parsed = parseDescription(brand.description);
             if (!parsed.has_local) return null;
+            const queryLoc = encodeURIComponent((parsed.local_address ? parsed.local_address + ", Arequipa" : "") || `${parsed.local_lat || -16.39889},${parsed.local_lng || -71.53694}`);
+            const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${queryLoc}`;
+
             return (
-              <div style={{ marginBottom: "2.2rem", marginTop: "1.5rem" }}>
-                <h3 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "0.8rem", color: "var(--text-gold)" }}>
-                  <i className="fa-solid fa-map"></i> Ubicación de nuestro Local
-                </h3>
+              <div id="brand-location-section" style={{ marginBottom: "2.2rem", marginTop: "1.5rem", scrollMarginTop: "100px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px", marginBottom: "0.8rem" }}>
+                  <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0, color: "var(--text-gold)" }}>
+                    <i className="fa-solid fa-map"></i> Ubicación de nuestro Local
+                  </h3>
+                  <a
+                    href={googleMapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-gold"
+                    style={{ padding: "5px 14px", fontSize: "0.78rem", borderRadius: "20px", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: "6px", textDecoration: "none" }}
+                  >
+                    <i className="fa-solid fa-diamond-turn-right"></i> Abrir en Google Maps / Cómo llegar
+                  </a>
+                </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.9rem", fontWeight: 600, color: "var(--text-primary)", marginBottom: "0.8rem" }}>
-                  <i className="fa-solid fa-location-dot" style={{ color: "var(--gold-primary)" }}></i>
+                  <i className="fa-solid fa-location-dot" style={{ color: "#16a34a" }}></i>
                   <span>{parsed.local_address || "Dirección no especificada"}</span>
                 </div>
-                <div ref={brandMapContainerRef} style={{ height: "240px", width: "100%", borderRadius: "10px", border: "1px solid var(--border-color)", zIndex: 1, boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}></div>
+                <div ref={brandMapContainerRef} style={{ height: "260px", width: "100%", borderRadius: "14px", border: "1px solid var(--border-color)", zIndex: 1, boxShadow: "0 4px 16px rgba(0,0,0,0.03)" }}></div>
               </div>
             );
           })()}
