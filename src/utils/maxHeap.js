@@ -82,6 +82,7 @@ export const getItemViews = (name, id) => {
   return Math.abs(hash % 980) + 120; // 120 to 1100 views
 };
 
-export const getBrandViews = (b) => b.views || b.viewCount || getItemViews(b.name, b.id);
-export const getBandViews = (b) => b.views || b.viewCount || getItemViews(b.name, b.id);
-export const getProductViews = (p) => p.views || p.viewCount || getItemViews(p.name, p.id);
+export const getBrandViews = (b) => Number(b.views || b.viewCount || 0);
+export const getBandViews = (b) => Number(b.views || b.viewCount || 0);
+export const getProductViews = (p) => Number(p?.views || p?.viewCount || 0);
+

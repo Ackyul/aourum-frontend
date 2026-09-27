@@ -503,14 +503,17 @@ export default function Home() {
     return unique;
   })();
 
-  // Extraction of featured entities using MaxHeap
+  // Extraction of featured entities using MaxHeap (strictly real views > 0)
   const getFeaturedProducts = () => {
     if (!visibleProducts || visibleProducts.length === 0) return [];
+    const productsWithViews = visibleProducts.filter(p => getProductViews(p) > 0);
+    if (productsWithViews.length === 0) return [];
+    
     const heap = new MaxHeap((a, b) => getProductViews(a) - getProductViews(b));
-    visibleProducts.forEach(p => heap.insert(p));
+    productsWithViews.forEach(p => heap.insert(p));
     
     const result = [];
-    const targetSize = Math.min(8, visibleProducts.length);
+    const targetSize = Math.min(8, productsWithViews.length);
     for (let i = 0; i < targetSize; i++) {
       const p = heap.extractMax();
       if (p) result.push(p);
@@ -616,7 +619,7 @@ export default function Home() {
             transition: "background-color 0.3s ease"
           }}
         >
-          {featuredIds.has(prod.id) ? (
+          {(featuredIds.has(prod.id) && getProductViews(prod) > 0) ? (
             <span style={{
               position: "absolute",
               top: "10px",
