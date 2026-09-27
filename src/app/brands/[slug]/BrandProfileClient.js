@@ -1911,7 +1911,7 @@ function BrandProductCard({ prod }) {
         </button>
 
         <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-          {parsedDesc.has_local && (
+          {parsed?.has_local && (
             <button 
               onClick={() => {
                 const mapEl = document.getElementById("brand-location-section");
