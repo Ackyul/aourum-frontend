@@ -38,43 +38,19 @@ const getItemViews = (name, id) => {
 
 const getProductViews = (p) => p.views || p.viewCount || getItemViews(p.name, p.id);
 
-// Balances popularity and discovery by combining most viewed and least viewed products
+// Balances popularity and discovery: strictly only items with real views > 0 get "popular" badge
 const getBalancedSuggestions = (candidates, limit = 5) => {
   if (!candidates || candidates.length === 0) return [];
   
   const sorted = [...candidates].sort((a, b) => getProductViews(b) - getProductViews(a));
-  
-  if (candidates.length <= limit) {
-    const mid = sorted.length / 2;
-    return sorted.map((item, idx) => ({
-      ...item,
-      suggestionType: idx < mid ? "popular" : "discover"
-    }));
-  }
+  const productsWithViews = sorted.filter(p => getProductViews(p) > 0);
+  const popularCount = Math.min(2, Math.floor(productsWithViews.length * 0.3));
+  const popularSet = new Set(productsWithViews.slice(0, popularCount).map(p => p.id));
 
-  const half = Math.floor(limit / 2);
-  const mostViewed = sorted.slice(0, half).map(item => ({ ...item, suggestionType: "popular" }));
-  const leastViewed = sorted.slice(sorted.length - (limit - half)).map(item => ({ ...item, suggestionType: "discover" }));
-
-  // Combine
-  const combined = [...mostViewed];
-  leastViewed.forEach(item => {
-    if (!combined.some(c => c.id === item.id)) {
-      combined.push(item);
-    }
-  });
-
-  // If combined size is less than limit, add items from the middle
-  let nextIdx = half;
-  while (combined.length < limit && nextIdx < sorted.length - (limit - half)) {
-    const candidate = { ...sorted[nextIdx], suggestionType: "discover" };
-    if (!combined.some(c => c.id === candidate.id)) {
-      combined.push(candidate);
-    }
-    nextIdx++;
-  }
-
-  return combined;
+  return sorted.slice(0, limit).map(item => ({
+    ...item,
+    suggestionType: popularSet.has(item.id) ? "popular" : "discover"
+  }));
 };
 
 export default function ProductDetailPage() {
@@ -570,17 +546,51 @@ export default function ProductDetailPage() {
           )}
 
           {/* Badges on Image top-left */}
-          <div style={{ position: "absolute", top: "10px", left: "10px", display: "flex", flexDirection: "column", gap: "6px", zIndex: 3 }}>
-            {isPopular ? (
-              <span style={{ background: "linear-gradient(135deg, #d4af37 0%, #b8860b 100%)", color: "#1C1C1E", fontSize: "0.62rem", padding: "3px 9px", borderRadius: "12px", fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", boxShadow: "0 2px 8px rgba(0,0,0,0.2)", display: "flex", alignItems: "center", gap: "4px" }}>
-                <i className="fa-solid fa-fire"></i> Más Visto
-              </span>
-            ) : (
-              <span style={{ background: "rgba(15, 23, 42, 0.85)", color: "#F8FAFC", fontSize: "0.62rem", padding: "3px 9px", borderRadius: "12px", fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", border: "1px solid rgba(255, 255, 255, 0.2)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", gap: "4px" }}>
-                <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "#FCD34D" }}></i> Descubre
-              </span>
-            )}
-          </div>
+          {(() => {
+            const brandBadgeColor = rpPalette.c1 || (rpBrand?.color ? rpBrand.color : "var(--gold-primary)");
+            const brandBadgeTextDark = getBgBrightness(brandBadgeColor, "#FFFFFF") > 160;
+            const isPop = rp.suggestionType === "popular";
+            return (
+              <div style={{ position: "absolute", top: "10px", left: "10px", display: "flex", flexDirection: "column", gap: "6px", zIndex: 3 }}>
+                {isPop ? (
+                  <span style={{ 
+                    background: brandBadgeColor, 
+                    color: brandBadgeTextDark ? "#1C1C1E" : "#FFFFFF", 
+                    fontSize: "0.62rem", 
+                    padding: "3px 9px", 
+                    borderRadius: "12px", 
+                    fontWeight: 800, 
+                    letterSpacing: "0.03em", 
+                    textTransform: "uppercase", 
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.2)", 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: "4px" 
+                  }}>
+                    <i className="fa-solid fa-fire"></i> Más Visto
+                  </span>
+                ) : (
+                  <span style={{ 
+                    background: isCardDark ? "rgba(15, 23, 42, 0.85)" : "rgba(255, 255, 255, 0.92)", 
+                    color: isCardDark ? "#F8FAFC" : "#1C1C1E", 
+                    fontSize: "0.62rem", 
+                    padding: "3px 9px", 
+                    borderRadius: "12px", 
+                    fontWeight: 700, 
+                    letterSpacing: "0.03em", 
+                    textTransform: "uppercase", 
+                    border: `1.5px solid ${brandBadgeColor}`, 
+                    backdropFilter: "blur(4px)", 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: "4px" 
+                  }}>
+                    <i className="fa-solid fa-wand-magic-sparkles" style={{ color: brandBadgeColor }}></i> Descubre
+                  </span>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Bottom Details Body */}

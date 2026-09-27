@@ -334,8 +334,16 @@ export default function BrandProfileClient({ initialBrand }) {
         }
       }
     });
-    return unique;
-  }, [products]);
+  const topBrandProdIds = useMemo(() => {
+    if (!products || !brand?.id) return new Set();
+    const currentBrandProds = products.filter(p => p.brandId === brand.id && p.isVisible !== false);
+    const sorted = [...currentBrandProds]
+      .filter(p => getProductViews(p) > 0)
+      .sort((a, b) => getProductViews(b) - getProductViews(a));
+    if (sorted.length === 0) return new Set();
+    const topCount = Math.max(1, Math.floor(sorted.length * 0.25));
+    return new Set(sorted.slice(0, topCount).map(p => p.id));
+  }, [products, brand?.id]);
 
   const defaultCategoryOptions = useMemo(() => {
     if (isBrandVirtualMenu) {
@@ -1008,7 +1016,9 @@ function BrandProductCard({ prod }) {
     }
 
     const views = getProductViews(prod);
-    const isPopular = views > 0;
+    const isPopular = topBrandProdIds.has(prod.id);
+    const brandBadgeColor = palette.c1 || (brand?.color ? brand.color : "var(--gold-primary)");
+    const brandBadgeTextDark = getBgBrightness(brandBadgeColor, "#FFFFFF") > 160;
     const formattedPrice = (prod.price != null && !isNaN(Number(prod.price))) ? Number(prod.price).toLocaleString("es-PE") : "0";
     const formattedPriceAourum = (prod.priceAourum != null && !isNaN(Number(prod.priceAourum))) ? Number(prod.priceAourum).toLocaleString("es-PE") : null;
 
@@ -1047,12 +1057,39 @@ function BrandProductCard({ prod }) {
           {/* Badges on Image top-left */}
           <div style={{ position: "absolute", top: "10px", left: "10px", display: "flex", flexDirection: "column", gap: "6px", zIndex: 3 }}>
             {isPopular ? (
-              <span style={{ background: "linear-gradient(135deg, #d4af37 0%, #b8860b 100%)", color: "#1C1C1E", fontSize: "0.62rem", padding: "3px 9px", borderRadius: "12px", fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", boxShadow: "0 2px 8px rgba(0,0,0,0.2)", display: "flex", alignItems: "center", gap: "4px" }}>
+              <span style={{ 
+                background: brandBadgeColor, 
+                color: brandBadgeTextDark ? "#1C1C1E" : "#FFFFFF", 
+                fontSize: "0.62rem", 
+                padding: "3px 9px", 
+                borderRadius: "12px", 
+                fontWeight: 800, 
+                letterSpacing: "0.03em", 
+                textTransform: "uppercase", 
+                boxShadow: "0 2px 8px rgba(0,0,0,0.2)", 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "4px" 
+              }}>
                 <i className="fa-solid fa-fire"></i> Más Visto
               </span>
             ) : (
-              <span style={{ background: "rgba(15, 23, 42, 0.85)", color: "#F8FAFC", fontSize: "0.62rem", padding: "3px 9px", borderRadius: "12px", fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", border: "1px solid rgba(255, 255, 255, 0.2)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", gap: "4px" }}>
-                <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "#FCD34D" }}></i> Descubre
+              <span style={{ 
+                background: isCardDark ? "rgba(15, 23, 42, 0.85)" : "rgba(255, 255, 255, 0.92)", 
+                color: isCardDark ? "#F8FAFC" : "#1C1C1E", 
+                fontSize: "0.62rem", 
+                padding: "3px 9px", 
+                borderRadius: "12px", 
+                fontWeight: 700, 
+                letterSpacing: "0.03em", 
+                textTransform: "uppercase", 
+                border: `1.5px solid ${brandBadgeColor}`, 
+                backdropFilter: "blur(4px)", 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "4px" 
+              }}>
+                <i className="fa-solid fa-wand-magic-sparkles" style={{ color: brandBadgeColor }}></i> Descubre
               </span>
             )}
           </div>
