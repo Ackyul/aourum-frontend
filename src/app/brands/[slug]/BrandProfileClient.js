@@ -794,12 +794,13 @@ export default function BrandProfileClient({ initialBrand }) {
 
 
 
-  function MenuDishCard({ prod, brand, palette, isStoreBgLight, resolvedCardBg, resolvedCardTextColor }) {
+  function MenuDishCard({ prod, brand, palette, isStoreBgLight, resolvedCardBg, resolvedCardTextColor, isPopular }) {
   const primaryColor = palette?.c1 || "#95B721";
   const waNumber = brand?.whatsappNumber || brand?.phone;
   const cleanWa = waNumber ? waNumber.replace(/[^0-9]/g, "") : null;
   const waMsg = encodeURIComponent(`¡Hola! Quisiera realizar un pedido de "${prod.name}" desde el Menú Virtual de ${brand?.name || 'la marca'} en AOURUM.`);
   const waLink = cleanWa ? `https://wa.me/${cleanWa}?text=${waMsg}` : null;
+  const brandBadgeTextDark = getBgBrightness(primaryColor, "#FFFFFF") > 160;
 
   return (
     <div 
@@ -835,6 +836,44 @@ export default function BrandProfileClient({ initialBrand }) {
           }}
         >
           <img src={prod.image} alt={prod.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <div style={{ position: "absolute", top: "6px", left: "6px", zIndex: 2 }}>
+            {isPopular ? (
+              <span style={{ 
+                background: primaryColor, 
+                color: brandBadgeTextDark ? "#1C1C1E" : "#FFFFFF", 
+                fontSize: "0.58rem", 
+                padding: "2px 7px", 
+                borderRadius: "10px", 
+                fontWeight: 800, 
+                letterSpacing: "0.03em", 
+                textTransform: "uppercase", 
+                boxShadow: "0 2px 6px rgba(0,0,0,0.2)", 
+                display: "inline-flex", 
+                alignItems: "center", 
+                gap: "3px" 
+              }}>
+                <i className="fa-solid fa-fire"></i> Más Visto
+              </span>
+            ) : (
+              <span style={{ 
+                background: "rgba(15, 23, 42, 0.85)", 
+                color: "#F8FAFC", 
+                fontSize: "0.58rem", 
+                padding: "2px 7px", 
+                borderRadius: "10px", 
+                fontWeight: 700, 
+                letterSpacing: "0.03em", 
+                textTransform: "uppercase", 
+                border: `1px solid ${primaryColor}`, 
+                backdropFilter: "blur(4px)", 
+                display: "inline-flex", 
+                alignItems: "center", 
+                gap: "3px" 
+              }}>
+                <i className="fa-solid fa-wand-magic-sparkles" style={{ color: primaryColor }}></i> Descubre
+              </span>
+            )}
+          </div>
         </div>
       )}
 
@@ -845,6 +884,42 @@ export default function BrandProfileClient({ initialBrand }) {
             <span style={{ fontSize: "0.7rem", fontWeight: 800, textTransform: "uppercase", color: primaryColor, background: `${primaryColor}18`, padding: "2px 8px", borderRadius: "6px", border: `1px solid ${primaryColor}30` }}>
               {getDishMenuCategory(prod)}
             </span>
+          )}
+          {!prod.image && (
+            isPopular ? (
+              <span style={{ 
+                background: primaryColor, 
+                color: brandBadgeTextDark ? "#1C1C1E" : "#FFFFFF", 
+                fontSize: "0.62rem", 
+                padding: "2px 8px", 
+                borderRadius: "10px", 
+                fontWeight: 800, 
+                letterSpacing: "0.03em", 
+                textTransform: "uppercase", 
+                display: "inline-flex", 
+                alignItems: "center", 
+                gap: "3px" 
+              }}>
+                <i className="fa-solid fa-fire"></i> Más Visto
+              </span>
+            ) : (
+              <span style={{ 
+                background: "rgba(15, 23, 42, 0.85)", 
+                color: "#F8FAFC", 
+                fontSize: "0.62rem", 
+                padding: "2px 8px", 
+                borderRadius: "10px", 
+                fontWeight: 700, 
+                letterSpacing: "0.03em", 
+                textTransform: "uppercase", 
+                border: `1px solid ${primaryColor}`, 
+                display: "inline-flex", 
+                alignItems: "center", 
+                gap: "3px" 
+              }}>
+                <i className="fa-solid fa-wand-magic-sparkles" style={{ color: primaryColor }}></i> Descubre
+              </span>
+            )
           )}
           {prod.type === "service" && (
             <span style={{ fontSize: "0.7rem", fontWeight: 800, color: "#2563eb", background: "rgba(37, 99, 235, 0.1)", padding: "2px 8px", borderRadius: "6px" }}>
@@ -1938,6 +2013,23 @@ function BrandProductCard({ prod }) {
                     </span>
                   );
                 })()}
+
+                {parsed.has_local && (
+                  <span style={{
+                    fontSize: "0.75rem",
+                    background: "rgba(22, 163, 74, 0.12)",
+                    color: "#16a34a",
+                    border: "1px solid rgba(22, 163, 74, 0.35)",
+                    padding: "3px 10px",
+                    borderRadius: "20px",
+                    fontWeight: 700,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "5px"
+                  }}>
+                    <i className="fa-solid fa-store" style={{ color: "#16a34a" }}></i> Local Físico: {parsed.local_address || "Disponible"}
+                  </span>
+                )}
               </div>
               <h2 style={{ fontSize: "1.8rem", fontWeight: 800, marginTop: "0.8rem", letterSpacing: "-0.015em" }}>{brand.name}</h2>
               {effectiveTagline && (
@@ -2666,6 +2758,7 @@ function BrandProductCard({ prod }) {
                                 isStoreBgLight={isStoreBgLight}
                                 resolvedCardBg={resolvedCardBg}
                                 resolvedCardTextColor={resolvedCardTextColor}
+                                isPopular={topBrandProdIds.has(prod.id)}
                               />
                             ))}
                           </div>
