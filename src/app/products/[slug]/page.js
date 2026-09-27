@@ -517,7 +517,7 @@ export default function ProductDetailPage() {
     }
 
     const views = getProductViews(rp);
-    const isPopular = views > 600;
+    const isPopular = views > 0;
     const formattedPrice = (rp.price != null && !isNaN(Number(rp.price))) ? Number(rp.price).toLocaleString("es-PE") : "0";
     const formattedPriceAourum = (rp.priceAourum != null && !isNaN(Number(rp.priceAourum))) ? Number(rp.priceAourum).toLocaleString("es-PE") : null;
 
@@ -572,12 +572,12 @@ export default function ProductDetailPage() {
           {/* Badges on Image top-left */}
           <div style={{ position: "absolute", top: "10px", left: "10px", display: "flex", flexDirection: "column", gap: "6px", zIndex: 3 }}>
             {isPopular ? (
-              <span style={{ background: "linear-gradient(135deg, #ef4444, #f97316)", color: "#FFFFFF", fontSize: "0.62rem", padding: "3px 8px", borderRadius: "12px", fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", boxShadow: "0 2px 6px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", gap: "3px" }}>
-                <i className="fa-solid fa-fire" style={{ fontSize: "0.7rem" }}></i> Popular
+              <span style={{ background: "linear-gradient(135deg, #d4af37 0%, #b8860b 100%)", color: "#1C1C1E", fontSize: "0.62rem", padding: "3px 9px", borderRadius: "12px", fontWeight: 800, letterSpacing: "0.03em", textTransform: "uppercase", boxShadow: "0 2px 8px rgba(0,0,0,0.2)", display: "flex", alignItems: "center", gap: "4px" }}>
+                <i className="fa-solid fa-fire"></i> Más Visto
               </span>
             ) : (
-              <span style={{ background: "linear-gradient(135deg, #0284c7, #2563eb)", color: "#FFFFFF", fontSize: "0.62rem", padding: "3px 8px", borderRadius: "12px", fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", boxShadow: "0 2px 6px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", gap: "3px" }}>
-                <i className="fa-solid fa-wand-magic-sparkles" style={{ fontSize: "0.7rem" }}></i> Descubrir
+              <span style={{ background: "rgba(15, 23, 42, 0.85)", color: "#F8FAFC", fontSize: "0.62rem", padding: "3px 9px", borderRadius: "12px", fontWeight: 700, letterSpacing: "0.03em", textTransform: "uppercase", border: "1px solid rgba(255, 255, 255, 0.2)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", gap: "4px" }}>
+                <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "#FCD34D" }}></i> Descubre
               </span>
             )}
           </div>
