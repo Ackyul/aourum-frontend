@@ -23,6 +23,24 @@ const getItemViews = (name, id) => {
 const getProductViews = (p) => p.views || p.viewCount || getItemViews(p.name, p.id);
 const DEFAULT_USER_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' fill='%23E5E7EB'/%3E%3Cpath d='M64 24a24 24 0 100 48 24 24 0 000-48zM32 104a32 32 0 0164 0H32z' fill='%239CA3AF'/%3E%3C/svg%3E";
 
+const getBgBrightness = (colorStr, fallbackColor = "#FAF9F0", primaryColor = null) => {
+  let target = colorStr || fallbackColor;
+  if (target === "brand" && primaryColor) target = primaryColor;
+  else if (target === "brand-soft" && primaryColor) target = primaryColor ? `${primaryColor}15` : fallbackColor;
+  if (typeof target !== "string" || !target.startsWith("#")) return 240;
+
+  let hex = target.replace("#", "").substring(0, 6);
+  if (hex.length === 3) {
+    hex = hex.split("").map(c => c + c).join("");
+  }
+  if (hex.length !== 6) return 240;
+
+  const r = parseInt(hex.substring(0, 2), 16) || 0;
+  const g = parseInt(hex.substring(2, 4), 16) || 0;
+  const b = parseInt(hex.substring(4, 6), 16) || 0;
+  return (r * 299 + g * 587 + b * 114) / 1000;
+};
+
 export default function BrandProfileClient({ initialBrand }) {
   const routeParams = useParams();
   const slug = routeParams?.slug || "";
