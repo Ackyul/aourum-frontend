@@ -2992,12 +2992,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es" className={inter.variable}>
       <head>
-        <title>AOURUM | El nodo central del talento local</title>
+        <title>AOURUM | El nodo central del talento local - Galería & Marcas Independientes</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-        <meta name="description" content="AOURUM es el nodo central del talento local. Conecta con marcas locales, diseñadores, ferias independientes y las mejores bandas de música en la nueva era del comercio." />
-        <meta name="keywords" content="aourum, aourum arequipa, mercado arequipa, ferias arequipa, marcas locales arequipa, bandas arequipa, comprar arequipa, comercio cultural, diseño independiente, arte arequipa" />
-        <meta name="author" content="Aourum" />
-        <meta name="robots" content="index, follow" />
+        <meta name="description" content="AOURUM es el nodo central del talento local. Plataforma oficial y galería sensorial de marcas independientes, diseño, perfumería de autor y cultura." />
+        <meta name="keywords" content="aourum, AOURUM, aourum.com, www.aourum.com, AOURUM Perú, aourum arequipa, galeria aourum, aourum marca, aourum oficial, nodo central del talento local, marcas locales, perfumería de autor, ferias independientes" />
+        <meta name="author" content="AOURUM" />
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         <link rel="canonical" href="https://aourum.com/" />
         
         {/* Favicon & App Icons */}
@@ -3008,8 +3008,9 @@ export default function RootLayout({ children }) {
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://aourum.com/" />
+        <meta property="og:site_name" content="AOURUM" />
         <meta property="og:title" content="AOURUM | El nodo central del talento local" />
-        <meta property="og:description" content="AOURUM es el nodo central del talento local. Conecta con marcas locales, diseñadores, ferias independientes y las mejores bandas de música." />
+        <meta property="og:description" content="AOURUM es el nodo central del talento local. Plataforma oficial y galería sensorial de marcas independientes, diseño, perfumería de autor y cultura." />
         <meta property="og:image" content="https://aourum.com/og-image.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -3018,10 +3019,10 @@ export default function RootLayout({ children }) {
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content="https://aourum.com/" />
         <meta property="twitter:title" content="AOURUM | El nodo central del talento local" />
-        <meta property="twitter:description" content="AOURUM es el nodo central del talento local. Conecta con marcas locales, diseñadores, ferias independientes y las mejores bandas de música." />
+        <meta property="twitter:description" content="AOURUM es el nodo central del talento local. Galería y plataforma de diseño e industrias creativas." />
         <meta property="twitter:image" content="https://aourum.com/og-image.png" />
 
-        {/* JSON-LD Structured Data for Google Rich Snippets */}
+        {/* JSON-LD Structured Data for Google Rich Snippets & Brand Entity */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -3031,21 +3032,34 @@ export default function RootLayout({ children }) {
                 {
                   "@type": "Organization",
                   "@id": "https://aourum.com/#organization",
-                  "name": "Aourum",
+                  "name": "AOURUM",
+                  "legalName": "AOURUM",
+                  "alternateName": ["Aourum", "aourum", "AOURUM Perú", "AOURUM Official"],
                   "url": "https://aourum.com/",
                   "logo": "https://aourum.com/aourum-gold-badge.png",
-                  "description": "El nodo central del talento local que reúne marcas de diseño, arte, ferias y bandas locales.",
+                  "description": "AOURUM es el nodo central del talento local. Plataforma oficial y galería sensorial de marcas independientes y diseño.",
                   "sameAs": [
                     "https://www.instagram.com/aourum",
-                    "https://www.facebook.com/aourum"
+                    "https://www.facebook.com/aourum",
+                    "https://tiktok.com/@aourum"
                   ]
+                },
+                {
+                  "@type": "Brand",
+                  "@id": "https://aourum.com/#brand",
+                  "name": "AOURUM",
+                  "alternateName": ["Aourum", "aourum"],
+                  "url": "https://aourum.com/",
+                  "logo": "https://aourum.com/aourum-gold-badge.png",
+                  "description": "AOURUM - El nodo central del talento local. Marca oficial y plataforma de diseño."
                 },
                 {
                   "@type": "WebSite",
                   "@id": "https://aourum.com/#website",
                   "url": "https://aourum.com/",
-                  "name": "Aourum",
-                  "description": "El nodo central del talento local",
+                  "name": "AOURUM",
+                  "alternateName": ["Aourum", "aourum"],
+                  "description": "AOURUM | El nodo central del talento local",
                   "publisher": {
                     "@id": "https://aourum.com/#organization"
                   },
