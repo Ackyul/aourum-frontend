@@ -8,6 +8,7 @@ import PostList from "../../../components/PostList";
 import SocialFeedPublisher from "../../../components/SocialFeedPublisher";
 import BrandQRModal from "../../../components/BrandQRModal";
 import { isVirtualMenuBrand } from "@/utils/brandUtils";
+import PerfumeryShowcase, { parsePerfumeInfo } from "../../../components/PerfumeryShowcase";
 
 // Stable deterministic views generator based on hash of name + id
 const getItemViews = (name, id) => {
@@ -140,12 +141,21 @@ export default function BrandProfileClient({ initialBrand }) {
     setShowLoginModal,
     triggerNotification,
     loadPosts,
-    openCreatePostModal
+    openCreatePostModal,
+    authHeaders,
+    getBrandPalette
   } = useApp();
 
   const router = useRouter();
 
   const [activeBrandTab, setActiveBrandTab] = useState("vitrina");
+  // State for Perfumery Fragrance attributes
+  const [perfumeInspiration, setPerfumeInspiration] = useState("");
+  const [perfumeGender, setPerfumeGender] = useState("Unisex");
+  const [perfumeFamily, setPerfumeFamily] = useState("Amaderado");
+  const [perfumeConcentration, setPerfumeConcentration] = useState("50% Esencia Pura");
+  const [perfumeMl, setPerfumeMl] = useState("50 ml");
+  const [perfumeNotes, setPerfumeNotes] = useState("");
 
   // State for Events Management inside Brand Profile
   const [eventFormOpen, setEventFormOpen] = useState(false);
@@ -299,7 +309,16 @@ export default function BrandProfileClient({ initialBrand }) {
     const brandDesign = brand.brandDesign || parsedDesc.brandDesign || {};
     const categoryStr = (brand.category || parsedDesc.rubro_especifico || parsedDesc.rubro_general || "").toLowerCase();
     const isFoodCategory = Boolean(/comida|gastronom|restauran|snack|bebida|infusio|postre|alimento|fruta/i.test(categoryStr));
-    return brandDesign.catalogDisplayMode === "menu" || (brandDesign.catalogDisplayMode !== "grid" && isFoodCategory);
+    return brandDesign.catalogDisplayMode === "menu" || (brandDesign.catalogDisplayMode !== "grid" && brandDesign.catalogDisplayMode !== "perfumery" && isFoodCategory);
+  }, [brand, parseDescription]);
+
+  const isBrandPerfumery = useMemo(() => {
+    if (!brand) return false;
+    const parsedDesc = parseDescription(brand.description);
+    const brandDesign = brand.brandDesign || parsedDesc.brandDesign || {};
+    const categoryStr = (brand.category || parsedDesc.rubro_especifico || parsedDesc.rubro_general || "").toLowerCase();
+    const isPerfumeCategory = Boolean(/perfum|fraganc|eau de|coloni|olfativ|esenci/i.test(categoryStr));
+    return brandDesign.catalogDisplayMode === "perfumery" || brandDesign.catalogDisplayMode === "perfume" || (brandDesign.catalogDisplayMode !== "grid" && brandDesign.catalogDisplayMode !== "menu" && isPerfumeCategory);
   }, [brand, parseDescription]);
 
   // Check collaborator role of the logged-in persona
@@ -1417,7 +1436,6 @@ function BrandProductCard({ prod }) {
     );
   }
 
-  const { getBrandPalette } = useApp();
   const parsed = parseDescription(brand.description);
   const isEditingThisBrand = editProfileOpen && editProfileId === brand?.id;
   const effectiveThemeColor = (isEditingThisBrand && editThemeColor) ? editThemeColor : (brand.themeColor || parsed.theme_color || '');
@@ -2118,11 +2136,24 @@ function BrandProductCard({ prod }) {
                <div className="brand-admin-actions-row" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                  {isOwner && (
                    <button
-                     onClick={() => setProdFormOpen(true)}
+                     onClick={() => {
+                       setEditingProdId(null);
+                       setProdName(""); setProdDescription(""); setProdPrice(""); setProdPriceAourum("");
+                       setProdStock(""); setProdCategory(isBrandPerfumery ? "Alta Perfumería" : ""); setProdType("product");
+                       setProdIsVisible(true); setProdImgBgColor("transparent");
+                       setProdImage(""); setProdImagePreview("");
+                       setPerfumeInspiration("");
+                       setPerfumeGender("Unisex");
+                       setPerfumeFamily("Amaderado");
+                       setPerfumeConcentration("50% Esencia Pura");
+                       setPerfumeMl("50 ml");
+                       setPerfumeNotes("");
+                       setProdFormOpen(true);
+                     }}
                      className="btn-gold"
                      style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
                    >
-                     <i className="fa-solid fa-plus"></i> Añadir Item
+                     <i className="fa-solid fa-plus"></i> {isBrandPerfumery ? "Añadir Fragancia" : "Añadir Item"}
                    </button>
                  )}
                  {isOwner && brandProducts.length > 0 && (
@@ -2613,17 +2644,83 @@ function BrandProductCard({ prod }) {
           />
         </div>
       ) : (
-        /* ── SECCIÓN DE CATÁLOGO ESTILO DESCUBRE / MENÚ VIRTUAL ── */
-        brandProducts.length === 0 ? (
-          <div className="glass-panel" style={{ textAlign: "center", padding: "4rem 0", color: "var(--text-muted)", borderRadius: "16px", marginTop: "2rem" }}>
-            <i className="fa-solid fa-utensils" style={{ fontSize: "2.5rem", opacity: 0.3, marginBottom: "1rem", display: "block" }}></i>
-            <p style={{ fontSize: "0.9rem" }}>Esta marca aún no ha publicado platillos o ítems en su carta gastronómica.</p>
-          </div>
-        ) : (
-          (() => {
-            const categoryStr = (brand?.category || parsed.rubro_especifico || parsed.rubro_general || "").toLowerCase();
-            const isFoodCategory = Boolean(/comida|gastronom|restauran|snack|bebida|infusio|postre|alimento|fruta/i.test(categoryStr));
-            const isVirtualMenu = design.catalogDisplayMode === "menu" || (design.catalogDisplayMode !== "grid" && isFoodCategory);
+        /* ── SECCIÓN DE CATÁLOGO ESTILO DESCUBRE / MENÚ VIRTUAL / PERFUMERÍA ── */
+        (() => {
+          const categoryStr = (brand?.category || parsed.rubro_especifico || parsed.rubro_general || "").toLowerCase();
+          const isFoodCategory = Boolean(/comida|gastronom|restauran|snack|bebida|infusio|postre|alimento|fruta/i.test(categoryStr));
+          const isPerfumeCategory = Boolean(/perfum|fraganc|eau de|coloni|olfativ|esenci/i.test(categoryStr));
+
+          const resolvedCatalogMode = (() => {
+            if (design.catalogDisplayMode === "perfumery" || design.catalogDisplayMode === "perfume") return "perfumery";
+            if (design.catalogDisplayMode === "menu") return "menu";
+            if (design.catalogDisplayMode === "grid") return "grid";
+            if (isPerfumeCategory) return "perfumery";
+            if (isFoodCategory) return "menu";
+            return "grid";
+          })();
+
+          if (resolvedCatalogMode === "perfumery") {
+            return (
+              <PerfumeryShowcase
+                brand={brand}
+                brandDesign={design}
+                palette={palette}
+                customProducts={brandProducts}
+                title={design.perfumeryTitle || `${brand?.name || 'Maison'} • Colección de Perfumes`}
+                subtitle={design.perfumerySubtitle || "Fragancias formuladas con 50% de esencia pura para una estela envolvente y máxima fijación en piel. Encuentra tu aroma favorito o su equivalencia olfativa original."}
+                isOwner={isOwner}
+                onOpenAddModal={() => {
+                  setEditingProdId(null);
+                  setProdName(""); setProdDescription(""); setProdPrice(""); setProdPriceAourum("");
+                  setProdStock(""); setProdCategory("Alta Perfumería"); setProdType("product");
+                  setProdIsVisible(true); setProdImgBgColor("transparent");
+                  setProdImage(""); setProdImagePreview("");
+                  setPerfumeInspiration("");
+                  setPerfumeGender("Unisex");
+                  setPerfumeFamily("Amaderado");
+                  setPerfumeConcentration("50% Esencia Pura");
+                  setPerfumeMl("50 ml");
+                  setPerfumeNotes("");
+                  setProdFormOpen(true);
+                }}
+                onEditProduct={(prod) => {
+                  setEditingProdId(prod.id); 
+                  setProdName(prod.name); 
+                  setProdPrice(prod.price);
+                  setProdPriceAourum(prod.priceAourum == null ? "" : prod.priceAourum);
+                  setProdStock(prod.stock == null ? "" : prod.stock); 
+                  setProdCategory(prod.category); 
+                  setProdType(prod.type);
+                  setProdIsVisible(prod.isVisible !== false);
+                  setProdImgBgColor(prod.imgBgColor || "transparent");
+                  setProdImage(prod.image); 
+                  setProdImagePreview(prod.image); 
+
+                  const pInfo = parsePerfumeInfo(prod);
+                  setPerfumeInspiration(pInfo.inspiration || "");
+                  setPerfumeGender(pInfo.gender || "Unisex");
+                  setPerfumeFamily(pInfo.family || "Amaderado");
+                  setPerfumeConcentration(pInfo.concentration || "50% Esencia Pura");
+                  setPerfumeMl(pInfo.ml || "50 ml");
+                  setPerfumeNotes(pInfo.cleanDesc || "");
+                  setProdDescription(pInfo.cleanDesc || prod.description || "");
+
+                  setProdFormOpen(true);
+                }}
+              />
+            );
+          }
+
+          if (brandProducts.length === 0) {
+            return (
+              <div className="glass-panel" style={{ textAlign: "center", padding: "4rem 0", color: "var(--text-muted)", borderRadius: "16px", marginTop: "2rem" }}>
+                <i className="fa-solid fa-store" style={{ fontSize: "2.5rem", opacity: 0.3, marginBottom: "1rem", display: "block" }}></i>
+                <p style={{ fontSize: "0.9rem" }}>Esta marca aún no ha publicado productos o ítems en su catálogo.</p>
+              </div>
+            );
+          }
+
+          const isVirtualMenu = resolvedCatalogMode === "menu";
 
             if (isVirtualMenu) {
               // Filter by search query first if entered
@@ -2661,7 +2758,8 @@ function BrandProductCard({ prod }) {
               }
 
               return (
-                <div style={{ marginTop: "2rem", paddingTop: "0.5rem" }}>
+                <>
+                  <div style={{ marginTop: "2rem", paddingTop: "0.5rem" }}>
                   {/* Menu Title Header */}
                   <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
                     <div>
@@ -2855,10 +2953,12 @@ function BrandProductCard({ prod }) {
                     </div>
                   )}
                 </div>
-              );
-            }
+              </>
+            );
+          }
 
-            return (
+          return (
+            <>
               <div style={{ marginTop: "2rem" }}>
                 <div style={{ marginBottom: "2rem" }}>
                   <h2 style={{ fontSize: "1.7rem", fontWeight: 800, letterSpacing: "-0.015em", margin: 0, color: isStoreBgLight ? "#1C1C1E" : "#FFFFFF" }}>
@@ -2916,9 +3016,9 @@ function BrandProductCard({ prod }) {
                   )}
                 </div>
               </div>
-            );
-          })()
-        )
+            </>
+          );
+        })()
       )}
 
       {/* Info del Dueño al final del perfil, después de todos los productos y antes del footer */}
@@ -2931,33 +3031,69 @@ function BrandProductCard({ prod }) {
 
       {/* ── VENTANAS SUPERPUESTAS (MODALS) RENDERIZADAS A NIVEL DE RAÍZ DEL COMPONENTE ── */}
       {/* 1. Formulario de creación/edición de producto en Ventana Superpuesta (Modal) */}
-      {isOwner && prodFormOpen && (
-        <div className="modal-overlay" style={{ zIndex: 1200 }}>
-          <div className="modal-backdrop" onClick={() => { setProdFormOpen(false); setEditingProdId(null); }}></div>
-          <div className="modal-panel fade-in" style={{ maxWidth: "750px", background: "#FFFFFF", border: "1.5px solid var(--gold-primary)", padding: 0 }}>
-            <div className="modal-header">
-              <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0 }}>
-                {editingProdId ? "✨ Editar Item de Catálogo" : "✨ Publicar Nuevo Item"}
-              </h3>
-              <button 
-                onClick={() => { setProdFormOpen(false); setEditingProdId(null); }} 
-                style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
-              >
-                &times;
-              </button>
-            </div>
-            <form onSubmit={(e) => handleProductSubmit(e, brand.id)} className="modal-body">
-              <div className="grid-2-to-1">
-                <div className="form-group">
-                  <label>{isBrandVirtualMenu ? "Nombre del Platillo / Ítem *" : "Nombre del Item *"}</label>
-                  <input type="text" className="form-control" placeholder={isBrandVirtualMenu ? "Ej: Salchialitas Personal" : "Ej: Anillo de Plata 950"} value={prodName} onChange={(e) => setProdName(e.target.value)} required />
-                </div>
+      {(() => {
+        const handleCustomProductSubmit = async (e) => {
+          e.preventDefault();
+          if (isBrandPerfumery) {
+            const finalDesc = `[Inspiración: ${perfumeInspiration.trim() || 'Fragancia Original'}] [Género: ${perfumeGender}] [Familia: ${prodCategory || perfumeFamily}] [Concentración: ${perfumeConcentration}] [ML: ${perfumeMl}]\n\n${perfumeNotes.trim()}`;
+            await handleProductSubmit({
+              id: editingProdId,
+              brandId: brand.id,
+              name: prodName,
+              category: prodCategory || "Alta Perfumería",
+              type: "product",
+              stock: prodStock,
+              price: prodPrice,
+              priceAourum: prodPriceAourum,
+              isVisible: prodIsVisible,
+              image: prodImage,
+              imgBgColor: prodImgBgColor,
+              description: finalDesc
+            });
+            if (triggerNotification) {
+              triggerNotification(true, editingProdId ? "✨ Fragancia actualizada exitosamente" : "✨ ¡Nueva fragancia añadida al catálogo!");
+            }
+            setProdFormOpen(false);
+            setEditingProdId(null);
+          } else {
+            await handleProductSubmit(e, brand.id);
+          }
+        };
+
+        return isOwner && prodFormOpen && (
+          <div className="modal-overlay" style={{ zIndex: 1200 }}>
+            <div className="modal-backdrop" onClick={() => { setProdFormOpen(false); setEditingProdId(null); }}></div>
+            <div className="modal-panel fade-in" style={{ maxWidth: "750px", background: "#FFFFFF", border: "1.5px solid var(--gold-primary)", padding: 0 }}>
+              <div className="modal-header">
+                <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0 }}>
+                  {editingProdId ? (isBrandPerfumery ? "✨ Editar Fragancia / Perfume" : "✨ Editar Item de Catálogo") : (isBrandPerfumery ? "✨ Publicar Nueva Fragancia / Perfume" : "✨ Publicar Nuevo Item")}
+                </h3>
+                <button 
+                  onClick={() => { setProdFormOpen(false); setEditingProdId(null); }} 
+                  style={{ background: "rgba(0,0,0,0.04)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+                >
+                  &times;
+                </button>
+              </div>
+              <form onSubmit={handleCustomProductSubmit} className="modal-body">
+                <div className="grid-2-to-1">
+                  <div className="form-group">
+                    <label>{isBrandPerfumery ? "Nombre o Modelo de la Fragancia *" : (isBrandVirtualMenu ? "Nombre del Platillo / Ítem *" : "Nombre del Item *")}</label>
+                    <input 
+                      type="text" 
+                      className="form-control" 
+                      placeholder={isBrandPerfumery ? "Ej: AOURUM N° 07, Sauvage Wood, Velvet 50..." : (isBrandVirtualMenu ? "Ej: Salchialitas Personal" : "Ej: Anillo de Plata 950")} 
+                      value={prodName} 
+                      onChange={(e) => setProdName(e.target.value)} 
+                      required 
+                    />
+                  </div>
                 <div className="form-group" style={{ position: "relative" }}>
-                  <label>{isBrandVirtualMenu ? "Sección de la Carta Virtual *" : "Categoría / Rubro *"}</label>
+                  <label>{isBrandPerfumery ? "Familia Olfativa / Rubro *" : isBrandVirtualMenu ? "Sección de la Carta Virtual *" : "Categoría / Rubro *"}</label>
                   <input 
                     type="text" 
                     className="form-control" 
-                    placeholder={isBrandVirtualMenu ? "Ej: Salchipapas, Pizzas, Bebidas, Postres" : "Ej: Joyería, Bienestar"} 
+                    placeholder={isBrandPerfumery ? "Ej: Amaderado, Cítrico, Oriental, Floral..." : isBrandVirtualMenu ? "Ej: Salchipapas, Pizzas, Bebidas, Postres" : "Ej: Joyería, Bienestar"} 
                     value={prodCategory} 
                     onChange={(e) => {
                       setProdCategory(e.target.value);
@@ -2970,6 +3106,11 @@ function BrandProductCard({ prod }) {
                     required 
                     autoComplete="off"
                   />
+                  {isBrandPerfumery && (
+                    <small style={{ display: "block", marginTop: "4px", color: "var(--text-muted)", fontSize: "0.78rem" }}>
+                      💡 Agrupa y filtra tu perfume por familia olfativa en el catálogo.
+                    </small>
+                  )}
                   {isBrandVirtualMenu && (
                     <small style={{ display: "block", marginTop: "4px", color: "var(--text-muted)", fontSize: "0.78rem" }}>
                       💡 Esta sección agrupará tu platillo en la Carta Digital de tu local.
@@ -3020,6 +3161,75 @@ function BrandProductCard({ prod }) {
                   )}
                 </div>
               </div>
+
+              {/* SECCIÓN EXCLUSIVA DE PERFUMERÍA: INSPIRACIÓN ORIGINAL, GÉNERO Y CONCENTRACIÓN */}
+              {isBrandPerfumery && (
+                <div style={{ background: "linear-gradient(135deg, rgba(212,175,55,0.09) 0%, rgba(20,22,28,0.04) 100%)", border: "1.5px solid rgba(212,175,55,0.38)", borderRadius: "14px", padding: "14px 16px", marginTop: "10px", marginBottom: "14px" }}>
+                  <div style={{ fontSize: "0.86rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "10px", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "var(--gold-primary)" }}></i>
+                    <span>Fragancia de Inspiración & Concentración (50% Esencia)</span>
+                  </div>
+
+                  <div className="grid-2-to-1" style={{ gap: "10px", marginBottom: "10px" }}>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>
+                        Perfume Original de Inspiración *
+                      </label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="Ej: Sauvage - Dior, Baccarat Rouge 540, Invictus..." 
+                        value={perfumeInspiration} 
+                        onChange={(e) => setPerfumeInspiration(e.target.value)} 
+                        required={isBrandPerfumery}
+                        style={{ fontWeight: 600, borderColor: "var(--gold-primary)" }}
+                      />
+                      <small style={{ display: "block", marginTop: "3px", color: "var(--text-muted)", fontSize: "0.75rem" }}>
+                        ✨ Se mostrará destacado como: <strong>"Inspirado en: {perfumeInspiration || 'Tu perfume original'}"</strong>
+                      </small>
+                    </div>
+
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>Género / Tendencia</label>
+                      <select 
+                        className="form-control" 
+                        value={perfumeGender} 
+                        onChange={(e) => setPerfumeGender(e.target.value)}
+                        style={{ fontSize: "0.85rem" }}
+                      >
+                        <option value="Unisex">✨ Unisex</option>
+                        <option value="Hombre">👔 Hombre (Masculino)</option>
+                        <option value="Mujer">👗 Mujer (Femenino)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>Concentración de Esencia</label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        value={perfumeConcentration} 
+                        onChange={(e) => setPerfumeConcentration(e.target.value)} 
+                        placeholder="Ej: 50% Esencia Pura"
+                        style={{ fontSize: "0.82rem" }}
+                      />
+                    </div>
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>Volumen / Tamaño</label>
+                      <input 
+                        type="text" 
+                        className="form-control" 
+                        value={perfumeMl} 
+                        onChange={(e) => setPerfumeMl(e.target.value)} 
+                        placeholder="Ej: 50 ml (o 30 ml, 100 ml)"
+                        style={{ fontSize: "0.82rem" }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="grid-2-to-1">
                 <div className="form-group">
@@ -3176,8 +3386,22 @@ function BrandProductCard({ prod }) {
                 </div>
 
                 <div className="form-group" style={{ flex: 1 }}>
-                  <label>Descripción del Producto *</label>
-                  <textarea className="form-control" rows="4" style={{ resize: "none" }} placeholder="Describe los materiales, dimensiones o proceso..." value={prodDescription} onChange={(e) => setProdDescription(e.target.value)}></textarea>
+                  <label>{isBrandPerfumery ? "Notas Olfativas y Descripción del Aroma" : "Descripción del Producto *"}</label>
+                  <textarea 
+                    className="form-control" 
+                    rows="4" 
+                    style={{ resize: "none" }} 
+                    placeholder={isBrandPerfumery ? "Notas de salida: Bergamota fresca, pimienta rosa.\nNotas de corazón: Lavanda, geranio, pachulí.\nNotas de fondo: Cedro, ládano, ambroxan..." : "Describe los materiales, dimensiones o proceso..."} 
+                    value={isBrandPerfumery ? perfumeNotes : prodDescription} 
+                    onChange={(e) => {
+                      if (isBrandPerfumery) {
+                        setPerfumeNotes(e.target.value);
+                        setProdDescription(e.target.value);
+                      } else {
+                        setProdDescription(e.target.value);
+                      }
+                    }}
+                  ></textarea>
                 </div>
               </div>
 
@@ -3191,13 +3415,14 @@ function BrandProductCard({ prod }) {
                   Cancelar
                 </button>
                 <button type="submit" className="btn-gold" style={{ padding: "0.45rem 1.2rem", borderRadius: "6px", fontSize: "0.85rem" }} disabled={uploadingProd || productSubmitLoading}>
-                  {uploadingProd ? "Subiendo..." : productSubmitLoading ? "Guardando..." : editingProdId ? "Actualizar Item" : "Publicar Item"}
+                  {uploadingProd ? "Subiendo..." : productSubmitLoading ? "Guardando..." : editingProdId ? (isBrandPerfumery ? "Actualizar Fragancia" : "Actualizar Item") : (isBrandPerfumery ? "Publicar Fragancia" : "Publicar Item")}
                 </button>
               </div>
             </form>
           </div>
         </div>
-      )}
+      );
+    })()}
 
       {/* 2. Modal del Editor de Imagen (Recorte y Eliminación de Fondo) */}
       {editorOpen && (
@@ -3843,12 +4068,27 @@ function BrandProductCard({ prod }) {
                         <button 
                           onClick={() => {
                             setEditingProdId(prod.id); 
-                            setProdName(prod.name); setProdDescription(prod.description); setProdPrice(prod.price);
+                            setProdName(prod.name); 
+                            setProdPrice(prod.price);
                             setProdPriceAourum(prod.priceAourum == null ? "" : prod.priceAourum);
-                            setProdStock(prod.stock == null ? "" : prod.stock); setProdCategory(prod.category); setProdType(prod.type);
+                            setProdStock(prod.stock == null ? "" : prod.stock); 
+                            setProdCategory(prod.category); 
+                            setProdType(prod.type);
                             setProdIsVisible(prod.isVisible !== false);
                             setProdImgBgColor(prod.imgBgColor || "transparent");
-                            setProdImage(prod.image); setProdImagePreview(prod.image); setProdFormOpen(true);
+                            setProdImage(prod.image); 
+                            setProdImagePreview(prod.image); 
+
+                            const pInfo = parsePerfumeInfo(prod);
+                            setPerfumeInspiration(pInfo.inspiration || "");
+                            setPerfumeGender(pInfo.gender || "Unisex");
+                            setPerfumeFamily(pInfo.family || "Amaderado");
+                            setPerfumeConcentration(pInfo.concentration || "50% Esencia Pura");
+                            setPerfumeMl(pInfo.ml || "50 ml");
+                            setPerfumeNotes(pInfo.cleanDesc || "");
+                            setProdDescription(pInfo.cleanDesc || prod.description || "");
+
+                            setProdFormOpen(true);
                           }}
                           style={{ background: "transparent", border: "none", color: "var(--gold-dark)", cursor: "pointer", marginRight: "1rem", fontWeight: 700 }}
                         >

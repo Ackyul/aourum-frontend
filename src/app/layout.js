@@ -586,6 +586,7 @@ function AppLayoutShell({ children }) {
                       <option value="auto">Automático (Según el rubro de la marca)</option>
                       <option value="grid">🛍️ Catálogo Estándar de Productos (Vitrina Virtual)</option>
                       <option value="menu">🍽️ Menú Virtual / Carta Gastronómica Digital</option>
+                      <option value="perfumery">✨ Catálogo de Perfumería & Inspiraciones (50% Esencia)</option>
                     </select>
                   </div>
                 </>
@@ -2252,9 +2253,10 @@ function AppLayoutShell({ children }) {
                                     onChange={(e) => updateDesignKey("catalogDisplayMode", e.target.value)}
                                     style={{ fontSize: "0.8rem", padding: "0.5rem 0.65rem", borderRadius: "8px", width: "100%" }}
                                   >
-                                    <option value="auto">Automático (Segun el rubro de la marca)</option>
+                                    <option value="auto">Automático (Según el rubro de la marca)</option>
                                     <option value="grid">🛍️ Catálogo Estándar de Productos (Vitrina Virtual)</option>
                                     <option value="menu">🍽️ Menú Virtual / Carta Gastronómica Digital</option>
+                                    <option value="perfumery">✨ Catálogo de Perfumería & Inspiraciones (50% Esencia)</option>
                                   </select>
                                 </div>
 

@@ -4,6 +4,7 @@ import { useMemo, useEffect } from "react";
 import { useApp } from "../../../context/AppContext";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { isVirtualMenuBrand } from "@/utils/brandUtils";
+import { parsePerfumeInfo } from "../../../components/PerfumeryShowcase";
 
 // Helper for URL slug generation
 const slugify = (text) => {
@@ -123,6 +124,9 @@ export default function ProductDetailPage() {
     if (!prod) return null;
     return brands.find((b) => b.id === prod.brandId);
   }, [prod, brands]);
+
+  const perfumeInfo = useMemo(() => parsePerfumeInfo(prod), [prod]);
+  const isPerfumeProd = Boolean(perfumeInfo.inspiration || brand?.brandDesign?.catalogDisplayMode === "perfumery" || /perfum|fraganc/i.test(prod?.category || ""));
 
   const isFromBrand = useMemo(() => {
     if (fromParam === "brand") return true;
@@ -874,11 +878,62 @@ export default function ProductDetailPage() {
                   }}>
                     {isVirtualMenu ? "🍽️ Platillo / Menú Virtual" : (prod.type === "service" ? "📅 Servicio" : "🛍️ Producto")}
                   </span>
+                  {isPerfumeProd && (
+                    <span style={{
+                      background: "linear-gradient(135deg, #D4AF37 0%, #B45309 100%)",
+                      color: "#0C0D11",
+                      padding: "0.25rem 0.65rem",
+                      borderRadius: "6px",
+                      fontSize: "0.72rem",
+                      fontWeight: 900,
+                      textTransform: "uppercase",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px"
+                    }}>
+                      <i className="fa-solid fa-droplet"></i> 50% Esencia Pura
+                    </span>
+                  )}
                 </div>
 
                 <h1 style={{ fontSize: "2.2rem", fontWeight: 800, color: resolvedCardTextColor, lineHeight: 1.25, letterSpacing: "-0.015em", marginBottom: "0.6rem" }}>
                   {prod.name}
                 </h1>
+
+                {/* Recuadro de Inspiración Original para Perfumes */}
+                {isPerfumeProd && perfumeInfo.inspiration && (
+                  <div 
+                    style={{
+                      background: "linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(20, 22, 28, 0.85) 100%)",
+                      border: "1.5px solid rgba(212, 175, 55, 0.4)",
+                      borderRadius: "14px",
+                      padding: "12px 16px",
+                      marginBottom: "1.25rem",
+                      boxShadow: "0 6px 20px rgba(0,0,0,0.12)"
+                    }}
+                  >
+                    <div style={{ fontSize: "0.72rem", fontWeight: 800, color: "#FDE047", textTransform: "uppercase", letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+                      <i className="fa-solid fa-wand-magic-sparkles"></i>
+                      <span>Inspiración Olfativa Original:</span>
+                    </div>
+                    <div style={{ fontSize: "1.2rem", fontWeight: 900, color: "#FFFFFF", letterSpacing: "-0.01em" }}>
+                      Inspirado en: <span style={{ color: "#FEF08A" }}>{perfumeInfo.inspiration}</span>
+                    </div>
+                    <div style={{ fontSize: "0.8rem", color: "#D4D4D8", marginTop: "4px", display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                      <span><strong>Concentración:</strong> {perfumeInfo.concentration || "50% Esencia Pura"}</span>
+                      <span>•</span>
+                      <span><strong>Familia:</strong> {perfumeInfo.family}</span>
+                      <span>•</span>
+                      <span><strong>Género:</strong> {perfumeInfo.gender}</span>
+                      {perfumeInfo.ml && (
+                        <>
+                          <span>•</span>
+                          <span><strong>Presentación:</strong> {perfumeInfo.ml}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Insignia y Enlace a la Marca Personalizada */}
                 <div 
@@ -949,11 +1004,13 @@ export default function ProductDetailPage() {
                   </h3>
                   <div style={{ background: resolvedCardBg, backdropFilter: "blur(12px)", padding: "1.2rem 1.4rem", borderRadius: "12px", border: `1.5px solid ${palette.c1}30`, boxShadow: `0 8px 24px ${palette.c1}08` }}>
                     <p style={{ fontSize: "0.92rem", color: resolvedCardTextColor, lineHeight: 1.65, whiteSpace: "pre-line", margin: 0 }}>
-                      {prod.description && prod.description.trim() ? (
-                        prod.description
+                      {(isPerfumeProd ? (perfumeInfo.cleanDesc || prod.description) : prod.description) && (isPerfumeProd ? (perfumeInfo.cleanDesc || prod.description) : prod.description).trim() ? (
+                        isPerfumeProd ? (perfumeInfo.cleanDesc || prod.description) : prod.description
                       ) : (
                         <span style={{ color: mutedTextColor, fontStyle: "italic" }}>
-                          {isVirtualMenu 
+                          {isPerfumeProd
+                            ? `Fragancia de alta concentración (50% esencia pura) formulada por ${brand?.name || 'la marca'}. Maceración artesanal que garantiza máxima estela y fijación.`
+                            : isVirtualMenu 
                             ? `Especialidad gastronómica de ${brand?.name || 'la marca'}. Platillo preparado fresco al momento de realizar tu pedido.`
                             : `Artículo disponible en la vitrina de ${brand?.name || 'la marca'}. Para más detalles, coordina directamente con el vendedor.`}
                         </span>
@@ -970,13 +1027,43 @@ export default function ProductDetailPage() {
                   <div style={{ background: resolvedCardBg, backdropFilter: "blur(12px)", padding: "0.8rem 1.4rem", borderRadius: "12px", border: `1.5px solid ${palette.c1}30`, boxShadow: `0 8px 24px ${palette.c1}08` }}>
                     <table className="specs-table" style={{ marginTop: 0 }}>
                       <tbody>
+                        {isPerfumeProd && perfumeInfo.inspiration && (
+                          <tr>
+                            <td className="label">Inspiración Olfativa</td>
+                            <td className="value" style={{ fontWeight: 800, color: brandThemeColor }}>{perfumeInfo.inspiration}</td>
+                          </tr>
+                        )}
+                        {isPerfumeProd && (
+                          <tr>
+                            <td className="label">Concentración</td>
+                            <td className="value" style={{ fontWeight: 700 }}>{perfumeInfo.concentration || "50% Esencia Pura"}</td>
+                          </tr>
+                        )}
+                        {isPerfumeProd && perfumeInfo.gender && (
+                          <tr>
+                            <td className="label">Género / Tendencia</td>
+                            <td className="value">{perfumeInfo.gender}</td>
+                          </tr>
+                        )}
+                        {isPerfumeProd && perfumeInfo.family && (
+                          <tr>
+                            <td className="label">Familia Olfativa</td>
+                            <td className="value">{perfumeInfo.family}</td>
+                          </tr>
+                        )}
+                        {isPerfumeProd && perfumeInfo.ml && (
+                          <tr>
+                            <td className="label">Volumen</td>
+                            <td className="value">{perfumeInfo.ml}</td>
+                          </tr>
+                        )}
                         <tr>
                           <td className="label">Rubro o Categoría</td>
                           <td className="value">{prod.category || "General"}</td>
                         </tr>
                         <tr>
                           <td className="label">Tipo de Catálogo</td>
-                          <td className="value">{isVirtualMenu ? "Platillo Gastronómico (Carta Virtual)" : (prod.type === "service" ? "Servicio / Experiencia" : "Producto Físico")}</td>
+                          <td className="value">{isPerfumeProd ? "Fragancia de Autor (50% Esencia)" : isVirtualMenu ? "Platillo Gastronómico (Carta Virtual)" : (prod.type === "service" ? "Servicio / Experiencia" : "Producto Físico")}</td>
                         </tr>
                         
                         {isVirtualMenu ? (
