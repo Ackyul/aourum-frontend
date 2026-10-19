@@ -1419,9 +1419,13 @@ export function AppContextProvider({ children }) {
         setEditProfileOpen(false);
         fetchData();
       } else {
-        triggerNotification(false, "No se pudo actualizar el perfil.");
+        const errorData = await response.json().catch(() => ({}));
+        const errMsg = errorData.error || errorData.message || (errorData.errors && errorData.errors[0]?.message) || `Error ${response.status}: No se pudo actualizar el perfil.`;
+        console.error("Error al actualizar perfil:", response.status, errorData);
+        triggerNotification(false, errMsg);
       }
     } catch (err) {
+      console.error("Error de red al actualizar perfil:", err);
       triggerNotification(false, "Error de red al intentar actualizar el perfil.");
     } finally {
       setEditProfileLoading(false);
