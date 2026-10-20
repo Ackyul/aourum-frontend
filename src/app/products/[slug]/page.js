@@ -531,6 +531,13 @@ export default function ProductDetailPage() {
     const formattedPrice = (rp.price != null && !isNaN(Number(rp.price))) ? Number(rp.price).toLocaleString("es-PE") : "0";
     const formattedPriceAourum = (rp.priceAourum != null && !isNaN(Number(rp.priceAourum))) ? Number(rp.priceAourum).toLocaleString("es-PE") : null;
     const rpPerfumeInfo = parsePerfumeInfo(rp);
+    const isPerfume = Boolean(
+      rpPerfumeInfo.originalImg ||
+      rpBrand?.brandDesign?.catalogDisplayMode === "perfumery" ||
+      rpBrand?.brandDesign?.catalogDisplayMode === "perfume" ||
+      /perfum|fraganc|coloni|eau de|esenci/i.test(`${rp.category || ""} ${rpBrand?.rubro_general || ""}`) ||
+      (rpPerfumeInfo.inspiration && !/comida|snack|gastronom|fruta|alimento|bebida|joyer|ropa|esot[eé]ric/i.test(rp.category || ""))
+    );
     const brandBadgeColor = rpPalette.c1 || (rpBrand?.color ? rpBrand.color : "var(--gold-primary)");
     const brandBadgeTextDark = getBgBrightness(brandBadgeColor, "#FFFFFF") > 160;
     const isPop = rp.suggestionType === "popular";
@@ -597,7 +604,7 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Gender badge top-right si es perfume */}
-          {rpPerfumeInfo.gender ? (
+          {isPerfume && rpPerfumeInfo.gender ? (
             <span
               style={{
                 position: "absolute",
@@ -641,7 +648,7 @@ export default function ProductDetailPage() {
             }}>
               {rpPerfumeInfo.family || rp.category || rpBrand?.rubro_general || "General"}
             </span>
-            {rpPerfumeInfo.ml && (
+            {isPerfume && rpPerfumeInfo.ml && (
               <span style={{ fontSize: "0.68rem", color: secondaryTextColor, fontWeight: 600 }}>
                 {rpPerfumeInfo.ml}
               </span>

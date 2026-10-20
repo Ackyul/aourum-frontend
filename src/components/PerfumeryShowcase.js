@@ -62,7 +62,7 @@ export function parsePerfumeInfo(prod) {
   // Check parenthesis in name: "N° 10 (Sauvage Dior)"
   if (!inspiration) {
     const parenMatch = name.match(/\(([^)]+)\)/);
-    if (parenMatch && parenMatch[1] && !/^\d+\s*ml$/i.test(parenMatch[1])) {
+    if (parenMatch && parenMatch[1] && !/^\d+\s*(?:ml|g|gr|gramos|kg|kilos|oz|l|litros|unid|unidades|und|piezas|capsulas|cm|mm)$/i.test(parenMatch[1].trim())) {
       inspiration = parenMatch[1].trim();
     }
   }

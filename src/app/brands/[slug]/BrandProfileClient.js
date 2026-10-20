@@ -1140,6 +1140,13 @@ function BrandProductCard({ prod }) {
     const formattedPrice = (prod.price != null && !isNaN(Number(prod.price))) ? Number(prod.price).toLocaleString("es-PE") : "0";
     const formattedPriceAourum = (prod.priceAourum != null && !isNaN(Number(prod.priceAourum))) ? Number(prod.priceAourum).toLocaleString("es-PE") : null;
     const pInfo = parsePerfumeInfo(prod);
+    const isPerfume = Boolean(
+      pInfo.originalImg ||
+      design?.catalogDisplayMode === "perfumery" ||
+      design?.catalogDisplayMode === "perfume" ||
+      /perfum|fraganc|coloni|eau de|esenci/i.test(`${prod.category || ""} ${brand?.rubro_general || ""}`) ||
+      (pInfo.inspiration && !/comida|snack|gastronom|fruta|alimento|bebida|joyer|ropa|esot[eé]ric/i.test(prod.category || ""))
+    );
 
     return (
       <div 
@@ -1202,7 +1209,7 @@ function BrandProductCard({ prod }) {
           </div>
 
           {/* Gender badge top-right si es perfume */}
-          {pInfo.gender ? (
+          {isPerfume && pInfo.gender ? (
             <span
               style={{
                 position: "absolute",
@@ -1246,7 +1253,7 @@ function BrandProductCard({ prod }) {
             }}>
               {pInfo.family || prod.category || brand?.rubro_general || "General"}
             </span>
-            {pInfo.ml && (
+            {isPerfume && pInfo.ml && (
               <span style={{ fontSize: "0.68rem", color: secondaryTextColor, fontWeight: 600 }}>
                 {pInfo.ml}
               </span>
@@ -1268,7 +1275,7 @@ function BrandProductCard({ prod }) {
           </h3>
 
           {/* Inspiración original si no es idéntica al título */}
-          {pInfo.inspiration && pInfo.inspiration.trim().toLowerCase() !== (prod.name || "").trim().toLowerCase() && (
+          {isPerfume && pInfo.inspiration && pInfo.inspiration.trim().toLowerCase() !== (prod.name || "").trim().toLowerCase() && (
             <div style={{ fontSize: "0.74rem", color: palette.c1, display: "flex", alignItems: "center", gap: "5px" }}>
               <i className="fa-solid fa-gem" style={{ fontSize: "0.65rem", opacity: 0.85 }}></i>
               <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -1278,7 +1285,7 @@ function BrandProductCard({ prod }) {
           )}
 
           {/* Concentración olfativa */}
-          {pInfo.concentration && (
+          {isPerfume && pInfo.concentration && (
             <div style={{ fontSize: "0.68rem", color: palette.c1, display: "flex", alignItems: "center", gap: "4px" }}>
               <span style={{ background: `${palette.c1}18`, padding: "1px 6px", borderRadius: "6px", fontWeight: 700 }}>
                 {pInfo.concentration}

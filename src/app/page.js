@@ -610,6 +610,14 @@ export default function Home() {
       ? brand.color
       : (brand?.theme_color ? brand.theme_color.split(",")[0].trim() : "var(--gold-primary)");
 
+    const isPerfume = Boolean(
+      perfumeInfo.originalImg ||
+      brand?.brandDesign?.catalogDisplayMode === "perfumery" ||
+      brand?.brandDesign?.catalogDisplayMode === "perfume" ||
+      /perfum|fraganc|coloni|eau de|esenci/i.test(`${prod.category || ""} ${brandRubro || ""}`) ||
+      (perfumeInfo.inspiration && !/comida|snack|gastronom|fruta|alimento|bebida|joyer|ropa|esot[eé]ric/i.test(`${prod.category || ""} ${brandRubro || ""}`))
+    );
+
     return (
       <div 
         className="glass-panel product-card" 
@@ -675,7 +683,7 @@ export default function Home() {
           )}
 
           {/* Badge de Género si es perfume */}
-          {perfumeInfo.gender ? (
+          {isPerfume && perfumeInfo.gender ? (
             <span
               style={{
                 position: "absolute",
@@ -711,7 +719,7 @@ export default function Home() {
             <span style={{ fontSize: "0.72rem", color: categoryTextColor, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
               {prod.category}
             </span>
-            {perfumeInfo.ml && (
+            {isPerfume && perfumeInfo.ml && (
               <span style={{ fontSize: "0.68rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", fontWeight: 600 }}>
                 {perfumeInfo.ml}
               </span>
@@ -721,8 +729,8 @@ export default function Home() {
             {prod.name}
           </h3>
 
-          {/* Inspiración original si no es idéntica al título */}
-          {perfumeInfo.inspiration && perfumeInfo.inspiration.trim().toLowerCase() !== (prod.name || "").trim().toLowerCase() && (
+          {/* Inspiración original si es perfume y no es idéntica al título */}
+          {isPerfume && perfumeInfo.inspiration && perfumeInfo.inspiration.trim().toLowerCase() !== (prod.name || "").trim().toLowerCase() && (
             <div style={{ fontSize: "0.74rem", color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "5px" }}>
               <i className="fa-solid fa-gem" style={{ fontSize: "0.65rem", opacity: 0.85 }}></i>
               <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -731,8 +739,8 @@ export default function Home() {
             </div>
           )}
 
-          {/* Concentración olfativa */}
-          {perfumeInfo.concentration && (
+          {/* Concentración olfativa si es perfume */}
+          {isPerfume && perfumeInfo.concentration && (
             <div style={{ fontSize: "0.68rem", color: "var(--gold-primary)", display: "flex", alignItems: "center", gap: "4px" }}>
               <span style={{ background: "rgba(212, 175, 55, 0.12)", padding: "1px 6px", borderRadius: "6px", fontWeight: 700 }}>
                 {perfumeInfo.concentration}
