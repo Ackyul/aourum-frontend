@@ -1,6 +1,6 @@
 export default async function sitemap() {
   const baseUrl = "https://aourum.com";
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://tu-backend-api.up.railway.app";
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.aourum.com";
 
   // Base routes
   const routes = [
@@ -24,6 +24,12 @@ export default async function sitemap() {
     },
     {
       url: `${baseUrl}/fairs`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/events`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
@@ -112,6 +118,48 @@ export default async function sitemap() {
     }
   } catch (e) {
     console.error("Sitemap: Failed to load fairs", e);
+  }
+
+  // Fetch dynamic events
+  try {
+    const events = await fetch(`${apiUrl}/api/events`, { next: { revalidate: 3600 } })
+      .then(res => res.json())
+      .catch(() => []);
+    if (Array.isArray(events)) {
+      events.forEach(event => {
+        if (event.slug || event.id) {
+          routes.push({
+            url: `${baseUrl}/events/${event.slug || event.id}`,
+            lastModified: new Date(event.updatedAt || event.createdAt || new Date()),
+            changeFrequency: 'weekly',
+            priority: 0.7,
+          });
+        }
+      });
+    }
+  } catch (e) {
+    console.error("Sitemap: Failed to load events", e);
+  }
+
+  // Fetch dynamic organizers
+  try {
+    const organizers = await fetch(`${apiUrl}/api/organizers`, { next: { revalidate: 3600 } })
+      .then(res => res.json())
+      .catch(() => []);
+    if (Array.isArray(organizers)) {
+      organizers.forEach(org => {
+        if (org.slug || org.id) {
+          routes.push({
+            url: `${baseUrl}/organizers/${org.slug || org.id}`,
+            lastModified: new Date(org.updatedAt || org.createdAt || new Date()),
+            changeFrequency: 'weekly',
+            priority: 0.6,
+          });
+        }
+      });
+    }
+  } catch (e) {
+    console.error("Sitemap: Failed to load organizers", e);
   }
 
   return routes;
