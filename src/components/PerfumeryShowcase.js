@@ -340,73 +340,7 @@ export default function PerfumeryShowcase({
         fontFamily: fontFamily !== "inherit" ? `"${fontFamily}", sans-serif` : "inherit"
       }}
     >
-      {/* ── 1. CABECERA DE VITRINA & PRESENTACIÓN DE MARCA ── */}
-      <div 
-        style={{
-          position: "relative",
-          borderRadius: "24px",
-          padding: "clamp(1.5rem, 3.5vw, 2.5rem)",
-          background: isStoreBgLight 
-            ? "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%)" 
-            : "linear-gradient(135deg, rgba(16, 17, 24, 0.95) 0%, rgba(9, 10, 14, 0.98) 100%)",
-          border: isStoreBgLight 
-            ? `1.5px solid ${primaryCol}35` 
-            : `1px solid ${primaryCol}45`,
-          boxShadow: isStoreBgLight 
-            ? "0 10px 30px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)" 
-            : "0 20px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08)",
-          overflow: "hidden",
-          marginBottom: "2rem"
-        }}
-      >
-        {/* Resplandor decorativo con color principal de la marca */}
-        <div 
-          style={{
-            position: "absolute",
-            top: "-30%",
-            right: "-10%",
-            width: "400px",
-            height: "400px",
-            borderRadius: "50%",
-            background: `radial-gradient(circle, ${primaryCol}25 0%, transparent 70%)`,
-            pointerEvents: "none"
-          }}
-        />
-
-        <div style={{ position: "relative", zIndex: 1, maxWidth: "850px" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: `${primaryCol}18`, border: `1px solid ${primaryCol}40`, padding: "4px 14px", borderRadius: "20px", marginBottom: "1rem" }}>
-            <span style={{ fontSize: "0.78rem", fontWeight: 800, color: primaryCol, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-              ✨ Vitrina de Perfumes & Inspiraciones
-            </span>
-          </div>
-
-          <h2 style={{ fontSize: "clamp(1.5rem, 3vw, 2.2rem)", fontWeight: 900, letterSpacing: "-0.02em", margin: "0 0 0.5rem 0", color: isStoreBgLight ? "#111827" : "#FFFFFF", lineHeight: 1.2 }}>
-            {title || `${brand.name || "Maison"} • Colección de Perfumes`}
-          </h2>
-
-          <p style={{ fontSize: "0.95rem", color: secondaryTextColor, margin: 0, lineHeight: 1.6, maxWidth: "700px" }}>
-            {subtitle || "Explora nuestra colección de fragancias e inspiraciones olfativas. Encuentra tu aroma favorito o su equivalencia original."}
-          </p>
-
-          {/* Sellos de Calidad y Atención */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "1.25rem" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", background: isStoreBgLight ? "rgba(0,0,0,0.04)" : "rgba(255,255,255,0.06)", border: isStoreBgLight ? "1px solid rgba(0,0,0,0.08)" : "1px solid rgba(255,255,255,0.1)", padding: "6px 14px", borderRadius: "12px", fontSize: "0.82rem", fontWeight: 700, color: primaryCol }}>
-              <i className="fa-solid fa-wand-magic-sparkles"></i>
-              <span>Inspiraciones de Alta Gama</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", background: isStoreBgLight ? "rgba(0,0,0,0.04)" : "rgba(255,255,255,0.06)", border: isStoreBgLight ? "1px solid rgba(0,0,0,0.08)" : "1px solid rgba(255,255,255,0.1)", padding: "6px 14px", borderRadius: "12px", fontSize: "0.82rem", fontWeight: 700, color: isStoreBgLight ? "#374151" : "#E4E4E7" }}>
-              <i className="fa-solid fa-shield-halved"></i>
-              <span>Catálogo Exclusivo</span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", background: isStoreBgLight ? "rgba(0,0,0,0.04)" : "rgba(255,255,255,0.06)", border: isStoreBgLight ? "1px solid rgba(0,0,0,0.08)" : "1px solid rgba(255,255,255,0.1)", padding: "6px 14px", borderRadius: "12px", fontSize: "0.82rem", fontWeight: 700, color: isStoreBgLight ? "#374151" : "#E4E4E7" }}>
-              <i className="fa-solid fa-clock-rotate-left"></i>
-              <span>Alta Fijación & Duración</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── 2. BARRA DE BÚSQUEDA & FILTROS ── */}
+      {/* ── BARRA DE BÚSQUEDA & FILTROS ── */}
       <div 
         style={{
           background: isStoreBgLight ? "rgba(255, 255, 255, 0.9)" : "rgba(18, 20, 26, 0.85)",
