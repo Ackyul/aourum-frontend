@@ -54,6 +54,28 @@ const getBalancedSuggestions = (candidates, limit = 5) => {
   }));
 };
 
+// Strips metadata tags like [Inspiración: ...], [OriginalImg: ...], etc. from descriptions
+const cleanDescriptionText = (rawText) => {
+  if (!rawText || typeof rawText !== "string") return "";
+  let text = rawText;
+  if (text.trim().startsWith("{")) {
+    try {
+      const parsed = JSON.parse(text);
+      text = parsed.text || parsed.description || "";
+    } catch (e) {}
+  }
+  return text
+    .replace(/\[\s*(?:originalimg|originalimage|frascooriginal|inspiracionimg|original_img)\s*:[^\]]+\]/gi, "")
+    .replace(/\[\s*(?:inspiraci[oó]n|inspirado en|original|ref|tendencia)\s*:[^\]]+\]/gi, "")
+    .replace(/\[\s*g[eé]nero\s*:[^\]]+\]/gi, "")
+    .replace(/\[\s*familia\s*:[^\]]+\]/gi, "")
+    .replace(/\[\s*concentraci[oó]n\s*:[^\]]+\]/gi, "")
+    .replace(/\[\s*(?:ml|volumen)\s*:[^\]]+\]/gi, "")
+    .replace(/\[[^\]]*(?:http|https|res\.cloudinary|\.png|\.jpg|\.webp)[^\]]*\]/gi, "")
+    .replace(/\[\s*[^\]]+:[^\]]+\]/gi, "")
+    .trim();
+};
+
 export default function ProductDetailPage() {
   const routeParams = useParams();
   const rawParam = routeParams?.slug || "";
@@ -126,7 +148,14 @@ export default function ProductDetailPage() {
   }, [prod, brands]);
 
   const perfumeInfo = useMemo(() => parsePerfumeInfo(prod), [prod]);
-  const isPerfumeProd = Boolean(perfumeInfo.inspiration || brand?.brandDesign?.catalogDisplayMode === "perfumery" || /perfum|fraganc/i.test(prod?.category || ""));
+  const isPerfumeProd = Boolean(
+    perfumeInfo.inspiration || 
+    perfumeInfo.originalImg ||
+    perfumeInfo.family ||
+    brand?.brandDesign?.catalogDisplayMode === "perfumery" || 
+    brand?.brandDesign?.catalogDisplayMode === "perfume" || 
+    /perfum|fraganc|esencia|eau de/i.test(prod?.category || "")
+  );
 
   const isFromBrand = useMemo(() => {
     if (fromParam === "brand") return true;
@@ -824,8 +853,12 @@ export default function ProductDetailPage() {
         <div 
           className="product-image-box"
           style={{
-            position: "relative",
-            minHeight: "380px",
+            position: "sticky",
+            top: "2rem",
+            alignSelf: "start",
+            width: "100%",
+            height: "520px",
+            maxHeight: "82vh",
             backgroundColor: prod.imgBgColor === "brand" ? palette.c1 : (prod.imgBgColor && prod.imgBgColor !== "transparent" ? prod.imgBgColor : resolvedCardBg),
             backdropFilter: "blur(12px)",
             border: `1.5px solid ${palette.c1}30`,
@@ -838,15 +871,14 @@ export default function ProductDetailPage() {
           }}
         >
           {isPerfumeProd && perfumeInfo.originalImg ? (
-            /* ── DÚO VISUAL EN LA PÁGINA DEL PRODUCTO (OPCIÓN 1) ── */
+            /* ── DÚO VISUAL EN LA PÁGINA DEL PRODUCTO ── */
             <div
               style={{
                 position: "relative",
                 width: "100%",
                 height: "100%",
-                minHeight: "380px",
                 display: "flex",
-                alignItems: "flex-end",
+                alignItems: "center",
                 justifyContent: "center",
                 padding: "20px"
               }}
@@ -855,11 +887,11 @@ export default function ProductDetailPage() {
               <div
                 style={{
                   position: "absolute",
-                  top: "40%",
+                  top: "50%",
                   left: "50%",
                   transform: "translate(-50%, -50%)",
-                  width: "280px",
-                  height: "280px",
+                  width: "320px",
+                  height: "320px",
                   borderRadius: "50%",
                   background: `radial-gradient(circle, ${palette.c1}25 0%, transparent 70%)`,
                   pointerEvents: "none"
@@ -871,16 +903,16 @@ export default function ProductDetailPage() {
                 style={{
                   position: "absolute",
                   left: "8%",
-                  bottom: "8%",
+                  bottom: "10%",
                   width: "44%",
-                  height: "80%",
+                  height: "76%",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "flex-end",
                   zIndex: 1,
-                  filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.22))",
-                  opacity: 0.94,
+                  filter: "drop-shadow(0 12px 24px rgba(0,0,0,0.22))",
+                  opacity: 0.95,
                   transition: "transform 0.3s ease"
                 }}
                 title={`Original de Referencia: ${perfumeInfo.inspiration || "Inspiración"}`}
@@ -890,7 +922,7 @@ export default function ProductDetailPage() {
                   alt={`Original: ${perfumeInfo.inspiration || "Inspiración"}`}
                   style={{
                     maxWidth: "100%",
-                    maxHeight: "84%",
+                    maxHeight: "82%",
                     objectFit: "contain"
                   }}
                 />
@@ -921,13 +953,13 @@ export default function ProductDetailPage() {
                   right: "8%",
                   bottom: "6%",
                   width: "52%",
-                  height: "94%",
+                  height: "88%",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "flex-end",
                   zIndex: 2,
-                  filter: "drop-shadow(0 16px 32px rgba(0,0,0,0.32))",
+                  filter: "drop-shadow(0 18px 36px rgba(0,0,0,0.32))",
                   transition: "transform 0.3s ease"
                 }}
               >
@@ -937,7 +969,7 @@ export default function ProductDetailPage() {
                     alt={prod.name}
                     style={{
                       maxWidth: "100%",
-                      maxHeight: "85%",
+                      maxHeight: "84%",
                       objectFit: "contain"
                     }}
                   />
@@ -970,6 +1002,8 @@ export default function ProductDetailPage() {
               src={prod.image} 
               alt={prod.name} 
               style={{
+                width: "100%",
+                height: "100%",
                 objectFit: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "contain" : "cover",
                 padding: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "16px" : "0"
               }}
@@ -985,7 +1019,7 @@ export default function ProductDetailPage() {
         {/* Detalles e Información del Producto */}
         <div>
           {(() => {
-            const isVirtualMenu = isVirtualMenuBrand(brand);
+            const isVirtualMenu = !isPerfumeProd && isVirtualMenuBrand(brand);
             return (
               <>
                 <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "0.5rem", flexWrap: "wrap" }}>
@@ -1002,15 +1036,15 @@ export default function ProductDetailPage() {
                     {prod.category || "General"}
                   </span>
                   <span style={{
-                    background: isVirtualMenu ? "#10B981" : (prod.type === "service" ? "#2563eb" : "#d97706"),
-                    color: "#FFFFFF",
+                    background: isPerfumeProd ? "#D4AF37" : (isVirtualMenu ? "#10B981" : (prod.type === "service" ? "#2563eb" : "#d97706")),
+                    color: isPerfumeProd ? "#000000" : "#FFFFFF",
                     padding: "0.25rem 0.6rem",
                     borderRadius: "6px",
                     fontSize: "0.72rem",
-                    fontWeight: 700,
+                    fontWeight: 800,
                     textTransform: "uppercase"
                   }}>
-                    {isVirtualMenu ? "🍽️ Platillo / Menú Virtual" : (prod.type === "service" ? "📅 Servicio" : "🛍️ Producto")}
+                    {isPerfumeProd ? "✨ Perfume & Fragancia" : (isVirtualMenu ? "🍽️ Platillo / Menú Virtual" : (prod.type === "service" ? "📅 Servicio" : "🛍️ Producto"))}
                   </span>
                   {isPerfumeProd && perfumeInfo.concentration && (
                     <span style={{
@@ -1152,25 +1186,49 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
 
-                {/* Información & Contenido del Platillo / Producto */}
+                {/* Información & Contenido del Platillo / Producto / Perfume */}
                 <div style={{ marginBottom: "1.8rem" }}>
                   <h3 style={{ fontSize: "1.05rem", fontWeight: 700, borderBottom: `1.5px solid ${palette.c1}30`, paddingBottom: "0.4rem", marginBottom: "0.8rem", color: resolvedCardTextColor, display: "flex", alignItems: "center", gap: "8px" }}>
                     <i className="fa-solid fa-circle-info" style={{ color: brandThemeColor }}></i>
-                    <span>{isVirtualMenu ? "Información y Descripción del Platillo" : "Información y Descripción"}</span>
+                    <span>
+                      {isPerfumeProd 
+                        ? "Información y Notas de la Fragancia" 
+                        : isVirtualMenu 
+                        ? "Información y Descripción del Platillo" 
+                        : "Información y Descripción"}
+                    </span>
                   </h3>
                   <div style={{ background: resolvedCardBg, backdropFilter: "blur(12px)", padding: "1.2rem 1.4rem", borderRadius: "12px", border: `1.5px solid ${palette.c1}30`, boxShadow: `0 8px 24px ${palette.c1}08` }}>
                     <p style={{ fontSize: "0.92rem", color: resolvedCardTextColor, lineHeight: 1.65, whiteSpace: "pre-line", margin: 0 }}>
-                      {(isPerfumeProd ? (perfumeInfo.cleanDesc || prod.description) : prod.description) && (isPerfumeProd ? (perfumeInfo.cleanDesc || prod.description) : prod.description).trim() ? (
-                        isPerfumeProd ? (perfumeInfo.cleanDesc || prod.description) : prod.description
-                      ) : (
-                        <span style={{ color: mutedTextColor, fontStyle: "italic" }}>
-                          {isPerfumeProd
-                            ? `Fragancia formulada por ${brand?.name || 'la marca'}. Garantiza alta fijación y calidad olfativa.`
-                            : isVirtualMenu 
-                            ? `Especialidad gastronómica de ${brand?.name || 'la marca'}. Platillo preparado fresco al momento de realizar tu pedido.`
-                            : `Artículo disponible en la vitrina de ${brand?.name || 'la marca'}. Para más detalles, coordina directamente con el vendedor.`}
-                        </span>
-                      )}
+                      {(() => {
+                        const cleaned = cleanDescriptionText(prod.description);
+                        if (cleaned) {
+                          return cleaned;
+                        }
+                        if (isPerfumeProd) {
+                          return (
+                            <span>
+                              Fragancia exclusiva formulada por <strong>{brand?.name || 'la marca'}</strong>
+                              {perfumeInfo.inspiration ? (
+                                <> inspirada en el perfil olfativo de <strong>{perfumeInfo.inspiration}</strong></>
+                              ) : null}.
+                              {" "}Elaborada con materias primas seleccionadas y alta concentración para brindar una fijación prolongada, estela envolvente y una experiencia sensorial de primer nivel.
+                            </span>
+                          );
+                        }
+                        if (isVirtualMenu) {
+                          return (
+                            <span style={{ color: mutedTextColor, fontStyle: "italic" }}>
+                              Especialidad gastronómica de {brand?.name || 'la marca'}. Platillo preparado fresco al momento de realizar tu pedido.
+                            </span>
+                          );
+                        }
+                        return (
+                          <span style={{ color: mutedTextColor, fontStyle: "italic" }}>
+                            Artículo disponible en la vitrina de {brand?.name || 'la marca'}. Para más detalles, coordina directamente con el vendedor.
+                          </span>
+                        );
+                      })()}
                     </p>
                   </div>
                 </div>
@@ -1250,7 +1308,9 @@ export default function ProductDetailPage() {
                   <p style={{ fontSize: "0.85rem", color: resolvedCardTextColor, lineHeight: 1.5, display: "flex", gap: "8px", margin: 0 }}>
                     <i className="fa-solid fa-circle-info" style={{ marginTop: "3px", fontSize: "0.95rem", color: palette.c1 }}></i>
                     <span>
-                      {isVirtualMenu
+                      {isPerfumeProd
+                        ? "Esta fragancia forma parte del catálogo de perfumería e inspiraciones olfativas. Para adquirirla o consultar disponibilidad, comunícate directamente con la marca."
+                        : isVirtualMenu
                         ? "Este es un plato/ítem de la carta virtual gastronómica. No realizamos transacciones de pago directo. Para realizar tu pedido o consultar, coordina directamente con el restaurante o productor."
                         : "Este es un catálogo virtual de economía circular y cultural. No realizamos transacciones de pago directo. Para comprar o agendar, coordina directamente con el productor."}
                     </span>
@@ -1268,18 +1328,18 @@ export default function ProductDetailPage() {
                         className="btn-gold"
                         style={{ width: "100%", textDecoration: "none", fontSize: "0.95rem", padding: "0.8rem", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
                       >
-                        <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.2rem" }}></i> {isVirtualMenu ? "Coordinar Pedido de Platillo vía WhatsApp" : "Coordinar Adquisición vía WhatsApp"}
+                        <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.2rem" }}></i> {isPerfumeProd ? "Coordinar Fragancia vía WhatsApp" : isVirtualMenu ? "Coordinar Pedido de Platillo vía WhatsApp" : "Coordinar Adquisición vía WhatsApp"}
                       </a>
                     ) : (
                       <button 
                         onClick={() => {
-                          triggerNotification(false, isVirtualMenu ? "Debes iniciar sesión para pedir este platillo." : "Debes iniciar sesión para coordinar la adquisición.");
+                          triggerNotification(false, isPerfumeProd ? "Debes iniciar sesión para coordinar esta fragancia." : isVirtualMenu ? "Debes iniciar sesión para pedir este platillo." : "Debes iniciar sesión para coordinar la adquisición.");
                           setShowLoginModal(true);
                         }}
                         className="btn-gold"
                         style={{ width: "100%", fontSize: "0.95rem", cursor: "pointer", padding: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
                       >
-                        <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.2rem" }}></i> {isVirtualMenu ? "Coordinar Pedido de Platillo vía WhatsApp" : "Coordinar Adquisición vía WhatsApp"}
+                        <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.2rem" }}></i> {isPerfumeProd ? "Coordinar Fragancia vía WhatsApp" : isVirtualMenu ? "Coordinar Pedido de Platillo vía WhatsApp" : "Coordinar Adquisición vía WhatsApp"}
                       </button>
                     )
                   ) : (
@@ -1308,8 +1368,8 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      {/* Carta & Menú Gastronómico de la Marca (Solo en Modo Menú Virtual) */}
-      {brand && isVirtualMenuBrand(brand) && allBrandProducts.length > 0 && (
+      {/* Carta & Menú Gastronómico de la Marca (Solo en Modo Menú Virtual y NO si el producto actual es perfume) */}
+      {brand && !isPerfumeProd && isVirtualMenuBrand(brand) && allBrandProducts.length > 0 && (
         <div style={{ borderTop: `1px solid ${palette.c1}30`, paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
           <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
             <div>
@@ -1445,16 +1505,16 @@ export default function ProductDetailPage() {
       )}
 
       {/* Más productos de la misma Marca (Vitrina Virtual) */}
-      {brand && !isVirtualMenuBrand(brand) && otherBrandProds.length > 0 && (
+      {brand && (!isVirtualMenuBrand(brand) || isPerfumeProd) && otherBrandProds.length > 0 && (
         <div style={{ borderTop: `1px solid ${palette.c1}30`, paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
           <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
             <div>
               <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0, color: resolvedCardTextColor, display: "flex", alignItems: "center", gap: "8px" }}>
-                <i className="fa-solid fa-store" style={{ color: brandThemeColor }}></i>
-                <span>Más productos de {brand.name}</span>
+                <i className={isPerfumeProd ? "fa-solid fa-wand-magic-sparkles" : "fa-solid fa-store"} style={{ color: brandThemeColor }}></i>
+                <span>{isPerfumeProd ? `Más creaciones de ${brand.name}` : `Más productos de ${brand.name}`}</span>
               </h3>
               <p style={{ fontSize: "0.88rem", color: mutedTextColor, margin: "4px 0 0 0" }}>
-                Explora el catálogo completo y otros artículos disponibles de {brand.name}
+                {isPerfumeProd ? `Explora otras inspiraciones y creaciones de ${brand.name}` : `Explora el catálogo completo y otros artículos disponibles de ${brand.name}`}
               </p>
             </div>
             <button 
@@ -1462,7 +1522,7 @@ export default function ProductDetailPage() {
               className="btn-outline-gold"
               style={{ padding: "0.55rem 1.3rem", fontSize: "0.85rem", borderRadius: "20px", cursor: "pointer", fontWeight: 700 }}
             >
-              Ver galería de la marca
+              Ver catálogo de la marca
             </button>
           </div>
           <div className="grid-catalog">
