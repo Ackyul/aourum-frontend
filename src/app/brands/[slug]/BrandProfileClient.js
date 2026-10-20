@@ -151,10 +151,10 @@ export default function BrandProfileClient({ initialBrand }) {
   const [activeBrandTab, setActiveBrandTab] = useState("vitrina");
   // State for Perfumery Fragrance attributes
   const [perfumeInspiration, setPerfumeInspiration] = useState("");
-  const [perfumeGender, setPerfumeGender] = useState("Unisex");
-  const [perfumeFamily, setPerfumeFamily] = useState("Amaderado");
-  const [perfumeConcentration, setPerfumeConcentration] = useState("50% Esencia Pura");
-  const [perfumeMl, setPerfumeMl] = useState("50 ml");
+  const [perfumeGender, setPerfumeGender] = useState("");
+  const [perfumeFamily, setPerfumeFamily] = useState("");
+  const [perfumeConcentration, setPerfumeConcentration] = useState("");
+  const [perfumeMl, setPerfumeMl] = useState("");
   const [perfumeNotes, setPerfumeNotes] = useState("");
 
   // State for Events Management inside Brand Profile
@@ -2667,7 +2667,7 @@ function BrandProductCard({ prod }) {
                 palette={palette}
                 customProducts={brandProducts}
                 title={design.perfumeryTitle || `${brand?.name || 'Maison'} • Colección de Perfumes`}
-                subtitle={design.perfumerySubtitle || "Fragancias formuladas con 50% de esencia pura para una estela envolvente y máxima fijación en piel. Encuentra tu aroma favorito o su equivalencia olfativa original."}
+                subtitle={design.perfumerySubtitle || "Fragancias e inspiraciones olfativas. Encuentra tu aroma favorito o su equivalencia olfativa original."}
                 isOwner={isOwner}
                 onOpenAddModal={() => {
                   setEditingProdId(null);
@@ -2676,10 +2676,10 @@ function BrandProductCard({ prod }) {
                   setProdIsVisible(true); setProdImgBgColor("transparent");
                   setProdImage(""); setProdImagePreview("");
                   setPerfumeInspiration("");
-                  setPerfumeGender("Unisex");
-                  setPerfumeFamily("Amaderado");
-                  setPerfumeConcentration("50% Esencia Pura");
-                  setPerfumeMl("50 ml");
+                  setPerfumeGender("");
+                  setPerfumeFamily("");
+                  setPerfumeConcentration("");
+                  setPerfumeMl("");
                   setPerfumeNotes("");
                   setProdFormOpen(true);
                 }}
@@ -2698,10 +2698,10 @@ function BrandProductCard({ prod }) {
 
                   const pInfo = parsePerfumeInfo(prod);
                   setPerfumeInspiration(pInfo.inspiration || "");
-                  setPerfumeGender(pInfo.gender || "Unisex");
-                  setPerfumeFamily(pInfo.family || "Amaderado");
-                  setPerfumeConcentration(pInfo.concentration || "50% Esencia Pura");
-                  setPerfumeMl(pInfo.ml || "50 ml");
+                  setPerfumeGender(pInfo.gender || "");
+                  setPerfumeFamily(pInfo.family || "");
+                  setPerfumeConcentration(pInfo.concentration || "");
+                  setPerfumeMl(pInfo.ml || "");
                   setPerfumeNotes(pInfo.cleanDesc || "");
                   setProdDescription(pInfo.cleanDesc || prod.description || "");
 
@@ -3035,7 +3035,13 @@ function BrandProductCard({ prod }) {
         const handleCustomProductSubmit = async (e) => {
           e.preventDefault();
           if (isBrandPerfumery) {
-            const finalDesc = `[Inspiración: ${perfumeInspiration.trim() || 'Fragancia Original'}] [Género: ${perfumeGender}] [Familia: ${prodCategory || perfumeFamily}] [Concentración: ${perfumeConcentration}] [ML: ${perfumeMl}]\n\n${perfumeNotes.trim()}`;
+            const tags = [];
+            if (perfumeInspiration.trim()) tags.push(`[Inspiración: ${perfumeInspiration.trim()}]`);
+            if (perfumeGender) tags.push(`[Género: ${perfumeGender}]`);
+            if (prodCategory || perfumeFamily) tags.push(`[Familia: ${prodCategory || perfumeFamily}]`);
+            if (perfumeConcentration.trim()) tags.push(`[Concentración: ${perfumeConcentration.trim()}]`);
+            if (perfumeMl.trim()) tags.push(`[ML: ${perfumeMl.trim()}]`);
+            const finalDesc = `${tags.join(' ')}\n\n${perfumeNotes.trim()}`.trim();
             await handleProductSubmit({
               id: editingProdId,
               brandId: brand.id,
@@ -3190,16 +3196,17 @@ function BrandProductCard({ prod }) {
                     </div>
 
                     <div className="form-group" style={{ margin: 0 }}>
-                      <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>Género / Tendencia</label>
+                      <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>Género / Destinado para</label>
                       <select 
                         className="form-control" 
                         value={perfumeGender} 
                         onChange={(e) => setPerfumeGender(e.target.value)}
                         style={{ fontSize: "0.85rem" }}
                       >
-                        <option value="Unisex">✨ Unisex</option>
+                        <option value="">Sin especificar (Neutro)</option>
                         <option value="Hombre">👔 Hombre (Masculino)</option>
                         <option value="Mujer">👗 Mujer (Femenino)</option>
+                        <option value="Unisex">✨ Unisex</option>
                       </select>
                     </div>
                   </div>

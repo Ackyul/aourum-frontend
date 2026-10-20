@@ -586,7 +586,7 @@ function AppLayoutShell({ children }) {
                       <option value="auto">Automático (Según el rubro de la marca)</option>
                       <option value="grid">🛍️ Catálogo Estándar de Productos (Vitrina Virtual)</option>
                       <option value="menu">🍽️ Menú Virtual / Carta Gastronómica Digital</option>
-                      <option value="perfumery">✨ Catálogo de Perfumería & Inspiraciones (50% Esencia)</option>
+                      <option value="perfumery">✨ Catálogo de Perfumería & Inspiraciones</option>
                     </select>
                   </div>
                 </>
@@ -2256,7 +2256,7 @@ function AppLayoutShell({ children }) {
                                     <option value="auto">Automático (Según el rubro de la marca)</option>
                                     <option value="grid">🛍️ Catálogo Estándar de Productos (Vitrina Virtual)</option>
                                     <option value="menu">🍽️ Menú Virtual / Carta Gastronómica Digital</option>
-                                    <option value="perfumery">✨ Catálogo de Perfumería & Inspiraciones (50% Esencia)</option>
+                                    <option value="perfumery">✨ Catálogo de Perfumería & Inspiraciones</option>
                                   </select>
                                 </div>
 

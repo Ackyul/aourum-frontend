@@ -878,7 +878,7 @@ export default function ProductDetailPage() {
                   }}>
                     {isVirtualMenu ? "🍽️ Platillo / Menú Virtual" : (prod.type === "service" ? "📅 Servicio" : "🛍️ Producto")}
                   </span>
-                  {isPerfumeProd && (
+                  {isPerfumeProd && perfumeInfo.concentration && (
                     <span style={{
                       background: "linear-gradient(135deg, #D4AF37 0%, #B45309 100%)",
                       color: "#0C0D11",
@@ -891,7 +891,7 @@ export default function ProductDetailPage() {
                       alignItems: "center",
                       gap: "4px"
                     }}>
-                      <i className="fa-solid fa-droplet"></i> 50% Esencia Pura
+                      <i className="fa-solid fa-droplet"></i> {perfumeInfo.concentration}
                     </span>
                   )}
                 </div>
@@ -920,17 +920,10 @@ export default function ProductDetailPage() {
                       Inspirado en: <span style={{ color: "#FEF08A" }}>{perfumeInfo.inspiration}</span>
                     </div>
                     <div style={{ fontSize: "0.8rem", color: "#D4D4D8", marginTop: "4px", display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                      <span><strong>Concentración:</strong> {perfumeInfo.concentration || "50% Esencia Pura"}</span>
-                      <span>•</span>
-                      <span><strong>Familia:</strong> {perfumeInfo.family}</span>
-                      <span>•</span>
-                      <span><strong>Género:</strong> {perfumeInfo.gender}</span>
-                      {perfumeInfo.ml && (
-                        <>
-                          <span>•</span>
-                          <span><strong>Presentación:</strong> {perfumeInfo.ml}</span>
-                        </>
-                      )}
+                      {perfumeInfo.concentration && <span><strong>Concentración:</strong> {perfumeInfo.concentration}</span>}
+                      {perfumeInfo.family && <span>• <strong>Familia:</strong> {perfumeInfo.family}</span>}
+                      {perfumeInfo.gender && <span>• <strong>Género:</strong> {perfumeInfo.gender}</span>}
+                      {perfumeInfo.ml && <span>• <strong>Presentación:</strong> {perfumeInfo.ml}</span>}
                     </div>
                   </div>
                 )}
@@ -1009,7 +1002,7 @@ export default function ProductDetailPage() {
                       ) : (
                         <span style={{ color: mutedTextColor, fontStyle: "italic" }}>
                           {isPerfumeProd
-                            ? `Fragancia de alta concentración (50% esencia pura) formulada por ${brand?.name || 'la marca'}. Maceración artesanal que garantiza máxima estela y fijación.`
+                            ? `Fragancia formulada por ${brand?.name || 'la marca'}. Garantiza alta fijación y calidad olfativa.`
                             : isVirtualMenu 
                             ? `Especialidad gastronómica de ${brand?.name || 'la marca'}. Platillo preparado fresco al momento de realizar tu pedido.`
                             : `Artículo disponible en la vitrina de ${brand?.name || 'la marca'}. Para más detalles, coordina directamente con el vendedor.`}
@@ -1033,10 +1026,10 @@ export default function ProductDetailPage() {
                             <td className="value" style={{ fontWeight: 800, color: brandThemeColor }}>{perfumeInfo.inspiration}</td>
                           </tr>
                         )}
-                        {isPerfumeProd && (
+                        {isPerfumeProd && perfumeInfo.concentration && (
                           <tr>
                             <td className="label">Concentración</td>
-                            <td className="value" style={{ fontWeight: 700 }}>{perfumeInfo.concentration || "50% Esencia Pura"}</td>
+                            <td className="value" style={{ fontWeight: 700 }}>{perfumeInfo.concentration}</td>
                           </tr>
                         )}
                         {isPerfumeProd && perfumeInfo.gender && (
@@ -1063,7 +1056,7 @@ export default function ProductDetailPage() {
                         </tr>
                         <tr>
                           <td className="label">Tipo de Catálogo</td>
-                          <td className="value">{isPerfumeProd ? "Fragancia de Autor (50% Esencia)" : isVirtualMenu ? "Platillo Gastronómico (Carta Virtual)" : (prod.type === "service" ? "Servicio / Experiencia" : "Producto Físico")}</td>
+                          <td className="value">{isPerfumeProd ? "Fragancia & Perfumería" : isVirtualMenu ? "Platillo Gastronómico (Carta Virtual)" : (prod.type === "service" ? "Servicio / Experiencia" : "Producto Físico")}</td>
                         </tr>
                         
                         {isVirtualMenu ? (
