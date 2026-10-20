@@ -1,5 +1,5 @@
 export default async function sitemap() {
-  const baseUrl = "https://aourum.com";
+  const baseUrl = "https://www.aourum.com";
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.aourum.com";
 
   // Base routes
