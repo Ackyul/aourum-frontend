@@ -5,6 +5,7 @@ import { useApp } from "../../../context/AppContext";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { isVirtualMenuBrand } from "@/utils/brandUtils";
 import { parsePerfumeInfo } from "../../../components/PerfumeryShowcase";
+import ProductCardVisual from "../../../components/ProductCardVisual";
 
 // Helper for URL slug generation
 const slugify = (text) => {
@@ -529,6 +530,10 @@ export default function ProductDetailPage() {
     const isPopular = views > 0;
     const formattedPrice = (rp.price != null && !isNaN(Number(rp.price))) ? Number(rp.price).toLocaleString("es-PE") : "0";
     const formattedPriceAourum = (rp.priceAourum != null && !isNaN(Number(rp.priceAourum))) ? Number(rp.priceAourum).toLocaleString("es-PE") : null;
+    const rpPerfumeInfo = parsePerfumeInfo(rp);
+    const brandBadgeColor = rpPalette.c1 || (rpBrand?.color ? rpBrand.color : "var(--gold-primary)");
+    const brandBadgeTextDark = getBgBrightness(brandBadgeColor, "#FFFFFF") > 160;
+    const isPop = rp.suggestionType === "popular";
 
     return (
       <div 
@@ -551,92 +556,97 @@ export default function ProductDetailPage() {
             overflow: "hidden"
           }}
         >
-          {rp.image ? (
-            <img 
-              src={rp.image} 
-              alt={rp.name} 
-              className="card-img-hover" 
-              style={{ 
-                width: "100%",
-                height: "100%",
-                objectFit: rp.imgBgColor && rp.imgBgColor !== "transparent" ? "contain" : "cover",
-                padding: rp.imgBgColor && rp.imgBgColor !== "transparent" ? "10px" : "0"
-              }} 
-            />
-          ) : (
-            <div
+          {/* Badges on Image top-left */}
+          <div style={{ position: "absolute", top: "10px", left: "10px", display: "flex", flexDirection: "column", gap: "6px", zIndex: 6 }}>
+            {isPop ? (
+              <span style={{ 
+                background: brandBadgeColor, 
+                color: brandBadgeTextDark ? "#1C1C1E" : "#FFFFFF", 
+                fontSize: "0.62rem", 
+                padding: "3px 9px", 
+                borderRadius: "12px", 
+                fontWeight: 800, 
+                letterSpacing: "0.03em", 
+                textTransform: "uppercase", 
+                boxShadow: "0 2px 8px rgba(0,0,0,0.2)", 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "4px" 
+              }}>
+                <i className="fa-solid fa-fire"></i> Más Visto
+              </span>
+            ) : (
+              <span style={{ 
+                background: isCardDark ? "rgba(15, 23, 42, 0.85)" : "rgba(255, 255, 255, 0.92)", 
+                color: isCardDark ? "#F8FAFC" : "#1C1C1E", 
+                fontSize: "0.62rem", 
+                padding: "3px 9px", 
+                borderRadius: "12px", 
+                fontWeight: 700, 
+                letterSpacing: "0.03em", 
+                textTransform: "uppercase", 
+                border: `1.5px solid ${brandBadgeColor}`, 
+                backdropFilter: "blur(4px)", 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "4px" 
+              }}>
+                <i className="fa-solid fa-wand-magic-sparkles" style={{ color: brandBadgeColor }}></i> Descubre
+              </span>
+            )}
+          </div>
+
+          {/* Gender badge top-right si es perfume */}
+          {rpPerfumeInfo.gender ? (
+            <span
               style={{
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: isCardDark ? "#A1A1AA" : "var(--text-muted)",
-                fontSize: "2rem"
+                position: "absolute",
+                top: "10px",
+                right: "10px",
+                background: isCardDark ? "rgba(15, 23, 42, 0.85)" : "rgba(255, 255, 255, 0.92)",
+                color: isCardDark ? "#F8FAFC" : "#1C1C1E",
+                fontWeight: 700,
+                fontSize: "0.62rem",
+                padding: "3px 8px",
+                borderRadius: "12px",
+                backdropFilter: "blur(4px)",
+                border: `1px solid ${brandBadgeColor}`,
+                zIndex: 6
               }}
             >
-              <i className="fa-solid fa-box-open"></i>
-            </div>
-          )}
+              {rpPerfumeInfo.gender === "Hombre" && "👔 Hombre"}
+              {rpPerfumeInfo.gender === "Mujer" && "👗 Mujer"}
+              {rpPerfumeInfo.gender === "Unisex" && "✨ Unisex"}
+              {rpPerfumeInfo.gender !== "Hombre" && rpPerfumeInfo.gender !== "Mujer" && rpPerfumeInfo.gender !== "Unisex" && rpPerfumeInfo.gender}
+            </span>
+          ) : null}
 
-          {/* Badges on Image top-left */}
-          {(() => {
-            const brandBadgeColor = rpPalette.c1 || (rpBrand?.color ? rpBrand.color : "var(--gold-primary)");
-            const brandBadgeTextDark = getBgBrightness(brandBadgeColor, "#FFFFFF") > 160;
-            const isPop = rp.suggestionType === "popular";
-            return (
-              <div style={{ position: "absolute", top: "10px", left: "10px", display: "flex", flexDirection: "column", gap: "6px", zIndex: 3 }}>
-                {isPop ? (
-                  <span style={{ 
-                    background: brandBadgeColor, 
-                    color: brandBadgeTextDark ? "#1C1C1E" : "#FFFFFF", 
-                    fontSize: "0.62rem", 
-                    padding: "3px 9px", 
-                    borderRadius: "12px", 
-                    fontWeight: 800, 
-                    letterSpacing: "0.03em", 
-                    textTransform: "uppercase", 
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.2)", 
-                    display: "flex", 
-                    alignItems: "center", 
-                    gap: "4px" 
-                  }}>
-                    <i className="fa-solid fa-fire"></i> Más Visto
-                  </span>
-                ) : (
-                  <span style={{ 
-                    background: isCardDark ? "rgba(15, 23, 42, 0.85)" : "rgba(255, 255, 255, 0.92)", 
-                    color: isCardDark ? "#F8FAFC" : "#1C1C1E", 
-                    fontSize: "0.62rem", 
-                    padding: "3px 9px", 
-                    borderRadius: "12px", 
-                    fontWeight: 700, 
-                    letterSpacing: "0.03em", 
-                    textTransform: "uppercase", 
-                    border: `1.5px solid ${brandBadgeColor}`, 
-                    backdropFilter: "blur(4px)", 
-                    display: "flex", 
-                    alignItems: "center", 
-                    gap: "4px" 
-                  }}>
-                    <i className="fa-solid fa-wand-magic-sparkles" style={{ color: brandBadgeColor }}></i> Descubre
-                  </span>
-                )}
-              </div>
-            );
-          })()}
+          <ProductCardVisual
+            prod={rp}
+            perfumeInfo={rpPerfumeInfo}
+            brandColor={rpPalette.c1}
+            isDark={isCardDark}
+          />
         </div>
 
         {/* Bottom Details Body */}
         <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-          <span style={{ 
-            fontSize: "0.72rem", 
-            color: categoryTextColor, 
-            letterSpacing: "0.05em", 
-            textTransform: "uppercase", 
-            fontWeight: 800
-          }}>
-            {rp.category || rpBrand?.rubro_general || "General"}
-          </span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ 
+              fontSize: "0.72rem", 
+              color: categoryTextColor, 
+              letterSpacing: "0.05em", 
+              textTransform: "uppercase", 
+              fontWeight: 800
+            }}>
+              {rpPerfumeInfo.family || rp.category || rpBrand?.rubro_general || "General"}
+            </span>
+            {rpPerfumeInfo.ml && (
+              <span style={{ fontSize: "0.68rem", color: secondaryTextColor, fontWeight: 600 }}>
+                {rpPerfumeInfo.ml}
+              </span>
+            )}
+          </div>
 
           <h3 style={{ 
             fontSize: "1.02rem", 

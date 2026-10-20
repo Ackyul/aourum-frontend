@@ -2619,3 +2619,130 @@ img {
   transform: scale(0.96) translateZ(0);
 }
 
+/* ── PERFUME DUO VISUAL EN TARJETAS DE PRODUCTO ────────────── */
+.perfume-duo-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  transition: background 0.3s ease;
+}
+
+/* Force override of default .card-img-container img rules */
+.card-img-container .perfume-duo-wrapper img,
+.product-card .perfume-duo-wrapper img {
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 84% !important;
+  object-fit: contain !important;
+  display: block;
+}
+
+.perfume-duo-orig {
+  position: absolute;
+  left: 6%;
+  bottom: 7%;
+  width: 46%;
+  height: 82%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justifyContent: flex-end;
+  z-index: 2;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3));
+  opacity: 0.94;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, filter 0.3s ease;
+}
+
+.perfume-duo-brand {
+  position: absolute;
+  right: 6%;
+  bottom: 5%;
+  width: 54%;
+  height: 94%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justifyContent: flex-end;
+  z-index: 3;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.42));
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
+}
+
+/* Card hover subtle lift */
+.product-card:hover .perfume-duo-brand,
+.glass-panel:hover .perfume-duo-brand {
+  transform: translateY(-4px) scale(1.04);
+  filter: drop-shadow(0 14px 26px rgba(0, 0, 0, 0.5));
+}
+
+.product-card:hover .perfume-duo-orig,
+.glass-panel:hover .perfume-duo-orig {
+  transform: translateY(-2px) scale(1.03);
+}
+
+/* Interactive hover on each bottle */
+.perfume-duo-orig:hover {
+  transform: translateY(-6px) scale(1.15) !important;
+  z-index: 5 !important;
+  opacity: 1 !important;
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.55)) !important;
+}
+
+.perfume-duo-brand:hover {
+  transform: translateY(-6px) scale(1.12) !important;
+  z-index: 5 !important;
+  filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.6)) !important;
+}
+
+.perfume-duo-badge {
+  margin-top: 4px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+  pointer-events: none;
+  line-height: 1.2;
+}
+
+.perfume-duo-orig .perfume-duo-badge {
+  background: rgba(15, 23, 42, 0.92);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(4px);
+}
+
+.perfume-duo-brand .perfume-duo-badge {
+  background: var(--gold-primary, #D4AF37);
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.4);
+}
+
+@media (max-width: 640px) {
+  .perfume-duo-orig {
+    left: 4%;
+    bottom: 5%;
+    width: 46%;
+    height: 80%;
+  }
+  .perfume-duo-brand {
+    right: 4%;
+    bottom: 4%;
+    width: 53%;
+    height: 92%;
+  }
+  .perfume-duo-badge {
+    font-size: 0.52rem;
+    padding: 1.5px 5px;
+    margin-top: 2px;
+  }
+}
+

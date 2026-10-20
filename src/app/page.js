@@ -8,6 +8,8 @@ import { MaxHeap, getItemViews, getBrandViews, getProductViews } from "@/utils/m
 import { isVirtualMenuBrand } from "@/utils/brandUtils";
 import SocialFeedPublisher from "@/components/SocialFeedPublisher";
 import PostList from "@/components/PostList";
+import ProductCardVisual from "@/components/ProductCardVisual";
+import { parsePerfumeInfo } from "@/components/PerfumeryShowcase";
 
 // Helper to interleave products of different brands to guarantee representation and bypass entry order, prioritizing user's city
 const interleaveProducts = (productList, brands = [], userCity = "") => {
@@ -603,6 +605,11 @@ export default function Home() {
     const dividerBorder = "1px solid var(--border-color)";
     const isDarkBg = false;
 
+    const perfumeInfo = parsePerfumeInfo(prod);
+    const brandColor = (brand?.color && brand.color.startsWith("#"))
+      ? brand.color
+      : (brand?.theme_color ? brand.theme_color.split(",")[0].trim() : "var(--gold-primary)");
+
     return (
       <div 
         className="glass-panel product-card" 
@@ -614,7 +621,7 @@ export default function Home() {
           style={{ 
             position: "relative",
             backgroundColor: (prod.imgBgColor && prod.imgBgColor !== "transparent") 
-              ? (prod.imgBgColor === "brand" ? (brand?.color || "var(--gold-primary)") : prod.imgBgColor)
+              ? (prod.imgBgColor === "brand" ? brandColor : prod.imgBgColor)
               : "transparent",
             transition: "background-color 0.3s ease"
           }}
@@ -633,7 +640,7 @@ export default function Home() {
               backdropFilter: "blur(4px)",
               textTransform: "uppercase",
               letterSpacing: "0.05em",
-              zIndex: 2,
+              zIndex: 6,
               boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
               display: "flex",
               alignItems: "center",
@@ -656,7 +663,7 @@ export default function Home() {
               backdropFilter: "blur(4px)",
               textTransform: "uppercase",
               letterSpacing: "0.05em",
-              zIndex: 2,
+              zIndex: 6,
               border: "1px solid rgba(255, 255, 255, 0.2)",
               display: "flex",
               alignItems: "center",
@@ -667,24 +674,74 @@ export default function Home() {
             </span>
           )}
 
-          <img 
-            src={prod.image} 
-            alt={prod.name} 
-            className="card-img-hover"
-            style={{ 
-              objectFit: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "contain" : "cover",
-              padding: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "10px" : "0"
-            }}
+          {/* Badge de Género si es perfume */}
+          {perfumeInfo.gender ? (
+            <span
+              style={{
+                position: "absolute",
+                top: "10px",
+                right: "10px",
+                background: "rgba(15, 23, 42, 0.85)",
+                color: "#F8FAFC",
+                fontWeight: 700,
+                fontSize: "0.62rem",
+                padding: "3px 8px",
+                borderRadius: "12px",
+                backdropFilter: "blur(4px)",
+                border: "1px solid rgba(255, 255, 255, 0.2)",
+                zIndex: 6
+              }}
+            >
+              {perfumeInfo.gender === "Hombre" && "👔 Hombre"}
+              {perfumeInfo.gender === "Mujer" && "👗 Mujer"}
+              {perfumeInfo.gender === "Unisex" && "✨ Unisex"}
+              {perfumeInfo.gender !== "Hombre" && perfumeInfo.gender !== "Mujer" && perfumeInfo.gender !== "Unisex" && perfumeInfo.gender}
+            </span>
+          ) : null}
+
+          <ProductCardVisual
+            prod={prod}
+            perfumeInfo={perfumeInfo}
+            brandColor={brandColor}
+            isDark={isDarkBg}
           />
         </div>
-        <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-          <span style={{ fontSize: "0.72rem", color: categoryTextColor, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
-            {prod.category}
-          </span>
-          <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: titleTextColor }}>{prod.name}</h3>
+        <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.45rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: "0.72rem", color: categoryTextColor, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
+              {prod.category}
+            </span>
+            {perfumeInfo.ml && (
+              <span style={{ fontSize: "0.68rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", fontWeight: 600 }}>
+                {perfumeInfo.ml}
+              </span>
+            )}
+          </div>
+          <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: titleTextColor, margin: 0 }}>
+            {prod.name}
+          </h3>
+
+          {/* Inspiración original si no es idéntica al título */}
+          {perfumeInfo.inspiration && perfumeInfo.inspiration.trim().toLowerCase() !== (prod.name || "").trim().toLowerCase() && (
+            <div style={{ fontSize: "0.74rem", color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "5px" }}>
+              <i className="fa-solid fa-gem" style={{ fontSize: "0.65rem", opacity: 0.85 }}></i>
+              <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                Insp: <strong style={{ color: titleTextColor }}>{perfumeInfo.inspiration}</strong>
+              </span>
+            </div>
+          )}
+
+          {/* Concentración olfativa */}
+          {perfumeInfo.concentration && (
+            <div style={{ fontSize: "0.68rem", color: "var(--gold-primary)", display: "flex", alignItems: "center", gap: "4px" }}>
+              <span style={{ background: "rgba(212, 175, 55, 0.12)", padding: "1px 6px", borderRadius: "6px", fontWeight: 700 }}>
+                {perfumeInfo.concentration}
+              </span>
+            </div>
+          )}
           
           <div 
-            style={{ fontSize: "0.8rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}
+            style={{ fontSize: "0.8rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px", marginTop: "2px" }}
             onClick={(e) => {
               e.stopPropagation();
               if (brand) {

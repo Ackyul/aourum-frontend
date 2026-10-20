@@ -9,6 +9,7 @@ import SocialFeedPublisher from "../../../components/SocialFeedPublisher";
 import BrandQRModal from "../../../components/BrandQRModal";
 import { isVirtualMenuBrand } from "@/utils/brandUtils";
 import PerfumeryShowcase, { parsePerfumeInfo } from "../../../components/PerfumeryShowcase";
+import ProductCardVisual from "../../../components/ProductCardVisual";
 
 // Stable deterministic views generator based on hash of name + id
 const getItemViews = (name, id) => {
@@ -1138,6 +1139,7 @@ function BrandProductCard({ prod }) {
     const brandBadgeTextDark = getBgBrightness(brandBadgeColor, "#FFFFFF") > 160;
     const formattedPrice = (prod.price != null && !isNaN(Number(prod.price))) ? Number(prod.price).toLocaleString("es-PE") : "0";
     const formattedPriceAourum = (prod.priceAourum != null && !isNaN(Number(prod.priceAourum))) ? Number(prod.priceAourum).toLocaleString("es-PE") : null;
+    const pInfo = parsePerfumeInfo(prod);
 
     return (
       <div 
@@ -1159,20 +1161,8 @@ function BrandProductCard({ prod }) {
             overflow: "hidden"
           }}
         >
-          <img 
-            src={prod.image} 
-            alt={prod.name} 
-            className="card-img-hover" 
-            style={{ 
-              width: "100%",
-              height: "100%",
-              objectFit: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "contain" : "cover",
-              padding: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "10px" : "0"
-            }} 
-          />
-
           {/* Badges on Image top-left */}
-          <div style={{ position: "absolute", top: "10px", left: "10px", display: "flex", flexDirection: "column", gap: "6px", zIndex: 3 }}>
+          <div style={{ position: "absolute", top: "10px", left: "10px", display: "flex", flexDirection: "column", gap: "6px", zIndex: 6 }}>
             {isPopular ? (
               <span style={{ 
                 background: brandBadgeColor, 
@@ -1210,19 +1200,58 @@ function BrandProductCard({ prod }) {
               </span>
             )}
           </div>
+
+          {/* Gender badge top-right si es perfume */}
+          {pInfo.gender ? (
+            <span
+              style={{
+                position: "absolute",
+                top: "10px",
+                right: "10px",
+                background: isCardDark ? "rgba(15, 23, 42, 0.85)" : "rgba(255, 255, 255, 0.92)",
+                color: isCardDark ? "#F8FAFC" : "#1C1C1E",
+                fontWeight: 700,
+                fontSize: "0.62rem",
+                padding: "3px 8px",
+                borderRadius: "12px",
+                backdropFilter: "blur(4px)",
+                border: `1px solid ${brandBadgeColor}`,
+                zIndex: 6
+              }}
+            >
+              {pInfo.gender === "Hombre" && "👔 Hombre"}
+              {pInfo.gender === "Mujer" && "👗 Mujer"}
+              {pInfo.gender === "Unisex" && "✨ Unisex"}
+              {pInfo.gender !== "Hombre" && pInfo.gender !== "Mujer" && pInfo.gender !== "Unisex" && pInfo.gender}
+            </span>
+          ) : null}
+
+          <ProductCardVisual
+            prod={prod}
+            perfumeInfo={pInfo}
+            brandColor={palette.c1}
+            isDark={isCardDark}
+          />
         </div>
 
         {/* Bottom Details Body */}
         <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-          <span style={{ 
-            fontSize: "0.72rem", 
-            color: categoryTextColor, 
-            letterSpacing: "0.05em", 
-            textTransform: "uppercase", 
-            fontWeight: 800
-          }}>
-            {prod.category || brand?.rubro_general || "General"}
-          </span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ 
+              fontSize: "0.72rem", 
+              color: categoryTextColor, 
+              letterSpacing: "0.05em", 
+              textTransform: "uppercase", 
+              fontWeight: 800
+            }}>
+              {pInfo.family || prod.category || brand?.rubro_general || "General"}
+            </span>
+            {pInfo.ml && (
+              <span style={{ fontSize: "0.68rem", color: secondaryTextColor, fontWeight: 600 }}>
+                {pInfo.ml}
+              </span>
+            )}
+          </div>
 
           <h3 style={{ 
             fontSize: "1.02rem", 
@@ -1237,6 +1266,25 @@ function BrandProductCard({ prod }) {
           }}>
             {prod.name}
           </h3>
+
+          {/* Inspiración original si no es idéntica al título */}
+          {pInfo.inspiration && pInfo.inspiration.trim().toLowerCase() !== (prod.name || "").trim().toLowerCase() && (
+            <div style={{ fontSize: "0.74rem", color: palette.c1, display: "flex", alignItems: "center", gap: "5px" }}>
+              <i className="fa-solid fa-gem" style={{ fontSize: "0.65rem", opacity: 0.85 }}></i>
+              <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                Insp: <strong style={{ color: titleTextColor }}>{pInfo.inspiration}</strong>
+              </span>
+            </div>
+          )}
+
+          {/* Concentración olfativa */}
+          {pInfo.concentration && (
+            <div style={{ fontSize: "0.68rem", color: palette.c1, display: "flex", alignItems: "center", gap: "4px" }}>
+              <span style={{ background: `${palette.c1}18`, padding: "1px 6px", borderRadius: "6px", fontWeight: 700 }}>
+                {pInfo.concentration}
+              </span>
+            </div>
+          )}
 
           <div style={{ fontSize: "0.8rem", color: isCardDark ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}>
             <span>Por:</span>
