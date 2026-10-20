@@ -151,6 +151,8 @@ export default function BrandProfileClient({ initialBrand }) {
   const [activeBrandTab, setActiveBrandTab] = useState("vitrina");
   // State for Perfumery Fragrance attributes
   const [perfumeInspiration, setPerfumeInspiration] = useState("");
+  const [perfumeOriginalImg, setPerfumeOriginalImg] = useState("");
+  const [uploadingOriginalImg, setUploadingOriginalImg] = useState(false);
   const [perfumeGender, setPerfumeGender] = useState("");
   const [perfumeFamily, setPerfumeFamily] = useState("");
   const [perfumeConcentration, setPerfumeConcentration] = useState("");
@@ -2676,6 +2678,7 @@ function BrandProductCard({ prod }) {
                   setProdIsVisible(true); setProdImgBgColor("transparent");
                   setProdImage(""); setProdImagePreview("");
                   setPerfumeInspiration("");
+                  setPerfumeOriginalImg("");
                   setPerfumeGender("");
                   setPerfumeFamily("");
                   setPerfumeConcentration("");
@@ -2698,6 +2701,7 @@ function BrandProductCard({ prod }) {
 
                   const pInfo = parsePerfumeInfo(prod);
                   setPerfumeInspiration(pInfo.inspiration || "");
+                  setPerfumeOriginalImg(pInfo.originalImg || "");
                   setPerfumeGender(pInfo.gender || "");
                   setPerfumeFamily(pInfo.family || "");
                   setPerfumeConcentration(pInfo.concentration || "");
@@ -3037,6 +3041,7 @@ function BrandProductCard({ prod }) {
           if (isBrandPerfumery) {
             const tags = [];
             if (perfumeInspiration.trim()) tags.push(`[Inspiración: ${perfumeInspiration.trim()}]`);
+            if (perfumeOriginalImg.trim()) tags.push(`[OriginalImg: ${perfumeOriginalImg.trim()}]`);
             if (perfumeGender) tags.push(`[Género: ${perfumeGender}]`);
             if (prodCategory || perfumeFamily) tags.push(`[Familia: ${prodCategory || perfumeFamily}]`);
             if (perfumeConcentration.trim()) tags.push(`[Concentración: ${perfumeConcentration.trim()}]`);
@@ -3173,7 +3178,7 @@ function BrandProductCard({ prod }) {
                 <div style={{ background: "linear-gradient(135deg, rgba(212,175,55,0.09) 0%, rgba(20,22,28,0.04) 100%)", border: "1.5px solid rgba(212,175,55,0.38)", borderRadius: "14px", padding: "14px 16px", marginTop: "10px", marginBottom: "14px" }}>
                   <div style={{ fontSize: "0.86rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "10px", display: "flex", alignItems: "center", gap: "6px" }}>
                     <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "var(--gold-primary)" }}></i>
-                    <span>Fragancia de Inspiración & Concentración (50% Esencia)</span>
+                    <span>Fragancia de Inspiración & Detalles Olfativos</span>
                   </div>
 
                   <div className="grid-2-to-1" style={{ gap: "10px", marginBottom: "10px" }}>
@@ -3209,6 +3214,78 @@ function BrandProductCard({ prod }) {
                         <option value="Unisex">✨ Unisex</option>
                       </select>
                     </div>
+                  </div>
+
+                  {/* FOTO DEL FRASCO ORIGINAL (ACTIVA EL DÚO VISUAL) */}
+                  <div className="form-group" style={{ margin: "10px 0 10px 0", paddingTop: "10px", borderTop: "1px dashed rgba(212,175,55,0.3)" }}>
+                    <label style={{ fontSize: "0.82rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+                      <span>💎 Foto del Frasco Original (Opcional)</span>
+                      <span style={{ fontSize: "0.72rem", color: "var(--gold-primary)", fontWeight: 700 }}>✨ Activa el Dúo Visual</span>
+                    </label>
+                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Pega enlace de foto del frasco original o sube una..."
+                        value={perfumeOriginalImg}
+                        onChange={(e) => setPerfumeOriginalImg(e.target.value)}
+                        style={{ fontSize: "0.82rem", flex: 1 }}
+                      />
+                      <label
+                        style={{
+                          padding: "0.45rem 0.9rem",
+                          background: "rgba(212,175,55,0.12)",
+                          border: "1px solid var(--gold-primary)",
+                          color: "var(--text-primary)",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                          fontSize: "0.78rem",
+                          fontWeight: 700,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          whiteSpace: "nowrap"
+                        }}
+                      >
+                        <i className="fa-solid fa-cloud-arrow-up" style={{ color: "var(--gold-primary)" }}></i>
+                        <span>{uploadingOriginalImg ? "Subiendo..." : "Subir Foto"}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          style={{ display: "none" }}
+                          disabled={uploadingOriginalImg}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                              setUploadingOriginalImg(true);
+                              const url = await uploadImage(file);
+                              if (url) setPerfumeOriginalImg(url);
+                            } catch (err) {
+                              console.error("Error subiendo foto de original:", err);
+                            } finally {
+                              setUploadingOriginalImg(false);
+                            }
+                          }}
+                        />
+                      </label>
+                      {perfumeOriginalImg && (
+                        <div style={{ position: "relative", width: "40px", height: "40px", borderRadius: "6px", overflow: "hidden", border: "1.5px solid var(--gold-primary)", flexShrink: 0, background: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <img src={perfumeOriginalImg} alt="Original" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+                          <button
+                            type="button"
+                            onClick={() => setPerfumeOriginalImg("")}
+                            style={{ position: "absolute", top: 0, right: 0, background: "rgba(0,0,0,0.65)", color: "#FFFFFF", border: "none", width: "16px", height: "16px", fontSize: "10px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", borderRadius: "0 0 0 4px" }}
+                            title="Quitar imagen"
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <small style={{ display: "block", marginTop: "4px", color: "var(--text-muted)", fontSize: "0.74rem" }}>
+                      💡 Al incluir la foto del original, la vitrina mostrará el <strong>Dúo Visual</strong>: el frasco de tu marca en primer plano y el frasco de inspiración detrás.
+                    </small>
                   </div>
 
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>

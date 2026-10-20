@@ -824,14 +824,148 @@ export default function ProductDetailPage() {
         <div 
           className="product-image-box"
           style={{
+            position: "relative",
+            minHeight: "380px",
             backgroundColor: prod.imgBgColor === "brand" ? palette.c1 : (prod.imgBgColor && prod.imgBgColor !== "transparent" ? prod.imgBgColor : resolvedCardBg),
             backdropFilter: "blur(12px)",
             border: `1.5px solid ${palette.c1}30`,
             borderRadius: "16px",
+            overflow: "hidden",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             transition: "background-color 0.3s ease"
           }}
         >
-          {prod.image ? (
+          {isPerfumeProd && perfumeInfo.originalImg ? (
+            /* ── DÚO VISUAL EN LA PÁGINA DEL PRODUCTO (OPCIÓN 1) ── */
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                height: "100%",
+                minHeight: "380px",
+                display: "flex",
+                alignItems: "flex-end",
+                justifyContent: "center",
+                padding: "20px"
+              }}
+            >
+              {/* Resplandor central con el color de la marca */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: "40%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: "280px",
+                  height: "280px",
+                  borderRadius: "50%",
+                  background: `radial-gradient(circle, ${palette.c1}25 0%, transparent 70%)`,
+                  pointerEvents: "none"
+                }}
+              />
+
+              {/* 1. Frasco Original de Inspiración (Segundo Plano - Izquierda) */}
+              <div
+                style={{
+                  position: "absolute",
+                  left: "8%",
+                  bottom: "8%",
+                  width: "44%",
+                  height: "80%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  zIndex: 1,
+                  filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.22))",
+                  opacity: 0.94,
+                  transition: "transform 0.3s ease"
+                }}
+                title={`Original de Referencia: ${perfumeInfo.inspiration || "Inspiración"}`}
+              >
+                <img
+                  src={perfumeInfo.originalImg}
+                  alt={`Original: ${perfumeInfo.inspiration || "Inspiración"}`}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "84%",
+                    objectFit: "contain"
+                  }}
+                />
+                <span
+                  style={{
+                    marginTop: "8px",
+                    fontSize: "0.7rem",
+                    fontWeight: 800,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    background: "rgba(30, 41, 59, 0.92)",
+                    color: "#FFFFFF",
+                    padding: "3px 10px",
+                    borderRadius: "12px",
+                    backdropFilter: "blur(6px)",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                    whiteSpace: "nowrap"
+                  }}
+                >
+                  💎 Frasco Original
+                </span>
+              </div>
+
+              {/* 2. Frasco de la Marca (Primer Plano - Protagonista a la Derecha) */}
+              <div
+                style={{
+                  position: "absolute",
+                  right: "8%",
+                  bottom: "6%",
+                  width: "52%",
+                  height: "94%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  zIndex: 2,
+                  filter: "drop-shadow(0 16px 32px rgba(0,0,0,0.32))",
+                  transition: "transform 0.3s ease"
+                }}
+              >
+                {prod.image ? (
+                  <img
+                    src={prod.image}
+                    alt={prod.name}
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "85%",
+                      objectFit: "contain"
+                    }}
+                  />
+                ) : (
+                  <div style={{ textAlign: "center", marginBottom: "12px" }}>
+                    <i className="fa-solid fa-wine-bottle" style={{ fontSize: "5rem", color: palette.c1, opacity: 0.9 }}></i>
+                  </div>
+                )}
+                <span
+                  style={{
+                    marginTop: "8px",
+                    fontSize: "0.7rem",
+                    fontWeight: 800,
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    background: palette.c1,
+                    color: "#FFFFFF",
+                    padding: "3px 10px",
+                    borderRadius: "12px",
+                    boxShadow: `0 4px 12px ${palette.c1}40`,
+                    whiteSpace: "nowrap"
+                  }}
+                >
+                  ✨ Tu Presentación ({brand?.name || "Maison"})
+                </span>
+              </div>
+            </div>
+          ) : prod.image ? (
             <img 
               src={prod.image} 
               alt={prod.name} 
@@ -907,23 +1041,52 @@ export default function ProductDetailPage() {
                       background: "linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(20, 22, 28, 0.85) 100%)",
                       border: "1.5px solid rgba(212, 175, 55, 0.4)",
                       borderRadius: "14px",
-                      padding: "12px 16px",
+                      padding: "14px 18px",
                       marginBottom: "1.25rem",
-                      boxShadow: "0 6px 20px rgba(0,0,0,0.12)"
+                      boxShadow: "0 6px 20px rgba(0,0,0,0.12)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "14px"
                     }}
                   >
-                    <div style={{ fontSize: "0.72rem", fontWeight: 800, color: "#FDE047", textTransform: "uppercase", letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
-                      <i className="fa-solid fa-wand-magic-sparkles"></i>
-                      <span>Inspiración Olfativa Original:</span>
-                    </div>
-                    <div style={{ fontSize: "1.2rem", fontWeight: 900, color: "#FFFFFF", letterSpacing: "-0.01em" }}>
-                      Inspirado en: <span style={{ color: "#FEF08A" }}>{perfumeInfo.inspiration}</span>
-                    </div>
-                    <div style={{ fontSize: "0.8rem", color: "#D4D4D8", marginTop: "4px", display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                      {perfumeInfo.concentration && <span><strong>Concentración:</strong> {perfumeInfo.concentration}</span>}
-                      {perfumeInfo.family && <span>• <strong>Familia:</strong> {perfumeInfo.family}</span>}
-                      {perfumeInfo.gender && <span>• <strong>Género:</strong> {perfumeInfo.gender}</span>}
-                      {perfumeInfo.ml && <span>• <strong>Presentación:</strong> {perfumeInfo.ml}</span>}
+                    {perfumeInfo.originalImg ? (
+                      <div 
+                        style={{ 
+                          width: "48px", 
+                          height: "60px", 
+                          flexShrink: 0, 
+                          display: "flex", 
+                          alignItems: "center", 
+                          justifyContent: "center", 
+                          background: "rgba(255,255,255,0.08)", 
+                          borderRadius: "10px", 
+                          padding: "4px", 
+                          border: "1px solid rgba(212, 175, 55, 0.4)",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
+                        }}
+                      >
+                        <img 
+                          src={perfumeInfo.originalImg} 
+                          alt={perfumeInfo.inspiration} 
+                          style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} 
+                        />
+                      </div>
+                    ) : null}
+
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: "0.72rem", fontWeight: 800, color: "#FDE047", textTransform: "uppercase", letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+                        <i className="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Inspiración Olfativa Original:</span>
+                      </div>
+                      <div style={{ fontSize: "1.2rem", fontWeight: 900, color: "#FFFFFF", letterSpacing: "-0.01em" }}>
+                        Inspirado en: <span style={{ color: "#FEF08A" }}>{perfumeInfo.inspiration}</span>
+                      </div>
+                      <div style={{ fontSize: "0.8rem", color: "#D4D4D8", marginTop: "4px", display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                        {perfumeInfo.concentration && <span><strong>Concentración:</strong> {perfumeInfo.concentration}</span>}
+                        {perfumeInfo.family && <span>• <strong>Familia:</strong> {perfumeInfo.family}</span>}
+                        {perfumeInfo.gender && <span>• <strong>Género:</strong> {perfumeInfo.gender}</span>}
+                        {perfumeInfo.ml && <span>• <strong>Presentación:</strong> {perfumeInfo.ml}</span>}
+                      </div>
                     </div>
                   </div>
                 )}
