@@ -28,6 +28,29 @@ function clearSession() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+function isTokenExpired(token) {
+  if (!token) return true;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return false;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const payload = JSON.parse(jsonPayload);
+    if (payload.exp && Date.now() >= payload.exp * 1000) {
+      return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 function saveToken(token) {
   if (typeof window === "undefined") return;
   localStorage.setItem(TOKEN_KEY, token);
@@ -35,7 +58,12 @@ function saveToken(token) {
 
 function loadToken() {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem(TOKEN_KEY);
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (token && isTokenExpired(token)) {
+    clearSession();
+    return null;
+  }
+  return token;
 }
 
 // Helper: genera cabeceras con el token JWT para peticiones autenticadas
@@ -115,7 +143,7 @@ export function AppContextProvider({ children }) {
   };
 
   // Logout — clears all session state
-  const logout = () => {
+  const logout = useCallback(() => {
     clearSession();
     setActiveRoleState(null);
     setActiveBrandIdState("");
@@ -124,7 +152,8 @@ export function AppContextProvider({ children }) {
     setActivePersonIdState("");
     setActiveUsernameState("");
     setActiveFairId("");
-  };
+    if (typeof setEditProfileOpen === "function") setEditProfileOpen(false);
+  }, []);
 
   // UI state variables
   const [searchTerm, setSearchTerm] = useState("");
@@ -564,6 +593,11 @@ export function AppContextProvider({ children }) {
   }, [loadProducts, loadFairs, loadBands, loadBrands, loadPeople, loadInvitations]);
 
   useEffect(() => {
+    const token = loadToken();
+    if (!token && loadSession()) {
+      clearSession();
+      logout();
+    }
     Promise.resolve().then(() => {
       const currentSession = loadSession();
       if (currentSession?.role) {
@@ -575,7 +609,7 @@ export function AppContextProvider({ children }) {
         setLoading(false);
       }
     });
-  }, [loadPeople, loadBrands, loadFairs, loadBands]);
+  }, [loadPeople, loadBrands, loadFairs, loadBands, logout]);
 
   // Float notifications handler
   const triggerNotification = (param1, param2) => {
@@ -603,13 +637,20 @@ export function AppContextProvider({ children }) {
     }
   };
 
-  const handleUnauthorized = useCallback((msg = "Tu sesión ha expirado. Por favor inicia sesión nuevamente.") => {
-    clearSession();
-    setActivePersonId("");
-    setActiveRole("");
-    setActiveUsername("");
-    triggerNotification(msg, "error");
-  }, []);
+  const handleUnauthorized = useCallback((msg = "Tu sesión ha expirado o el token es inválido. Se ha cerrado la sesión automáticamente.") => {
+    logout();
+    if (typeof setEditProfileOpen === "function") setEditProfileOpen(false);
+    triggerNotification(false, msg);
+    if (typeof setShowLoginModal === "function") setShowLoginModal(true);
+  }, [logout]);
+
+  const isAuthError = (status, errorDataOrMsg) => {
+    if (status === 401) return true;
+    const msg = typeof errorDataOrMsg === "string" 
+      ? errorDataOrMsg 
+      : (errorDataOrMsg?.error || errorDataOrMsg?.message || "");
+    return /token.*(inválid|expirad|no proporcionado|requerido)|no autenticado|jwt/i.test(msg);
+  };
 
   // Image upload helper
   const uploadImage = async (file, setUploading) => {
@@ -732,7 +773,12 @@ export function AppContextProvider({ children }) {
         }
         fetchData();
       } else {
-        triggerNotification(false, "No se pudo guardar el item. Revisa tus campos.");
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 401 || isAuthError(response.status, errorData)) {
+          handleUnauthorized("Tu sesión ha expirado o el token es inválido. Se ha cerrado la sesión automáticamente.");
+          return;
+        }
+        triggerNotification(false, errorData.error || "No se pudo guardar el item. Revisa tus campos.");
       }
     } catch (err) {
       triggerNotification(false, "Error de red al intentar conectar con el servidor.");
@@ -749,7 +795,12 @@ export function AppContextProvider({ children }) {
         triggerNotification(true, "Item removido correctamente.");
         fetchData();
       } else {
-        triggerNotification(false, "No se pudo eliminar el item.");
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 401 || isAuthError(response.status, errorData)) {
+          handleUnauthorized("Tu sesión ha expirado o el token es inválido. Se ha cerrado la sesión automáticamente.");
+          return;
+        }
+        triggerNotification(false, errorData.error || "No se pudo eliminar el item.");
       }
     } catch (err) {
       triggerNotification(false, "Error de red al intentar eliminar.");
@@ -765,7 +816,12 @@ export function AppContextProvider({ children }) {
         fetchData();
         return true;
       } else {
-        triggerNotification(false, "No se pudo eliminar la banda.");
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 401 || isAuthError(response.status, errorData)) {
+          handleUnauthorized("Tu sesión ha expirado o el token es inválido. Se ha cerrado la sesión automáticamente.");
+          return false;
+        }
+        triggerNotification(false, errorData.error || "No se pudo eliminar la banda.");
         return false;
       }
     } catch (err) {
@@ -783,7 +839,12 @@ export function AppContextProvider({ children }) {
         fetchData();
         return true;
       } else {
-        triggerNotification(false, "No se pudo eliminar la marca.");
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 401 || isAuthError(response.status, errorData)) {
+          handleUnauthorized("Tu sesión ha expirado o el token es inválido. Se ha cerrado la sesión automáticamente.");
+          return false;
+        }
+        triggerNotification(false, errorData.error || "No se pudo eliminar la marca.");
         return false;
       }
     } catch (err) {
@@ -802,6 +863,10 @@ export function AppContextProvider({ children }) {
         return true;
       } else {
         const errorData = await response.json().catch(() => ({}));
+        if (response.status === 401 || isAuthError(response.status, errorData)) {
+          handleUnauthorized("Tu sesión ha expirado o el token es inválido. Se ha cerrado la sesión automáticamente.");
+          return false;
+        }
         triggerNotification(false, errorData.error || "No se pudo eliminar la productora.");
         return false;
       }
@@ -821,6 +886,10 @@ export function AppContextProvider({ children }) {
         return true;
       } else {
         const errorData = await response.json().catch(() => ({}));
+        if (response.status === 401 || isAuthError(response.status, errorData)) {
+          handleUnauthorized("Tu sesión ha expirado o el token es inválido. Se ha cerrado la sesión automáticamente.");
+          return false;
+        }
         triggerNotification(false, errorData.error || "No se pudo eliminar la feria.");
         return false;
       }
@@ -857,7 +926,12 @@ export function AppContextProvider({ children }) {
         setFairFormOpen(false); fetchData();
         loadPosts();
       } else {
-        triggerNotification(false, "Error al crear la feria.");
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 401 || isAuthError(response.status, errorData)) {
+          handleUnauthorized("Tu sesión ha expirado o el token es inválido. Se ha cerrado la sesión automáticamente.");
+          return;
+        }
+        triggerNotification(false, errorData.error || "Error al crear la feria.");
       }
     } catch (err) {
       triggerNotification(false, "Error de red al intentar conectar.");
@@ -1422,6 +1496,10 @@ export function AppContextProvider({ children }) {
         const errorData = await response.json().catch(() => ({}));
         const errMsg = errorData.error || errorData.message || (errorData.errors && errorData.errors[0]?.message) || `Error ${response.status}: No se pudo actualizar el perfil.`;
         console.error("Error al actualizar perfil:", response.status, errorData);
+        if (response.status === 401 || isAuthError(response.status, errorData) || isAuthError(response.status, errMsg)) {
+          handleUnauthorized("Tu sesión ha expirado o el token es inválido. Se ha cerrado la sesión automáticamente.");
+          return;
+        }
         triggerNotification(false, errMsg);
       }
     } catch (err) {
@@ -1456,7 +1534,11 @@ export function AppContextProvider({ children }) {
         setAppFairId("");
         fetchData();
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 401 || isAuthError(response.status, errorData)) {
+          handleUnauthorized("Tu sesión ha expirado o el token es inválido. Se ha cerrado la sesión automáticamente.");
+          return;
+        }
         triggerNotification(false, errorData.error || "Ya enviaste una postulación para este evento.");
       }
     } catch (err) {
