@@ -59,7 +59,7 @@ export default function ProductCardVisual({
               width: "auto",
               height: "auto",
               maxWidth: "100%",
-              maxHeight: "82%",
+              maxHeight: "75%",
               objectFit: "contain"
             }}
           />
@@ -82,7 +82,7 @@ export default function ProductCardVisual({
                 width: "auto",
                 height: "auto",
                 maxWidth: "100%",
-                maxHeight: "84%",
+                maxHeight: "76%",
                 objectFit: "contain"
               }}
             />
