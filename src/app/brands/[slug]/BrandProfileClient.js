@@ -1090,21 +1090,8 @@ function BrandProductCard({ prod }) {
       titleTextColor = palette.c1;
       priceTextColor = palette.c1;
     } else if (rawCardText && rawCardText !== "auto" && rawCardText.startsWith("#")) {
-      const textLuminance = getBgBrightness(rawCardText, "#1C1C1E");
-      if ((isCardDark && textLuminance > 120) || (!isCardDark && textLuminance < 150)) {
-        titleTextColor = rawCardText;
-        priceTextColor = rawCardText;
-      }
-    }
-
-    // Safety guard: Never allow white text on light card backgrounds
-    if (!isCardDark) {
-      const titleLuminance = getBgBrightness(titleTextColor, "#1C1C1E");
-      if (titleLuminance > 180) {
-        titleTextColor = "#1C1C1E";
-        priceTextColor = "#1C1C1E";
-        categoryTextColor = "#854D0E";
-      }
+      titleTextColor = rawCardText;
+      priceTextColor = rawCardText;
     }
 
     // 5. Complete unified card container style

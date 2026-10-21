@@ -487,20 +487,8 @@ export default function ProductDetailPage() {
       titleTextColor = rpPalette.c1;
       priceTextColor = rpPalette.c1;
     } else if (rawCardText && rawCardText !== "auto" && rawCardText.startsWith("#")) {
-      const textLuminance = getBgBrightness(rawCardText, "#1C1C1E");
-      if ((isCardDark && textLuminance > 120) || (!isCardDark && textLuminance < 150)) {
-        titleTextColor = rawCardText;
-        priceTextColor = rawCardText;
-      }
-    }
-
-    if (!isCardDark) {
-      const titleLuminance = getBgBrightness(titleTextColor, "#1C1C1E");
-      if (titleLuminance > 180) {
-        titleTextColor = "#1C1C1E";
-        priceTextColor = "#1C1C1E";
-        categoryTextColor = "#854D0E";
-      }
+      titleTextColor = rawCardText;
+      priceTextColor = rawCardText;
     }
 
     let cardStyleObj = {
