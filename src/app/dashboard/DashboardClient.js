@@ -1822,12 +1822,14 @@ export default function DashboardClient({ initialTab }) {
                       if (brandForm.cardTextColor === "brand") {
                         previewTitleColor = brandForm.c1;
                         previewPriceColor = brandForm.c1;
-                      } else if (brandForm.cardTextColor === "#1C1C1E") {
-                        previewTitleColor = "#1C1C1E";
-                        previewPriceColor = "#1C1C1E";
-                      } else if (brandForm.cardTextColor === "#F8FAFC") {
-                        previewTitleColor = "#F8FAFC";
-                        previewPriceColor = "#F8FAFC";
+                        previewCatColor = brandForm.c1;
+                      } else if (brandForm.cardTextColor && brandForm.cardTextColor !== "auto" && brandForm.cardTextColor.startsWith("#")) {
+                        previewTitleColor = brandForm.cardTextColor;
+                        previewPriceColor = brandForm.cardTextColor;
+                        if (getHexBrightness(brandForm.cardTextColor, 0) > 160) {
+                          previewCatColor = "var(--text-gold)";
+                          previewBorderDivider = "1px solid rgba(255,255,255,0.2)";
+                        }
                       }
 
                       let previewBorder = `1px solid ${brandForm.c1}30`;
