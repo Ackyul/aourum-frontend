@@ -1158,12 +1158,12 @@ function BrandProductCard({ prod }) {
     const formattedPrice = (prod.price != null && !isNaN(Number(prod.price))) ? Number(prod.price).toLocaleString("es-PE") : "0";
     const formattedPriceAourum = (prod.priceAourum != null && !isNaN(Number(prod.priceAourum))) ? Number(prod.priceAourum).toLocaleString("es-PE") : null;
     const pInfo = parsePerfumeInfo(prod);
-    const isPerfume = Boolean(
+    const isFoodOrNonPerfume = /comida|snack|gastronom|fruta|alimento|bebida|caf[eé]|postre|joyer|ropa|artesan|textil|esot[eé]ric|servicio|tecnolog|calzado|accesorio/i.test(`${prod.category || ""} ${brand?.category || ""} ${brand?.rubro_general || ""} ${brand?.rubro_especifico || ""}`);
+    const isPerfume = !isFoodOrNonPerfume && Boolean(
       pInfo.originalImg ||
       design?.catalogDisplayMode === "perfumery" ||
       design?.catalogDisplayMode === "perfume" ||
-      /perfum|fraganc|coloni|eau de|esenci/i.test(`${prod.category || ""} ${brand?.rubro_general || ""}`) ||
-      (pInfo.inspiration && !/comida|snack|gastronom|fruta|alimento|bebida|joyer|ropa|esot[eé]ric/i.test(prod.category || ""))
+      /perfum|fraganc|coloni|eau de|esenci/i.test(`${prod.category || ""} ${brand?.rubro_general || ""}`)
     );
 
     return (
@@ -1269,7 +1269,7 @@ function BrandProductCard({ prod }) {
               textTransform: "uppercase", 
               fontWeight: 800
             }}>
-              {pInfo.family || prod.category || brand?.rubro_general || "General"}
+              {(isPerfume && pInfo.family) || prod.category || brand?.rubro_general || "General"}
             </span>
             {isPerfume && pInfo.ml && (
               <span style={{ fontSize: "0.68rem", color: secondaryTextColor, fontWeight: 600 }}>

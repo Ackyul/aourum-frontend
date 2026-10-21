@@ -107,20 +107,38 @@ export default function ProductCardVisual({
 
   // Standard single image view
   if (brandImg && !brandImgError) {
-    const isContain = prod?.imgBgColor && prod?.imgBgColor !== "transparent";
+    const bgContainer = (prod?.imgBgColor && prod?.imgBgColor !== "transparent" && prod?.imgBgColor !== "page_bg")
+      ? (prod.imgBgColor === "brand" ? brandColor : prod.imgBgColor)
+      : "#FFFFFF";
+
     return (
-      <img
-        src={brandImg}
-        alt={prod?.name || "Producto"}
-        className="card-img-hover"
-        onError={() => setBrandImgError(true)}
+      <div
         style={{
           width: "100%",
           height: "100%",
-          objectFit: isContain ? "contain" : "cover",
-          padding: isContain ? "10px" : "0"
+          backgroundColor: bgContainer,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
+          padding: "10px"
         }}
-      />
+      >
+        <img
+          src={brandImg}
+          alt={prod?.name || "Producto"}
+          className="card-img-hover"
+          onError={() => setBrandImgError(true)}
+          style={{
+            width: "100%",
+            height: "100%",
+            maxWidth: "100%",
+            maxHeight: "100%",
+            objectFit: "contain",
+            transition: "transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)"
+          }}
+        />
+      </div>
     );
   }
 

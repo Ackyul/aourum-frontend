@@ -59,32 +59,6 @@ export function parsePerfumeInfo(prod) {
     }
   }
 
-  // Check parenthesis in name: "N° 10 (Sauvage Dior)"
-  if (!inspiration) {
-    const parenMatch = name.match(/\(([^)]+)\)/);
-    if (parenMatch && parenMatch[1] && !/^\d+\s*(?:ml|g|gr|gramos|kg|kilos|oz|l|litros|unid|unidades|und|piezas|capsulas|cm|mm)$/i.test(parenMatch[1].trim())) {
-      inspiration = parenMatch[1].trim();
-    }
-  }
-
-  // Gender detection — ONLY if explicitly specified, never force Unisex default
-  if (!gender) {
-    const bracketGender = rawDesc.match(/\[\s*g[eé]nero\s*:\s*([^\]]+)\]/i);
-    if (bracketGender && bracketGender[1]) {
-      const g = bracketGender[1].trim();
-      if (/hombre|masculin|para [eé]l/i.test(g)) gender = "Hombre";
-      else if (/mujer|femenin|para ella/i.test(g)) gender = "Mujer";
-      else if (/unisex/i.test(g)) gender = "Unisex";
-      else gender = g;
-    } else {
-      const combined = `${name} ${rawDesc} ${prod.category || ""}`.toLowerCase();
-      if (/\b(hombre|masculino|para [eé]l|caballero)\b/i.test(combined)) gender = "Hombre";
-      else if (/\b(mujer|femenino|para ella|dama)\b/i.test(combined)) gender = "Mujer";
-      else if (/\bunisex\b/i.test(combined)) gender = "Unisex";
-      else gender = ""; // Sin género por defecto
-    }
-  }
-
   // Concentration detection — only if explicitly in brackets or meta
   if (!concentration) {
     const bracketConc = rawDesc.match(/\[\s*concentraci[oó]n\s*:\s*([^\]]+)\]/i);
@@ -104,7 +78,7 @@ export function parsePerfumeInfo(prod) {
     }
   }
 
-  // Family detection
+  // Family detection — strictly for actual perfume families or explicit bracket tags
   if (!family) {
     const bracketFamily = rawDesc.match(/\[\s*familia\s*:\s*([^\]]+)\]/i);
     if (bracketFamily && bracketFamily[1]) {
@@ -117,7 +91,7 @@ export function parsePerfumeInfo(prod) {
       else if (/floral|rosa|jazm[ií]n|iris|lavanda/i.test(combined)) family = "Floral";
       else if (/fresco|acu[aá]tic|marino|verde/i.test(combined)) family = "Fresco / Acuático";
       else if (/gourmand|dulce|caramelo|chocolate/i.test(combined)) family = "Dulce Gourmand";
-      else family = prod.category && !/^(producto|perfum|perfumeria|general)$/i.test(prod.category.toLowerCase()) ? prod.category : "";
+      else family = "";
     }
   }
 

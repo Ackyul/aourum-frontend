@@ -1336,10 +1336,10 @@ export default function DashboardClient({ initialTab }) {
                         {brandForm.category || "Destacado"}
                       </span>
                     </div>
-                    <div style={{ fontSize: "0.92rem", fontWeight: 800, color: "var(--text-primary)", marginTop: "2px", fontFamily: brandForm.fontFamily }}>
+                    <div style={{ fontSize: "0.92rem", fontWeight: 800, color: (brandForm.cardTextColor === "brand" ? brandForm.c1 : (brandForm.cardTextColor && brandForm.cardTextColor.startsWith("#") ? brandForm.cardTextColor : "var(--text-primary)")), marginTop: "2px", fontFamily: brandForm.fontFamily }}>
                       Ejemplo de Producto
                     </div>
-                    <div style={{ fontSize: "0.85rem", fontWeight: 800, color: brandForm.c1, marginTop: "2px", fontFamily: brandForm.fontFamily }}>
+                    <div style={{ fontSize: "0.85rem", fontWeight: 800, color: (brandForm.cardTextColor === "brand" ? brandForm.c1 : (brandForm.cardTextColor && brandForm.cardTextColor.startsWith("#") ? brandForm.cardTextColor : brandForm.c1)), marginTop: "2px", fontFamily: brandForm.fontFamily }}>
                       S/ 89.00
                     </div>
                   </div>
@@ -1800,47 +1800,260 @@ export default function DashboardClient({ initialTab }) {
                       </div>
                     </div>
 
-                    {/* Mini Previsualizador en Vivo de la Tarjeta */}
-                    <div style={{ background: "rgba(0,0,0,0.03)", borderRadius: "12px", padding: "0.9rem", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px" }}>
-                      <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--text-muted)" }}>
-                        👁️ Así se verá una tarjeta en tu catálogo:
-                      </span>
-                      <div 
-                        style={{
-                          backgroundColor: (brandForm.cardBgColor === "page_bg" || !brandForm.cardBgColor || brandForm.cardBgColor === "auto")
-                            ? (brandForm.customBgColor || "#FAF9F0")
-                            : (brandForm.cardBgColor === "transparent" ? "rgba(255,255,255,0.6)" : (brandForm.cardBgColor === "brand" ? brandForm.c1 : (brandForm.cardBgColor === "brand-soft" ? `${brandForm.c1}18` : brandForm.cardBgColor))),
-                          border: brandForm.cardBorderColor === "brand"
-                            ? `1.5px solid ${brandForm.c1}`
-                            : brandForm.cardBorderColor === "transparent"
-                            ? "none"
-                            : (brandForm.cardBorderColor && brandForm.cardBorderColor.startsWith("#"))
-                            ? `1.5px solid ${brandForm.cardBorderColor}`
-                            : `1px solid ${brandForm.c1}30`,
-                          borderRadius: "14px",
-                          padding: "0.7rem 1rem",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "10px",
-                          fontFamily: brandForm.fontFamily,
-                          boxShadow: brandForm.cardStyle === "luxury"
-                            ? `0 6px 18px ${brandForm.c1}20`
-                            : brandForm.cardStyle === "elevated"
-                            ? "0 8px 24px rgba(0,0,0,0.12)"
-                            : "0 2px 8px rgba(0,0,0,0.04)"
-                        }}
-                      >
-                        <i className="fa-solid fa-sparkles" style={{ color: brandForm.c1, fontSize: "1.1rem" }}></i>
-                        <div>
-                          <div style={{ fontSize: "0.82rem", fontWeight: 800, color: "var(--text-primary)", fontFamily: brandForm.fontFamily }}>
-                            Nombre del Producto
+                    {/* Previsualizador en Vivo de Alta Fidelidad de la Tarjeta de Producto */}
+                    {(() => {
+                      const getHexBrightness = (hexColor, fallback = 240) => {
+                        if (!hexColor || typeof hexColor !== "string" || !hexColor.startsWith("#")) return fallback;
+                        let h = hexColor.replace("#", "");
+                        if (h.length === 3) h = h.split("").map(c => c + c).join("");
+                        if (h.length !== 6) return fallback;
+                        const r = parseInt(h.substring(0, 2), 16) || 0;
+                        const g = parseInt(h.substring(2, 4), 16) || 0;
+                        const b = parseInt(h.substring(4, 6), 16) || 0;
+                        return (r * 299 + g * 587 + b * 114) / 1000;
+                      };
+
+                      const storeBright = getHexBrightness(brandForm.customBgColor, 240);
+                      const isStoreLight = storeBright >= 130;
+
+                      let previewCardBg = brandForm.cardBgColor || "page_bg";
+                      if (previewCardBg === "page_bg" || previewCardBg === "auto") {
+                        previewCardBg = brandForm.customBgColor || (isStoreLight ? "#FFFFFF" : "#18181B");
+                      } else if (previewCardBg === "brand") {
+                        previewCardBg = brandForm.c1;
+                      } else if (previewCardBg === "brand-soft") {
+                        previewCardBg = `${brandForm.c1}18`;
+                      } else if (previewCardBg === "transparent") {
+                        previewCardBg = isStoreLight ? "rgba(255, 255, 255, 0.65)" : "rgba(24, 24, 27, 0.65)";
+                      }
+
+                      const cardBright = getHexBrightness(previewCardBg, isStoreLight ? 250 : 20);
+                      const isCardDark = cardBright < 140;
+
+                      let previewTitleColor = isCardDark ? "#FFFFFF" : "#1C1C1E";
+                      let previewPriceColor = isCardDark ? "#FFFFFF" : "#1C1C1E";
+                      let previewCatColor = isCardDark ? "var(--text-gold)" : (brandForm.c1 || "#854D0E");
+                      let previewBorderDivider = isCardDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(0,0,0,0.08)";
+
+                      if (brandForm.cardTextColor === "brand") {
+                        previewTitleColor = brandForm.c1;
+                        previewPriceColor = brandForm.c1;
+                      } else if (brandForm.cardTextColor === "#1C1C1E") {
+                        previewTitleColor = "#1C1C1E";
+                        previewPriceColor = "#1C1C1E";
+                      } else if (brandForm.cardTextColor === "#F8FAFC") {
+                        previewTitleColor = "#F8FAFC";
+                        previewPriceColor = "#F8FAFC";
+                      }
+
+                      let previewBorder = `1px solid ${brandForm.c1}30`;
+                      if (brandForm.cardBorderColor === "brand") {
+                        previewBorder = `1.5px solid ${brandForm.c1}`;
+                      } else if (brandForm.cardBorderColor === "transparent") {
+                        previewBorder = "none";
+                      } else if (brandForm.cardBorderColor && brandForm.cardBorderColor.startsWith("#")) {
+                        previewBorder = `1.5px solid ${brandForm.cardBorderColor}`;
+                      } else if (brandForm.cardStyle === "outlined") {
+                        previewBorder = `1.5px solid ${brandForm.c1}60`;
+                      } else if (brandForm.cardStyle === "minimal") {
+                        previewBorder = isCardDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.06)";
+                      }
+
+                      let previewShadow = "0 4px 16px rgba(0,0,0,0.06)";
+                      if (brandForm.cardStyle === "luxury") {
+                        previewShadow = `0 8px 25px ${brandForm.c1}25, 0 2px 6px rgba(0,0,0,0.05)`;
+                      } else if (brandForm.cardStyle === "elevated") {
+                        previewShadow = "0 14px 35px rgba(0,0,0,0.12)";
+                      } else if (brandForm.cardStyle === "glass") {
+                        previewShadow = "0 8px 32px rgba(0,0,0,0.08)";
+                      } else if (brandForm.cardStyle === "minimal" || brandForm.cardStyle === "outlined") {
+                        previewShadow = "none";
+                      }
+
+                      const sampleItem = currentBrandProducts.find(p => p.image) || currentBrandProducts?.[0] || {
+                        name: "Mixto de fruta deshidratada (200gr)",
+                        category: brandForm.category || "Snacks Deshidratados",
+                        price: 34,
+                        priceAourum: 30,
+                        image: "https://res.cloudinary.com/decklnx3p/image/upload/v1782436666/aourum/s3yn9iwcxax98txmibwq.png"
+                      };
+
+                      return (
+                        <div style={{ marginTop: "1rem", background: brandForm.customBgColor || "rgba(0,0,0,0.03)", border: "1.5px dashed var(--border-color)", borderRadius: "16px", padding: "1.2rem" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "8px" }}>
+                            <span style={{ fontSize: "0.78rem", fontWeight: 800, color: "var(--text-gold)", textTransform: "uppercase", letterSpacing: "0.05em", display: "flex", alignItems: "center", gap: "6px" }}>
+                              <i className="fa-solid fa-eye"></i> Vista Previa en Vivo: Tarjeta en el Catálogo de tu Tienda
+                            </span>
+                            <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", background: "rgba(0,0,0,0.06)", padding: "3px 8px", borderRadius: "6px" }}>
+                              Simulación sobre el fondo de tu tienda ({brandForm.customBgColor || "#FAF9F0"})
+                            </span>
                           </div>
-                          <div style={{ fontSize: "0.78rem", fontWeight: 700, color: brandForm.c1, fontFamily: brandForm.fontFamily }}>
-                            S/ 120.00
+
+                          <div style={{ display: "flex", gap: "1.5rem", alignItems: "center", justifyContent: "center", flexWrap: "wrap" }}>
+                            {/* Tarjeta de Producto Vertical Idéntica al Catálogo Real */}
+                            <div 
+                              style={{
+                                width: "100%",
+                                maxWidth: "270px",
+                                backgroundColor: previewCardBg,
+                                border: previewBorder,
+                                borderRadius: "18px",
+                                overflow: "hidden",
+                                display: "flex",
+                                flexDirection: "column",
+                                fontFamily: brandForm.fontFamily,
+                                boxShadow: previewShadow,
+                                backdropFilter: brandForm.cardStyle === "glass" ? "blur(14px)" : "none",
+                                WebkitBackdropFilter: brandForm.cardStyle === "glass" ? "blur(14px)" : "none",
+                                transition: "all 0.25s ease-in-out"
+                              }}
+                            >
+                              {/* Contenedor de Imagen de Producto */}
+                              <div 
+                                style={{
+                                  width: "100%",
+                                  aspectRatio: "4 / 3",
+                                  position: "relative",
+                                  backgroundColor: "#FFFFFF",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  padding: "12px",
+                                  overflow: "hidden"
+                                }}
+                              >
+                                {/* Badge Superior Izquierdo */}
+                                <div style={{ position: "absolute", top: "10px", left: "10px", zIndex: 3 }}>
+                                  <span style={{
+                                    background: brandForm.c1,
+                                    color: getHexBrightness(brandForm.c1, 240) > 160 ? "#1C1C1E" : "#FFFFFF",
+                                    fontSize: "0.62rem",
+                                    padding: "3px 9px",
+                                    borderRadius: "12px",
+                                    fontWeight: 800,
+                                    letterSpacing: "0.03em",
+                                    textTransform: "uppercase",
+                                    boxShadow: "0 2px 8px rgba(0,0,0,0.18)",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "4px"
+                                  }}>
+                                    <i className="fa-solid fa-fire"></i> Más Visto
+                                  </span>
+                                </div>
+
+                                {sampleItem.image ? (
+                                  <img 
+                                    src={sampleItem.image} 
+                                    alt={sampleItem.name} 
+                                    style={{
+                                      width: "100%",
+                                      height: "100%",
+                                      maxWidth: "100%",
+                                      maxHeight: "100%",
+                                      objectFit: "contain"
+                                    }}
+                                  />
+                                ) : (
+                                  <i className="fa-solid fa-box-open" style={{ fontSize: "2.5rem", color: brandForm.c1, opacity: 0.6 }}></i>
+                                )}
+                              </div>
+
+                              {/* Cuerpo de la Tarjeta */}
+                              <div style={{ padding: "1rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                                <span style={{
+                                  fontSize: "0.68rem",
+                                  color: previewCatColor,
+                                  letterSpacing: "0.05em",
+                                  textTransform: "uppercase",
+                                  fontWeight: 800
+                                }}>
+                                  {sampleItem.category || brandForm.category || "General"}
+                                </span>
+
+                                <h4 style={{
+                                  fontSize: "0.96rem",
+                                  fontWeight: 800,
+                                  lineHeight: 1.3,
+                                  color: previewTitleColor,
+                                  margin: "2px 0 0 0",
+                                  fontFamily: brandForm.fontFamily,
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis"
+                                }}>
+                                  {sampleItem.name}
+                                </h4>
+
+                                <div style={{ fontSize: "0.75rem", color: isCardDark ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px" }}>
+                                  <span>Por:</span>
+                                  <strong style={{ color: previewTitleColor, textDecoration: "underline" }}>
+                                    {brandForm.name || "Tu Marca"}
+                                  </strong>
+                                </div>
+
+                                <div style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                  borderTop: previewBorderDivider,
+                                  paddingTop: "0.5rem",
+                                  marginTop: "0.4rem"
+                                }}>
+                                  <div>
+                                    {sampleItem.priceAourum ? (
+                                      <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                                        <span style={{ fontSize: "1.1rem", fontWeight: 900, color: previewPriceColor }}>
+                                          S/ {Number(sampleItem.priceAourum).toFixed(2)}
+                                        </span>
+                                        <span style={{ fontSize: "0.72rem", color: isCardDark ? "#71717A" : "#A1A1AA", textDecoration: "line-through" }}>
+                                          S/ {Number(sampleItem.price).toFixed(2)}
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <span style={{ fontSize: "1.1rem", fontWeight: 900, color: previewPriceColor }}>
+                                        S/ {sampleItem.price ? Number(sampleItem.price).toFixed(2) : "30.00"}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <span style={{ fontSize: "0.68rem", color: "#10B981", fontWeight: 700, display: "flex", alignItems: "center", gap: "3px" }}>
+                                    <i className="fa-solid fa-circle-check"></i> En Stock
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Resumen de configuración activa */}
+                            <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: "260px", fontSize: "0.76rem" }}>
+                              <div style={{ fontWeight: 800, color: "var(--text-primary)", marginBottom: "2px" }}>
+                                ⚡ Ajustes en Tiempo Real:
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 8px", borderRadius: "6px", background: "rgba(0,0,0,0.04)" }}>
+                                <span style={{ color: "var(--text-muted)" }}>Fondo:</span>
+                                <span style={{ fontWeight: 700 }}>{brandForm.cardBgColor === "page_bg" ? "Mismo de la tienda" : brandForm.cardBgColor}</span>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 8px", borderRadius: "6px", background: "rgba(0,0,0,0.04)" }}>
+                                <span style={{ color: "var(--text-muted)" }}>Estilo:</span>
+                                <span style={{ fontWeight: 700, textTransform: "capitalize" }}>{brandForm.cardStyle}</span>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 8px", borderRadius: "6px", background: "rgba(0,0,0,0.04)" }}>
+                                <span style={{ color: "var(--text-muted)" }}>Borde:</span>
+                                <span style={{ fontWeight: 700 }}>{brandForm.cardBorderColor}</span>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 8px", borderRadius: "6px", background: "rgba(0,0,0,0.04)" }}>
+                                <span style={{ color: "var(--text-muted)" }}>Texto:</span>
+                                <span style={{ fontWeight: 700 }}>{brandForm.cardTextColor}</span>
+                              </div>
+                              <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 8px", borderRadius: "6px", background: "rgba(0,0,0,0.04)" }}>
+                                <span style={{ color: "var(--text-muted)" }}>Tipografía:</span>
+                                <span style={{ fontWeight: 700 }}>{brandForm.fontFamily}</span>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
+                      );
+                    })()}
                   </div>
 
                   {/* C. Local Físico & Ubicación */}

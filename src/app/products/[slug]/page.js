@@ -149,14 +149,14 @@ export default function ProductDetailPage() {
   }, [prod, brands]);
 
   const perfumeInfo = useMemo(() => parsePerfumeInfo(prod), [prod]);
-  const isFoodOrNonPerfume = /comida|snack|gastronom|fruta|alimento|bebida|caf[eé]|postre|joyer|ropa|artesan|textil|esot[eé]ric/i.test(`${prod?.category || ""} ${brand?.category || ""} ${brand?.rubro_general || ""}`);
-  const isPerfumeProd = !isFoodOrNonPerfume && Boolean(
-    perfumeInfo.originalImg ||
-    brand?.brandDesign?.catalogDisplayMode === "perfumery" || 
-    brand?.brandDesign?.catalogDisplayMode === "perfume" || 
-    /perfum|fraganc|coloni|eau de|esenci/i.test(prod?.category || "") ||
-    (perfumeInfo.inspiration && !isFoodOrNonPerfume)
-  );
+  const isFoodOrNonPerfume = /comida|snack|gastronom|fruta|alimento|bebida|caf[eé]|postre|joyer|ropa|artesan|textil|esot[eé]ric|servicio|tecnolog|calzado|accesorio/i.test(`${prod?.category || ""} ${brand?.category || ""} ${brand?.rubro_general || ""} ${brand?.rubro_especifico || ""}`);
+  const isPerfumeProd = useMemo(() => {
+    if (!prod || isFoodOrNonPerfume) return false;
+    const catCheck = `${prod.category || ""} ${brand?.category || ""} ${brand?.rubro_general || ""}`.toLowerCase();
+    const isPerfumeCat = /perfum|fraganc|coloni|eau de|esenci/i.test(catCheck);
+    const isPerfumeBrand = brand?.brandDesign?.catalogDisplayMode === "perfumery" || brand?.brandDesign?.catalogDisplayMode === "perfume";
+    return Boolean(perfumeInfo.originalImg || (isPerfumeBrand && perfumeInfo.inspiration) || (isPerfumeCat && (perfumeInfo.inspiration || perfumeInfo.originalImg)));
+  }, [prod, brand, isFoodOrNonPerfume, perfumeInfo]);
 
   const isFromBrand = useMemo(() => {
     if (fromParam === "brand") return true;
@@ -534,12 +534,12 @@ export default function ProductDetailPage() {
     const formattedPrice = (rp.price != null && !isNaN(Number(rp.price))) ? Number(rp.price).toLocaleString("es-PE") : "0";
     const formattedPriceAourum = (rp.priceAourum != null && !isNaN(Number(rp.priceAourum))) ? Number(rp.priceAourum).toLocaleString("es-PE") : null;
     const rpPerfumeInfo = parsePerfumeInfo(rp);
-    const isPerfume = Boolean(
+    const isRpFoodOrNonPerfume = /comida|snack|gastronom|fruta|alimento|bebida|caf[eé]|postre|joyer|ropa|artesan|textil|esot[eé]ric|servicio|tecnolog|calzado|accesorio/i.test(`${rp.category || ""} ${rpBrand?.category || ""} ${rpBrand?.rubro_general || ""} ${rpBrand?.rubro_especifico || ""}`);
+    const isPerfume = !isRpFoodOrNonPerfume && Boolean(
       rpPerfumeInfo.originalImg ||
       rpBrand?.brandDesign?.catalogDisplayMode === "perfumery" ||
       rpBrand?.brandDesign?.catalogDisplayMode === "perfume" ||
-      /perfum|fraganc|coloni|eau de|esenci/i.test(`${rp.category || ""} ${rpBrand?.rubro_general || ""}`) ||
-      (rpPerfumeInfo.inspiration && !/comida|snack|gastronom|fruta|alimento|bebida|joyer|ropa|esot[eé]ric/i.test(rp.category || ""))
+      /perfum|fraganc|coloni|eau de|esenci/i.test(`${rp.category || ""} ${rpBrand?.rubro_general || ""}`)
     );
     const brandBadgeColor = rpPalette.c1 || (rpBrand?.color ? rpBrand.color : "var(--gold-primary)");
     const brandBadgeTextDark = getBgBrightness(brandBadgeColor, "#FFFFFF") > 160;
@@ -649,7 +649,7 @@ export default function ProductDetailPage() {
               textTransform: "uppercase", 
               fontWeight: 800
             }}>
-              {rpPerfumeInfo.family || rp.category || rpBrand?.rubro_general || "General"}
+              {(isPerfume && rpPerfumeInfo.family) || rp.category || rpBrand?.rubro_general || "General"}
             </span>
             {isPerfume && rpPerfumeInfo.ml && (
               <span style={{ fontSize: "0.68rem", color: secondaryTextColor, fontWeight: 600 }}>
@@ -911,14 +911,25 @@ export default function ProductDetailPage() {
             top: "2rem",
             alignSelf: "start",
             width: "100%",
-            height: "520px",
-            maxHeight: "82vh",
-            backgroundColor: (prod.imgBgColor && prod.imgBgColor !== "transparent" && prod.imgBgColor !== "page_bg") 
-              ? (prod.imgBgColor === "brand" ? palette.c1 : prod.imgBgColor) 
-              : resolvedCardBg,
+            ...(isPerfumeProd && perfumeInfo.originalImg ? {
+              height: "520px",
+              maxHeight: "82vh",
+              backgroundColor: (prod.imgBgColor && prod.imgBgColor !== "transparent" && prod.imgBgColor !== "page_bg") 
+                ? (prod.imgBgColor === "brand" ? palette.c1 : prod.imgBgColor) 
+                : resolvedCardBg,
+              padding: "20px"
+            } : {
+              aspectRatio: "1 / 1",
+              maxHeight: "560px",
+              backgroundColor: (prod.imgBgColor && prod.imgBgColor !== "transparent" && prod.imgBgColor !== "page_bg") 
+                ? (prod.imgBgColor === "brand" ? palette.c1 : prod.imgBgColor) 
+                : "#FFFFFF",
+              padding: "24px"
+            }),
             backdropFilter: "blur(12px)",
-            border: `1.5px solid ${palette.c1}30`,
-            borderRadius: "16px",
+            border: `1.5px solid ${palette.c1}25`,
+            borderRadius: "20px",
+            boxShadow: "0 10px 30px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0,0,0,0.04)",
             overflow: "hidden",
             display: "flex",
             alignItems: "center",
@@ -1060,9 +1071,13 @@ export default function ProductDetailPage() {
               style={{
                 width: "100%",
                 height: "100%",
-                objectFit: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "contain" : "cover",
-                padding: prod.imgBgColor && prod.imgBgColor !== "transparent" ? "16px" : "0"
+                maxWidth: "100%",
+                maxHeight: "100%",
+                objectFit: "contain",
+                transition: "transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)"
               }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.04)"}
+              onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
             />
           ) : (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "350px", color: mutedTextColor }}>
@@ -1091,17 +1106,43 @@ export default function ProductDetailPage() {
                   }}>
                     {prod.category || "General"}
                   </span>
-                  <span style={{
-                    background: isPerfumeProd ? "#D4AF37" : (isVirtualMenu ? "#10B981" : (prod.type === "service" ? "#2563eb" : "#d97706")),
-                    color: isPerfumeProd ? "#000000" : "#FFFFFF",
-                    padding: "0.25rem 0.6rem",
-                    borderRadius: "6px",
-                    fontSize: "0.72rem",
-                    fontWeight: 800,
-                    textTransform: "uppercase"
-                  }}>
-                    {isPerfumeProd ? "✨ Perfume & Fragancia" : (isVirtualMenu ? "🍽️ Platillo / Menú Virtual" : (prod.type === "service" ? "📅 Servicio" : "🛍️ Producto"))}
-                  </span>
+                  {isPerfumeProd ? (
+                    <span style={{
+                      background: "#D4AF37",
+                      color: "#000000",
+                      padding: "0.25rem 0.6rem",
+                      borderRadius: "6px",
+                      fontSize: "0.72rem",
+                      fontWeight: 800,
+                      textTransform: "uppercase"
+                    }}>
+                      ✨ Perfume & Fragancia
+                    </span>
+                  ) : isVirtualMenu ? (
+                    <span style={{
+                      background: "#10B981",
+                      color: "#FFFFFF",
+                      padding: "0.25rem 0.6rem",
+                      borderRadius: "6px",
+                      fontSize: "0.72rem",
+                      fontWeight: 800,
+                      textTransform: "uppercase"
+                    }}>
+                      🍽️ Platillo / Menú Virtual
+                    </span>
+                  ) : prod.type === "service" ? (
+                    <span style={{
+                      background: "#2563eb",
+                      color: "#FFFFFF",
+                      padding: "0.25rem 0.6rem",
+                      borderRadius: "6px",
+                      fontSize: "0.72rem",
+                      fontWeight: 800,
+                      textTransform: "uppercase"
+                    }}>
+                      📅 Servicio
+                    </span>
+                  ) : null}
                   {isPerfumeProd && perfumeInfo.concentration && (
                     <span style={{
                       background: "linear-gradient(135deg, #D4AF37 0%, #B45309 100%)",
