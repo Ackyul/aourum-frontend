@@ -1260,7 +1260,7 @@ export default function DashboardClient({ initialTab }) {
                   👁️ Vista Previa en Vivo de tu Vitrina y Productos
                 </span>
                 <span style={{ fontSize: "0.75rem", background: "rgba(0,0,0,0.06)", padding: "3px 8px", borderRadius: "6px", fontFamily: brandForm.fontFamily }}>
-                  Tipografía: <b>{brandForm.fontFamily}</b> · Tarjetas: <b>{brandForm.cardStyle}</b> · Fondo: <b>{brandForm.cardBgColor === "page_bg" ? "Mismo de la tienda" : brandForm.cardBgColor}</b>
+                  Tipografía: <b>{brandForm.fontFamily}</b> · Fondo: <b>{brandForm.cardBgColor === "page_bg" ? "Mismo de la tienda" : brandForm.cardBgColor}</b>
                 </span>
               </div>
 
@@ -1756,22 +1756,6 @@ export default function DashboardClient({ initialTab }) {
                       </div>
 
                       <div className="form-group" style={{ margin: 0 }}>
-                        <label style={{ fontSize: "0.76rem", fontWeight: 700 }}>Estilo y Sombra de Tarjetas</label>
-                        <select 
-                          className="form-control"
-                          value={brandForm.cardStyle}
-                          onChange={e => setBrandForm({ ...brandForm, cardStyle: e.target.value })}
-                        >
-                          <option value="luxury">👑 Luxury (Resplandor dorado & relieve)</option>
-                          <option value="glass">🪟 Glassmorphism (Vidrio translúcido esmerilado)</option>
-                          <option value="solid">📦 Sólido (Fondo limpio y uniforme)</option>
-                          <option value="outlined">📐 Outlined (Bordes finos minimalistas)</option>
-                          <option value="minimal">🍃 Minimal (Sin sombras pesadas)</option>
-                          <option value="elevated">🚀 Elevado (Sombra flotante profunda)</option>
-                        </select>
-                      </div>
-
-                      <div className="form-group" style={{ margin: 0 }}>
                         <label style={{ fontSize: "0.76rem", fontWeight: 700 }}>Borde de las Tarjetas</label>
                         <select 
                           className="form-control"
@@ -1853,22 +1837,9 @@ export default function DashboardClient({ initialTab }) {
                         previewBorder = "none";
                       } else if (brandForm.cardBorderColor && brandForm.cardBorderColor.startsWith("#")) {
                         previewBorder = `1.5px solid ${brandForm.cardBorderColor}`;
-                      } else if (brandForm.cardStyle === "outlined") {
-                        previewBorder = `1.5px solid ${brandForm.c1}60`;
-                      } else if (brandForm.cardStyle === "minimal") {
-                        previewBorder = isCardDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.06)";
                       }
 
-                      let previewShadow = "0 4px 16px rgba(0,0,0,0.06)";
-                      if (brandForm.cardStyle === "luxury") {
-                        previewShadow = `0 8px 25px ${brandForm.c1}25, 0 2px 6px rgba(0,0,0,0.05)`;
-                      } else if (brandForm.cardStyle === "elevated") {
-                        previewShadow = "0 14px 35px rgba(0,0,0,0.12)";
-                      } else if (brandForm.cardStyle === "glass") {
-                        previewShadow = "0 8px 32px rgba(0,0,0,0.08)";
-                      } else if (brandForm.cardStyle === "minimal" || brandForm.cardStyle === "outlined") {
-                        previewShadow = "none";
-                      }
+                      const previewShadow = "0 4px 16px rgba(0,0,0,0.06)";
 
                       const sampleItem = currentBrandProducts.find(p => p.image) || currentBrandProducts?.[0] || {
                         name: "Mixto de fruta deshidratada (200gr)",
@@ -2032,10 +2003,6 @@ export default function DashboardClient({ initialTab }) {
                               <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 8px", borderRadius: "6px", background: "rgba(0,0,0,0.04)" }}>
                                 <span style={{ color: "var(--text-muted)" }}>Fondo:</span>
                                 <span style={{ fontWeight: 700 }}>{brandForm.cardBgColor === "page_bg" ? "Mismo de la tienda" : brandForm.cardBgColor}</span>
-                              </div>
-                              <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 8px", borderRadius: "6px", background: "rgba(0,0,0,0.04)" }}>
-                                <span style={{ color: "var(--text-muted)" }}>Estilo:</span>
-                                <span style={{ fontWeight: 700, textTransform: "capitalize" }}>{brandForm.cardStyle}</span>
                               </div>
                               <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 8px", borderRadius: "6px", background: "rgba(0,0,0,0.04)" }}>
                                 <span style={{ color: "var(--text-muted)" }}>Borde:</span>
