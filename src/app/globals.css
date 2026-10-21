@@ -2746,3 +2746,284 @@ img {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   CENTRO DE GESTIÓN Y CONFIGURACIÓN (DASHBOARD HUB)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.dashboard-wrapper {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0.5rem 1.5rem 4rem;
+}
+
+.dashboard-header-banner {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 1.6rem 2rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 1.8rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-header-banner::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--gold-gradient);
+}
+
+.dashboard-nav-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+  scrollbar-width: thin;
+}
+
+.dashboard-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.65rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition-smooth);
+}
+
+.dashboard-tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.dashboard-tab-btn.active {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.12);
+  font-weight: 700;
+}
+
+.dashboard-tab-btn.active i {
+  color: var(--gold-primary);
+}
+
+/* ── 1-CLICK STYLE PRESET CARDS ─────────────────────────────────────────── */
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 14px;
+  margin: 1.2rem 0;
+}
+
+.preset-card {
+  border-radius: 16px;
+  padding: 1.2rem;
+  border: 2px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: var(--bg-card);
+  text-align: left;
+}
+
+.preset-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(212, 175, 55, 0.6);
+  box-shadow: 0 10px 24px rgba(212, 175, 55, 0.15);
+}
+
+.preset-card.active {
+  border-color: var(--gold-primary);
+  background: rgba(212, 175, 55, 0.05);
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.22);
+}
+
+.preset-card.active::after {
+  content: "✓ Activo";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: var(--gold-primary);
+  color: #1C1C1E;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 12px;
+  letter-spacing: 0.04em;
+}
+
+.preset-color-dots {
+  display: flex;
+  gap: 5px;
+  margin: 10px 0 8px;
+}
+
+.preset-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+/* ── ACCORDION SECTION ───────────────────────────────────────────────────── */
+.dashboard-accordion {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  margin-top: 1.5rem;
+  overflow: hidden;
+  transition: var(--transition-smooth);
+}
+
+.dashboard-accordion-header {
+  padding: 1.2rem 1.6rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.015);
+  user-select: none;
+}
+
+.dashboard-accordion-header:hover {
+  background: rgba(212, 175, 55, 0.04);
+}
+
+.dashboard-accordion-body {
+  padding: 1.6rem;
+  border-top: 1px solid var(--border-color);
+  animation: fadeInDown 0.3s ease;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── SMART PRODUCT TYPE SELECTOR ─────────────────────────────────────────── */
+.product-type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 1.4rem;
+}
+
+.product-type-card {
+  padding: 1rem 0.8rem;
+  border-radius: 14px;
+  border: 2px solid var(--border-color);
+  background: var(--bg-card);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.product-type-card:hover {
+  border-color: var(--gold-primary);
+  transform: translateY(-2px);
+}
+
+.product-type-card.active {
+  border-color: var(--gold-primary);
+  background: rgba(212, 175, 55, 0.08);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.18);
+}
+
+/* ── QUICK METRICS ───────────────────────────────────────────────────────── */
+.quick-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 2rem;
+}
+
+.quick-metric-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.quick-metric-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+/* ── PRODUCTS TABLE ROW ──────────────────────────────────────────────────── */
+.dash-product-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.2rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  margin-bottom: 10px;
+  gap: 12px;
+  transition: var(--transition-smooth);
+}
+
+.dash-product-row:hover {
+  border-color: rgba(212, 175, 55, 0.5);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+}
+
+@media (max-width: 768px) {
+  .dashboard-wrapper {
+    padding: 0.5rem 1rem 5rem;
+  }
+  .dashboard-header-banner {
+    padding: 1.2rem;
+  }
+  .preset-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+  .dash-product-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .dash-product-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+

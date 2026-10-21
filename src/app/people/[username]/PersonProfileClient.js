@@ -414,6 +414,13 @@ export default function PersonProfileClient() {
               </div>
               {isOwner && (
                 <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                  <Link 
+                    href="/dashboard"
+                    className="btn-outline-gold"
+                    style={{ padding: "0.55rem 1.4rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                  >
+                    <i className="fa-solid fa-sliders"></i> Panel de Configuración
+                  </Link>
                   <button 
                     onClick={handleEditClick}
                     className="btn-gold"

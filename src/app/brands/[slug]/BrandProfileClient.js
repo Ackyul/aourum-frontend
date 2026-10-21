@@ -2236,14 +2236,24 @@ function BrandProductCard({ prod }) {
                    </button>
                  )}
                  {canEditProfile && (
-                   <button
-                     onClick={handleEditClick}
-                     className="btn-outline-gold"
-                     style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
-                   >
-                     <i className="fa-solid fa-gear"></i> Editar Perfil
-                   </button>
-                 )}
+                    <>
+                      <Link
+                        href={`/dashboard?tab=marcas&brandId=${brand.id}`}
+                        className="btn-gold"
+                        style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                      >
+                        <i className="fa-solid fa-sliders"></i> Configurar Vitrina & Estilo
+                      </Link>
+                      <button
+                        onClick={handleEditClick}
+                        className="btn-outline-gold"
+                        style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                        title="Abrir editor rápido"
+                      >
+                        <i className="fa-solid fa-gear"></i> Edición Rápida
+                      </button>
+                    </>
+                  )}
                  <button
                    onClick={() => setQrModalOpen(true)}
                    className="btn-gold"

@@ -463,6 +463,9 @@ function AppLayoutShell({ children }) {
               <button onClick={() => { router.push(`/people/${getCurrentPerson()?.username || activeUsername || activePersonId}`); setAccountDropdownOpen(false); }} className="btn-gold" style={{ marginTop: "0.5rem", padding: "0.45rem", fontSize: "0.78rem", borderRadius: "6px", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
                 <i className="fa-solid fa-user-circle"></i> Ver Mi Perfil
               </button>
+              <button onClick={() => { router.push("/dashboard"); setAccountDropdownOpen(false); }} className="btn-outline-gold" style={{ padding: "0.45rem", fontSize: "0.78rem", borderRadius: "6px", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                <i className="fa-solid fa-sliders"></i> Centro de Configuración
+              </button>
             </div>
             <button onClick={() => { logout(); setAccountDropdownOpen(false); router.push("/"); }} style={{ background: "transparent", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", borderRadius: "6px", padding: "0.4rem", fontSize: "0.78rem", cursor: "pointer", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", transition: "var(--transition-smooth)" }}>
               <i className="fa-solid fa-right-from-bracket"></i> Cerrar Sesión
