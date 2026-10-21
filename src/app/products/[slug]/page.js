@@ -264,7 +264,7 @@ export default function ProductDetailPage() {
   const parsedBrand = brand ? parseDescription(brand.description) : null;
   const palette = (brand && getBrandPalette) 
     ? getBrandPalette(parsedBrand, brand) 
-    : { c1: "#D4AF37", c2: "#EAB308", c3: "#F97316", c4: "#8B5CF6" };
+    : { c1: "#D4AF37", c2: "#EAB308", c3: "#D4AF37", c4: "#FAF9F0" };
   const brandThemeColor = palette.c1;
 
   const brandDesign = brand?.brandDesign || {};
@@ -302,8 +302,10 @@ export default function ProductDetailPage() {
 
   // 2. Determine solid card background color from DB brand design settings
   let resolvedCardBg = rawCardBg;
-  if (!resolvedCardBg || resolvedCardBg === "auto") {
-    resolvedCardBg = isStoreBgLight ? "#FFFFFF" : "#18181B";
+  if (!resolvedCardBg || resolvedCardBg === "auto" || resolvedCardBg === "page_bg") {
+    resolvedCardBg = (customBgColor && customBgColor.startsWith("#"))
+      ? customBgColor
+      : (isStoreBgLight ? "#FFFFFF" : "#18181B");
   } else if (resolvedCardBg === "brand") {
     resolvedCardBg = palette.c1;
   } else if (resolvedCardBg === "brand-soft") {
@@ -432,7 +434,7 @@ export default function ProductDetailPage() {
     const rpParsedBrand = rpBrand ? parseDescription(rpBrand.description) : null;
     const rpPalette = (rpBrand && getBrandPalette)
       ? getBrandPalette(rpParsedBrand, rpBrand)
-      : { c1: "#D4AF37", c2: "#EAB308", c3: "#F97316", c4: "#8B5CF6" };
+      : { c1: "#D4AF37", c2: "#EAB308", c3: "#D4AF37", c4: "#FAF9F0" };
 
     const rpCardStyle = rpDesign.cardStyle || "glass";
     const rawCardBg = (rpDesign.cardBgColor && rpDesign.cardBgColor !== "transparent") ? rpDesign.cardBgColor : null;
@@ -510,6 +512,7 @@ export default function ProductDetailPage() {
       flexDirection: "column",
       height: "100%",
       cursor: "pointer",
+      fontFamily: rpDesign.fontFamily && rpDesign.fontFamily !== "Inter" ? `"${rpDesign.fontFamily}", sans-serif` : "inherit",
       boxShadow: rpCardStyle === "elevated" ? "0 12px 30px rgba(0,0,0,0.1)" : "0 4px 16px rgba(0,0,0,0.06)",
       transition: "all 0.25s ease-in-out"
     };
@@ -556,9 +559,9 @@ export default function ProductDetailPage() {
             width: "100%",
             aspectRatio: "4 / 3",
             position: "relative", 
-            background: (rp.imgBgColor && rp.imgBgColor !== "transparent") 
+            background: (rp.imgBgColor && rp.imgBgColor !== "transparent" && rp.imgBgColor !== "page_bg") 
               ? (rp.imgBgColor === "brand" ? rpPalette.c1 : rp.imgBgColor)
-              : (isCardDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)"),
+              : "transparent",
             transition: "background-color 0.3s ease",
             overflow: "hidden"
           }}
@@ -660,6 +663,7 @@ export default function ProductDetailPage() {
             fontWeight: 800, 
             lineHeight: 1.35, 
             color: titleTextColor, 
+            fontFamily: rpDesign.fontFamily && rpDesign.fontFamily !== "Inter" ? `"${rpDesign.fontFamily}", sans-serif` : "inherit",
             margin: "0.1rem 0 0 0",
             display: "-webkit-box",
             WebkitLineClamp: 2,
@@ -753,6 +757,39 @@ export default function ProductDetailPage() {
 
       {/* Estilos dinámicos de la Paleta de Marca para la página de producto */}
       <style>{`
+        ${fontFamily !== "Inter" ? `
+          .product-theme-scope,
+          .product-theme-scope h1,
+          .product-theme-scope h2,
+          .product-theme-scope h3,
+          .product-theme-scope h4,
+          .product-theme-scope h5,
+          .product-theme-scope h6,
+          .product-theme-scope p,
+          .product-theme-scope span:not([class*="fa-"]),
+          .product-theme-scope button:not([class*="fa-"]),
+          .product-theme-scope div:not([class*="fa-"]),
+          .product-theme-scope a:not([class*="fa-"]),
+          .product-theme-scope label:not([class*="fa-"]),
+          .product-theme-scope td,
+          .product-theme-scope th,
+          .product-theme-scope input:not([class*="fa-"]),
+          .product-theme-scope .product-card,
+          .product-theme-scope .product-card *,
+          .product-theme-scope .card-price-main {
+            font-family: "${fontFamily}", sans-serif !important;
+          }
+          .product-theme-scope i,
+          .product-theme-scope [class*="fa-"],
+          .product-theme-scope .fa-solid,
+          .product-theme-scope .fa-regular,
+          .product-theme-scope .fa-brands,
+          .product-theme-scope .fas,
+          .product-theme-scope .far,
+          .product-theme-scope .fab {
+            font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", FontAwesome !important;
+          }
+        ` : ''}
         .product-theme-scope .btn-gold {
           background: linear-gradient(135deg, ${palette.c1}, ${palette.c2}) !important;
           color: #ffffff !important;
@@ -876,7 +913,9 @@ export default function ProductDetailPage() {
             width: "100%",
             height: "520px",
             maxHeight: "82vh",
-            backgroundColor: prod.imgBgColor === "brand" ? palette.c1 : (prod.imgBgColor && prod.imgBgColor !== "transparent" ? prod.imgBgColor : resolvedCardBg),
+            backgroundColor: (prod.imgBgColor && prod.imgBgColor !== "transparent" && prod.imgBgColor !== "page_bg") 
+              ? (prod.imgBgColor === "brand" ? palette.c1 : prod.imgBgColor) 
+              : resolvedCardBg,
             backdropFilter: "blur(12px)",
             border: `1.5px solid ${palette.c1}30`,
             borderRadius: "16px",

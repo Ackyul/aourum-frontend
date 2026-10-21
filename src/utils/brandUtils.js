@@ -36,3 +36,17 @@ export function isPerfumeryBrand(brand) {
 
   return catalogDisplayMode === "perfumery" || catalogDisplayMode === "perfume" || (catalogDisplayMode !== "grid" && catalogDisplayMode !== "menu" && isPerfumeCategory);
 }
+
+export function ensureFullSocialUrl(val, platform) {
+  if (!val) return "";
+  const s = String(val).trim();
+  if (!s) return "";
+  if (s.startsWith("http://") || s.startsWith("https://")) return s;
+  const clean = s.replace(/^@/, "").trim();
+  if (!clean) return "";
+  if (platform === "instagram") return `https://instagram.com/${clean}`;
+  if (platform === "tiktok") return `https://tiktok.com/@${clean}`;
+  if (platform === "facebook") return `https://facebook.com/${clean}`;
+  if (platform === "website") return `https://${clean}`;
+  return `https://${clean}`;
+}

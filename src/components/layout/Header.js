@@ -269,27 +269,6 @@ export default function Header({
               {mounted && activePersonId && (
                 <>
                   <Link
-                    href="/dashboard"
-                    style={{
-                      background: pathname === '/dashboard' ? "var(--gold-gradient)" : "rgba(214,175,55,0.06)",
-                      border: "1px solid rgba(214,175,55,0.35)",
-                      padding: "0.4rem 0.75rem",
-                      borderRadius: "20px",
-                      color: pathname === '/dashboard' ? "#1C1C1E" : "var(--gold-dark)",
-                      fontWeight: 700,
-                      textDecoration: "none",
-                      fontSize: "0.82rem",
-                      transition: "var(--transition-smooth)",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "5px"
-                    }}
-                    title="Centro de Configuración y Panel"
-                  >
-                    <i className="fa-solid fa-sliders" style={{ fontSize: "0.85rem" }}></i>
-                    Panel
-                  </Link>
-                  <Link
                     href={`/people/${getCurrentPerson()?.username || activeUsername || activePersonId}`}
                     style={{
                       background: pathname.startsWith('/people/') ? "var(--gold-gradient)" : "rgba(214,175,55,0.06)",

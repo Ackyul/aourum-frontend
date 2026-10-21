@@ -6,6 +6,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect, useMemo } from "react";
 import PostList from "../../../components/PostList";
 import SocialFeedPublisher from "../../../components/SocialFeedPublisher";
+import { ensureFullSocialUrl } from "../../../utils/brandUtils";
 const DEFAULT_USER_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' fill='%23E5E7EB'/%3E%3Cpath d='M64 24a24 24 0 100 48 24 24 0 000-48zM32 104a32 32 0 0164 0H32z' fill='%239CA3AF'/%3E%3C/svg%3E";
 
 export default function PersonProfileClient() {
@@ -189,10 +190,10 @@ export default function PersonProfileClient() {
     if (setEditBrandIds) setEditBrandIds(person.brandIds || []);
     if (setEditOrganizerIds) setEditOrganizerIds(person.organizerIds || []);
     if (setEditBandIds) setEditBandIds(person.bandIds || []);
-    if (setEditInstagram) setEditInstagram(parsed.instagram);
-    if (setEditFacebook) setEditFacebook(parsed.facebook);
-    if (setEditTiktok) setEditTiktok(parsed.tiktok);
-    if (setEditWebsite) setEditWebsite(parsed.website);
+    if (setEditInstagram) setEditInstagram(ensureFullSocialUrl(parsed.instagram, "instagram"));
+    if (setEditFacebook) setEditFacebook(ensureFullSocialUrl(parsed.facebook, "facebook"));
+    if (setEditTiktok) setEditTiktok(ensureFullSocialUrl(parsed.tiktok, "tiktok"));
+    if (setEditWebsite) setEditWebsite(ensureFullSocialUrl(parsed.website, "website"));
     if (setEditBanner) setEditBanner(parsed.banner || "");
     if (setEditBannerPreview) setEditBannerPreview(parsed.banner || "");
     if (setEditThemeColor) setEditThemeColor(parsed.theme_color || "");
@@ -235,10 +236,10 @@ export default function PersonProfileClient() {
     if (setEditBrandIds) setEditBrandIds(person.brandIds || []);
     if (setEditOrganizerIds) setEditOrganizerIds(person.organizerIds || []);
     if (setEditBandIds) setEditBandIds(person.bandIds || []);
-    if (setEditInstagram) setEditInstagram(parsed.instagram);
-    if (setEditFacebook) setEditFacebook(parsed.facebook);
-    if (setEditTiktok) setEditTiktok(parsed.tiktok);
-    if (setEditWebsite) setEditWebsite(parsed.website);
+    if (setEditInstagram) setEditInstagram(ensureFullSocialUrl(parsed.instagram, "instagram"));
+    if (setEditFacebook) setEditFacebook(ensureFullSocialUrl(parsed.facebook, "facebook"));
+    if (setEditTiktok) setEditTiktok(ensureFullSocialUrl(parsed.tiktok, "tiktok"));
+    if (setEditWebsite) setEditWebsite(ensureFullSocialUrl(parsed.website, "website"));
     if (setEditBanner) setEditBanner(parsed.banner || "");
     if (setEditBannerPreview) setEditBannerPreview(parsed.banner || "");
     if (setEditThemeColor) setEditThemeColor(parsed.theme_color || "");
@@ -277,10 +278,10 @@ export default function PersonProfileClient() {
     if (setEditBrandIds) setEditBrandIds(person.brandIds || []);
     if (setEditOrganizerIds) setEditOrganizerIds(person.organizerIds || []);
     if (setEditBandIds) setEditBandIds(person.bandIds || []);
-    if (setEditInstagram) setEditInstagram(parsed.instagram);
-    if (setEditFacebook) setEditFacebook(parsed.facebook);
-    if (setEditTiktok) setEditTiktok(parsed.tiktok);
-    if (setEditWebsite) setEditWebsite(parsed.website);
+    if (setEditInstagram) setEditInstagram(ensureFullSocialUrl(parsed.instagram, "instagram"));
+    if (setEditFacebook) setEditFacebook(ensureFullSocialUrl(parsed.facebook, "facebook"));
+    if (setEditTiktok) setEditTiktok(ensureFullSocialUrl(parsed.tiktok, "tiktok"));
+    if (setEditWebsite) setEditWebsite(ensureFullSocialUrl(parsed.website, "website"));
     if (setEditBanner) setEditBanner(parsed.banner || "");
     if (setEditBannerPreview) setEditBannerPreview(parsed.banner || "");
     if (setEditThemeColor) setEditThemeColor(parsed.theme_color || "");
@@ -415,51 +416,29 @@ export default function PersonProfileClient() {
               {isOwner && (
                 <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
                   <Link 
-                    href="/dashboard"
-                    className="btn-outline-gold"
-                    style={{ padding: "0.55rem 1.4rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
-                  >
-                    <i className="fa-solid fa-sliders"></i> Panel de Configuración
-                  </Link>
-                  <button 
-                    onClick={handleEditClick}
+                    href="/profiledashboard"
                     className="btn-gold"
-                    style={{ padding: "0.55rem 1.4rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, background: themeColor, borderColor: themeColor }}
-                  >
-                    <i className="fa-solid fa-pen"></i> Editar Perfil
-                  </button>
-                  <button 
-                    onClick={handlePreferencesClick}
                     style={{ 
-                      padding: "0.55rem 1.4rem", 
-                      borderRadius: "8px", 
-                      fontSize: "0.85rem", 
+                      padding: "0.6rem 1.5rem", 
+                      borderRadius: "10px", 
+                      fontSize: "0.88rem", 
                       fontWeight: 700, 
-                      background: themeColor,
-                      color: "#FFFFFF",
-                      border: `2px solid ${themeColor}`,
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      transition: "all 0.2s ease",
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.12)"
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.opacity = "0.9";
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.opacity = "1";
+                      display: "flex", 
+                      alignItems: "center", 
+                      gap: "8px", 
+                      background: themeColor, 
+                      borderColor: themeColor,
+                      boxShadow: "0 4px 14px rgba(0,0,0,0.12)"
                     }}
                   >
-                    <i className="fa-solid fa-sliders"></i> Preferencias
-                  </button>
+                    <i className="fa-solid fa-sliders"></i> Panel de Usuario
+                  </Link>
                   <button 
                     onClick={handleConfigClick}
                     style={{ 
-                      padding: "0.55rem 1.4rem", 
-                      borderRadius: "8px", 
-                      fontSize: "0.85rem", 
+                      padding: "0.6rem 1.4rem", 
+                      borderRadius: "10px", 
+                      fontSize: "0.88rem", 
                       fontWeight: 700, 
                       background: "transparent", 
                       border: `2px solid ${themeColor}`, 
@@ -506,16 +485,16 @@ export default function PersonProfileClient() {
               return (
                 <div style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "1rem", flexWrap: "wrap" }}>
                   {parsed.instagram && (
-                    <a href={`https://instagram.com/${parsed.instagram.trim()}`} target="_blank" rel="noopener noreferrer" style={{ color: themeColor, fontSize: "1.4rem" }}><i className="fa-brands fa-instagram"></i></a>
+                    <a href={ensureFullSocialUrl(parsed.instagram, "instagram")} target="_blank" rel="noopener noreferrer" style={{ color: themeColor, fontSize: "1.4rem" }}><i className="fa-brands fa-instagram"></i></a>
                   )}
                   {parsed.facebook && (
-                    <a href={`https://facebook.com/${parsed.facebook.trim()}`} target="_blank" rel="noopener noreferrer" style={{ color: themeColor, fontSize: "1.4rem" }}><i className="fa-brands fa-facebook"></i></a>
+                    <a href={ensureFullSocialUrl(parsed.facebook, "facebook")} target="_blank" rel="noopener noreferrer" style={{ color: themeColor, fontSize: "1.4rem" }}><i className="fa-brands fa-facebook"></i></a>
                   )}
                   {parsed.tiktok && (
-                    <a href={`https://tiktok.com/@${parsed.tiktok.trim().replace(/^@/, "")}`} target="_blank" rel="noopener noreferrer" style={{ color: themeColor, fontSize: "1.4rem" }}><i className="fa-brands fa-tiktok"></i></a>
+                    <a href={ensureFullSocialUrl(parsed.tiktok, "tiktok")} target="_blank" rel="noopener noreferrer" style={{ color: themeColor, fontSize: "1.4rem" }}><i className="fa-brands fa-tiktok"></i></a>
                   )}
                   {parsed.website && (
-                    <a href={parsed.website.trim().startsWith("http") ? parsed.website.trim() : `https://${parsed.website.trim()}`} target="_blank" rel="noopener noreferrer" style={{ color: themeColor, fontSize: "1.4rem" }}><i className="fa-solid fa-globe"></i></a>
+                    <a href={ensureFullSocialUrl(parsed.website, "website")} target="_blank" rel="noopener noreferrer" style={{ color: themeColor, fontSize: "1.4rem" }}><i className="fa-solid fa-globe"></i></a>
                   )}
                 </div>
               );
@@ -547,146 +526,6 @@ export default function PersonProfileClient() {
                   </div>
                 );
               })()}
-
-              {(myBrands.length > 0 || myOrganizers.length > 0 || myBands.length > 0) && (
-                <div className="glass-panel" style={{ padding: "1.5rem" }}>
-                  <h3 style={{ fontSize: "1.05rem", fontWeight: 800, marginBottom: "1.2rem", color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
-                    <i className="fa-solid fa-folder-open" style={{ color: themeColor }}></i> Mis Cuentas vinculadas
-                  </h3>
-                  
-                  <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-                    {myBrands.length > 0 && (
-                      <div>
-                        <h4 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)", fontWeight: 700, marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: 6 }}>
-                          <i className="fa-solid fa-store" style={{ color: themeColor }}></i> Marcas
-                        </h4>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "12px" }}>
-                          {myBrands.map((b) => (
-                            <Link 
-                              key={b.id} 
-                              href={`/brands/${b.slug || b.id}`}
-                              className="project-card-link"
-                              style={{ 
-                                display: "flex", 
-                                alignItems: "center", 
-                                gap: "12px", 
-                                background: "rgba(0,0,0,0.02)", 
-                                border: "1px solid var(--border-color)", 
-                                padding: "10px 14px", 
-                                borderRadius: "10px", 
-                                textDecoration: "none",
-                                transition: "var(--transition-smooth)"
-                              }}
-                            >
-                              <img 
-                                src={b.logo || ""} 
-                                alt={b.name} 
-                                style={{ width: "36px", height: "36px", borderRadius: "8px", objectFit: "cover" }} 
-                              />
-                              <div style={{ overflow: "hidden" }}>
-                                <strong style={{ display: "block", fontSize: "0.88rem", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{b.name}</strong>
-                                <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 600 }}>{b.category || "Marca"}</span>
-                              </div>
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {myOrganizers.length > 0 && (
-                      <div>
-                        <h4 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)", fontWeight: 700, marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: 6 }}>
-                          <i className="fa-solid fa-calendar-days" style={{ color: themeColor }}></i> Productoras
-                        </h4>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "12px" }}>
-                          {myOrganizers.map((o) => (
-                            <Link 
-                              key={o.id} 
-                              href={`/organizers/${o.slug || o.id}`}
-                              className="project-card-link"
-                              style={{ 
-                                display: "flex", 
-                                alignItems: "center", 
-                                gap: "12px", 
-                                background: "rgba(0,0,0,0.02)", 
-                                border: "1px solid var(--border-color)", 
-                                padding: "10px 14px", 
-                                borderRadius: "10px", 
-                                textDecoration: "none",
-                                transition: "var(--transition-smooth)"
-                              }}
-                            >
-                              <img 
-                                src={o.logo || ""} 
-                                alt={o.name} 
-                                style={{ width: "36px", height: "36px", borderRadius: "8px", objectFit: "cover" }} 
-                              />
-                              <div style={{ overflow: "hidden" }}>
-                                <strong style={{ display: "block", fontSize: "0.88rem", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{o.name}</strong>
-                                <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 600 }}>Productora</span>
-                              </div>
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {myBands.length > 0 && (
-                      <div>
-                        <h4 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)", fontWeight: 700, marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: 6 }}>
-                          <i className="fa-solid fa-guitar" style={{ color: themeColor }}></i> Bandas
-                        </h4>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "12px" }}>
-                          {myBands.map((b) => (
-                            <Link 
-                              key={b.id} 
-                              href={`/bands/${b.slug || b.id}`}
-                              className="project-card-link"
-                              style={{ 
-                                display: "flex", 
-                                alignItems: "center", 
-                                gap: "12px", 
-                                background: "rgba(0,0,0,0.02)", 
-                                border: "1px solid var(--border-color)", 
-                                padding: "10px 14px", 
-                                borderRadius: "10px", 
-                                textDecoration: "none",
-                                transition: "var(--transition-smooth)"
-                              }}
-                            >
-                              <img 
-                                src={b.image || ""} 
-                                alt={b.name} 
-                                style={{ width: "36px", height: "36px", borderRadius: "50%", objectFit: "cover" }} 
-                              />
-                              <div style={{ overflow: "hidden" }}>
-                                <strong style={{ display: "block", fontSize: "0.88rem", color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{b.name}</strong>
-                                <span style={{ fontSize: "0.72rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 600 }}>{b.genre || "Banda"}</span>
-                              </div>
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              <div className="glass-panel" style={{ padding: "1.5rem" }}>
-                <div onClick={() => setCreateProjectOpen(!createProjectOpen)} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
-                  <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
-                    <i className="fa-solid fa-plus-circle" style={{ color: themeColor }}></i> Registrar Proyecto
-                  </h3>
-                  <i className={`fa-solid fa-chevron-${createProjectOpen ? "up" : "down"}`}></i>
-                </div>
-                {createProjectOpen && (
-                  <div style={{ marginTop: "1rem" }}>
-                    <button onClick={() => { if (setRegType) setRegType("brand"); if (setShowRegModal) setShowRegModal(true); }} className="btn-outline-gold" style={{ marginRight: "10px" }}>Crear Marca</button>
-                    <button onClick={() => { if (setRegType) setRegType("organizer"); if (setShowRegModal) setShowRegModal(true); }} className="btn-outline-gold" style={{ marginRight: "10px" }}>Crear Productora</button>
-                    <button onClick={() => { if (setRegType) setRegType("band"); if (setShowRegModal) setShowRegModal(true); }} className="btn-outline-gold">Crear Banda</button>
-                  </div>
-                )}
-              </div>
             </div>
           )}
 

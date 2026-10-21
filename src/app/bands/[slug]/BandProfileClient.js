@@ -7,6 +7,7 @@ import { useRouter, useParams } from "next/navigation";
 import PostList from "../../../components/PostList";
 import SocialFeedPublisher from "../../../components/SocialFeedPublisher";
 import BrandQRModal from "../../../components/BrandQRModal";
+import { ensureFullSocialUrl } from "../../../utils/brandUtils";
 
 const DEFAULT_USER_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' fill='%23E5E7EB'/%3E%3Cpath d='M64 24a24 24 0 100 48 24 24 0 000-48zM32 104a32 32 0 100-48 24 24 0 000-48z' fill='%239CA3AF'/%3E%3C/svg%3E";
 
@@ -258,10 +259,10 @@ export default function BandProfileClient({ initialBand }) {
     if (setEditProfileType) setEditProfileType("band");
     if (setEditProfileId) setEditProfileId(band.id);
     if (setEditSlug) setEditSlug(band.slug || "");
-    if (setEditInstagram) setEditInstagram(parsed.instagram || "");
-    if (setEditFacebook) setEditFacebook(parsed.facebook || "");
-    if (setEditTiktok) setEditTiktok(parsed.tiktok || "");
-    if (setEditWebsite) setEditWebsite(parsed.website || "");
+    if (setEditInstagram) setEditInstagram(ensureFullSocialUrl(parsed.instagram, "instagram"));
+    if (setEditFacebook) setEditFacebook(ensureFullSocialUrl(parsed.facebook, "facebook"));
+    if (setEditTiktok) setEditTiktok(ensureFullSocialUrl(parsed.tiktok, "tiktok"));
+    if (setEditWebsite) setEditWebsite(ensureFullSocialUrl(parsed.website, "website"));
     if (setEditBrandDesign) {
       const activeDesign = (band?.brandDesign && Object.keys(band.brandDesign).length > 0)
         ? band.brandDesign
@@ -693,7 +694,7 @@ export default function BandProfileClient({ initialBand }) {
                       <div style={{ display: "flex", gap: "12px", alignItems: "center", marginTop: "8px", flexWrap: "wrap" }}>
                         {parsed.instagram && (
                           <a 
-                            href={`https://instagram.com/${parsed.instagram.trim().replace(/^@/, '')}`} 
+                            href={ensureFullSocialUrl(parsed.instagram, "instagram")} 
                             target="_blank" 
                             rel="noopener noreferrer" 
                             style={{ color: "#E1306C", fontSize: "1.25rem", transition: "transform 0.2s", textDecoration: "none" }}
@@ -706,7 +707,7 @@ export default function BandProfileClient({ initialBand }) {
                         )}
                         {parsed.facebook && (
                           <a 
-                            href={`https://facebook.com/${parsed.facebook.trim()}`} 
+                            href={ensureFullSocialUrl(parsed.facebook, "facebook")} 
                             target="_blank" 
                             rel="noopener noreferrer" 
                             style={{ color: "#1877F2", fontSize: "1.25rem", transition: "transform 0.2s", textDecoration: "none" }}
@@ -719,7 +720,7 @@ export default function BandProfileClient({ initialBand }) {
                         )}
                         {parsed.tiktok && (
                           <a 
-                            href={`https://tiktok.com/@${parsed.tiktok.trim().replace(/^@/, '')}`} 
+                            href={ensureFullSocialUrl(parsed.tiktok, "tiktok")} 
                             target="_blank" 
                             rel="noopener noreferrer" 
                             style={{ color: "var(--text-primary)", fontSize: "1.25rem", transition: "transform 0.2s", textDecoration: "none" }}
@@ -732,7 +733,7 @@ export default function BandProfileClient({ initialBand }) {
                         )}
                         {parsed.website && (
                           <a 
-                            href={parsed.website.trim().startsWith("http") ? parsed.website.trim() : `https://${parsed.website.trim()}`} 
+                            href={ensureFullSocialUrl(parsed.website, "website")} 
                             target="_blank" 
                             rel="noopener noreferrer" 
                             style={{ color: palette.c1, fontSize: "1.25rem", transition: "transform 0.2s", textDecoration: "none" }}

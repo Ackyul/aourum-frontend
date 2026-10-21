@@ -11,6 +11,7 @@ import CreatePostModal from "../components/CreatePostModal";
 import ErrorBoundary from "../components/ErrorBoundary";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
+import { ensureFullSocialUrl } from "../utils/brandUtils";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -464,7 +465,7 @@ function AppLayoutShell({ children }) {
                 <i className="fa-solid fa-user-circle"></i> Ver Mi Perfil
               </button>
               <button onClick={() => { router.push("/dashboard"); setAccountDropdownOpen(false); }} className="btn-outline-gold" style={{ padding: "0.45rem", fontSize: "0.78rem", borderRadius: "6px", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-                <i className="fa-solid fa-sliders"></i> Centro de Configuración
+                <i className="fa-solid fa-sliders"></i> Panel de Usuario
               </button>
             </div>
             <button onClick={() => { logout(); setAccountDropdownOpen(false); router.push("/"); }} style={{ background: "transparent", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444", borderRadius: "6px", padding: "0.4rem", fontSize: "0.78rem", cursor: "pointer", fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", transition: "var(--transition-smooth)" }}>
@@ -1541,27 +1542,29 @@ function AppLayoutShell({ children }) {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "10px" }}>
                     <div className="form-group" style={{ margin: 0 }}>
                       <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem" }}>
-                        <i className="fa-brands fa-instagram" style={{ color: "#e1306c" }}></i> Instagram
+                        <i className="fa-brands fa-instagram" style={{ color: "#e1306c" }}></i> Instagram (Link completo)
                       </label>
                       <input 
-                        type="text" 
+                        type="url" 
                         className="form-control" 
                         value={editInstagram} 
                         onChange={(e) => setEditInstagram(e.target.value)} 
-                        placeholder="Ej: usuario_instagram" 
+                        onBlur={(e) => setEditInstagram(ensureFullSocialUrl(e.target.value, "instagram"))}
+                        placeholder="https://instagram.com/tu_usuario" 
                         style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
                       />
                     </div>
                     <div className="form-group" style={{ margin: 0 }}>
                       <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem" }}>
-                        <i className="fa-brands fa-facebook" style={{ color: "#1877f2" }}></i> Facebook
+                        <i className="fa-brands fa-facebook" style={{ color: "#1877f2" }}></i> Facebook (Link completo)
                       </label>
                       <input 
-                        type="text" 
+                        type="url" 
                         className="form-control" 
                         value={editFacebook} 
                         onChange={(e) => setEditFacebook(e.target.value)} 
-                        placeholder="Ej: pagina.facebook" 
+                        onBlur={(e) => setEditFacebook(ensureFullSocialUrl(e.target.value, "facebook"))}
+                        placeholder="https://facebook.com/tu_pagina" 
                         style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
                       />
                     </div>
@@ -1569,14 +1572,15 @@ function AppLayoutShell({ children }) {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                     <div className="form-group" style={{ margin: 0 }}>
                       <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.78rem" }}>
-                        <i className="fa-brands fa-tiktok" style={{ color: "#000000" }}></i> TikTok
+                        <i className="fa-brands fa-tiktok" style={{ color: "#000000" }}></i> TikTok (Link completo)
                       </label>
                       <input 
-                        type="text" 
+                        type="url" 
                         className="form-control" 
                         value={editTiktok} 
                         onChange={(e) => setEditTiktok(e.target.value)} 
-                        placeholder="Ej: usuario_tiktok" 
+                        onBlur={(e) => setEditTiktok(ensureFullSocialUrl(e.target.value, "tiktok"))}
+                        placeholder="https://tiktok.com/@tu_usuario" 
                         style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
                       />
                     </div>
@@ -1589,6 +1593,7 @@ function AppLayoutShell({ children }) {
                         className="form-control" 
                         value={editWebsite} 
                         onChange={(e) => setEditWebsite(e.target.value)} 
+                        onBlur={(e) => setEditWebsite(ensureFullSocialUrl(e.target.value, "website"))}
                         placeholder="https://tuweb.com" 
                         style={{ fontSize: "0.82rem", padding: "0.4rem 0.6rem" }}
                       />

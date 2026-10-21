@@ -7,7 +7,7 @@ import Link from "next/link";
 import PostList from "../../../components/PostList";
 import SocialFeedPublisher from "../../../components/SocialFeedPublisher";
 import BrandQRModal from "../../../components/BrandQRModal";
-import { isVirtualMenuBrand } from "@/utils/brandUtils";
+import { isVirtualMenuBrand, ensureFullSocialUrl } from "@/utils/brandUtils";
 import PerfumeryShowcase, { parsePerfumeInfo } from "../../../components/PerfumeryShowcase";
 import ProductCardVisual from "../../../components/ProductCardVisual";
 
@@ -1064,7 +1064,7 @@ function BrandProductCard({ prod }) {
 
     // 2. Determine card background color from DB brand design settings
     let cardBg = rawCardBg;
-    if (!cardBg || cardBg === "auto") {
+    if (!cardBg || cardBg === "auto" || cardBg === "page_bg") {
       cardBg = (customBgColor && customBgColor.startsWith("#")) ? customBgColor : (isStoreBgLight ? "#FFFFFF" : "#18181B");
     } else if (cardBg === "brand") {
       cardBg = palette.c1;
@@ -1109,7 +1109,9 @@ function BrandProductCard({ prod }) {
 
     // 5. Complete unified card container style
     let cardStyleObj = {
-      backgroundColor: cardBg,
+      backgroundColor: (cardStyle === "glass" && (rawCardBg === "transparent" || rawCardBg === "auto" || rawCardBg === "page_bg"))
+        ? (isCardDark ? "rgba(24, 24, 27, 0.65)" : "rgba(255, 255, 255, 0.65)")
+        : cardBg,
       color: titleTextColor,
       borderRadius: "16px",
       overflow: "hidden",
@@ -1117,9 +1119,23 @@ function BrandProductCard({ prod }) {
       flexDirection: "column",
       height: "100%",
       cursor: "pointer",
-      boxShadow: cardStyle === "elevated" ? "0 12px 30px rgba(0,0,0,0.1)" : "0 4px 16px rgba(0,0,0,0.06)",
+      fontFamily: fontFamily !== "Inter" ? `"${fontFamily}", sans-serif` : "inherit",
+      boxShadow: cardStyle === "elevated" 
+        ? "0 14px 35px rgba(0,0,0,0.12)" 
+        : cardStyle === "luxury"
+        ? `0 8px 25px ${palette.c1}18, 0 2px 6px rgba(0,0,0,0.05)`
+        : cardStyle === "glass"
+        ? "0 8px 32px rgba(0,0,0,0.08)"
+        : cardStyle === "outlined" || cardStyle === "minimal"
+        ? "none"
+        : "0 4px 16px rgba(0,0,0,0.06)",
       transition: "all 0.25s ease-in-out"
     };
+
+    if (cardStyle === "glass") {
+      cardStyleObj.backdropFilter = "blur(14px)";
+      cardStyleObj.WebkitBackdropFilter = "blur(14px)";
+    }
 
     if (rawCardBorder === "brand") {
       cardStyleObj.border = `1.5px solid ${palette.c1}`;
@@ -1127,8 +1143,10 @@ function BrandProductCard({ prod }) {
       cardStyleObj.border = "none";
     } else if (rawCardBorder && rawCardBorder !== "auto" && rawCardBorder.startsWith("#")) {
       cardStyleObj.border = `1.5px solid ${rawCardBorder}`;
-    } else if (cardStyle === "bordered") {
-      cardStyleObj.border = `2px solid ${palette.c1}`;
+    } else if (cardStyle === "bordered" || cardStyle === "outlined") {
+      cardStyleObj.border = `1.5px solid ${palette.c1}50`;
+    } else if (cardStyle === "minimal") {
+      cardStyleObj.border = isCardDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(0,0,0,0.06)";
     } else {
       cardStyleObj.border = isCardDark ? "1px solid rgba(255,255,255,0.15)" : `1px solid ${palette.c1}30`;
     }
@@ -1161,9 +1179,9 @@ function BrandProductCard({ prod }) {
             width: "100%",
             aspectRatio: "4 / 3",
             position: "relative", 
-            backgroundColor: (prod.imgBgColor && prod.imgBgColor !== "transparent") 
+            backgroundColor: (prod.imgBgColor && prod.imgBgColor !== "transparent" && prod.imgBgColor !== "page_bg") 
               ? (prod.imgBgColor === "brand" ? palette.c1 : prod.imgBgColor)
-              : (isCardDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)"),
+              : "transparent",
             transition: "background-color 0.3s ease",
             overflow: "hidden"
           }}
@@ -1265,6 +1283,7 @@ function BrandProductCard({ prod }) {
             fontWeight: 800, 
             lineHeight: 1.35, 
             color: titleTextColor, 
+            fontFamily: fontFamily !== "Inter" ? `"${fontFamily}", sans-serif` : "inherit",
             margin: "0.1rem 0 0 0",
             display: "-webkit-box",
             WebkitLineClamp: 2,
@@ -1440,10 +1459,10 @@ function BrandProductCard({ prod }) {
     if (setEditProfileId) setEditProfileId(brand.id);
     if (setEditSlug) setEditSlug(brand.slug || "");
     if (setEditWhatsappNumber) setEditWhatsappNumber(brand.whatsappNumber || "");
-    if (setEditInstagram) setEditInstagram(parsed.instagram || "");
-    if (setEditFacebook) setEditFacebook(parsed.facebook || "");
-    if (setEditTiktok) setEditTiktok(parsed.tiktok || "");
-    if (setEditWebsite) setEditWebsite(parsed.website || "");
+    if (setEditInstagram) setEditInstagram(ensureFullSocialUrl(parsed.instagram, "instagram"));
+    if (setEditFacebook) setEditFacebook(ensureFullSocialUrl(parsed.facebook, "facebook"));
+    if (setEditTiktok) setEditTiktok(ensureFullSocialUrl(parsed.tiktok, "tiktok"));
+    if (setEditWebsite) setEditWebsite(ensureFullSocialUrl(parsed.website, "website"));
     if (setEditRubroGeneral) setEditRubroGeneral(parsed.rubro_general || "");
     if (setEditRubroEspecifico) setEditRubroEspecifico(parsed.rubro_especifico || "");
     if (setEditHasLocal) setEditHasLocal(!!parsed.has_local);
@@ -1500,7 +1519,7 @@ function BrandProductCard({ prod }) {
   const effectiveTagline = isEditingThisBrand ? (editTagline !== undefined ? editTagline : parsed.tagline) : (parsed.tagline || '');
   const effectiveCity = (isEditingThisBrand && editCity) ? editCity : (brand.city || '');
 
-  const palette = getBrandPalette ? getBrandPalette(parsed, { ...brand, themeColor: effectiveThemeColor }) : { c1: "#D4AF37", c2: "#EAB308", c3: "#F97316", c4: "#8B5CF6" };
+  const palette = getBrandPalette ? getBrandPalette(parsed, { ...brand, themeColor: effectiveThemeColor }) : { c1: "#D4AF37", c2: "#EAB308", c3: "#D4AF37", c4: "#FAF9F0" };
   const themeColor = palette.c1;
   const bannerStyle = !effectiveBanner ? { background: `linear-gradient(135deg, ${palette.c1}, ${palette.c2})` } : {};
 
@@ -1683,7 +1702,12 @@ function BrandProductCard({ prod }) {
           .brand-profile-theme-scope div:not([class*="fa-"]),
           .brand-profile-theme-scope a:not([class*="fa-"]),
           .brand-profile-theme-scope label:not([class*="fa-"]),
-          .brand-profile-theme-scope input:not([class*="fa-"]) {
+          .brand-profile-theme-scope input:not([class*="fa-"]),
+          .brand-profile-theme-scope .product-card,
+          .brand-profile-theme-scope .product-card *,
+          .brand-profile-theme-scope .card-price-main,
+          .brand-profile-theme-scope .card-type-label,
+          .brand-profile-theme-scope .card-stock-label {
             font-family: "${fontFamily}", sans-serif !important;
           }
           .brand-profile-theme-scope i,
@@ -2315,7 +2339,7 @@ function BrandProductCard({ prod }) {
                 )}
                 {parsed.instagram && (
                   <a 
-                    href={`https://instagram.com/${parsed.instagram.trim()}`} 
+                    href={ensureFullSocialUrl(parsed.instagram, "instagram")} 
                     target="_blank" 
                     rel="noopener noreferrer" 
                     style={{ color: "#e1306c", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
@@ -2328,7 +2352,7 @@ function BrandProductCard({ prod }) {
                 )}
                 {parsed.facebook && (
                   <a 
-                    href={`https://facebook.com/${parsed.facebook.trim()}`} 
+                    href={ensureFullSocialUrl(parsed.facebook, "facebook")} 
                     target="_blank" 
                     rel="noopener noreferrer" 
                     style={{ color: "#1877f2", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
@@ -2341,7 +2365,7 @@ function BrandProductCard({ prod }) {
                 )}
                 {parsed.tiktok && (
                   <a 
-                    href={`https://tiktok.com/@${parsed.tiktok.trim().replace(/^@/, "")}`} 
+                    href={ensureFullSocialUrl(parsed.tiktok, "tiktok")} 
                     target="_blank" 
                     rel="noopener noreferrer" 
                     style={{ color: "#000000", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
@@ -2354,7 +2378,7 @@ function BrandProductCard({ prod }) {
                 )}
                 {parsed.website && (
                   <a 
-                    href={parsed.website.trim().startsWith("http") ? parsed.website.trim() : `https://${parsed.website.trim()}`} 
+                    href={ensureFullSocialUrl(parsed.website, "website")} 
                     target="_blank" 
                     rel="noopener noreferrer" 
                     style={{ color: "var(--gold-primary)", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
@@ -3288,14 +3312,6 @@ function BrandProductCard({ prod }) {
                       <span style={{ fontSize: "0.72rem", color: "var(--gold-primary)", fontWeight: 700 }}>✨ Activa el Dúo Visual</span>
                     </label>
                     <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Pega enlace de foto del frasco original o sube una..."
-                        value={perfumeOriginalImg}
-                        onChange={(e) => setPerfumeOriginalImg(e.target.value)}
-                        style={{ fontSize: "0.82rem", flex: 1 }}
-                      />
                       <label
                         style={{
                           padding: "0.45rem 0.9rem",
@@ -4450,14 +4466,6 @@ function BrandProductCard({ prod }) {
                         }
                       }
                     }}
-                    style={{ fontSize: "0.8rem" }}
-                  />
-                  <input
-                    type="url"
-                    className="form-control"
-                    placeholder="O pega la URL directa de la imagen del flyer..."
-                    value={evtImage}
-                    onChange={(e) => setEvtImage(e.target.value)}
                     style={{ fontSize: "0.8rem" }}
                   />
                 </div>

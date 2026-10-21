@@ -27,8 +27,8 @@ export default function ProductCardVisual({
         className="perfume-duo-wrapper"
         style={{
           background: isDark
-            ? "radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.12) 0%, rgba(10, 11, 15, 0.6) 100%)"
-            : "radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.06) 0%, rgba(0, 0, 0, 0.04) 100%)"
+            ? "radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.12) 0%, rgba(10, 11, 15, 0.5) 100%)"
+            : "radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.05) 0%, transparent 100%)"
         }}
       >
         {/* Ambient subtle radial glow */}

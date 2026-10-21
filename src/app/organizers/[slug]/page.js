@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useApp } from "../../../context/AppContext";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { ensureFullSocialUrl } from "../../../utils/brandUtils";
 
 const DEFAULT_USER_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Crect width='128' height='128' fill='%23E5E7EB'/%3E%3Cpath d='M64 24a24 24 0 100 48 24 24 0 000-48zM32 104a32 32 0 0164 0H32z' fill='%239CA3AF'/%3E%3C/svg%3E";
 
@@ -228,10 +229,10 @@ export default function OrganizerProfilePage() {
     setEditProfileType("organizer");
     setEditProfileId(organizer.id);
     setEditSlug(organizer.slug || "");
-    setEditInstagram(parsed.instagram || "");
-    setEditFacebook(parsed.facebook || "");
-    setEditTiktok(parsed.tiktok || "");
-    setEditWebsite(parsed.website || "");
+    setEditInstagram(ensureFullSocialUrl(parsed.instagram, "instagram"));
+    setEditFacebook(ensureFullSocialUrl(parsed.facebook, "facebook"));
+    setEditTiktok(ensureFullSocialUrl(parsed.tiktok, "tiktok"));
+    setEditWebsite(ensureFullSocialUrl(parsed.website, "website"));
     setEditBanner(parsed.banner || "");
     setEditBannerPreview(parsed.banner || "");
     setEditThemeColor(parsed.theme_color || "");
@@ -388,16 +389,16 @@ export default function OrganizerProfilePage() {
           {(parsed.instagram || parsed.facebook || parsed.tiktok || parsed.website) && (
             <div style={{ display: "flex", gap: "12px", marginTop: "1rem", flexWrap: "wrap" }}>
               {parsed.instagram && (
-                <a href={`https://instagram.com/${parsed.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" style={{ color: themeColor, fontSize: "1.4rem" }}><i className="fa-brands fa-instagram"></i></a>
+                <a href={ensureFullSocialUrl(parsed.instagram, "instagram")} target="_blank" rel="noopener noreferrer" style={{ color: themeColor, fontSize: "1.4rem" }}><i className="fa-brands fa-instagram"></i></a>
               )}
               {parsed.facebook && (
-                <a href={`https://facebook.com/${parsed.facebook}`} target="_blank" rel="noopener noreferrer" style={{ color: themeColor, fontSize: "1.4rem" }}><i className="fa-brands fa-facebook"></i></a>
+                <a href={ensureFullSocialUrl(parsed.facebook, "facebook")} target="_blank" rel="noopener noreferrer" style={{ color: themeColor, fontSize: "1.4rem" }}><i className="fa-brands fa-facebook"></i></a>
               )}
               {parsed.tiktok && (
-                <a href={`https://tiktok.com/@${parsed.tiktok.replace('@', '')}`} target="_blank" rel="noopener noreferrer" style={{ color: themeColor, fontSize: "1.4rem" }}><i className="fa-brands fa-tiktok"></i></a>
+                <a href={ensureFullSocialUrl(parsed.tiktok, "tiktok")} target="_blank" rel="noopener noreferrer" style={{ color: themeColor, fontSize: "1.4rem" }}><i className="fa-brands fa-tiktok"></i></a>
               )}
               {parsed.website && (
-                <a href={parsed.website.trim().startsWith("http") ? parsed.website.trim() : `https://${parsed.website.trim()}`} target="_blank" rel="noopener noreferrer" style={{ color: themeColor, fontSize: "1.4rem" }}><i className="fa-solid fa-globe"></i></a>
+                <a href={ensureFullSocialUrl(parsed.website, "website")} target="_blank" rel="noopener noreferrer" style={{ color: themeColor, fontSize: "1.4rem" }}><i className="fa-solid fa-globe"></i></a>
               )}
             </div>
           )}

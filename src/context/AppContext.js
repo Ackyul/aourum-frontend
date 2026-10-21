@@ -1852,8 +1852,8 @@ export function getBrandPalette(description, brand) {
 
   const defaultGold = "#D4AF37";
   const defaultSecondary = "#EAB308";
-  const defaultAccent = "#F97316";
-  const defaultBg = "#8B5CF6";
+  const defaultAccent = colors[1] || colors[0] || defaultGold;
+  const defaultBg = colors[0] || "#FAF9F0";
 
   const c1 = colors[0] || defaultGold;
   const c2 = colors[1] || colors[0] || defaultSecondary;
