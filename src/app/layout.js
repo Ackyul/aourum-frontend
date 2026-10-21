@@ -2268,21 +2268,7 @@ function AppLayoutShell({ children }) {
                                   </select>
                                 </div>
 
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                                  <div className="form-group" style={{ margin: 0 }}>
-                                    <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "4px", display: "block" }}>Estilo de Tarjetas</label>
-                                    <select 
-                                      className="form-control" 
-                                      value={design.cardStyle || "glass"} 
-                                      onChange={(e) => updateDesignKey("cardStyle", e.target.value)}
-                                      style={{ fontSize: "0.8rem", padding: "0.5rem 0.65rem", borderRadius: "8px" }}
-                                    >
-                                      <option value="glass">Glassmorphism Transparente</option>
-                                      <option value="flat">Plano Fino</option>
-                                      <option value="elevated">Sombra Elevada</option>
-                                      <option value="bordered">Borde de Marca</option>
-                                    </select>
-                                  </div>
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "12px" }}>
 
                                   <div className="form-group" style={{ margin: 0 }}>
                                     <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "4px", display: "block" }}>Fondo de Tarjetas</label>
