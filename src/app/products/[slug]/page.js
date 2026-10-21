@@ -149,13 +149,13 @@ export default function ProductDetailPage() {
   }, [prod, brands]);
 
   const perfumeInfo = useMemo(() => parsePerfumeInfo(prod), [prod]);
-  const isPerfumeProd = Boolean(
-    perfumeInfo.inspiration || 
+  const isFoodOrNonPerfume = /comida|snack|gastronom|fruta|alimento|bebida|caf[eé]|postre|joyer|ropa|artesan|textil|esot[eé]ric/i.test(`${prod?.category || ""} ${brand?.category || ""} ${brand?.rubro_general || ""}`);
+  const isPerfumeProd = !isFoodOrNonPerfume && Boolean(
     perfumeInfo.originalImg ||
-    perfumeInfo.family ||
     brand?.brandDesign?.catalogDisplayMode === "perfumery" || 
     brand?.brandDesign?.catalogDisplayMode === "perfume" || 
-    /perfum|fraganc|esencia|eau de/i.test(prod?.category || "")
+    /perfum|fraganc|coloni|eau de|esenci/i.test(prod?.category || "") ||
+    (perfumeInfo.inspiration && !isFoodOrNonPerfume)
   );
 
   const isFromBrand = useMemo(() => {
