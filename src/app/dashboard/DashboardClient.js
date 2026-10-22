@@ -2941,7 +2941,7 @@ export default function DashboardClient({ initialTab }) {
                     <h4 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)", fontWeight: 700, marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: 6 }}>
                       <i className="fa-solid fa-store" style={{ color: "var(--gold-primary)" }}></i> Marcas ({myBrands.length})
                     </h4>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "14px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 260px), 1fr))", gap: "14px" }}>
                       {myBrands.map((b) => (
                         <div 
                           key={b.id}
@@ -3008,7 +3008,7 @@ export default function DashboardClient({ initialTab }) {
                     <h4 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)", fontWeight: 700, marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: 6 }}>
                       <i className="fa-solid fa-calendar-days" style={{ color: "var(--gold-primary)" }}></i> Productoras ({myOrganizers.length})
                     </h4>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "14px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 260px), 1fr))", gap: "14px" }}>
                       {myOrganizers.map((o) => (
                         <div 
                           key={o.id}
@@ -3059,7 +3059,7 @@ export default function DashboardClient({ initialTab }) {
                     <h4 style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)", fontWeight: 700, marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: 6 }}>
                       <i className="fa-solid fa-guitar" style={{ color: "var(--gold-primary)" }}></i> Bandas ({myBands.length})
                     </h4>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "14px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 260px), 1fr))", gap: "14px" }}>
                       {myBands.map((b) => (
                         <div 
                           key={b.id}
@@ -3233,7 +3233,7 @@ export default function DashboardClient({ initialTab }) {
           TAB 5: SEGURIDAD Y CUENTA
           ═════════════════════════════════════════════════════════════════════ */}
       {activeTab === "seguridad" && (
-        <div className="fade-in" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "20px" }}>
+        <div className="fade-in" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 280px), 1fr))", gap: "20px" }}>
           {/* Cambiar Contraseña */}
           <div className="glass-panel" style={{ padding: "2rem", borderRadius: "20px" }}>
             <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "0.4rem" }}>
