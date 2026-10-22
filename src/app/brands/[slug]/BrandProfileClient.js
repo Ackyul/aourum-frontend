@@ -2297,32 +2297,29 @@ function BrandProductCard({ prod }) {
             return (
               <div style={{ display: "flex", gap: "16px", alignItems: "center", marginTop: "1rem", flexWrap: "wrap" }}>
                 {brand.whatsappNumber && (
-                  activeRole ? (
-                    <a 
-                      href={`https://api.whatsapp.com/send?phone=${brand.whatsappNumber.replace(/[^0-9]/g, "")}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      style={{ color: "#25d366", fontSize: "1.4rem", display: "flex", alignItems: "center", textDecoration: "none", transition: "transform 0.2s" }}
-                      onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
-                      onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
-                      title="WhatsApp"
-                    >
-                      <i className="fa-brands fa-whatsapp"></i>
-                    </a>
-                  ) : (
-                    <button 
-                      onClick={() => {
-                        triggerNotification(false, "Debes iniciar sesión para contactar vía WhatsApp.");
-                        setShowLoginModal(true);
-                      }}
-                      style={{ background: "none", border: "none", padding: 0, color: "#25d366", fontSize: "1.4rem", display: "flex", alignItems: "center", transition: "transform 0.2s", cursor: "pointer" }}
-                      onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.2)"}
-                      onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
-                      title="WhatsApp (Requiere inicio de sesión)"
-                    >
-                      <i className="fa-brands fa-whatsapp"></i>
-                    </button>
-                  )
+                  <a 
+                    href={`https://api.whatsapp.com/send?phone=${brand.whatsappNumber.replace(/[^0-9]/g, "")}&text=${encodeURIComponent(`¡Hola ${brand.name}! Vi tu vitrina en AOURUM y quisiera realizar una consulta o pedido.`)}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    style={{
+                      background: "#25d366",
+                      color: "#FFFFFF",
+                      padding: "0.5rem 1.15rem",
+                      borderRadius: "12px",
+                      fontWeight: 800,
+                      fontSize: "0.82rem",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "7px",
+                      textDecoration: "none",
+                      boxShadow: "0 4px 14px rgba(37, 211, 102, 0.3)",
+                      transition: "transform 0.2s ease"
+                    }}
+                    title="Contactar por WhatsApp"
+                  >
+                    <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.15rem" }}></i>
+                    <span>Contactar por WhatsApp</span>
+                  </a>
                 )}
                 {parsed.instagram && (
                   <a 
@@ -4725,6 +4722,20 @@ function BrandProductCard({ prod }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── FLOATING WHATSAPP CTA EN CELULAR ── */}
+      {brand?.whatsappNumber && (
+        <a
+          href={`https://api.whatsapp.com/send?phone=${brand.whatsappNumber.replace(/[^0-9]/g, "")}&text=${encodeURIComponent(`¡Hola ${brand.name}! Te escribo desde tu vitrina en AOURUM.`)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="brand-floating-wa-btn"
+          aria-label="Contactar por WhatsApp"
+        >
+          <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.2rem" }}></i>
+          <span>Pedir por WhatsApp</span>
+        </a>
       )}
     </div>
     </div>

@@ -2989,7 +2989,7 @@ export default function RootLayout({ children }) {
     <html lang="es" className={inter.variable}>
       <head>
         <title>AOURUM | El nodo central del talento local - Galería & Marcas Independientes</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="description" content="AOURUM es el nodo central del talento local. Plataforma oficial y galería sensorial de marcas independientes, diseño, perfumería de autor y cultura." />
         <meta name="keywords" content="aourum, AOURUM, aourum.com, www.aourum.com, AOURUM Perú, aourum arequipa, galeria aourum, aourum marca, aourum oficial, nodo central del talento local, marcas locales, perfumería de autor, ferias independientes" />
         <meta name="author" content="AOURUM" />

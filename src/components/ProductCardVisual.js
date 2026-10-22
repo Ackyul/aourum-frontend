@@ -26,6 +26,10 @@ export default function ProductCardVisual({
       <div 
         className="perfume-duo-wrapper"
         style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
           background: isDark
             ? "radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.12) 0%, rgba(10, 11, 15, 0.5) 100%)"
             : "radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.05) 0%, transparent 100%)"
@@ -114,6 +118,8 @@ export default function ProductCardVisual({
     return (
       <div
         style={{
+          position: "absolute",
+          inset: 0,
           width: "100%",
           height: "100%",
           backgroundColor: bgContainer,
@@ -146,16 +152,51 @@ export default function ProductCardVisual({
   return (
     <div
       style={{
+        position: "absolute",
+        inset: 0,
         width: "100%",
         height: "100%",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        color: isDark ? "#A1A1AA" : "var(--text-muted)",
-        fontSize: "2.2rem"
+        background: isDark
+          ? "radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.08) 0%, rgba(20, 20, 24, 0.6) 100%)"
+          : "radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.06) 0%, rgba(248, 247, 244, 0.9) 100%)",
+        padding: "16px",
+        gap: "6px"
       }}
     >
-      <i className="fa-solid fa-box-open" style={{ opacity: 0.4 }} />
+      <div
+        style={{
+          width: "48px",
+          height: "48px",
+          borderRadius: "14px",
+          background: isDark ? "rgba(255, 255, 255, 0.06)" : "rgba(255, 255, 255, 0.8)",
+          border: `1.5px solid ${brandColor || "var(--gold-primary)"}35`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)"
+        }}
+      >
+        <i
+          className="fa-solid fa-box-open"
+          style={{ fontSize: "1.3rem", color: brandColor || "var(--gold-primary)", opacity: 0.85 }}
+        />
+      </div>
+      <span
+        style={{
+          fontSize: "0.62rem",
+          fontWeight: 700,
+          color: isDark ? "rgba(255, 255, 255, 0.5)" : "var(--text-muted)",
+          textTransform: "uppercase",
+          letterSpacing: "0.06em"
+        }}
+      >
+        AOURUM Vitrina
+      </span>
     </div>
   );
 }
+

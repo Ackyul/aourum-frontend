@@ -377,7 +377,7 @@ export default function Header({
       )}
 
       {/* ── MOBILE BOTTOM TAB BAR ───────────────────────────────────────────── */}
-      {mounted && (
+      {mounted && !pathname?.startsWith("/products/") && (
         <nav className="mobile-tab-bar">
           {[
             { href: "/", icon: "fa-compass", label: "Descubre" },

@@ -6,97 +6,7 @@ import Link from "next/link";
 import { useApp } from "../../context/AppContext";
 import { ensureFullSocialUrl } from "../../utils/brandUtils";
 
-// ── 5 PLANTILLAS DE ESTILO INTELIGENTES EN 1 CLIC ─────────────────────────────
-export const BRAND_STYLE_PRESETS = [
-  {
-    id: "dorado-luxury",
-    name: "Dorado Imperial",
-    tagline: "El sello de prestigio AOURUM",
-    badge: "👑 Signature",
-    description: "Paleta oro imperial, tarjetas con resplandor dorado y tipografía clásica editorial.",
-    themeColor: "#D4AF37, #F3E5AB, #EAB308, #FAF9F0",
-    colors: ["#D4AF37", "#F3E5AB", "#EAB308", "#FAF9F0"],
-    customBgColor: "#FAF9F0",
-    bgStyle: "solid",
-    cardStyle: "luxury",
-    cardBgColor: "page_bg",
-    cardBorderColor: "auto",
-    cardTextColor: "auto",
-    fontFamily: "Cinzel",
-    catalogDisplayMode: "auto",
-    glowIntensity: 80,
-    bannerOverlay: "gold",
-    logoShape: "rounded"
-  },
-  {
-    id: "alta-perfumeria",
-    name: "Alta Perfumería",
-    tagline: "Dúo Visual & Experiencia Olfativa",
-    badge: "💎 Fragancias",
-    description: "Activa el Dúo Visual (original + creación propia), pirámide olfativa y vitrina oscura de lujo.",
-    themeColor: "#E0A96D, #8A4AF3, #F5D061, #12131C",
-    colors: ["#E0A96D", "#8A4AF3", "#F5D061", "#12131C"],
-    customBgColor: "#0A0B0E",
-    bgStyle: "gradient",
-    cardStyle: "glass",
-    fontFamily: "Playfair Display",
-    catalogDisplayMode: "perfumery",
-    glowIntensity: 85,
-    bannerOverlay: "dark",
-    logoShape: "circle"
-  },
-  {
-    id: "organico-botanico",
-    name: "Orgánico & Botánico",
-    tagline: "Frescura natural y sostenible",
-    badge: "🌿 Sostenible",
-    description: "Tonos verdes botánicos, tarjetas limpias sin artificios y tipografía moderna geométrica.",
-    themeColor: "#2D6A4F, #52B788, #D8F3DC, #1B4332",
-    colors: ["#2D6A4F", "#52B788", "#D8F3DC", "#1B4332"],
-    customBgColor: "#F4F7F4",
-    bgStyle: "solid",
-    cardStyle: "solid",
-    fontFamily: "Outfit",
-    catalogDisplayMode: "grid",
-    glowIntensity: 35,
-    bannerOverlay: "none",
-    logoShape: "rounded"
-  },
-  {
-    id: "gastro-menu",
-    name: "Gastro, Café & Menú",
-    tagline: "Carta gourmet y platillos",
-    badge: "🍽️ Sabores",
-    description: "Modo Menú para restaurantes y cafés: platillos, porciones, notas de cata y tonos terracota cálidos.",
-    themeColor: "#E76F51, #F4A261, #2A9D8F, #264653",
-    colors: ["#E76F51", "#F4A261", "#2A9D8F", "#264653"],
-    customBgColor: "#FCFBF7",
-    bgStyle: "solid",
-    cardStyle: "minimal",
-    fontFamily: "Plus Jakarta Sans",
-    catalogDisplayMode: "menu",
-    glowIntensity: 45,
-    bannerOverlay: "vignette",
-    logoShape: "rounded"
-  },
-  {
-    id: "minimalista-tech",
-    name: "Minimalista Moderno",
-    tagline: "Líneas puras y contraste contemporáneo",
-    badge: "🖤 Vanguardia",
-    description: "Fondo dark grafito con bordes nítidos outlined, tipografía Space Grotesk y acentos cian.",
-    themeColor: "#00F2FE, #4FACFE, #0072FF, #0D1117",
-    colors: ["#00F2FE", "#4FACFE", "#0072FF", "#0D1117"],
-    customBgColor: "#0D1117",
-    bgStyle: "mesh",
-    cardStyle: "outlined",
-    fontFamily: "Space Grotesk",
-    catalogDisplayMode: "grid",
-    glowIntensity: 65,
-    bannerOverlay: "dark",
-    logoShape: "square"
-  }
-];
+
 
 // ── PLANTILLAS INTELIGENTES POR TIPO DE PRODUCTO ──────────────────────────────
 export const PRODUCT_TYPE_TEMPLATES = [
@@ -182,7 +92,6 @@ export default function DashboardClient({ initialTab }) {
   const [savingBrand, setSavingBrand] = useState(false);
   const [uploadingBrandLogo, setUploadingBrandLogo] = useState(false);
   const [uploadingBrandBanner, setUploadingBrandBanner] = useState(false);
-  const [selectedPresetId, setSelectedPresetId] = useState(null);
   const [brandForm, setBrandForm] = useState({
     name: "",
     category: "",
@@ -442,34 +351,7 @@ export default function DashboardClient({ initialTab }) {
     router.replace(`/dashboard?${params.toString()}`, { scroll: false });
   };
 
-  // ── APLICAR PLANTILLA EN 1 CLIC ─────────────────────────────────────────────
-  const applyPreset = (preset) => {
-    setSelectedPresetId(preset.id);
-    setBrandForm(prev => ({
-      ...prev,
-      c1: preset.colors[0],
-      c2: preset.colors[1],
-      c3: preset.colors[2],
-      c4: preset.colors[3],
-      customBgColor: preset.customBgColor,
-      bgStyle: preset.bgStyle,
-      cardStyle: preset.cardStyle,
-      cardBgColor: preset.cardBgColor || "page_bg",
-      cardBorderColor: preset.cardBorderColor || "auto",
-      cardTextColor: preset.cardTextColor || "auto",
-      fontFamily: preset.fontFamily,
-      catalogDisplayMode: preset.catalogDisplayMode,
-      glowIntensity: preset.glowIntensity,
-      bannerOverlay: preset.bannerOverlay,
-      logoShape: preset.logoShape
-    }));
-
-    if (triggerNotification) {
-      triggerNotification(true, `🎨 Plantilla "${preset.name}" seleccionada. Haz clic en "Guardar Estilo" para aplicarla.`);
-    }
-  };
-
-  // ── GUARDAR MARCA (MODO RÁPIDO Y AVANZADO) ──────────────────────────────────
+  // ── GUARDAR MARCA ───────────────────────────────────────────────────────────
   const handleSaveBrand = async (e) => {
     if (e) e.preventDefault();
     if (!selectedBrandId) {
@@ -870,7 +752,7 @@ export default function DashboardClient({ initialTab }) {
               </span>
             </div>
             <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", margin: "4px 0 0" }}>
-              Modifica todo tu ecosistema en pocos minutos con atajos rápidos, plantillas inteligentes y gestión centralizada.
+              Modifica todo tu ecosistema en pocos minutos con atajos rápidos y gestión centralizada.
             </p>
           </div>
         </div>
@@ -1182,173 +1064,7 @@ export default function DashboardClient({ initialTab }) {
             </div>
           )}
 
-          {/* ── SECCIÓN 1: MODO RÁPIDO: PLANTILLAS EN 1 CLIC ──────────────── */}
-          <div className="glass-panel" style={{ padding: "1.8rem", borderRadius: "20px", marginBottom: "2rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
-              <div>
-                <span style={{ fontSize: "0.72rem", background: "var(--gold-gradient)", color: "#1C1C1E", fontWeight: 800, padding: "3px 9px", borderRadius: "10px", letterSpacing: "0.05em", textTransform: "uppercase" }}>
-                  ⚡ Modo Rápido (En 5 Segundos)
-                </span>
-                <h2 style={{ fontSize: "1.4rem", fontWeight: 800, margin: "6px 0 2px", letterSpacing: "-0.01em" }}>
-                  Plantillas de Estilo Inteligentes
-                </h2>
-                <p style={{ color: "var(--text-muted)", fontSize: "0.88rem", margin: 0 }}>
-                  Elige una plantilla armonizada y toda tu vitrina adoptará colores, tipografía, tarjetas y modo de catálogo al instante.
-                </p>
-              </div>
-
-              <button 
-                type="button"
-                onClick={handleSaveBrand}
-                className="btn-gold"
-                disabled={savingBrand}
-                style={{ padding: "0.65rem 1.6rem", borderRadius: "10px", fontSize: "0.9rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px" }}
-              >
-                <i className={savingBrand ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-check"}></i>
-                {savingBrand ? "Guardando..." : "💾 Guardar Estilo en Mi Marca"}
-              </button>
-            </div>
-
-            {/* Grid de 5 Presets */}
-            <div className="preset-grid">
-              {BRAND_STYLE_PRESETS.map(preset => {
-                const isSelected = selectedPresetId === preset.id || (
-                  brandForm.cardStyle === preset.cardStyle && 
-                  brandForm.fontFamily === preset.fontFamily &&
-                  brandForm.catalogDisplayMode === preset.catalogDisplayMode
-                );
-
-                return (
-                  <div 
-                    key={preset.id}
-                    className={`preset-card ${isSelected ? "active" : ""}`}
-                    onClick={() => applyPreset(preset)}
-                  >
-                    <div>
-                      <span style={{ fontSize: "0.7rem", fontWeight: 800, color: "var(--text-gold)" }}>{preset.badge}</span>
-                      <h4 style={{ fontSize: "1.05rem", fontWeight: 800, margin: "4px 0 2px" }}>{preset.name}</h4>
-                      <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontStyle: "italic", margin: "0 0 8px" }}>
-                        &ldquo;{preset.tagline}&rdquo;
-                      </p>
-
-                      <div className="preset-color-dots">
-                        {preset.colors.map((c, i) => (
-                          <div key={i} className="preset-dot" style={{ background: c }} title={c} />
-                        ))}
-                      </div>
-
-                      <p style={{ fontSize: "0.78rem", color: "var(--text-primary)", lineHeight: 1.35, margin: "6px 0 0" }}>
-                        {preset.description}
-                      </p>
-                    </div>
-
-                    <div style={{ marginTop: "12px", paddingTop: "8px", borderTop: "1px dashed var(--border-color)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>Fuente: <b>{preset.fontFamily}</b></span>
-                      <span style={{ fontSize: "0.75rem", color: "var(--gold-primary)", fontWeight: 700 }}>
-                        {isSelected ? "Seleccionada" : "Aplicar →"}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Vista Previa En Vivo del Estilo Seleccionado */}
-            <div style={{ background: brandForm.customBgColor || "var(--bg-card)", border: "1.5px solid var(--border-color)", borderRadius: "16px", padding: "1.4rem", marginTop: "1.5rem" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "8px" }}>
-                <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                  👁️ Vista Previa en Vivo de tu Vitrina y Productos
-                </span>
-                <span style={{ fontSize: "0.75rem", background: "rgba(0,0,0,0.06)", padding: "3px 8px", borderRadius: "6px", fontFamily: brandForm.fontFamily }}>
-                  Tipografía: <b>{brandForm.fontFamily}</b> · Fondo: <b>{brandForm.cardBgColor === "page_bg" ? "Mismo de la tienda" : brandForm.cardBgColor}</b>
-                </span>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.2rem", alignItems: "start" }}>
-                {/* Cabecera de la Marca */}
-                <div style={{ display: "flex", alignItems: "center", gap: "1.2rem", flexWrap: "wrap", padding: "0.8rem", borderRadius: "12px", background: "rgba(255,255,255,0.4)" }}>
-                  <img 
-                    src={brandForm.logo || "https://res.cloudinary.com/decklnx3p/image/upload/v1781055233/aourum/tqu58byx9bhfz1pq6l4v.png"} 
-                    alt="Logo"
-                    style={{ 
-                      width: "56px", 
-                      height: "56px", 
-                      borderRadius: brandForm.logoShape === "square" ? "0px" : brandForm.logoShape === "rounded" ? "14px" : "50%",
-                      objectFit: "cover",
-                      border: `2px solid ${brandForm.c1}`
-                    }}
-                  />
-                  <div style={{ flex: 1 }}>
-                    <h3 style={{ fontSize: "1.25rem", fontWeight: 800, margin: 0, fontFamily: brandForm.fontFamily, color: "var(--text-primary)" }}>
-                      {brandForm.name || "Nombre de tu Marca"}
-                    </h3>
-                    <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", margin: "2px 0 0" }}>
-                      {brandForm.tagline ? `"${brandForm.tagline}"` : "Tu eslogan o categoría aparecerá aquí"}
-                    </p>
-                  </div>
-                  <div style={{ display: "flex", gap: "6px" }}>
-                    <span style={{ background: brandForm.c1, color: "#fff", padding: "4px 10px", borderRadius: "12px", fontSize: "0.72rem", fontWeight: 700 }}>
-                      C1
-                    </span>
-                    <span style={{ background: brandForm.c2, color: "#1C1C1E", padding: "4px 10px", borderRadius: "12px", fontSize: "0.72rem", fontWeight: 700 }}>
-                      C2
-                    </span>
-                  </div>
-                </div>
-
-                {/* Mini Tarjeta de Muestra de Producto */}
-                <div 
-                  style={{
-                    backgroundColor: (brandForm.cardBgColor === "page_bg" || !brandForm.cardBgColor || brandForm.cardBgColor === "auto")
-                      ? (brandForm.customBgColor || "#FAF9F0")
-                      : (brandForm.cardBgColor === "transparent" ? "rgba(255,255,255,0.5)" : (brandForm.cardBgColor === "brand" ? brandForm.c1 : (brandForm.cardBgColor === "brand-soft" ? `${brandForm.c1}18` : brandForm.cardBgColor))),
-                    border: brandForm.cardBorderColor === "brand"
-                      ? `1.5px solid ${brandForm.c1}`
-                      : brandForm.cardBorderColor === "transparent"
-                      ? "none"
-                      : (brandForm.cardBorderColor && brandForm.cardBorderColor.startsWith("#"))
-                      ? `1.5px solid ${brandForm.cardBorderColor}`
-                      : `1px solid ${brandForm.c1}35`,
-                    borderRadius: "14px",
-                    padding: "0.9rem",
-                    boxShadow: brandForm.cardStyle === "luxury"
-                      ? `0 8px 22px ${brandForm.c1}25`
-                      : brandForm.cardStyle === "elevated"
-                      ? "0 12px 28px rgba(0,0,0,0.12)"
-                      : brandForm.cardStyle === "glass"
-                      ? "0 8px 24px rgba(0,0,0,0.08)"
-                      : "0 2px 10px rgba(0,0,0,0.05)",
-                    fontFamily: brandForm.fontFamily,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px"
-                  }}
-                >
-                  <div style={{ width: "52px", height: "52px", borderRadius: "10px", background: "transparent", border: `1px dashed ${brandForm.c1}60`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", color: brandForm.c1 }}>
-                    <i className="fa-solid fa-box-open"></i>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ fontSize: "0.62rem", background: brandForm.c1, color: "#fff", padding: "2px 6px", borderRadius: "6px", fontWeight: 800 }}>
-                        PRODUCTO
-                      </span>
-                      <span style={{ fontSize: "0.65rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700 }}>
-                        {brandForm.category || "Destacado"}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: "0.92rem", fontWeight: 800, color: (brandForm.cardTextColor === "brand" ? brandForm.c1 : (brandForm.cardTextColor && brandForm.cardTextColor.startsWith("#") ? brandForm.cardTextColor : "var(--text-primary)")), marginTop: "2px", fontFamily: brandForm.fontFamily }}>
-                      Ejemplo de Producto
-                    </div>
-                    <div style={{ fontSize: "0.85rem", fontWeight: 800, color: (brandForm.cardTextColor === "brand" ? brandForm.c1 : (brandForm.cardTextColor && brandForm.cardTextColor.startsWith("#") ? brandForm.cardTextColor : brandForm.c1)), marginTop: "2px", fontFamily: brandForm.fontFamily }}>
-                      S/ 89.00
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ── SECCIÓN 2: ACORDEÓN DE DATOS ESENCIALES (INICIA CERRADO) ── */}
+          {/* ── DATOS ESENCIALES DE LA MARCA ── */}
           <div className="dashboard-accordion" style={{ marginBottom: "1.5rem" }}>
             <div 
               className="dashboard-accordion-header"

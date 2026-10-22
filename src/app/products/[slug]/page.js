@@ -1711,6 +1711,64 @@ export default function ProductDetailPage() {
           </div>
         </div>
       )}
+
+      {/* ── STICKY BUY BAR EN CELULAR ── */}
+      <div className="product-mobile-sticky-bar">
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <span style={{ fontSize: "0.68rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700 }}>
+            Precio
+          </span>
+          <span style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--gold-dark)", lineHeight: 1 }}>
+            S/ {prod.price}
+          </span>
+        </div>
+
+        {brand?.whatsappNumber ? (
+          <a
+            href={whatsappLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-gold"
+            style={{
+              flex: 1,
+              maxWidth: "260px",
+              padding: "0.65rem 1rem",
+              borderRadius: "12px",
+              fontWeight: 800,
+              fontSize: "0.85rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              textDecoration: "none"
+            }}
+          >
+            <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.1rem" }}></i>
+            <span>Pedir por WhatsApp</span>
+          </a>
+        ) : (
+          <button
+            onClick={() => router.push(`/brands/${brand?.slug || brand?.id}`)}
+            className="btn-gold"
+            style={{
+              flex: 1,
+              maxWidth: "260px",
+              padding: "0.65rem 1rem",
+              borderRadius: "12px",
+              fontWeight: 800,
+              fontSize: "0.85rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px"
+            }}
+          >
+            <i className="fa-solid fa-store"></i>
+            <span>Ver Tienda</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 }
+
