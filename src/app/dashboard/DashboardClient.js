@@ -883,7 +883,7 @@ export default function DashboardClient({ initialTab }) {
               Elige qué deseas resolver ahora. Cada herramienta está diseñada para tardar menos de 60 segundos.
             </p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "14px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 250px), 1fr))", gap: "14px" }}>
               <div 
                 onClick={() => handleTabChange("marcas")}
                 style={{ background: "var(--bg-card)", border: "1.5px solid var(--border-color)", borderRadius: "14px", padding: "1.2rem", cursor: "pointer", transition: "var(--transition-smooth)" }}
@@ -1103,7 +1103,7 @@ export default function DashboardClient({ initialTab }) {
             {isEssentialBrandOpen && (
               <div className="dashboard-accordion-body">
                 <form onSubmit={handleSaveBrand}>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))", gap: "16px" }}>
                     {/* Logo de la Marca */}
                     <div className="form-group">
                       <label style={{ fontSize: "0.82rem", fontWeight: 700, display: "block", marginBottom: "8px" }}>
@@ -2498,7 +2498,7 @@ export default function DashboardClient({ initialTab }) {
                 Información de contacto, ocupación y biografía pública.
               </p>
 
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "16px", marginBottom: "1.5rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))", gap: "16px", marginBottom: "1.5rem" }}>
                 <div className="form-group">
                   <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>Nombre *</label>
                   <input 
@@ -2651,7 +2651,7 @@ export default function DashboardClient({ initialTab }) {
                 Personaliza la estética, portada, color de acento y fondo de tu perfil público.
               </p>
 
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "16px", marginBottom: "1.5rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))", gap: "16px", marginBottom: "1.5rem" }}>
                 {/* Avatar */}
                 <div className="form-group">
                   <label style={{ fontSize: "0.82rem", fontWeight: 700, display: "block", marginBottom: "8px" }}>
