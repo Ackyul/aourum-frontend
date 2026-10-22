@@ -133,7 +133,12 @@ export default function PersonProfileClient() {
 
   const isOwner = activePersonId != null && person?.id != null && activePersonId.toString() === person.id.toString();
 
-  const myBrands = (brands || []).filter((b) => (person.brandIds || []).includes(b.id));
+  const personBrandIds = (person?.brandIds || []).map(Number);
+  const myBrands = (brands || []).filter((b) => 
+    personBrandIds.includes(Number(b.id)) || 
+    Number(b.personId) === Number(person?.id) || 
+    (Array.isArray(b.personIds) && b.personIds.map(Number).includes(Number(person?.id)))
+  );
   const myOrganizers = (organizers || []).filter((o) => {
     if (!(person.organizerIds || []).includes(o.id)) return false;
     const rObj = (person.organizerRoles || []).find((r) => r.organizerId === o.id);

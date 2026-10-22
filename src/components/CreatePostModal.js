@@ -34,7 +34,11 @@ export default function CreatePostModal() {
 
   // Filter user owned/collaborated brands & organizers
   const currentPerson = getCurrentPerson();
-  const userBrands = brands.filter(b => b.personId === Number(activePersonId));
+  const userBrands = brands.filter(b => 
+    b.personId === Number(activePersonId) || 
+    (Array.isArray(b.personIds) && b.personIds.map(Number).includes(Number(activePersonId))) ||
+    ((currentPerson?.brandIds || []).map(Number).includes(Number(b.id)))
+  );
   const userOrganizers = organizers.filter(o => o.personId === Number(activePersonId));
 
   // Reset form state when modal opens

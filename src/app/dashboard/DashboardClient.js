@@ -217,8 +217,7 @@ export default function DashboardClient({ initialTab }) {
 
   // Marcas del usuario (como creador original, colaborador o dueño directo)
   const myBrands = useMemo(() => {
-    if (!brands || brands.length === 0) return [];
-    if (!currentPerson) return brands;
+    if (!brands || brands.length === 0 || !currentPerson) return [];
     const pId = Number(currentPerson.id);
     const pBrandIds = (currentPerson.brandIds || []).map(Number);
     const userBrands = brands.filter(b => {
@@ -227,7 +226,7 @@ export default function DashboardClient({ initialTab }) {
       const isNamed = b.owner && currentPerson.name && (b.owner.toLowerCase().trim() === currentPerson.name.toLowerCase().trim());
       return isOwner || isCollab || isNamed;
     });
-    return userBrands.length > 0 ? userBrands : brands;
+    return userBrands;
   }, [currentPerson, brands]);
 
   // Productoras del usuario
