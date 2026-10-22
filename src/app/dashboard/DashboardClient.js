@@ -783,32 +783,47 @@ export default function DashboardClient({ initialTab }) {
         <button 
           className={`dashboard-tab-btn ${activeTab === "resumen" ? "active" : ""}`}
           onClick={() => handleTabChange("resumen")}
+          title="Resumen & Atajos"
         >
-          <i className="fa-solid fa-bolt"></i> Resumen & Atajos
+          <i className="fa-solid fa-bolt"></i> 
+          <span className="tab-label-desktop">Resumen & Atajos</span>
+          <span className="tab-label-mobile">Resumen</span>
         </button>
         <button 
           className={`dashboard-tab-btn ${activeTab === "marcas" ? "active" : ""}`}
           onClick={() => handleTabChange("marcas")}
+          title={`Mis Marcas & Vitrinas (${myBrands.length})`}
         >
-          <i className="fa-solid fa-store"></i> Mis Marcas & Vitrinas ({myBrands.length})
+          <i className="fa-solid fa-store"></i> 
+          <span className="tab-label-desktop">Mis Marcas & Vitrinas ({myBrands.length})</span>
+          <span className="tab-label-mobile">Marcas ({myBrands.length})</span>
         </button>
         <button 
           className={`dashboard-tab-btn ${activeTab === "productos" ? "active" : ""}`}
           onClick={() => handleTabChange("productos")}
+          title={`Catálogo de Productos (${currentBrandProducts.length})`}
         >
-          <i className="fa-solid fa-bag-shopping"></i> Catálogo de Productos ({currentBrandProducts.length})
+          <i className="fa-solid fa-bag-shopping"></i> 
+          <span className="tab-label-desktop">Catálogo de Productos ({currentBrandProducts.length})</span>
+          <span className="tab-label-mobile">Productos ({currentBrandProducts.length})</span>
         </button>
         <button 
           className={`dashboard-tab-btn ${activeTab === "perfil" ? "active" : ""}`}
           onClick={() => handleTabChange("perfil")}
+          title="Mi Perfil & Preferencias"
         >
-          <i className="fa-solid fa-id-card-clip"></i> Mi Perfil & Preferencias
+          <i className="fa-solid fa-id-card-clip"></i> 
+          <span className="tab-label-desktop">Mi Perfil & Preferencias</span>
+          <span className="tab-label-mobile">Mi Perfil</span>
         </button>
         <button 
           className={`dashboard-tab-btn ${activeTab === "seguridad" ? "active" : ""}`}
           onClick={() => handleTabChange("seguridad")}
+          title="Seguridad & Cuenta"
         >
-          <i className="fa-solid fa-shield-halved"></i> Seguridad & Cuenta
+          <i className="fa-solid fa-shield-halved"></i> 
+          <span className="tab-label-desktop">Seguridad & Cuenta</span>
+          <span className="tab-label-mobile">Seguridad</span>
         </button>
       </div>
 
@@ -1966,75 +1981,72 @@ export default function DashboardClient({ initialTab }) {
 
                 return (
                   <div key={prod.id} className="dash-product-row">
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px", minWidth: "260px" }}>
+                    <div className="dash-product-main-info">
                       <img 
                         src={prod.image || "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=120"} 
                         alt={prod.name}
-                        style={{ width: "52px", height: "52px", borderRadius: "10px", objectFit: "cover", border: "1px solid var(--border-color)", background: "#fff" }}
+                        className="dash-product-img"
                       />
-                      <div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                          <h4 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0 }}>{prod.name}</h4>
+                      <div className="dash-product-text">
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                          <h4 className="dash-product-title">{prod.name}</h4>
                           {isPerfume && (
                             <span style={{ fontSize: "0.62rem", background: "rgba(138,74,243,0.15)", color: "#8A4AF3", padding: "1px 6px", borderRadius: "8px", fontWeight: 700 }}>
                               💎 Fragancia
                             </span>
                           )}
                         </div>
-                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{prod.category}</span>
+                        <span className="dash-product-cat">{prod.category}</span>
+                        <div className="dash-product-mobile-price">
+                          <span className="dash-price-badge">S/. {prod.price}</span>
+                          <span className="dash-stock-badge">
+                            {prod.type === "service" ? "∞ Ilimitado" : `${prod.stock || 0} unid.`}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }} className="dash-product-actions">
-                      <div>
+                    <div className="dash-product-actions">
+                      <div className="dash-desktop-price-stock">
                         <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", display: "block" }}>Precio</span>
                         <span style={{ fontSize: "1rem", fontWeight: 800, color: "var(--text-gold)" }}>S/. {prod.price}</span>
                       </div>
 
-                      <div>
+                      <div className="dash-desktop-price-stock">
                         <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", display: "block" }}>Stock</span>
                         <span style={{ fontSize: "0.85rem", fontWeight: 600 }}>
                           {prod.type === "service" ? "∞ Ilimitado" : `${prod.stock || 0} unid.`}
                         </span>
                       </div>
 
-                      {/* Toggle Visibilidad en 1 Clic */}
-                      <button 
-                        onClick={() => handleToggleProductVisibility(prod)}
-                        title={isVisible ? "Ocultar de la vitrina" : "Mostrar en la vitrina"}
-                        style={{ 
-                          background: isVisible ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)", 
-                          color: isVisible ? "#22C55E" : "#EF4444",
-                          border: `1px solid ${isVisible ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}`,
-                          padding: "6px 12px", 
-                          borderRadius: "8px", 
-                          fontSize: "0.78rem", 
-                          fontWeight: 700, 
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px"
-                        }}
-                      >
-                        <i className={`fa-solid fa-${isVisible ? "eye" : "eye-slash"}`}></i>
-                        {isVisible ? "Activo" : "Oculto"}
-                      </button>
-
-                      <div style={{ display: "flex", gap: "6px" }}>
+                      <div className="dash-product-btn-group">
+                        {/* Toggle Visibilidad en 1 Clic */}
                         <button 
+                          type="button"
+                          onClick={() => handleToggleProductVisibility(prod)}
+                          title={isVisible ? "Ocultar de la vitrina" : "Mostrar en la vitrina"}
+                          className={`dash-btn-visibility ${isVisible ? "active" : "hidden"}`}
+                        >
+                          <i className={`fa-solid fa-${isVisible ? "eye" : "eye-slash"}`}></i>
+                          <span>{isVisible ? "Activo" : "Oculto"}</span>
+                        </button>
+
+                        <button 
+                          type="button"
                           onClick={() => handleEditProduct(prod)}
-                          className="btn-outline-gold"
-                          style={{ padding: "6px 12px", borderRadius: "8px", fontSize: "0.78rem", fontWeight: 700 }}
+                          className="btn-outline-gold dash-btn-edit"
                         >
                           <i className="fa-solid fa-pen"></i> Editar
                         </button>
                         <button 
+                          type="button"
                           onClick={async () => {
                             if (window.confirm(`¿Estás seguro de eliminar "${prod.name}"?`)) {
                               await handleDeleteProduct(prod.id);
                             }
                           }}
-                          style={{ background: "transparent", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444", padding: "6px 10px", borderRadius: "8px", fontSize: "0.78rem", cursor: "pointer" }}
+                          className="dash-btn-delete"
+                          title="Eliminar producto"
                         >
                           <i className="fa-solid fa-trash"></i>
                         </button>

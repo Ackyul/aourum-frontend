@@ -117,6 +117,7 @@ export default function ProductCardVisual({
 
     return (
       <div
+        className="product-visual-container"
         style={{
           position: "absolute",
           inset: 0,
@@ -126,14 +127,13 @@ export default function ProductCardVisual({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          overflow: "hidden",
-          padding: "10px"
+          overflow: "hidden"
         }}
       >
         <img
           src={brandImg}
           alt={prod?.name || "Producto"}
-          className="card-img-hover"
+          className="product-visual-img card-img-hover"
           onError={() => setBrandImgError(true)}
           style={{
             width: "100%",

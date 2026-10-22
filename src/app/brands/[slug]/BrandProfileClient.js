@@ -1800,17 +1800,19 @@ function BrandProductCard({ prod }) {
             min-height: auto !important;
           }
           .brand-profile-theme-scope .product-card > div:last-child {
-            padding: 0.65rem 0.6rem !important;
-            gap: 0.2rem !important;
+            padding: 0.75rem 0.7rem !important;
+            gap: 0.35rem !important;
           }
           .brand-profile-theme-scope .product-card h3 {
-            font-size: 0.82rem !important;
-            line-height: 1.25 !important;
-            height: 2.5em !important;
+            font-size: 0.94rem !important;
+            line-height: 1.32 !important;
+            min-height: 2.65em !important;
             margin: 0 !important;
+            font-weight: 700 !important;
           }
           .brand-profile-theme-scope .product-card .card-price-main {
-            font-size: 0.88rem !important;
+            font-size: 1.05rem !important;
+            font-weight: 800 !important;
           }
         }
         .brand-profile-theme-scope .product-card h3,
