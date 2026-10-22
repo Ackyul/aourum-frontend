@@ -993,7 +993,7 @@ export default function DashboardClient({ initialTab }) {
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "12px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 250px), 1fr))", gap: "12px" }}>
               {myBrands.map(b => (
                 <div key={`resumen-b-${b.id}`} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-card)", border: "1px solid var(--border-color)", padding: "10px 14px", borderRadius: "12px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", overflow: "hidden" }}>
