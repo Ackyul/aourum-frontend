@@ -1096,33 +1096,92 @@ export default function DashboardClient({ initialTab }) {
         <div className="fade-in">
           {/* Selector de Marca y Enlace a Vitrina */}
           {myBrands.length > 0 && (
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", background: "var(--bg-card)", padding: "0.9rem 1.4rem", borderRadius: "16px", border: "1px solid var(--border-color)", marginBottom: "1.5rem", flexWrap: "wrap" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text-muted)" }}>Marca a Gestionar:</span>
-                <select 
-                  value={selectedBrandId || ""}
-                  onChange={(e) => setSelectedBrandId(Number(e.target.value))}
-                  className="form-control"
-                  style={{ maxWidth: "340px", fontWeight: 700, padding: "6px 12px" }}
-                >
-                  {myBrands.map(b => (
-                    <option key={b.id} value={b.id}>{b.name} ({b.category || "General"})</option>
-                  ))}
-                </select>
-              </div>
-
-              {selectedBrand && (
-                <div style={{ display: "flex", gap: "8px" }}>
+            <div className="dash-brand-mgmt-card">
+              <div className="dash-brand-mgmt-header">
+                <div className="dash-brand-mgmt-tag">
+                  <span className="dash-brand-pulse-dot"></span>
+                  <span>MARCA EN EDICIÓN ACTIVA</span>
+                </div>
+                {selectedBrand && (
                   <Link
                     href={`/brands/${selectedBrand.slug || selectedBrand.id}`}
                     target="_blank"
                     className="btn-outline-gold"
-                    style={{ padding: "0.45rem 1rem", borderRadius: "8px", fontSize: "0.8rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                    style={{ padding: "0.45rem 1rem", borderRadius: "10px", fontSize: "0.8rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
                   >
                     <i className="fa-solid fa-arrow-up-right-from-square"></i> Ver Vitrina en Vivo
                   </Link>
-                </div>
-              )}
+                )}
+              </div>
+
+              <div className="dash-brand-mgmt-body">
+                {/* Visualización de la Marca Activa */}
+                {selectedBrand && (
+                  <div className="dash-active-brand-banner">
+                    <div className="dash-active-brand-avatar-wrap">
+                      <img 
+                        src={selectedBrand.logo || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150"} 
+                        alt={selectedBrand.name} 
+                        className="dash-active-brand-avatar" 
+                      />
+                    </div>
+                    <div className="dash-active-brand-meta">
+                      <div className="dash-active-brand-name-row">
+                        <h3 className="dash-active-brand-name">{selectedBrand.name}</h3>
+                        <span className="dash-active-brand-category">
+                          <i className={isBrandPerfume ? "fa-solid fa-spray-can-sparkles" : isBrandMenu ? "fa-solid fa-utensils" : "fa-solid fa-tag"}></i>
+                          {selectedBrand.category || "General"}
+                        </span>
+                      </div>
+                      <p className="dash-active-brand-sub">
+                        Estás modificando los datos, colores y diseño público de esta marca.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Selector / Switcher de Marcas si tiene más de 1 */}
+                {myBrands.length > 1 && (
+                  <div className="dash-brand-switch-section">
+                    <span className="dash-brand-switch-label">
+                      <i className="fa-solid fa-arrows-rotate"></i> Cambiar a otra marca:
+                    </span>
+                    <div className="dash-brand-pills-row">
+                      {myBrands.map(b => {
+                        const isActive = Number(selectedBrandId) === b.id;
+                        return (
+                          <button
+                            key={b.id}
+                            type="button"
+                            onClick={() => setSelectedBrandId(b.id)}
+                            className={`dash-brand-pill-btn ${isActive ? "active" : ""}`}
+                            title={`Cambiar a ${b.name}`}
+                          >
+                            <img 
+                              src={b.logo || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"} 
+                              alt={b.name} 
+                              className="dash-brand-pill-img" 
+                            />
+                            <div className="dash-brand-pill-texts">
+                              <span className="dash-brand-pill-title">{b.name}</span>
+                              <span className="dash-brand-pill-cat">{b.category || "General"}</span>
+                            </div>
+                            {isActive ? (
+                              <span className="dash-brand-pill-badge active">
+                                <i className="fa-solid fa-check"></i> Activa
+                              </span>
+                            ) : (
+                              <span className="dash-brand-pill-badge">
+                                Editar
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -1935,31 +1994,64 @@ export default function DashboardClient({ initialTab }) {
       {activeTab === "productos" && (
         <div className="fade-in">
           {/* Barra Superior con Selector de Marca y Botón Añadir */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem", marginBottom: "1.5rem" }}>
-            <div>
-              <h2 style={{ fontSize: "1.4rem", fontWeight: 800, margin: 0 }}>
-                Catálogo de Ítems ({currentBrandProducts.length})
-              </h2>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "4px" }}>
-                <span style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Marca:</span>
-                {myBrands.length > 1 ? (
-                  <select 
-                    value={selectedBrandId || ""}
-                    onChange={(e) => setSelectedBrandId(Number(e.target.value))}
-                    className="form-control"
-                    style={{ maxWidth: "260px", padding: "4px 10px", fontSize: "0.82rem", fontWeight: 700 }}
-                  >
-                    {myBrands.map(b => (
-                      <option key={b.id} value={b.id}>{b.name} ({b.category || "General"})</option>
-                    ))}
-                  </select>
-                ) : (
-                  <b style={{ fontSize: "0.88rem" }}>{selectedBrand?.name || "Selecciona una marca"}</b>
-                )}
+          <div className="dash-catalog-brand-header">
+            <div className="dash-catalog-brand-info">
+              <div className="dash-catalog-title-row">
+                <h2 style={{ fontSize: "1.35rem", fontWeight: 800, margin: 0, letterSpacing: "-0.01em" }}>
+                  Catálogo de Ítems ({currentBrandProducts.length})
+                </h2>
               </div>
+
+              {/* Marca Activa en Edición */}
+              {selectedBrand && (
+                <div className="dash-catalog-active-brand-chip">
+                  <div className="dash-catalog-chip-avatar">
+                    <img 
+                      src={selectedBrand.logo || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"} 
+                      alt={selectedBrand.name} 
+                    />
+                  </div>
+                  <div className="dash-catalog-chip-meta">
+                    <span className="dash-catalog-chip-sub">Gestionando productos de:</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                      <strong className="dash-catalog-chip-name">{selectedBrand.name}</strong>
+                      <span className="dash-catalog-chip-cat">
+                        {selectedBrand.category || "General"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Switcher Rápido si tiene múltiples marcas */}
+              {myBrands.length > 1 && (
+                <div className="dash-catalog-switcher-row">
+                  <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}>
+                    <i className="fa-solid fa-arrows-rotate"></i> Cambiar marca:
+                  </span>
+                  <div className="dash-catalog-pills">
+                    {myBrands.map(b => {
+                      const isActive = Number(selectedBrandId) === b.id;
+                      return (
+                        <button
+                          key={b.id}
+                          type="button"
+                          onClick={() => setSelectedBrandId(b.id)}
+                          className={`dash-catalog-pill-btn ${isActive ? "active" : ""}`}
+                          title={`Ver catálogo de ${b.name}`}
+                        >
+                          <img src={b.logo || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"} alt={b.name} />
+                          <span>{b.name}</span>
+                          {isActive && <i className="fa-solid fa-circle-check" style={{ color: "var(--gold-primary)", fontSize: "0.75rem" }}></i>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <div className="dash-catalog-actions-wrap">
               {isBrandPerfume && (
                 <button 
                   onClick={() => handleOpenAddProduct("perfume")}
