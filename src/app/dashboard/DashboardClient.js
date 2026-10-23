@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useApp } from "../../context/AppContext";
-import { ensureFullSocialUrl } from "../../utils/brandUtils";
+import { ensureFullSocialUrl, isPerfumeryBrand, isVirtualMenuBrand } from "../../utils/brandUtils";
 
 
 
@@ -443,6 +443,35 @@ export default function DashboardClient({ initialTab }) {
     }
   };
 
+  // ── MARCA SELECCIONADA Y RUBRO / TIPO DE CATÁLOGO ────────────────────────
+  const selectedBrand = useMemo(() => {
+    return myBrands.find(b => b.id === Number(selectedBrandId)) || null;
+  }, [myBrands, selectedBrandId]);
+
+  const isBrandPerfume = useMemo(() => isPerfumeryBrand(selectedBrand), [selectedBrand]);
+  const isBrandMenu = useMemo(() => isVirtualMenuBrand(selectedBrand), [selectedBrand]);
+
+  // Plantillas visibles adaptadas al rubro de la marca seleccionada
+  const visibleTemplates = useMemo(() => {
+    if (isBrandPerfume) {
+      return PRODUCT_TYPE_TEMPLATES;
+    }
+    // Si se está editando un ítem que fue creado como perfume, permitir la plantilla
+    if (productType === "perfume") {
+      return PRODUCT_TYPE_TEMPLATES;
+    }
+    // Para marcas gastronómicas / snacks, mostrar carta primero
+    if (isBrandMenu) {
+      return [
+        PRODUCT_TYPE_TEMPLATES.find(t => t.id === "gastro"),
+        PRODUCT_TYPE_TEMPLATES.find(t => t.id === "standard"),
+        PRODUCT_TYPE_TEMPLATES.find(t => t.id === "service")
+      ].filter(Boolean);
+    }
+    // Para marcas generales (moda, arte, etc.), excluir perfume
+    return PRODUCT_TYPE_TEMPLATES.filter(t => t.id !== "perfume");
+  }, [isBrandPerfume, isBrandMenu, productType]);
+
   // ── PRODUCTOS DE LA MARCA SELECCIONADA ─────────────────────────────────────
   const currentBrandProducts = useMemo(() => {
     if (!selectedBrandId || !products) return [];
@@ -467,11 +496,12 @@ export default function DashboardClient({ initialTab }) {
     return Array.from(cats);
   }, [currentBrandProducts]);
 
-  // Abrir modal de nuevo producto con plantilla
-  const handleOpenAddProduct = (type = "perfume") => {
-    setProductType(type);
+  // Abrir modal de nuevo producto con plantilla adaptativa según el rubro
+  const handleOpenAddProduct = (type) => {
+    const defaultType = type || (isBrandPerfume ? "perfume" : isBrandMenu ? "gastro" : "standard");
+    setProductType(defaultType);
     setEditingProductId(null);
-    const tmpl = PRODUCT_TYPE_TEMPLATES.find(t => t.id === type) || PRODUCT_TYPE_TEMPLATES[0];
+    const tmpl = PRODUCT_TYPE_TEMPLATES.find(t => t.id === defaultType) || PRODUCT_TYPE_TEMPLATES[0];
     
     setProdForm({
       name: "",
@@ -730,8 +760,6 @@ export default function DashboardClient({ initialTab }) {
     );
   }
 
-  const selectedBrand = myBrands.find(b => b.id === Number(selectedBrandId)) || null;
-
   return (
     <div className="dashboard-wrapper">
       {/* ── BANNER HEADER CON ACCIONES DIRECTAS ──────────────────────────── */}
@@ -902,22 +930,41 @@ export default function DashboardClient({ initialTab }) {
                 </p>
               </div>
 
-              <div 
-                onClick={() => { handleTabChange("productos"); handleOpenAddProduct("perfume"); }}
-                style={{ background: "var(--bg-card)", border: "1.5px solid var(--border-color)", borderRadius: "14px", padding: "1.2rem", cursor: "pointer", transition: "var(--transition-smooth)" }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = "var(--gold-primary)"}
-                onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border-color)"}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                  <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(138,74,243,0.15)", color: "#8A4AF3", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
-                    💎
+              {isBrandPerfume ? (
+                <div 
+                  onClick={() => { handleTabChange("productos"); handleOpenAddProduct("perfume"); }}
+                  style={{ background: "var(--bg-card)", border: "1.5px solid var(--border-color)", borderRadius: "14px", padding: "1.2rem", cursor: "pointer", transition: "var(--transition-smooth)" }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = "var(--gold-primary)"}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border-color)"}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                    <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(138,74,243,0.15)", color: "#8A4AF3", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
+                      💎
+                    </div>
+                    <h4 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0 }}>Publicar Fragancia / Dúo</h4>
                   </div>
-                  <h4 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0 }}>Publicar Fragancia / Dúo</h4>
+                  <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: 0, lineHeight: 1.4 }}>
+                    Añade un perfume con frasco de referencia original y notas olfativas listas para el Dúo Visual.
+                  </p>
                 </div>
-                <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: 0, lineHeight: 1.4 }}>
-                  Añade un perfume con frasco de referencia original y notas olfativas listas para el Dúo Visual.
-                </p>
-              </div>
+              ) : isBrandMenu ? (
+                <div 
+                  onClick={() => { handleTabChange("productos"); handleOpenAddProduct("gastro"); }}
+                  style={{ background: "var(--bg-card)", border: "1.5px solid var(--border-color)", borderRadius: "14px", padding: "1.2rem", cursor: "pointer", transition: "var(--transition-smooth)" }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = "var(--gold-primary)"}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border-color)"}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                    <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(234,179,8,0.15)", color: "#EAB308", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
+                      🍽️
+                    </div>
+                    <h4 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0 }}>Añadir al Menú & Carta</h4>
+                  </div>
+                  <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: 0, lineHeight: 1.4 }}>
+                    Publica platillos, snacks o bebidas con porciones e ingredientes destacados.
+                  </p>
+                </div>
+              ) : null}
 
               <div 
                 onClick={() => { handleTabChange("productos"); handleOpenAddProduct("standard"); }}
@@ -1913,16 +1960,28 @@ export default function DashboardClient({ initialTab }) {
             </div>
 
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-              <button 
-                onClick={() => handleOpenAddProduct("perfume")}
-                className="btn-outline-gold"
-                style={{ padding: "0.55rem 1.1rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
-              >
-                <i className="fa-solid fa-spray-can-sparkles"></i> + Fragancia
-              </button>
+              {isBrandPerfume && (
+                <button 
+                  onClick={() => handleOpenAddProduct("perfume")}
+                  className="btn-outline-gold"
+                  style={{ padding: "0.55rem 1.1rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                >
+                  <i className="fa-solid fa-spray-can-sparkles"></i> + Fragancia
+                </button>
+              )}
+
+              {isBrandMenu && (
+                <button 
+                  onClick={() => handleOpenAddProduct("gastro")}
+                  className="btn-outline-gold"
+                  style={{ padding: "0.55rem 1.1rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                >
+                  <i className="fa-solid fa-utensils"></i> + Menú / Carta
+                </button>
+              )}
 
               <button 
-                onClick={() => handleOpenAddProduct("standard")}
+                onClick={() => handleOpenAddProduct()}
                 className="btn-gold"
                 style={{ padding: "0.55rem 1.2rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
               >
@@ -1937,7 +1996,7 @@ export default function DashboardClient({ initialTab }) {
               <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }}></i>
               <input 
                 type="text"
-                placeholder="Buscar por nombre, categoría o inspiración..."
+                placeholder={isBrandPerfume ? "Buscar por nombre, categoría o inspiración..." : "Buscar por nombre o categoría..."}
                 value={prodSearch}
                 onChange={e => setProdSearch(e.target.value)}
                 className="form-control"
@@ -2121,7 +2180,7 @@ export default function DashboardClient({ initialTab }) {
 
                 {/* Selector de Tipo de Producto en 1 Clic */}
                 <div className="product-type-grid">
-                  {PRODUCT_TYPE_TEMPLATES.map(t => (
+                  {visibleTemplates.map(t => (
                     <div 
                       key={t.id}
                       className={`product-type-card ${productType === t.id ? "active" : ""}`}
