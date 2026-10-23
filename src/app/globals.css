@@ -2571,9 +2571,7 @@ header {
 .carousel-arrow-btn,
 .reactive-ticket-container,
 .reactive-red-dot-container,
-.aourum-tab-btn,
-.modal-overlay,
-.modal-container {
+.aourum-tab-btn {
   will-change: transform, opacity;
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -2600,16 +2598,56 @@ img {
 @keyframes aourumFadeIn {
   from {
     opacity: 0;
-    transform: translateY(6px) translateZ(0);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
-    transform: translateY(0) translateZ(0);
+    transform: none;
   }
 }
 
 .fade-in {
   animation: aourumFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Product Modal Form Responsive Grids */
+.dash-product-form-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.dash-perfume-duo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.dash-perfume-specs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 640px) {
+  .dash-product-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .dash-product-form-grid .form-group:first-child {
+    grid-column: 1 / -1;
+  }
+  .dash-perfume-duo-grid {
+    grid-template-columns: 1fr;
+  }
+  .dash-perfume-specs-grid {
+    grid-template-columns: 1fr;
+  }
+  .product-type-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
 
 /* Micro-interactions */

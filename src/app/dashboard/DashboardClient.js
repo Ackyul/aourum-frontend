@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useApp } from "../../context/AppContext";
@@ -2058,22 +2059,65 @@ export default function DashboardClient({ initialTab }) {
             </div>
           )}
 
-          {/* ── MODAL / PANEL DE CREACIÓN DE PRODUCTO CON PLANTILLAS ───────── */}
-          {showProductModal && (
-            <div className="modal-overlay" style={{ zIndex: 1200 }}>
+          {/* ── MODAL / PANEL DE CREACIÓN DE PRODUCTO CON PLANTILLAS Y PORTAL ───────── */}
+          {showProductModal && typeof document !== "undefined" && createPortal(
+            <div className="modal-overlay" style={{ zIndex: 9999 }}>
               <div className="modal-backdrop" onClick={() => setShowProductModal(false)}></div>
-              <div className="modal-panel fade-in" style={{ maxWidth: "760px", background: "#FFFFFF", border: "1.5px solid var(--gold-primary)", padding: "1.8rem", borderRadius: "20px", maxHeight: "90vh", overflowY: "auto" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem" }}>
-                  <h3 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0 }}>
+              <div 
+                className="modal-panel" 
+                style={{ 
+                  maxWidth: "760px", 
+                  width: "95vw", 
+                  background: "var(--bg-card)", 
+                  border: "1.5px solid var(--gold-primary)", 
+                  borderRadius: "20px", 
+                  maxHeight: "90vh", 
+                  maxHeight: "90dvh", 
+                  display: "flex", 
+                  flexDirection: "column", 
+                  overflow: "hidden", 
+                  margin: "auto",
+                  position: "relative",
+                  zIndex: 10
+                }}
+              >
+                {/* Cabecera Pinned / Siempre Visible */}
+                <div 
+                  className="modal-header" 
+                  style={{ 
+                    display: "flex", 
+                    justifyContent: "space-between", 
+                    alignItems: "center", 
+                    padding: "1.2rem 1.6rem", 
+                    borderBottom: "1px solid var(--border-color)", 
+                    flexShrink: 0 
+                  }}
+                >
+                  <h3 style={{ fontSize: "1.25rem", fontWeight: 800, margin: 0 }}>
                     {editingProductId ? "✏️ Editar Ítem" : "✨ Publicar Nuevo Ítem en Vitrina"}
                   </h3>
                   <button 
+                    type="button"
                     onClick={() => setShowProductModal(false)}
-                    style={{ background: "rgba(0,0,0,0.06)", border: "none", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", fontSize: "1.1rem" }}
+                    style={{ 
+                      background: "rgba(0,0,0,0.06)", 
+                      border: "none", 
+                      width: "32px", 
+                      height: "32px", 
+                      borderRadius: "50%", 
+                      cursor: "pointer", 
+                      fontSize: "1.2rem", 
+                      display: "flex", 
+                      alignItems: "center", 
+                      justifyContent: "center" 
+                    }}
                   >
                     &times;
                   </button>
                 </div>
+
+                <form onSubmit={handleSaveProductSubmit} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, overflow: "hidden" }}>
+                  <div className="modal-body" style={{ flex: 1, overflowY: "auto", padding: "1.4rem 1.6rem", WebkitOverflowScrolling: "touch" }}>
 
                 {/* Selector de Tipo de Producto en 1 Clic */}
                 <div className="product-type-grid">
@@ -2095,9 +2139,8 @@ export default function DashboardClient({ initialTab }) {
                   ))}
                 </div>
 
-                <form onSubmit={handleSaveProductSubmit}>
-                  {/* Campos Esenciales Comunes */}
-                  <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr", gap: "12px", marginBottom: "1rem" }}>
+                {/* Campos Esenciales Comunes */}
+                <div className="dash-product-form-grid">
                     <div className="form-group">
                       <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>Nombre del Ítem *</label>
                       <input 
@@ -2147,7 +2190,7 @@ export default function DashboardClient({ initialTab }) {
                         </h4>
                       </div>
 
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
+                      <div className="dash-perfume-duo-grid">
                         <div className="form-group">
                           <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Inspiración / Referencia Original</label>
                           <input 
@@ -2210,7 +2253,7 @@ export default function DashboardClient({ initialTab }) {
                         </div>
                       </div>
 
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", marginBottom: "10px" }}>
+                      <div className="dash-perfume-specs-grid">
                         <div className="form-group">
                           <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Género</label>
                           <select 
@@ -2364,13 +2407,15 @@ export default function DashboardClient({ initialTab }) {
                     )}
                   </div>
 
-                  {/* Botones de Envío */}
-                  <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                  </div>
+
+                  {/* Botones de Envío Pinned en Footer */}
+                  <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", padding: "1rem 1.6rem", borderTop: "1px solid var(--border-color)", background: "var(--bg-card)", flexShrink: 0 }}>
                     <button 
                       type="button"
                       onClick={() => setShowProductModal(false)}
                       className="btn-outline-gold"
-                      style={{ padding: "0.65rem 1.4rem", borderRadius: "10px", fontSize: "0.88rem" }}
+                      style={{ padding: "0.6rem 1.4rem", borderRadius: "10px", fontSize: "0.88rem" }}
                     >
                       Cancelar
                     </button>
@@ -2378,14 +2423,15 @@ export default function DashboardClient({ initialTab }) {
                       type="submit"
                       className="btn-gold"
                       disabled={submittingProd}
-                      style={{ padding: "0.65rem 1.8rem", borderRadius: "10px", fontSize: "0.88rem", fontWeight: 700 }}
+                      style={{ padding: "0.6rem 1.8rem", borderRadius: "10px", fontSize: "0.88rem", fontWeight: 700 }}
                     >
                       {submittingProd ? "Guardando..." : (editingProductId ? "Guardar Cambios" : "✨ Publicar Ítem")}
                     </button>
                   </div>
                 </form>
               </div>
-            </div>
+            </div>,
+            document.body
           )}
         </div>
       )}
