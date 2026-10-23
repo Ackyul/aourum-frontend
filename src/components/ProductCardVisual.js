@@ -63,7 +63,7 @@ export default function ProductCardVisual({
               width: "auto",
               height: "auto",
               maxWidth: "100%",
-              maxHeight: "75%",
+              maxHeight: "82%",
               objectFit: "contain"
             }}
           />
@@ -86,7 +86,7 @@ export default function ProductCardVisual({
                 width: "auto",
                 height: "auto",
                 maxWidth: "100%",
-                maxHeight: "76%",
+                maxHeight: "84%",
                 objectFit: "contain"
               }}
             />
@@ -111,9 +111,12 @@ export default function ProductCardVisual({
 
   // Standard single image view
   if (brandImg && !brandImgError) {
-    const bgContainer = (prod?.imgBgColor && prod?.imgBgColor !== "transparent" && prod?.imgBgColor !== "page_bg")
+    const isCustomBg = Boolean(prod?.imgBgColor && prod?.imgBgColor !== "transparent" && prod?.imgBgColor !== "page_bg");
+    const bgContainer = isCustomBg
       ? (prod.imgBgColor === "brand" ? brandColor : prod.imgBgColor)
       : "#FFFFFF";
+
+    const fitMode = (prod?.fit || prod?.objectFit) || (isCustomBg ? "contain" : "cover");
 
     return (
       <div
@@ -140,7 +143,7 @@ export default function ProductCardVisual({
             height: "100%",
             maxWidth: "100%",
             maxHeight: "100%",
-            objectFit: "contain",
+            objectFit: fitMode,
             transition: "transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)"
           }}
         />
