@@ -1341,35 +1341,56 @@ export default function ProductDetailPage() {
                             onClick={() => {
                               if (!isCurrent) router.push(`/products/${v.slug || v.id}`);
                             }}
+                            title={`Ver presentación ${v.presentation || v.name}`}
                             style={{
                               display: "flex",
                               alignItems: "center",
-                              gap: "8px",
-                              padding: "8px 14px",
-                              borderRadius: "10px",
+                              gap: "10px",
+                              padding: "6px 14px 6px 8px",
+                              borderRadius: "12px",
                               fontSize: "0.86rem",
                               fontWeight: isCurrent ? 800 : 600,
                               cursor: isCurrent ? "default" : "pointer",
-                              border: isCurrent ? `2px solid ${brandThemeColor}` : `1px solid ${palette.c1}35`,
+                              border: isCurrent ? `2px solid ${brandThemeColor}` : `1.5px solid ${palette.c1}35`,
                               background: isCurrent ? `${brandThemeColor}22` : "rgba(255,255,255,0.04)",
                               color: isCurrent ? brandThemeColor : resolvedCardTextColor,
-                              boxShadow: isCurrent ? `0 2px 10px ${brandThemeColor}35` : "none",
+                              boxShadow: isCurrent ? `0 4px 14px ${brandThemeColor}35` : "0 2px 6px rgba(0,0,0,0.05)",
                               transform: isCurrent ? "scale(1.02)" : "scale(1)",
-                              transition: "all 0.18s cubic-bezier(0.16, 1, 0.3, 1)"
+                              transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
                             }}
                           >
-                            <span>{v.presentation || v.name}</span>
-                            <span style={{ 
-                              fontSize: "0.78rem", 
-                              fontWeight: 700, 
-                              color: isCurrent ? resolvedCardTextColor : mutedTextColor,
-                              background: isCurrent ? `${brandThemeColor}30` : "rgba(0,0,0,0.06)",
-                              padding: "2px 6px",
-                              borderRadius: "6px"
-                            }}>
-                              S/ {formatPrice(v.priceAourum || v.price)}
-                            </span>
-                            {isCurrent && <i className="fa-solid fa-circle-check" style={{ fontSize: "0.8rem", color: brandThemeColor }}></i>}
+                            {v.image && (
+                              <div style={{
+                                width: "36px",
+                                height: "36px",
+                                borderRadius: "8px",
+                                overflow: "hidden",
+                                background: "#FFFFFF",
+                                border: isCurrent ? `1.5px solid ${brandThemeColor}` : "1px solid rgba(0,0,0,0.08)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexShrink: 0,
+                                boxShadow: "0 1px 4px rgba(0,0,0,0.08)"
+                              }}>
+                                <img 
+                                  src={v.image} 
+                                  alt={v.presentation || v.name} 
+                                  style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} 
+                                />
+                              </div>
+                            )}
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "1px" }}>
+                              <span style={{ fontSize: "0.84rem", fontWeight: 800 }}>{v.presentation || v.name}</span>
+                              <span style={{ 
+                                fontSize: "0.74rem", 
+                                fontWeight: 700, 
+                                color: isCurrent ? brandThemeColor : mutedTextColor
+                              }}>
+                                S/ {formatPrice(v.priceAourum || v.price)}
+                              </span>
+                            </div>
+                            {isCurrent && <i className="fa-solid fa-circle-check" style={{ fontSize: "0.82rem", color: brandThemeColor, marginLeft: "4px" }}></i>}
                           </button>
                         );
                       })}

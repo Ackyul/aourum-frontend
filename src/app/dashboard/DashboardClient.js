@@ -724,7 +724,7 @@ export default function DashboardClient({ initialTab }) {
       gastroIngredients: ingredientsMatch ? ingredientsMatch[1].trim() : "",
       description: cleanNotes
     });
-    triggerNotification(true, `Creando nueva presentación para "${parsedPres.cleanName || prod.name}". Selecciona el tamaño y define su precio.`);
+    triggerNotification(true, `Nueva presentación para "${parsedPres.cleanName || prod.name}". Elige el tamaño, sube su foto y define su precio.`);
     setShowProductModal(true);
   };
 
@@ -2846,7 +2846,7 @@ export default function DashboardClient({ initialTab }) {
                   {/* ── IMAGEN DE TU CREACIÓN / FOTO DEL PRODUCTO ── */}
                   <div className="form-group" style={{ marginBottom: "1.2rem" }}>
                     <label style={{ fontSize: "0.82rem", fontWeight: 700, display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                      <span>📷 Foto de tu Producto / Creación {productType === "perfume" && "(Tu Frasco)"} *</span>
+                      <span>📷 Foto de este Tamaño / Presentación {productType === "perfume" && "(Tu Frasco)"} *</span>
                       {prodForm.image && (
                         <button 
                           type="button" 
@@ -2857,6 +2857,10 @@ export default function DashboardClient({ initialTab }) {
                         </button>
                       )}
                     </label>
+                    <div style={{ fontSize: "0.73rem", color: "var(--text-gold)", marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+                      <i className="fa-solid fa-camera-retro"></i>
+                      <span>Cada tamaño tiene su propia imagen de empaque o frasco. Puedes subir la foto correspondiente a esta presentación.</span>
+                    </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "14px", background: "var(--bg-card)", border: "1px solid var(--border-color)", padding: "12px 14px", borderRadius: "12px" }}>
                       {prodForm.image ? (
                         <div style={{ width: "64px", height: "64px", borderRadius: "10px", overflow: "hidden", border: "2px solid var(--gold-primary)", flexShrink: 0, background: prodForm.imgBgColor || "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
