@@ -13,7 +13,7 @@ import { ensureFullSocialUrl, isPerfumeryBrand, isVirtualMenuBrand } from "../..
 export const PRODUCT_TYPE_TEMPLATES = [
   {
     id: "perfume",
-    name: "Fragancia / Perfume",
+    name: "Fragancia de Alta Perfumería",
     icon: "fa-spray-can-sparkles",
     badge: "💎 Dúo Visual",
     defaultCategory: "Alta Perfumería",
@@ -21,11 +21,19 @@ export const PRODUCT_TYPE_TEMPLATES = [
   },
   {
     id: "gastro",
-    name: "Plato / Café / Bebida",
+    name: "Platillo / Comida",
     icon: "fa-utensils",
     badge: "🍽️ Menú & Carta",
-    defaultCategory: "Gastronomía",
-    description: "Para restaurantes, cafés y cocina: porciones, ingredientes y maridaje."
+    defaultCategory: "Platos & Especialidades",
+    description: "Para platillos, salchipapas, alitas, pizzas, hamburguesas y porciones."
+  },
+  {
+    id: "drink",
+    name: "Bebida / Refresco",
+    icon: "fa-glass-water",
+    badge: "🥤 Carta de Bebidas",
+    defaultCategory: "Bebidas & Refrescos",
+    description: "Para refrescos, gaseosas, jugos, cervezas, coctelería o café."
   },
   {
     id: "standard",
@@ -39,9 +47,9 @@ export const PRODUCT_TYPE_TEMPLATES = [
     id: "service",
     name: "Servicio / Experiencia",
     icon: "fa-hand-sparkles",
-    badge: "🛠️ Servicios",
+    badge: "🛠️ Servicios & Experiencias",
     defaultCategory: "Servicios",
-    description: "Para sesiones, citas, clases, música o lecturas (stock ilimitado automático)."
+    description: "Para sesiones, citas, clases, catering, música o reservas (stock ilimitado)."
   }
 ];
 
@@ -448,29 +456,85 @@ export default function DashboardClient({ initialTab }) {
     return myBrands.find(b => b.id === Number(selectedBrandId)) || null;
   }, [myBrands, selectedBrandId]);
 
-  const isBrandPerfume = useMemo(() => isPerfumeryBrand(selectedBrand), [selectedBrand]);
-  const isBrandMenu = useMemo(() => isVirtualMenuBrand(selectedBrand), [selectedBrand]);
+  // Modo de catálogo resuelto considerando la configuración manual y detección automática
+  const activeCatalogMode = useMemo(() => {
+    if (!selectedBrand) return "grid";
+    let mode = (brandForm && brandForm.catalogDisplayMode) 
+      ? brandForm.catalogDisplayMode 
+      : (selectedBrand.catalogDisplayMode || selectedBrand.brandDesign?.catalogDisplayMode);
+    
+    if (!mode || mode === "auto") {
+      let parsedDesc = {};
+      if (typeof selectedBrand.description === "string" && selectedBrand.description.trim().startsWith("{")) {
+        try { parsedDesc = JSON.parse(selectedBrand.description); } catch(e) {}
+      }
+      mode = parsedDesc.catalogDisplayMode || parsedDesc.brandDesign?.catalogDisplayMode || "auto";
+    }
 
-  // Plantillas visibles adaptadas al rubro de la marca seleccionada
+    if (mode === "perfumery" || mode === "perfume") return "perfumery";
+    if (mode === "menu") return "menu";
+    if (mode === "grid") return "grid";
+
+    // Detección automática por categoría/rubro
+    if (isPerfumeryBrand(selectedBrand)) return "perfumery";
+    if (isVirtualMenuBrand(selectedBrand)) return "menu";
+    return "grid";
+  }, [selectedBrand, brandForm?.catalogDisplayMode]);
+
+  const isBrandPerfume = activeCatalogMode === "perfumery";
+  const isBrandMenu = activeCatalogMode === "menu";
+  const isBrandStandard = activeCatalogMode === "grid";
+
+  // Plantillas visibles adaptadas estrictamente al modo de catálogo de la marca
   const visibleTemplates = useMemo(() => {
+    // 1. Alta Perfumería: La única opción de añadir es la de perfumes
     if (isBrandPerfume) {
-      return PRODUCT_TYPE_TEMPLATES;
+      return [
+        PRODUCT_TYPE_TEMPLATES.find(t => t.id === "perfume")
+      ].filter(Boolean);
     }
-    // Si se está editando un ítem que fue creado como perfume, permitir la plantilla
-    if (productType === "perfume") {
-      return PRODUCT_TYPE_TEMPLATES;
-    }
-    // Para marcas gastronómicas / snacks, mostrar carta primero
+    // 2. Menú Gastronómico: Platillo/Comida, Bebida y Experiencia/Servicio
     if (isBrandMenu) {
       return [
         PRODUCT_TYPE_TEMPLATES.find(t => t.id === "gastro"),
-        PRODUCT_TYPE_TEMPLATES.find(t => t.id === "standard"),
+        PRODUCT_TYPE_TEMPLATES.find(t => t.id === "drink"),
         PRODUCT_TYPE_TEMPLATES.find(t => t.id === "service")
       ].filter(Boolean);
     }
-    // Para marcas generales (moda, arte, etc.), excluir perfume
-    return PRODUCT_TYPE_TEMPLATES.filter(t => t.id !== "perfume");
-  }, [isBrandPerfume, isBrandMenu, productType]);
+    // 3. Cuadrícula Estándar: Solo 2 cuadros (Producto y Experiencia)
+    return [
+      PRODUCT_TYPE_TEMPLATES.find(t => t.id === "standard"),
+      PRODUCT_TYPE_TEMPLATES.find(t => t.id === "service")
+    ].filter(Boolean);
+  }, [isBrandPerfume, isBrandMenu]);
+
+  // Sugerencias inteligentes de categoría según el modo de catálogo y tipo de producto
+  const categorySuggestions = useMemo(() => {
+    if (isBrandMenu) {
+      if (productType === "drink") {
+        return ["Bebidas & Refrescos", "Gaseosas", "Jugos Naturales", "Cervezas", "Cafetería", "Tragos & Cócteles"];
+      }
+      if (productType === "service") {
+        return ["Servicios", "Catering & Eventos", "Reservas Especiales"];
+      }
+      return ["Salchipapas", "Alitas", "Hamburguesas", "Pizzas", "Sánguches & Wraps", "Piqueos & Entradas", "Combos & Promociones", "Postres"];
+    }
+
+    if (isBrandPerfume) {
+      return ["Alta Perfumería", "Amaderado", "Cítrico / Fresco", "Oriental / Especiado", "Floral", "Gourmand", "Aromático Fougère"];
+    }
+
+    // Modo Estándar
+    if (productType === "service") {
+      return ["Servicios", "Experiencias", "Cursos & Clases", "Consultorías"];
+    }
+    const brandCat = selectedBrand?.category;
+    const base = ["Moda & Ropa", "Joyería & Accesorios", "Artesanía Local", "Arte & Decoración", "Calzado", "Bienestar & Cuidado"];
+    if (brandCat && !base.includes(brandCat)) {
+      return [brandCat, ...base];
+    }
+    return base;
+  }, [isBrandMenu, isBrandPerfume, productType, selectedBrand]);
 
   // ── PRODUCTOS DE LA MARCA SELECCIONADA ─────────────────────────────────────
   const currentBrandProducts = useMemo(() => {
@@ -498,7 +562,16 @@ export default function DashboardClient({ initialTab }) {
 
   // Abrir modal de nuevo producto con plantilla adaptativa según el rubro
   const handleOpenAddProduct = (type) => {
-    const defaultType = type || (isBrandPerfume ? "perfume" : isBrandMenu ? "gastro" : "standard");
+    let defaultType = type;
+    if (!defaultType) {
+      if (isBrandPerfume) defaultType = "perfume";
+      else if (isBrandMenu) defaultType = "gastro";
+      else defaultType = "standard";
+    }
+    // Forzar coherencia según el modo del catálogo
+    if (isBrandPerfume) defaultType = "perfume";
+    if (isBrandStandard && defaultType !== "service") defaultType = "standard";
+
     setProductType(defaultType);
     setEditingProductId(null);
     const tmpl = PRODUCT_TYPE_TEMPLATES.find(t => t.id === defaultType) || PRODUCT_TYPE_TEMPLATES[0];
@@ -507,8 +580,8 @@ export default function DashboardClient({ initialTab }) {
       name: "",
       price: "",
       priceAourum: "",
-      stock: type === "service" ? "99999" : "15",
-      category: tmpl.defaultCategory,
+      stock: defaultType === "service" ? "99999" : "15",
+      category: (isBrandStandard && selectedBrand?.category) ? selectedBrand.category : tmpl.defaultCategory,
       image: "",
       imgBgColor: "transparent",
       isVisible: true,
@@ -537,11 +610,24 @@ export default function DashboardClient({ initialTab }) {
     const genderMatch = desc.match(/\[\s*g[eé]nero\s*:\s*([^\]]+)\]/i);
     const concMatch = desc.match(/\[\s*concentraci[oó]n\s*:\s*([^\]]+)\]/i);
     const mlMatch = desc.match(/\[\s*ml\s*:\s*([^\]]+)\]/i);
+    const portionMatch = desc.match(/\[\s*(?:porci[oó]n|tama[ñn]o)\s*:\s*([^\]]+)\]/i);
+    const ingredientsMatch = desc.match(/\[\s*ingredientes\s*:\s*([^\]]+)\]/i);
 
-    const isFragrance = !!(origImgMatch || inspMatch || (prod.category && prod.category.toLowerCase().includes("perfum")));
-    const isGastro = prod.category && (prod.category.toLowerCase().includes("gastro") || prod.category.toLowerCase().includes("comida"));
+    const catLower = (prod.category || "").toLowerCase();
+    const isDrink = /bebida|refresco|gaseosa|jugo|cerveza|trago|caf[eé]|cocktail|vino/i.test(catLower);
+
+    let resolvedType = "standard";
+    if (isBrandPerfume) {
+      resolvedType = "perfume";
+    } else if (isBrandMenu) {
+      if (prod.type === "service") resolvedType = "service";
+      else if (isDrink) resolvedType = "drink";
+      else resolvedType = "gastro";
+    } else {
+      resolvedType = prod.type === "service" ? "service" : "standard";
+    }
     
-    setProductType(isFragrance ? "perfume" : isGastro ? "gastro" : prod.type === "service" ? "service" : "standard");
+    setProductType(resolvedType);
     
     // Remover corchetes del texto de notas
     const cleanNotes = desc.replace(/\[[^\]]+\]/g, "").trim();
@@ -551,7 +637,7 @@ export default function DashboardClient({ initialTab }) {
       price: prod.price || "",
       priceAourum: prod.priceAourum || prod.price_aourum || "",
       stock: prod.stock !== null ? String(prod.stock) : "",
-      category: prod.category || "General",
+      category: prod.category || (isBrandPerfume ? "Alta Perfumería" : isBrandStandard ? (selectedBrand?.category || "General") : "Platos & Especialidades"),
       image: prod.image || "",
       imgBgColor: prod.imgBgColor || "transparent",
       isVisible: prod.isVisible !== false,
@@ -562,8 +648,8 @@ export default function DashboardClient({ initialTab }) {
       perfumeConcentration: concMatch ? concMatch[1].trim() : "50% Esencia Pura",
       perfumeMl: mlMatch ? mlMatch[1].trim() : "50 ml",
       perfumeNotes: cleanNotes,
-      gastroPortion: "",
-      gastroIngredients: "",
+      gastroPortion: portionMatch ? portionMatch[1].trim() : "",
+      gastroIngredients: ingredientsMatch ? ingredientsMatch[1].trim() : "",
       description: cleanNotes
     });
     setShowProductModal(true);
@@ -589,7 +675,7 @@ export default function DashboardClient({ initialTab }) {
       if (prodForm.perfumeConcentration) tags.push(`[Concentración: ${prodForm.perfumeConcentration}]`);
       if (prodForm.perfumeMl) tags.push(`[ML: ${prodForm.perfumeMl}]`);
       finalDesc = `${tags.join(' ')}\n\n${prodForm.perfumeNotes.trim()}`.trim();
-    } else if (productType === "gastro") {
+    } else if (productType === "gastro" || productType === "drink") {
       const tags = [];
       if (prodForm.gastroPortion.trim()) tags.push(`[Porción: ${prodForm.gastroPortion.trim()}]`);
       if (prodForm.gastroIngredients.trim()) tags.push(`[Ingredientes: ${prodForm.gastroIngredients.trim()}]`);
@@ -600,7 +686,7 @@ export default function DashboardClient({ initialTab }) {
       id: editingProductId,
       brandId: Number(selectedBrandId),
       name: prodForm.name.trim(),
-      category: prodForm.category || (productType === "perfume" ? "Alta Perfumería" : "General"),
+      category: prodForm.category.trim() || (productType === "perfume" ? "Alta Perfumería" : productType === "drink" ? "Bebidas & Refrescos" : productType === "gastro" ? "Platos & Especialidades" : "General"),
       type: productType === "service" ? "service" : "product",
       stock: productType === "service" ? 99999 : (prodForm.stock === "" ? null : Number(prodForm.stock)),
       price: Number(prodForm.price),
@@ -964,24 +1050,24 @@ export default function DashboardClient({ initialTab }) {
                     Publica platillos, snacks o bebidas con porciones e ingredientes destacados.
                   </p>
                 </div>
-              ) : null}
-
-              <div 
-                onClick={() => { handleTabChange("productos"); handleOpenAddProduct("standard"); }}
-                style={{ background: "var(--bg-card)", border: "1.5px solid var(--border-color)", borderRadius: "14px", padding: "1.2rem", cursor: "pointer", transition: "var(--transition-smooth)" }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = "var(--gold-primary)"}
-                onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border-color)"}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                  <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(59,130,246,0.15)", color: "#3B82F6", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
-                    🛍️
+              ) : (
+                <div 
+                  onClick={() => { handleTabChange("productos"); handleOpenAddProduct("standard"); }}
+                  style={{ background: "var(--bg-card)", border: "1.5px solid var(--border-color)", borderRadius: "14px", padding: "1.2rem", cursor: "pointer", transition: "var(--transition-smooth)" }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = "var(--gold-primary)"}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border-color)"}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                    <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(59,130,246,0.15)", color: "#3B82F6", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
+                      🛍️
+                    </div>
+                    <h4 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0 }}>Añadir Producto o Servicio</h4>
                   </div>
-                  <h4 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0 }}>Añadir Producto o Servicio</h4>
+                  <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: 0, lineHeight: 1.4 }}>
+                    Publica artículos, moda, creaciones o servicios disponibles para compra.
+                  </p>
                 </div>
-                <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: 0, lineHeight: 1.4 }}>
-                  Publica ropa, comida, accesorios o servicios en un formulario limpio y con control de stock.
-                </p>
-              </div>
+              )}
 
               <div 
                 onClick={() => handleTabChange("perfil")}
@@ -2055,30 +2141,32 @@ export default function DashboardClient({ initialTab }) {
               {isBrandPerfume && (
                 <button 
                   onClick={() => handleOpenAddProduct("perfume")}
-                  className="btn-outline-gold"
-                  style={{ padding: "0.55rem 1.1rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                  className="btn-gold"
+                  style={{ padding: "0.55rem 1.2rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
                 >
-                  <i className="fa-solid fa-spray-can-sparkles"></i> + Fragancia
+                  <i className="fa-solid fa-spray-can-sparkles"></i> + Nueva Fragancia
                 </button>
               )}
 
               {isBrandMenu && (
                 <button 
                   onClick={() => handleOpenAddProduct("gastro")}
-                  className="btn-outline-gold"
-                  style={{ padding: "0.55rem 1.1rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                  className="btn-gold"
+                  style={{ padding: "0.55rem 1.2rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
                 >
-                  <i className="fa-solid fa-utensils"></i> + Menú / Carta
+                  <i className="fa-solid fa-utensils"></i> + Añadir al Menú / Carta
                 </button>
               )}
 
-              <button 
-                onClick={() => handleOpenAddProduct()}
-                className="btn-gold"
-                style={{ padding: "0.55rem 1.2rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
-              >
-                <i className="fa-solid fa-plus"></i> + Nuevo Producto / Servicio
-              </button>
+              {isBrandStandard && (
+                <button 
+                  onClick={() => handleOpenAddProduct("standard")}
+                  className="btn-gold"
+                  style={{ padding: "0.55rem 1.2rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                >
+                  <i className="fa-solid fa-plus"></i> + Nuevo Producto / Servicio
+                </button>
+              )}
             </div>
           </div>
 
@@ -2270,34 +2358,72 @@ export default function DashboardClient({ initialTab }) {
                 <form onSubmit={handleSaveProductSubmit} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, overflow: "hidden" }}>
                   <div className="modal-body" style={{ flex: 1, overflowY: "auto", padding: "1.4rem 1.6rem", WebkitOverflowScrolling: "touch" }}>
 
-                {/* Selector de Tipo de Producto en 1 Clic */}
-                <div className="product-type-grid">
-                  {visibleTemplates.map(t => (
-                    <div 
-                      key={t.id}
-                      className={`product-type-card ${productType === t.id ? "active" : ""}`}
-                      onClick={() => {
-                        setProductType(t.id);
-                        if (!editingProductId) {
-                          setProdForm(prev => ({ ...prev, category: t.defaultCategory }));
-                        }
-                      }}
-                    >
-                      <i className={`fa-solid ${t.icon}`} style={{ fontSize: "1.3rem", color: productType === t.id ? "var(--gold-primary)" : "var(--text-muted)", marginBottom: "4px" }}></i>
-                      <h5 style={{ fontSize: "0.85rem", fontWeight: 700, margin: "2px 0" }}>{t.name}</h5>
-                      <span style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>{t.badge}</span>
+                {/* Selector de Tipo de Producto Adaptativo */}
+                {visibleTemplates.length === 1 ? (
+                  <div 
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                      padding: "0.85rem 1.2rem",
+                      borderRadius: "14px",
+                      background: "rgba(138, 74, 243, 0.08)",
+                      border: "1.5px solid #8A4AF3",
+                      marginBottom: "1.2rem",
+                      boxShadow: "0 4px 12px rgba(138, 74, 243, 0.12)"
+                    }}
+                  >
+                    <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "rgba(138, 74, 243, 0.15)", color: "#8A4AF3", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem" }}>
+                      💎
                     </div>
-                  ))}
-                </div>
+                    <div style={{ flex: 1 }}>
+                      <h5 style={{ fontSize: "0.92rem", fontWeight: 800, margin: 0, color: "#8A4AF3" }}>
+                        Fragancia de Alta Perfumería
+                      </h5>
+                      <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
+                        Configuración exclusiva: Frasco de referencia original, Dúo Visual y Pirámide Olfativa
+                      </span>
+                    </div>
+                    <span style={{ fontSize: "0.68rem", fontWeight: 700, padding: "2px 8px", borderRadius: "8px", background: "#8A4AF3", color: "#fff" }}>
+                      💎 Activo
+                    </span>
+                  </div>
+                ) : (
+                  <div 
+                    className="product-type-grid"
+                    style={{
+                      gridTemplateColumns: visibleTemplates.length === 2 ? "1fr 1fr" : "repeat(auto-fit, minmax(140px, 1fr))"
+                    }}
+                  >
+                    {visibleTemplates.map(t => (
+                      <div 
+                        key={t.id}
+                        className={`product-type-card ${productType === t.id ? "active" : ""}`}
+                        onClick={() => {
+                          setProductType(t.id);
+                          if (!editingProductId) {
+                            setProdForm(prev => ({ ...prev, category: t.defaultCategory }));
+                          }
+                        }}
+                      >
+                        <i className={`fa-solid ${t.icon}`} style={{ fontSize: "1.3rem", color: productType === t.id ? "var(--gold-primary)" : "var(--text-muted)", marginBottom: "4px" }}></i>
+                        <h5 style={{ fontSize: "0.85rem", fontWeight: 700, margin: "2px 0" }}>{t.name}</h5>
+                        <span style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>{t.badge}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Campos Esenciales Comunes */}
-                <div className="dash-product-form-grid">
+                <div className="dash-product-form-grid" style={{ marginBottom: "1.2rem" }}>
                     <div className="form-group">
-                      <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>Nombre del Ítem *</label>
+                      <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>
+                        {isBrandPerfume ? "Nombre de la Fragancia *" : isBrandMenu ? "Nombre del Platillo / Ítem *" : "Nombre del Ítem *"}
+                      </label>
                       <input 
                         type="text"
                         className="form-control"
-                        placeholder={productType === "perfume" ? "Ej. Abunga Oud Noir" : productType === "gastro" ? "Ej. Café Espresso de Origen" : "Nombre del producto"}
+                        placeholder={productType === "perfume" ? "Ej. Abunga Oud Noir" : productType === "drink" ? "Ej. Chicha Morada Artesanal (1L)" : productType === "gastro" ? "Ej. Salchialitas Personal" : "Nombre del producto"}
                         value={prodForm.name}
                         onChange={e => setProdForm({ ...prodForm, name: e.target.value })}
                         required
@@ -2329,7 +2455,98 @@ export default function DashboardClient({ initialTab }) {
                         />
                       </div>
                     )}
+                </div>
+
+                {/* ── SELECTOR VISIBLE DE CATEGORÍA CON SUGERENCIAS RÁPIDAS ── */}
+                <div className="form-group" style={{ marginBottom: "1.2rem", background: "var(--bg-card)", border: "1px solid var(--border-color)", padding: "12px 14px", borderRadius: "12px" }}>
+                  <label style={{ fontSize: "0.82rem", fontWeight: 700, display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                    <span>
+                      {isBrandMenu 
+                        ? (productType === "drink" ? "🥤 Tipo / Sección de Bebida *" : "🍽️ Categoría en tu Menú & Carta *")
+                        : isBrandPerfume 
+                        ? "💎 Familia Olfativa / Categoría *" 
+                        : "📁 Categoría del Producto / Ítem *"}
+                    </span>
+                    <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
+                      {isBrandMenu ? "💡 Define la sección del menú y el carrusel en la página principal" : "💡 Agrupa tus productos en filtros y carruseles"}
+                    </span>
+                  </label>
+
+                  {/* Chips rápidos en 1 clic */}
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "8px" }}>
+                    {categorySuggestions.map(chip => (
+                      <button
+                        key={chip}
+                        type="button"
+                        onClick={() => setProdForm(prev => ({ ...prev, category: chip }))}
+                        style={{
+                          fontSize: "0.72rem",
+                          padding: "3px 10px",
+                          borderRadius: "14px",
+                          border: prodForm.category === chip ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                          background: prodForm.category === chip ? "rgba(212, 175, 55, 0.15)" : "var(--bg-input)",
+                          color: prodForm.category === chip ? "var(--gold-primary)" : "inherit",
+                          cursor: "pointer",
+                          fontWeight: prodForm.category === chip ? 700 : 500,
+                          transition: "all 0.15s ease"
+                        }}
+                      >
+                        {chip}
+                      </button>
+                    ))}
                   </div>
+
+                  <input 
+                    type="text"
+                    className="form-control"
+                    placeholder={
+                      isBrandMenu
+                        ? "Elige un atajo o escribe tu categoría (Ej. Salchipapas, Alitas, Pizzas, Postres...)"
+                        : isBrandPerfume
+                        ? "Ej. Amaderado, Cítrico, Oriental, Gourmand, Cuero..."
+                        : "Elige un atajo o escribe una categoría personalizada..."
+                    }
+                    value={prodForm.category}
+                    onChange={e => setProdForm({ ...prodForm, category: e.target.value })}
+                    required
+                  />
+                </div>
+
+                {/* ── DETALLES DE CARTA (PORCIÓN E INGREDIENTES PARA MENÚ) ── */}
+                {(productType === "gastro" || productType === "drink") && (
+                  <div style={{ background: "rgba(234, 179, 8, 0.04)", border: "1.5px solid rgba(234, 179, 8, 0.22)", borderRadius: "14px", padding: "1.1rem", marginBottom: "1.2rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                      <span style={{ fontSize: "1rem" }}>{productType === "drink" ? "🥤" : "🍽️"}</span>
+                      <h4 style={{ fontSize: "0.92rem", fontWeight: 800, margin: 0, color: "#D97706" }}>
+                        {productType === "drink" ? "Detalles de Bebida (Carta Digital)" : "Detalles del Platillo (Carta Digital)"}
+                      </h4>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                      <div className="form-group">
+                        <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Porción / Presentación</label>
+                        <input 
+                          type="text"
+                          className="form-control"
+                          placeholder={productType === "drink" ? "Ej. Vaso 500ml / Jarra 1L / Botella" : "Ej. Personal / Mediana / 8 Piezas"}
+                          value={prodForm.gastroPortion}
+                          onChange={e => setProdForm({ ...prodForm, gastroPortion: e.target.value })}
+                        />
+                      </div>
+
+                      <div className="form-group">
+                        <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Ingredientes / Acompañamiento</label>
+                        <input 
+                          type="text"
+                          className="form-control"
+                          placeholder={productType === "drink" ? "Ej. Maíz morado, piña, canela y limón" : "Ej. Papas amarillas, salchicha ahumada, salsas"}
+                          value={prodForm.gastroIngredients}
+                          onChange={e => setProdForm({ ...prodForm, gastroIngredients: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                   {/* ── CAMPOS ESPECÍFICOS PARA FRAGANCIAS / PERFUMES ── */}
                   {productType === "perfume" && (
@@ -2521,30 +2738,20 @@ export default function DashboardClient({ initialTab }) {
                     </div>
 
                     {isAdvancedProdOpen && (
-                      <div style={{ marginTop: "10px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+                      <div style={{ marginTop: "10px", display: "grid", gridTemplateColumns: "1fr", gap: "10px" }}>
                         <div className="form-group">
                           <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Precio Oferta Aourum (Opcional)</label>
                           <input 
                             type="number"
                             step="0.01"
                             className="form-control"
-                            placeholder="Ej. Precio especial"
+                            placeholder="Ej. Precio especial para miembros"
                             value={prodForm.priceAourum}
                             onChange={e => setProdForm({ ...prodForm, priceAourum: e.target.value })}
                           />
                         </div>
 
                         <div className="form-group">
-                          <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Categoría Específica</label>
-                          <input 
-                            type="text"
-                            className="form-control"
-                            value={prodForm.category}
-                            onChange={e => setProdForm({ ...prodForm, category: e.target.value })}
-                          />
-                        </div>
-
-                        <div className="form-group" style={{ gridColumn: "1 / -1" }}>
                           <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Descripción Detallada / Historia</label>
                           <textarea 
                             rows="2"
