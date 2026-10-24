@@ -119,6 +119,31 @@ export function parsePerfumeInfo(prod) {
     }
   }
 
+  // Gender detection: [Género: Hombre], [Género: Mujer], [Género: Unisex]
+  if (!gender) {
+    const bracketGender = rawDesc.match(/\[\s*g[eé]nero\s*:\s*([^\]]+)\]/i);
+    if (bracketGender && bracketGender[1]) {
+      gender = bracketGender[1].trim();
+    } else {
+      const combined = `${name} ${rawDesc} ${prod.category || ""}`.toLowerCase();
+      if (/\b(?:hombre|masculin[oa]|pour homme|men|elixir)\b/i.test(combined)) {
+        gender = "Hombre";
+      } else if (/\b(?:mujer|femenin[oa]|pour femme|women)\b/i.test(combined)) {
+        gender = "Mujer";
+      } else if (/\bunisex\b/i.test(combined)) {
+        gender = "Unisex";
+      }
+    }
+  }
+
+  // Normalize gender
+  if (gender) {
+    const gLower = gender.toLowerCase();
+    if (gLower.includes("hombre") || gLower.includes("masculin")) gender = "Hombre";
+    else if (gLower.includes("mujer") || gLower.includes("femenin")) gender = "Mujer";
+    else if (gLower.includes("unisex")) gender = "Unisex";
+  }
+
   // Concentration detection — only if explicitly in brackets or meta
   if (!concentration) {
     const bracketConc = rawDesc.match(/\[\s*concentraci[oó]n\s*:\s*([^\]]+)\]/i);
@@ -775,29 +800,11 @@ export default function PerfumeryShowcase({
                             alt={`Inspiración: ${info.inspiration || "Original"}`}
                             style={{
                               maxWidth: "100%",
-                              maxHeight: "84%",
+                              maxHeight: "90%",
                               objectFit: "contain",
                               transition: "transform 0.3s ease"
                             }}
                           />
-                          <span
-                            style={{
-                              marginTop: "4px",
-                              fontSize: "0.6rem",
-                              fontWeight: 800,
-                              letterSpacing: "0.04em",
-                              textTransform: "uppercase",
-                              background: isStoreBgLight ? "rgba(30, 41, 59, 0.92)" : "rgba(255, 255, 255, 0.16)",
-                              color: "#FFFFFF",
-                              padding: "2px 8px",
-                              borderRadius: "10px",
-                              backdropFilter: "blur(6px)",
-                              boxShadow: "0 2px 6px rgba(0,0,0,0.18)",
-                              whiteSpace: "nowrap"
-                            }}
-                          >
-                            💎 Original
-                          </span>
                         </div>
 
                         {/* 2. Frasco de la Marca (Primer Plano - Protagonista a la Derecha) */}
@@ -824,7 +831,7 @@ export default function PerfumeryShowcase({
                               alt={prod.name}
                               style={{
                                 maxWidth: "100%",
-                                maxHeight: "84%",
+                                maxHeight: "90%",
                                 objectFit: "contain",
                                 transition: "transform 0.3s ease"
                               }}
@@ -834,23 +841,6 @@ export default function PerfumeryShowcase({
                               <i className="fa-solid fa-wine-bottle" style={{ fontSize: "3.5rem", color: primaryCol, opacity: 0.9 }}></i>
                             </div>
                           )}
-                          <span
-                            style={{
-                              marginTop: "4px",
-                              fontSize: "0.6rem",
-                              fontWeight: 800,
-                              letterSpacing: "0.04em",
-                              textTransform: "uppercase",
-                              background: primaryCol,
-                              color: "#FFFFFF",
-                              padding: "2px 8px",
-                              borderRadius: "10px",
-                              boxShadow: `0 2px 8px ${primaryCol}40`,
-                              whiteSpace: "nowrap"
-                            }}
-                          >
-                            ✨ Tu Frasco
-                          </span>
                         </div>
                       </div>
                     ) : (

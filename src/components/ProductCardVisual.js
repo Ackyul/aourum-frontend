@@ -63,13 +63,10 @@ export default function ProductCardVisual({
               width: "auto",
               height: "auto",
               maxWidth: "100%",
-              maxHeight: "82%",
+              maxHeight: "88%",
               objectFit: "contain"
             }}
           />
-          <span className="perfume-duo-badge orig-badge">
-            💎 Original
-          </span>
         </div>
 
         {/* 2. Frasco de la Marca (Primer plano - Derecha) */}
@@ -86,7 +83,7 @@ export default function ProductCardVisual({
                 width: "auto",
                 height: "auto",
                 maxWidth: "100%",
-                maxHeight: "84%",
+                maxHeight: "90%",
                 objectFit: "contain"
               }}
             />
@@ -98,12 +95,6 @@ export default function ProductCardVisual({
               />
             </div>
           )}
-          <span 
-            className="perfume-duo-badge brand-badge"
-            style={{ background: brandColor || "var(--gold-primary)" }}
-          >
-            ✨ Creación
-          </span>
         </div>
       </div>
     );

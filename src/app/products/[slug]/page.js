@@ -1016,28 +1016,10 @@ export default function ProductDetailPage() {
                   alt={`Original: ${perfumeInfo.inspiration || "Inspiración"}`}
                   style={{
                     maxWidth: "100%",
-                    maxHeight: "82%",
+                    maxHeight: "92%",
                     objectFit: "contain"
                   }}
                 />
-                <span
-                  style={{
-                    marginTop: "8px",
-                    fontSize: "0.7rem",
-                    fontWeight: 800,
-                    letterSpacing: "0.04em",
-                    textTransform: "uppercase",
-                    background: "rgba(30, 41, 59, 0.92)",
-                    color: "#FFFFFF",
-                    padding: "3px 10px",
-                    borderRadius: "12px",
-                    backdropFilter: "blur(6px)",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
-                    whiteSpace: "nowrap"
-                  }}
-                >
-                  💎 Frasco Original
-                </span>
               </div>
 
               {/* 2. Frasco de la Marca (Primer Plano - Protagonista a la Derecha) */}
@@ -1063,7 +1045,7 @@ export default function ProductDetailPage() {
                     alt={prod.name}
                     style={{
                       maxWidth: "100%",
-                      maxHeight: "84%",
+                      maxHeight: "92%",
                       objectFit: "contain"
                     }}
                   />
@@ -1072,23 +1054,6 @@ export default function ProductDetailPage() {
                     <i className="fa-solid fa-wine-bottle" style={{ fontSize: "5rem", color: palette.c1, opacity: 0.9 }}></i>
                   </div>
                 )}
-                <span
-                  style={{
-                    marginTop: "8px",
-                    fontSize: "0.7rem",
-                    fontWeight: 800,
-                    letterSpacing: "0.04em",
-                    textTransform: "uppercase",
-                    background: palette.c1,
-                    color: "#FFFFFF",
-                    padding: "3px 10px",
-                    borderRadius: "12px",
-                    boxShadow: `0 4px 12px ${palette.c1}40`,
-                    whiteSpace: "nowrap"
-                  }}
-                >
-                  ✨ Tu Presentación ({brand?.name || "Maison"})
-                </span>
               </div>
             </div>
           ) : prod.image ? (
