@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useMemo } from "react";
 import { MaxHeap, getItemViews, getBrandViews, getProductViews } from "@/utils/maxHeap";
-import { isVirtualMenuBrand } from "@/utils/brandUtils";
+import { isVirtualMenuBrand, isPerfumeryBrand } from "@/utils/brandUtils";
 import SocialFeedPublisher from "@/components/SocialFeedPublisher";
 import PostList from "@/components/PostList";
 import ProductCardVisual from "@/components/ProductCardVisual";
@@ -442,6 +442,26 @@ export default function Home() {
     setFilterCategory("all");
   };
 
+  // Helper universal para detectar si un producto corresponde a la marca o catálogo de perfumería
+  const isProductPerfume = (p) => {
+    if (!p) return false;
+    const pBrandId = Number(p.brandId || p.brand_id);
+    const pBrand = brands.find(b => Number(b.id) === pBrandId);
+    const pBrandRubro = pBrand ? (pBrand.rubro_especifico || pBrand.rubro_general || pBrand.category || "") : "";
+    const pInfo = parsePerfumeInfo(p);
+    return Boolean(
+      pBrandId === 6 ||
+      pInfo.originalImg ||
+      isPerfumeryBrand(pBrand) ||
+      pBrand?.category?.toLowerCase() === "perfumería" ||
+      pBrand?.category?.toLowerCase() === "perfumeria" ||
+      pBrand?.brandDesign?.catalogDisplayMode === "perfumery" ||
+      pBrand?.brandDesign?.catalogDisplayMode === "perfume" ||
+      /perfum|fraganc|coloni|eau de|esenci/i.test(`${p.category || ""} ${pBrandRubro}`) ||
+      (pInfo.inspiration && !/comida|snack|gastronom|fruta|alimento|bebida|joyer|ropa|esot[eé]ric/i.test(`${p.category || ""} ${pBrandRubro}`))
+    );
+  };
+
   // Helper to handle "Ver todo" on a category or section
   const handleViewAll = (categoryName) => {
     if (
@@ -451,6 +471,8 @@ export default function Home() {
       categoryName.toLowerCase().includes("destacado")
     ) {
       handleResetFilters();
+    } else if (categoryName.toLowerCase().includes("perfum")) {
+      setFilterCategory("Perfumería");
     } else {
       const exactCategory = products.find(p => p.category?.toLowerCase() === categoryName.toLowerCase())?.category;
       if (exactCategory) {
@@ -485,7 +507,11 @@ export default function Home() {
                           prod.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           getBrandName(prod.brandId).toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === "all" || prod.type === filterType;
-    const matchesCategory = filterCategory === "all" || (prod.category && prod.category.trim().toLowerCase() === filterCategory.trim().toLowerCase());
+    const matchesCategory = filterCategory === "all" || (
+      filterCategory.toLowerCase() === "perfumería" || filterCategory.toLowerCase() === "perfumeria"
+        ? isProductPerfume(prod)
+        : (prod.category && prod.category.trim().toLowerCase() === filterCategory.trim().toLowerCase())
+    );
     return matchesSearch && matchesType && matchesCategory;
   });
 
@@ -493,12 +519,13 @@ export default function Home() {
     const seen = new Set();
     const unique = [];
     visibleProducts.forEach(p => {
-      if (p.category) {
-        const trimmed = p.category.trim();
-        const lower = trimmed.toLowerCase();
+      const isPerf = isProductPerfume(p);
+      const catName = isPerf ? "Perfumería" : (p.category ? p.category.trim() : "");
+      if (catName) {
+        const lower = catName.toLowerCase();
         if (!seen.has(lower)) {
           seen.add(lower);
-          unique.push(trimmed);
+          unique.push(catName);
         }
       }
     });
@@ -548,36 +575,47 @@ export default function Home() {
   // Thematic sections specifications
   const themeSpecs = [
     {
+      id: "perfumeria",
+      title: "Perfumería",
+      subtitle: "Explora nuestra selección exclusiva de alta perfumería y fragancias",
+      keywords: ["perfum", "fraganc", "eau de", "coloni", "esenci", "olfativ", "parfum", "elixir"],
+      fallbackCategory: "Perfumería",
+      isPerfumeSection: true
+    },
+    {
       id: "joyeria",
-      title: "Novedades en JoyerÃ­a",
-      subtitle: "DiseÃ±os Ãºnicos, brillo local e identidad cultural",
-      keywords: ["joyeria", "joyerÃ­a", "anillo", "collar", "pulsera", "arete", "esmeralda", "plata", "oro"],
-      fallbackCategory: "JoyerÃ­a"
+      title: "Novedades en Joyería",
+      subtitle: "Diseños únicos, brillo local e identidad cultural",
+      keywords: ["joyeria", "joyería", "anillo", "collar", "pulsera", "arete", "esmeralda", "plata", "oro"],
+      fallbackCategory: "Joyería"
     },
     {
       id: "ropa",
       title: "Tendencias en Ropa",
-      subtitle: "Prendas con historia y estilo contemporÃ¡neo",
-      keywords: ["ropa", "vestimenta", "prenda", "moda", "polo", "casaca", "pantalon", "pantalÃ³n", "falda", "vestido", "abrigo"],
+      subtitle: "Prendas con historia y estilo contemporáneo",
+      keywords: ["ropa", "vestimenta", "prenda", "moda", "polo", "casaca", "pantalon", "pantalón", "falda", "vestido", "abrigo"],
       fallbackCategory: "Ropa"
     },
     {
       id: "accesorios",
       title: "Accesorios Destacados",
-      subtitle: "El complemento perfecto para tu dÃ­a a dÃ­a",
+      subtitle: "El complemento perfecto para tu día a día",
       keywords: ["accesorio", "accesorios", "cartera", "bolso", "sombrero", "lentes", "correa", "billetera"],
       fallbackCategory: "Accesorios"
     }
   ];
 
   const getThemedProducts = (spec) => {
-    return products.filter(p => {
+    return visibleProducts.filter(p => {
+      if (spec.isPerfumeSection) {
+        return isProductPerfume(p);
+      }
       const categoryMatch = p.category && (
         spec.keywords.some(kw => p.category.toLowerCase().includes(kw)) ||
         p.category.toLowerCase() === spec.fallbackCategory.toLowerCase()
       );
       const nameMatch = p.name && spec.keywords.some(kw => p.name.toLowerCase().includes(kw));
-      return categoryMatch || nameMatch;
+      return (categoryMatch || nameMatch) && !isProductPerfume(p);
     });
   };
 
@@ -586,11 +624,12 @@ export default function Home() {
   themeSpecs.forEach(spec => {
     getThemedProducts(spec).forEach(p => {
       if (p.category) representedCategories.add(p.category.toLowerCase());
+      if (spec.isPerfumeSection) representedCategories.add("perfumería");
     });
   });
 
   const remainingCategories = allCategories.filter(
-    (cat) => !representedCategories.has(cat.toLowerCase())
+    (cat) => !representedCategories.has(cat.toLowerCase()) && cat.toLowerCase() !== "perfumería"
   );
 
   // Sub-component for product card
@@ -610,13 +649,7 @@ export default function Home() {
       ? brand.color
       : (brand?.theme_color ? brand.theme_color.split(",")[0].trim() : "var(--gold-primary)");
 
-    const isPerfume = Boolean(
-      perfumeInfo.originalImg ||
-      brand?.brandDesign?.catalogDisplayMode === "perfumery" ||
-      brand?.brandDesign?.catalogDisplayMode === "perfume" ||
-      /perfum|fraganc|coloni|eau de|esenci/i.test(`${prod.category || ""} ${brandRubro || ""}`) ||
-      (perfumeInfo.inspiration && !/comida|snack|gastronom|fruta|alimento|bebida|joyer|ropa|esot[eé]ric/i.test(`${prod.category || ""} ${brandRubro || ""}`))
-    );
+    const isPerfume = isProductPerfume(prod);
 
     return (
       <div 
@@ -717,7 +750,7 @@ export default function Home() {
         <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.45rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: "0.72rem", color: categoryTextColor, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
-              {prod.category}
+              {isPerfume ? (perfumeInfo.family && !/jean paul|dior|baccarat|sauvage|elixir|creed|versace|chanel/i.test(perfumeInfo.family) ? perfumeInfo.family : "Perfumería") : prod.category}
             </span>
             {(perfumeInfo.ml || perfumeInfo.presentation) && (
               <span style={{ 
@@ -736,12 +769,12 @@ export default function Home() {
             {prod.name}
           </h3>
 
-          {/* Inspiración original si es perfume y no es idéntica al título */}
-          {isPerfume && perfumeInfo.inspiration && perfumeInfo.inspiration.trim().toLowerCase() !== (prod.name || "").trim().toLowerCase() && (
+          {/* Inspiración original si es perfume */}
+          {isPerfume && (perfumeInfo.inspiration || (prod.category && !/perfum/i.test(prod.category))) && (
             <div style={{ fontSize: "0.74rem", color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "5px" }}>
               <i className="fa-solid fa-gem" style={{ fontSize: "0.65rem", opacity: 0.85 }}></i>
               <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                Insp: <strong style={{ color: titleTextColor }}>{perfumeInfo.inspiration}</strong>
+                Insp: <strong style={{ color: titleTextColor }}>{perfumeInfo.inspiration || prod.category}</strong>
               </span>
             </div>
           )}
@@ -1024,7 +1057,7 @@ export default function Home() {
                 cat.toLowerCase().replace(/[^a-z0-9]/g, ""),
                 cat,
                 `Explora nuestra seleccion de ${cat.toLowerCase()}`,
-                products.filter(p => p.category && p.category.trim().toLowerCase() === cat.trim().toLowerCase()),
+                visibleProducts.filter(p => p.category && p.category.trim().toLowerCase() === cat.trim().toLowerCase() && !isProductPerfume(p)),
                 cat
               ))}
               <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "3rem", marginTop: "1rem" }}>
