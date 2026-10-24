@@ -779,14 +779,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* Concentración olfativa si es perfume */}
-          {isPerfume && perfumeInfo.concentration && (
-            <div style={{ fontSize: "0.68rem", color: "var(--gold-primary)", display: "flex", alignItems: "center", gap: "4px" }}>
-              <span style={{ background: "rgba(212, 175, 55, 0.12)", padding: "1px 6px", borderRadius: "6px", fontWeight: 700 }}>
-                {perfumeInfo.concentration}
-              </span>
-            </div>
-          )}
+
           
           <div 
             style={{ fontSize: "0.8rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px", marginTop: "2px" }}

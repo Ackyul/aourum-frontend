@@ -1297,14 +1297,7 @@ function BrandProductCard({ prod }) {
             </div>
           )}
 
-          {/* Concentración olfativa */}
-          {isPerfume && pInfo.concentration && (
-            <div style={{ fontSize: "0.68rem", color: palette.c1, display: "flex", alignItems: "center", gap: "4px" }}>
-              <span style={{ background: `${palette.c1}18`, padding: "1px 6px", borderRadius: "6px", fontWeight: 700 }}>
-                {pInfo.concentration}
-              </span>
-            </div>
-          )}
+
 
           <div style={{ fontSize: "0.8rem", color: isCardDark ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}>
             <span>Por:</span>
@@ -2222,7 +2215,7 @@ function BrandProductCard({ prod }) {
                        setPerfumeInspiration("");
                        setPerfumeGender("Unisex");
                        setPerfumeFamily("Amaderado");
-                       setPerfumeConcentration("50% Esencia Pura");
+                       setPerfumeConcentration("");
                        setPerfumeMl("50 ml");
                        setPerfumeNotes("");
                        setProdFormOpen(true);
@@ -3370,7 +3363,7 @@ function BrandProductCard({ prod }) {
                         className="form-control" 
                         value={perfumeConcentration} 
                         onChange={(e) => setPerfumeConcentration(e.target.value)} 
-                        placeholder="Ej: 50% Esencia Pura"
+                        placeholder="Ej: Extrait de Parfum"
                         style={{ fontSize: "0.82rem" }}
                       />
                     </div>
@@ -4241,7 +4234,7 @@ function BrandProductCard({ prod }) {
                             setPerfumeInspiration(pInfo.inspiration || "");
                             setPerfumeGender(pInfo.gender || "Unisex");
                             setPerfumeFamily(pInfo.family || "Amaderado");
-                            setPerfumeConcentration(pInfo.concentration || "50% Esencia Pura");
+                            setPerfumeConcentration(pInfo.concentration || "");
                             setPerfumeMl(pInfo.ml || "50 ml");
                             setPerfumeNotes(pInfo.cleanDesc || "");
                             setProdDescription(pInfo.cleanDesc || prod.description || "");

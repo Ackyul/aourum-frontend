@@ -172,7 +172,7 @@ export default function DashboardClient({ initialTab }) {
     perfumeOriginalImg: "",
     perfumeGender: "Unisex",
     perfumeFamily: "Amaderado",
-    perfumeConcentration: "50% Esencia Pura",
+    perfumeConcentration: "",
     perfumeMl: "50 ml",
     perfumeNotes: "",
     // Gastro
@@ -592,7 +592,7 @@ export default function DashboardClient({ initialTab }) {
       perfumeOriginalImg: "",
       perfumeGender: "Unisex",
       perfumeFamily: "Amaderado",
-      perfumeConcentration: "50% Esencia Pura",
+      perfumeConcentration: "",
       perfumeMl: "50 ml",
       perfumeNotes: "",
       gastroPortion: "",
@@ -653,7 +653,7 @@ export default function DashboardClient({ initialTab }) {
       perfumeOriginalImg: origImgMatch ? origImgMatch[1].trim() : "",
       perfumeGender: genderMatch ? genderMatch[1].trim() : "Unisex",
       perfumeFamily: prod.category || "Amaderado",
-      perfumeConcentration: concMatch ? concMatch[1].trim() : "50% Esencia Pura",
+      perfumeConcentration: (concMatch && !/50%\s*esencia/i.test(concMatch[1])) ? concMatch[1].trim() : "",
       perfumeMl: mlMatch ? mlMatch[1].trim() : (resolvedPres || "50 ml"),
       perfumeNotes: cleanNotes,
       gastroPortion: portionMatch ? portionMatch[1].trim() : resolvedPres,
@@ -717,7 +717,7 @@ export default function DashboardClient({ initialTab }) {
       perfumeOriginalImg: origImgMatch ? origImgMatch[1].trim() : "",
       perfumeGender: genderMatch ? genderMatch[1].trim() : "Unisex",
       perfumeFamily: prod.category || "Amaderado",
-      perfumeConcentration: concMatch ? concMatch[1].trim() : "50% Esencia Pura",
+      perfumeConcentration: (concMatch && !/50%\s*esencia/i.test(concMatch[1])) ? concMatch[1].trim() : "",
       perfumeMl: nextMl,
       perfumeNotes: cleanNotes,
       gastroPortion: portionMatch ? portionMatch[1].trim() : "",
@@ -2795,9 +2795,10 @@ export default function DashboardClient({ initialTab }) {
                             value={prodForm.perfumeConcentration}
                             onChange={e => setProdForm({ ...prodForm, perfumeConcentration: e.target.value })}
                           >
-                            <option value="50% Esencia Pura">50% Esencia Pura</option>
-                            <option value="Extrait de Parfum">Extrait de Parfum (33%)</option>
+                            <option value="">Sin especificar</option>
+                            <option value="Extrait de Parfum">Extrait de Parfum</option>
                             <option value="Eau de Parfum">Eau de Parfum (EDP)</option>
+                            <option value="Eau de Toilette">Eau de Toilette (EDT)</option>
                           </select>
                         </div>
 

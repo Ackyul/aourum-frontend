@@ -126,6 +126,9 @@ export function parsePerfumeInfo(prod) {
       concentration = bracketConc[1].trim();
     }
   }
+  if (/50%\s*esencia/i.test(concentration)) {
+    concentration = "";
+  }
 
   // Volume/ML detection
   if (!ml) {
