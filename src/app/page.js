@@ -719,9 +719,16 @@ export default function Home() {
             <span style={{ fontSize: "0.72rem", color: categoryTextColor, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
               {prod.category}
             </span>
-            {isPerfume && perfumeInfo.ml && (
-              <span style={{ fontSize: "0.68rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", fontWeight: 600 }}>
-                {perfumeInfo.ml}
+            {(perfumeInfo.ml || perfumeInfo.presentation) && (
+              <span style={{ 
+                fontSize: "0.68rem", 
+                color: isDarkBg ? "#FDE047" : "var(--text-gold)", 
+                background: isDarkBg ? "rgba(253, 224, 71, 0.12)" : "rgba(212, 175, 55, 0.12)",
+                padding: "1px 6px",
+                borderRadius: "6px",
+                fontWeight: 700 
+              }}>
+                {perfumeInfo.ml || perfumeInfo.presentation}
               </span>
             )}
           </div>

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useApp } from "../../context/AppContext";
 import { ensureFullSocialUrl, isPerfumeryBrand, isVirtualMenuBrand } from "../../utils/brandUtils";
+import { parseProductPresentation, parsePerfumeInfo } from "../../components/PerfumeryShowcase";
 
 
 
@@ -165,6 +166,7 @@ export default function DashboardClient({ initialTab }) {
     image: "",
     imgBgColor: "transparent",
     isVisible: true,
+    presentation: "",
     // Perfume
     perfumeInspiration: "",
     perfumeOriginalImg: "",
@@ -585,6 +587,7 @@ export default function DashboardClient({ initialTab }) {
       image: "",
       imgBgColor: "transparent",
       isVisible: true,
+      presentation: "",
       perfumeInspiration: "",
       perfumeOriginalImg: "",
       perfumeGender: "Unisex",
@@ -610,8 +613,12 @@ export default function DashboardClient({ initialTab }) {
     const genderMatch = desc.match(/\[\s*g[eé]nero\s*:\s*([^\]]+)\]/i);
     const concMatch = desc.match(/\[\s*concentraci[oó]n\s*:\s*([^\]]+)\]/i);
     const mlMatch = desc.match(/\[\s*ml\s*:\s*([^\]]+)\]/i);
+    const presMatch = desc.match(/\[\s*(?:presentaci[oó]n|tama[ñn]o|cantidad|gramaje)\s*:\s*([^\]]+)\]/i);
     const portionMatch = desc.match(/\[\s*(?:porci[oó]n|tama[ñn]o)\s*:\s*([^\]]+)\]/i);
     const ingredientsMatch = desc.match(/\[\s*ingredientes\s*:\s*([^\]]+)\]/i);
+
+    const parsedPres = parseProductPresentation(prod);
+    const resolvedPres = presMatch ? presMatch[1].trim() : (parsedPres.presentation || (mlMatch ? mlMatch[1].trim() : (portionMatch ? portionMatch[1].trim() : "")));
 
     const catLower = (prod.category || "").toLowerCase();
     const isDrink = /bebida|refresco|gaseosa|jugo|cerveza|trago|caf[eé]|cocktail|vino/i.test(catLower);
@@ -641,17 +648,83 @@ export default function DashboardClient({ initialTab }) {
       image: prod.image || "",
       imgBgColor: prod.imgBgColor || "transparent",
       isVisible: prod.isVisible !== false,
+      presentation: resolvedPres,
       perfumeInspiration: inspMatch ? inspMatch[1].trim() : "",
       perfumeOriginalImg: origImgMatch ? origImgMatch[1].trim() : "",
       perfumeGender: genderMatch ? genderMatch[1].trim() : "Unisex",
       perfumeFamily: prod.category || "Amaderado",
       perfumeConcentration: concMatch ? concMatch[1].trim() : "50% Esencia Pura",
-      perfumeMl: mlMatch ? mlMatch[1].trim() : "50 ml",
+      perfumeMl: mlMatch ? mlMatch[1].trim() : (resolvedPres || "50 ml"),
+      perfumeNotes: cleanNotes,
+      gastroPortion: portionMatch ? portionMatch[1].trim() : resolvedPres,
+      gastroIngredients: ingredientsMatch ? ingredientsMatch[1].trim() : "",
+      description: cleanNotes
+    });
+    setShowProductModal(true);
+  };
+
+  // Duplicar producto para crear otro tamaño / presentación con la misma foto e info
+  const handleDuplicateProductForNewSize = (prod) => {
+    setEditingProductId(null); // Producto nuevo
+    let desc = prod.description || "";
+    
+    const origImgMatch = desc.match(/\[\s*(?:originalimg|originalimage|frascooriginal)\s*:\s*([^\]]+)\]/i);
+    const inspMatch = desc.match(/\[\s*(?:inspiraci[oó]n|inspirado en|original|ref)\s*:\s*([^\]]+)\]/i);
+    const genderMatch = desc.match(/\[\s*g[eé]nero\s*:\s*([^\]]+)\]/i);
+    const concMatch = desc.match(/\[\s*concentraci[oó]n\s*:\s*([^\]]+)\]/i);
+    const mlMatch = desc.match(/\[\s*ml\s*:\s*([^\]]+)\]/i);
+    const portionMatch = desc.match(/\[\s*(?:porci[oó]n|tama[ñn]o)\s*:\s*([^\]]+)\]/i);
+    const ingredientsMatch = desc.match(/\[\s*ingredientes\s*:\s*([^\]]+)\]/i);
+
+    const parsedPres = parseProductPresentation(prod);
+    const cleanNotes = desc.replace(/\[[^\]]+\]/g, "").trim();
+
+    const catLower = (prod.category || "").toLowerCase();
+    const isDrink = /bebida|refresco|gaseosa|jugo|cerveza|trago|caf[eé]|cocktail|vino/i.test(catLower);
+
+    let resolvedType = "standard";
+    if (isBrandPerfume) {
+      resolvedType = "perfume";
+    } else if (isBrandMenu) {
+      if (prod.type === "service") resolvedType = "service";
+      else if (isDrink) resolvedType = "drink";
+      else resolvedType = "gastro";
+    } else {
+      resolvedType = prod.type === "service" ? "service" : "standard";
+    }
+    
+    setProductType(resolvedType);
+
+    // Sugerir siguiente tamaño si es perfume
+    let nextMl = "100 ml";
+    if (mlMatch) {
+      if (mlMatch[1].includes("30")) nextMl = "50 ml";
+      else if (mlMatch[1].includes("50")) nextMl = "100 ml";
+      else if (mlMatch[1].includes("100")) nextMl = "30 ml";
+    }
+
+    setProdForm({
+      name: parsedPres.cleanName || prod.name || "",
+      price: "", // Limpio para que ingrese el precio del nuevo tamaño
+      priceAourum: "",
+      stock: prod.stock !== null ? String(prod.stock) : "15",
+      category: prod.category || (isBrandPerfume ? "Alta Perfumería" : isBrandStandard ? (selectedBrand?.category || "General") : "Platos & Especialidades"),
+      image: prod.image || "", // Conserva la misma foto
+      imgBgColor: prod.imgBgColor || "transparent",
+      isVisible: true,
+      presentation: "", // Listo para elegir el nuevo tamaño/gramaje
+      perfumeInspiration: inspMatch ? inspMatch[1].trim() : "",
+      perfumeOriginalImg: origImgMatch ? origImgMatch[1].trim() : "",
+      perfumeGender: genderMatch ? genderMatch[1].trim() : "Unisex",
+      perfumeFamily: prod.category || "Amaderado",
+      perfumeConcentration: concMatch ? concMatch[1].trim() : "50% Esencia Pura",
+      perfumeMl: nextMl,
       perfumeNotes: cleanNotes,
       gastroPortion: portionMatch ? portionMatch[1].trim() : "",
       gastroIngredients: ingredientsMatch ? ingredientsMatch[1].trim() : "",
       description: cleanNotes
     });
+    triggerNotification(true, `Creando nueva presentación para "${parsedPres.cleanName || prod.name}". Selecciona el tamaño y define su precio.`);
     setShowProductModal(true);
   };
 
@@ -674,12 +747,23 @@ export default function DashboardClient({ initialTab }) {
       if (prodForm.category || prodForm.perfumeFamily) tags.push(`[Familia: ${prodForm.category || prodForm.perfumeFamily}]`);
       if (prodForm.perfumeConcentration) tags.push(`[Concentración: ${prodForm.perfumeConcentration}]`);
       if (prodForm.perfumeMl) tags.push(`[ML: ${prodForm.perfumeMl}]`);
+      if (prodForm.presentation.trim() && prodForm.presentation.trim() !== prodForm.perfumeMl) {
+        tags.push(`[Presentación: ${prodForm.presentation.trim()}]`);
+      }
       finalDesc = `${tags.join(' ')}\n\n${prodForm.perfumeNotes.trim()}`.trim();
     } else if (productType === "gastro" || productType === "drink") {
       const tags = [];
-      if (prodForm.gastroPortion.trim()) tags.push(`[Porción: ${prodForm.gastroPortion.trim()}]`);
+      if (prodForm.presentation.trim() || prodForm.gastroPortion.trim()) {
+        tags.push(`[Porción: ${(prodForm.presentation || prodForm.gastroPortion).trim()}]`);
+      }
       if (prodForm.gastroIngredients.trim()) tags.push(`[Ingredientes: ${prodForm.gastroIngredients.trim()}]`);
       finalDesc = `${tags.join(' ')}\n\n${prodForm.description.trim()}`.trim();
+    } else {
+      const tags = [];
+      if (prodForm.presentation.trim()) {
+        tags.push(`[Presentación: ${prodForm.presentation.trim()}]`);
+      }
+      finalDesc = tags.length > 0 ? `${tags.join(' ')}\n\n${prodForm.description.trim()}`.trim() : prodForm.description.trim();
     }
 
     const payload = {
@@ -2218,6 +2302,7 @@ export default function DashboardClient({ initialTab }) {
               {filteredProducts.map(prod => {
                 const isPerfume = prod.category?.toLowerCase().includes("perfum") || prod.description?.includes("[Inspiración");
                 const isVisible = prod.isVisible !== false;
+                const itemPres = parseProductPresentation(prod).presentation || (isPerfume ? parsePerfumeInfo(prod).ml : "");
 
                 return (
                   <div key={prod.id} className="dash-product-row">
@@ -2233,6 +2318,11 @@ export default function DashboardClient({ initialTab }) {
                           {isPerfume && (
                             <span style={{ fontSize: "0.62rem", background: "rgba(138,74,243,0.15)", color: "#8A4AF3", padding: "1px 6px", borderRadius: "8px", fontWeight: 700 }}>
                               💎 Fragancia
+                            </span>
+                          )}
+                          {itemPres && (
+                            <span style={{ fontSize: "0.68rem", background: "rgba(212, 175, 55, 0.14)", color: "var(--text-gold)", border: "1px solid rgba(212, 175, 55, 0.28)", padding: "1px 8px", borderRadius: "8px", fontWeight: 700 }}>
+                              ⚖️ {itemPres}
                             </span>
                           )}
                         </div>
@@ -2269,6 +2359,17 @@ export default function DashboardClient({ initialTab }) {
                         >
                           <i className={`fa-solid fa-${isVisible ? "eye" : "eye-slash"}`}></i>
                           <span>{isVisible ? "Activo" : "Oculto"}</span>
+                        </button>
+
+                        {/* Duplicar para crear otro tamaño con la misma foto */}
+                        <button 
+                          type="button"
+                          onClick={() => handleDuplicateProductForNewSize(prod)}
+                          className="btn-outline-gold dash-btn-edit"
+                          style={{ borderColor: "rgba(212, 175, 55, 0.4)", background: "rgba(212, 175, 55, 0.08)", color: "var(--text-gold)" }}
+                          title="Crear otra presentación o tamaño con la misma foto"
+                        >
+                          <i className="fa-solid fa-copy"></i> + Tamaño
                         </button>
 
                         <button 
@@ -2415,8 +2516,8 @@ export default function DashboardClient({ initialTab }) {
                 )}
 
                 {/* Campos Esenciales Comunes */}
-                <div className="dash-product-form-grid" style={{ marginBottom: "1.2rem" }}>
-                    <div className="form-group">
+                <div style={{ display: "grid", gridTemplateColumns: (productType === "service" || productType === "perfume") ? "2fr 1fr 1fr" : "1.8fr 1fr 1fr 1.2fr", gap: "10px", marginBottom: "0.8rem" }}>
+                    <div className="form-group" style={{ margin: 0 }}>
                       <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>
                         {isBrandPerfume ? "Nombre de la Fragancia *" : isBrandMenu ? "Nombre del Platillo / Ítem *" : "Nombre del Ítem *"}
                       </label>
@@ -2430,7 +2531,7 @@ export default function DashboardClient({ initialTab }) {
                       />
                     </div>
 
-                    <div className="form-group">
+                    <div className="form-group" style={{ margin: 0 }}>
                       <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>Precio (S/.) *</label>
                       <input 
                         type="number"
@@ -2444,7 +2545,7 @@ export default function DashboardClient({ initialTab }) {
                     </div>
 
                     {productType !== "service" && (
-                      <div className="form-group">
+                      <div className="form-group" style={{ margin: 0 }}>
                         <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>Stock Disponible</label>
                         <input 
                           type="number"
@@ -2455,7 +2556,59 @@ export default function DashboardClient({ initialTab }) {
                         />
                       </div>
                     )}
+
+                    {productType !== "perfume" && productType !== "service" && (
+                      <div className="form-group" style={{ margin: 0 }}>
+                        <label style={{ fontSize: "0.82rem", fontWeight: 700, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span>⚖️ Tamaño / Gramaje</span>
+                          <span style={{ fontSize: "0.68rem", color: "var(--text-muted)", fontWeight: 400 }}>Opcional</span>
+                        </label>
+                        <input 
+                          type="text"
+                          className="form-control"
+                          placeholder="Ej. 25 gr, 50 gr, 100 gr..."
+                          value={prodForm.presentation}
+                          onChange={e => setProdForm({ ...prodForm, presentation: e.target.value })}
+                        />
+                      </div>
+                    )}
                 </div>
+
+                {/* Atajos Rápidos de Tamaño / Presentación para productos estándar */}
+                {productType !== "perfume" && productType !== "service" && (
+                  <div style={{ marginBottom: "1.2rem", background: "var(--bg-card)", border: "1px dashed var(--border-color)", padding: "10px 14px", borderRadius: "12px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px", flexWrap: "wrap", gap: "4px" }}>
+                      <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <i className="fa-solid fa-scale-balanced"></i> Atajos Rápidos de Cantidad / Tamaño (1 Clic)
+                      </span>
+                      <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
+                        💡 Para productos con varios tamaños (como los mixtos de Abunga)
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                      {["25 gr", "50 gr", "100 gr", "200 gr", "250 gr", "500 gr", "1 kg", "Pack x3", "Unidad", "S", "M", "L", "XL"].map(chip => (
+                        <button
+                          key={chip}
+                          type="button"
+                          onClick={() => setProdForm(prev => ({ ...prev, presentation: chip }))}
+                          style={{
+                            fontSize: "0.72rem",
+                            padding: "3px 9px",
+                            borderRadius: "14px",
+                            border: prodForm.presentation === chip ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                            background: prodForm.presentation === chip ? "rgba(212, 175, 55, 0.2)" : "var(--bg-input)",
+                            color: prodForm.presentation === chip ? "var(--gold-primary)" : "inherit",
+                            cursor: "pointer",
+                            fontWeight: prodForm.presentation === chip ? 700 : 500,
+                            transition: "all 0.15s ease"
+                          }}
+                        >
+                          {chip}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* ── SELECTOR VISIBLE DE CATEGORÍA CON SUGERENCIAS RÁPIDAS ── */}
                 <div className="form-group" style={{ marginBottom: "1.2rem", background: "var(--bg-card)", border: "1px solid var(--border-color)", padding: "12px 14px", borderRadius: "12px" }}>
@@ -2649,16 +2802,30 @@ export default function DashboardClient({ initialTab }) {
                         </div>
 
                         <div className="form-group">
-                          <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Mililitros / Tamaño</label>
-                          <select 
-                            className="form-control"
-                            value={prodForm.perfumeMl}
-                            onChange={e => setProdForm({ ...prodForm, perfumeMl: e.target.value })}
-                          >
-                            <option value="30 ml">30 ml</option>
-                            <option value="50 ml">50 ml</option>
-                            <option value="100 ml">100 ml</option>
-                          </select>
+                          <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "4px", display: "block" }}>Mililitros / Tamaño</label>
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            {["30 ml", "50 ml", "100 ml"].map(mlChip => (
+                              <button
+                                key={mlChip}
+                                type="button"
+                                onClick={() => setProdForm(prev => ({ ...prev, perfumeMl: mlChip, presentation: mlChip }))}
+                                style={{
+                                  flex: 1,
+                                  fontSize: "0.78rem",
+                                  padding: "6px 4px",
+                                  borderRadius: "8px",
+                                  border: (prodForm.perfumeMl === mlChip || prodForm.presentation === mlChip) ? "2px solid #8A4AF3" : "1px solid var(--border-color)",
+                                  background: (prodForm.perfumeMl === mlChip || prodForm.presentation === mlChip) ? "rgba(138,74,243,0.18)" : "var(--bg-input)",
+                                  color: (prodForm.perfumeMl === mlChip || prodForm.presentation === mlChip) ? "#8A4AF3" : "inherit",
+                                  cursor: "pointer",
+                                  fontWeight: (prodForm.perfumeMl === mlChip || prodForm.presentation === mlChip) ? 800 : 500,
+                                  transition: "all 0.15s ease"
+                                }}
+                              >
+                                {mlChip}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       </div>
 

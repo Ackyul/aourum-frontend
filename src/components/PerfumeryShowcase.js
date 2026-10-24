@@ -3,6 +3,64 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 
+// Helper universal para extraer presentación, tamaño, gramaje o cantidad de CUALQUIER producto
+export function parseProductPresentation(prod) {
+  if (!prod) {
+    return {
+      presentation: "",
+      cleanName: ""
+    };
+  }
+
+  const name = prod.name || "";
+  let rawDesc = prod.description || "";
+  let meta = {};
+
+  if (typeof rawDesc === "string" && rawDesc.trim().startsWith("{")) {
+    try {
+      meta = JSON.parse(rawDesc);
+      rawDesc = meta.text || meta.description || "";
+    } catch (e) {}
+  }
+
+  let presentation = meta.presentation || meta.presentacion || meta.size || meta.tamano || meta.ml || meta.volume || meta.portion || meta.porcion || "";
+
+  // 1. Corchetes explícitos en la descripción: [Presentación: 200 gr], [Tamaño: M], [ML: 50 ml], [Porción: ...]
+  if (!presentation) {
+    const pMatch = rawDesc.match(/\[\s*(?:presentaci[oó]n|tama[ñn]o|cantidad|gramaje|volumen|ml|porci[oó]n)\s*:\s*([^\]]+)\]/i);
+    if (pMatch && pMatch[1]) {
+      presentation = pMatch[1].trim();
+    }
+  }
+
+  // 2. Paréntesis en el nombre: ej. "Mixto de fruta deshidratada (200gr)" -> "200gr"
+  if (!presentation) {
+    const parenMatch = name.match(/\((?:tamaño|presentación)?\s*([^)]*(?:gr|g|kg|ml|oz|litros?|l|pack|talla\s+[smlx]+|[smlx]{1,3})[^)]*)\)/i);
+    if (parenMatch && parenMatch[1]) {
+      presentation = parenMatch[1].trim();
+    }
+  }
+
+  // 3. Patrón de peso/volumen aislado en el nombre
+  if (!presentation) {
+    const standaloneMatch = name.match(/\b(\d+(?:\.\d+)?\s*(?:gr|g|kg|ml|oz))\b/i);
+    if (standaloneMatch && standaloneMatch[1]) {
+      presentation = standaloneMatch[1].trim();
+    }
+  }
+
+  // Nombre base limpio sin sufijo de tamaño/presentación entre paréntesis
+  let cleanName = name
+    .replace(/\s*\((?:tamaño|presentación)?\s*[^)]*(?:gr|g|kg|ml|oz|litros?|l|pack|talla\s+[smlx]+|[smlx]{1,3})[^)]*\)/gi, "")
+    .replace(/\s*-\s*\d+(?:\.\d+)?\s*(?:gr|g|kg|ml|oz)/gi, "")
+    .trim();
+
+  return {
+    presentation,
+    cleanName: cleanName || name
+  };
+}
+
 // Helper to intelligently extract inspiration, original bottle image, gender, family and concentration from product
 export function parsePerfumeInfo(prod) {
   if (!prod) {
@@ -13,6 +71,8 @@ export function parsePerfumeInfo(prod) {
       gender: "",
       concentration: "",
       ml: "",
+      presentation: "",
+      cleanName: "",
       cleanDesc: ""
     };
   }
@@ -69,7 +129,7 @@ export function parsePerfumeInfo(prod) {
 
   // Volume/ML detection
   if (!ml) {
-    const bracketMl = rawDesc.match(/\[\s*ml\s*:\s*([^\]]+)\]/i);
+    const bracketMl = rawDesc.match(/\[\s*(?:ml|volumen|tama[ñn]o|presentaci[oó]n)\s*:\s*([^\]]+)\]/i);
     if (bracketMl && bracketMl[1]) {
       ml = bracketMl[1].trim();
     } else {
@@ -77,6 +137,13 @@ export function parsePerfumeInfo(prod) {
       if (mlMatch) ml = mlMatch[1];
     }
   }
+
+  // Presentation check via general helper
+  const parsedPres = parseProductPresentation(prod);
+  if (!ml && parsedPres.presentation) {
+    ml = parsedPres.presentation;
+  }
+  const presentation = parsedPres.presentation || ml;
 
   // Family detection — strictly for actual perfume families or explicit bracket tags
   if (!family) {
@@ -103,6 +170,7 @@ export function parsePerfumeInfo(prod) {
     .replace(/\[\s*familia\s*:[^\]]+\]/gi, "")
     .replace(/\[\s*concentraci[oó]n\s*:[^\]]+\]/gi, "")
     .replace(/\[\s*ml\s*:[^\]]+\]/gi, "")
+    .replace(/\[\s*(?:presentaci[oó]n|tama[ñn]o|cantidad|gramaje|porci[oó]n)\s*:[^\]]+\]/gi, "")
     .trim();
 
   return {
@@ -112,6 +180,8 @@ export function parsePerfumeInfo(prod) {
     gender,
     concentration,
     ml,
+    presentation,
+    cleanName: parsedPres.cleanName || name,
     cleanDesc
   };
 }

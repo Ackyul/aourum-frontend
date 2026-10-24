@@ -4,7 +4,7 @@ import { useMemo, useEffect } from "react";
 import { useApp } from "../../../context/AppContext";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { isVirtualMenuBrand } from "@/utils/brandUtils";
-import { parsePerfumeInfo } from "../../../components/PerfumeryShowcase";
+import { parsePerfumeInfo, parseProductPresentation } from "../../../components/PerfumeryShowcase";
 import ProductCardVisual from "../../../components/ProductCardVisual";
 
 // Helper for URL slug generation
@@ -210,6 +210,41 @@ export default function ProductDetailPage() {
     if (!prod || !products) return [];
     return products.filter((p) => p.brandId === prod.brandId && p.isVisible !== false);
   }, [prod, products]);
+
+  // Variaciones de presentación / tamaño del mismo producto (ej. 25gr, 50gr, 100gr, 200gr o 30ml, 50ml, 100ml)
+  const siblingVariations = useMemo(() => {
+    if (!prod || !allBrandProducts || allBrandProducts.length <= 1) return [];
+
+    const currentParsed = parseProductPresentation(prod);
+    const currentClean = (currentParsed.cleanName || prod.name || "").trim().toLowerCase();
+    const currentPerfume = parsePerfumeInfo(prod);
+    const currentInsp = (currentPerfume.inspiration || "").trim().toLowerCase();
+
+    const siblings = allBrandProducts.filter((p) => {
+      const pParsed = parseProductPresentation(p);
+      const pClean = (pParsed.cleanName || p.name || "").trim().toLowerCase();
+      const pPerfume = parsePerfumeInfo(p);
+      const pInsp = (pPerfume.inspiration || "").trim().toLowerCase();
+
+      const sameCleanName = currentClean && pClean && (currentClean === pClean || currentClean.includes(pClean) || pClean.includes(currentClean));
+      const samePerfumeInsp = currentInsp && pInsp && currentInsp === pInsp;
+      const sameImage = prod.image && p.image && prod.image === p.image;
+
+      return (sameCleanName || samePerfumeInsp || sameImage) && (p.category === prod.category || samePerfumeInsp);
+    });
+
+    if (siblings.length <= 1) return [];
+
+    return siblings.map((p) => {
+      const pParsed = parseProductPresentation(p);
+      const pPerfume = parsePerfumeInfo(p);
+      const pres = pParsed.presentation || pPerfume.ml || p.name;
+      return {
+        ...p,
+        presentation: pres
+      };
+    }).sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+  }, [prod, allBrandProducts]);
 
   const suggestedCategoryProds = useMemo(() => {
     if (!prod) return [];
@@ -419,7 +454,11 @@ export default function ProductDetailPage() {
     ? `${window.location.origin}/products/${prod.slug || prod.id}`
     : "";
 
+  const productPres = parseProductPresentation(prod).presentation || perfumeInfo.ml;
   let whatsappMsg = `Hola ${brand ? brand.name : "Productor"} desde AOURUM, estoy interesado en el item "${prod.name}".`;
+  if (productPres) {
+    whatsappMsg += `\nPresentación / Tamaño: ${productPres}`;
+  }
   if (formattedPriceStr) {
     whatsappMsg += `\nPrecio: ${formattedPriceStr}`;
   }
@@ -1271,6 +1310,73 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
 
+                {/* Selector de Presentaciones & Tamaños Disponibles */}
+                {siblingVariations.length > 1 && (
+                  <div style={{ 
+                    background: resolvedCardBg, 
+                    backdropFilter: "blur(12px)", 
+                    padding: "1.1rem 1.3rem", 
+                    borderRadius: "14px", 
+                    border: `1.5px solid ${brandThemeColor}40`, 
+                    boxShadow: `0 6px 20px ${brandThemeColor}10`, 
+                    marginBottom: "1.6rem" 
+                  }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem", flexWrap: "wrap", gap: "6px" }}>
+                      <span style={{ fontSize: "0.85rem", fontWeight: 800, color: resolvedCardTextColor, display: "flex", alignItems: "center", gap: "8px" }}>
+                        <i className={isPerfumeProd ? "fa-solid fa-droplet" : "fa-solid fa-cubes-stacked"} style={{ color: brandThemeColor }}></i>
+                        <span>{isPerfumeProd ? "Tamaño / Volumen Disponible:" : "Presentaciones & Tamaños Disponibles:"}</span>
+                      </span>
+                      <span style={{ fontSize: "0.72rem", color: mutedTextColor }}>
+                        {siblingVariations.length} opciones para este ítem
+                      </span>
+                    </div>
+
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                      {siblingVariations.map((v) => {
+                        const isCurrent = v.id === prod.id;
+                        return (
+                          <button
+                            key={v.id}
+                            type="button"
+                            onClick={() => {
+                              if (!isCurrent) router.push(`/products/${v.slug || v.id}`);
+                            }}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              padding: "8px 14px",
+                              borderRadius: "10px",
+                              fontSize: "0.86rem",
+                              fontWeight: isCurrent ? 800 : 600,
+                              cursor: isCurrent ? "default" : "pointer",
+                              border: isCurrent ? `2px solid ${brandThemeColor}` : `1px solid ${palette.c1}35`,
+                              background: isCurrent ? `${brandThemeColor}22` : "rgba(255,255,255,0.04)",
+                              color: isCurrent ? brandThemeColor : resolvedCardTextColor,
+                              boxShadow: isCurrent ? `0 2px 10px ${brandThemeColor}35` : "none",
+                              transform: isCurrent ? "scale(1.02)" : "scale(1)",
+                              transition: "all 0.18s cubic-bezier(0.16, 1, 0.3, 1)"
+                            }}
+                          >
+                            <span>{v.presentation || v.name}</span>
+                            <span style={{ 
+                              fontSize: "0.78rem", 
+                              fontWeight: 700, 
+                              color: isCurrent ? resolvedCardTextColor : mutedTextColor,
+                              background: isCurrent ? `${brandThemeColor}30` : "rgba(0,0,0,0.06)",
+                              padding: "2px 6px",
+                              borderRadius: "6px"
+                            }}>
+                              S/ {formatPrice(v.priceAourum || v.price)}
+                            </span>
+                            {isCurrent && <i className="fa-solid fa-circle-check" style={{ fontSize: "0.8rem", color: brandThemeColor }}></i>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {/* Información & Contenido del Platillo / Producto / Perfume */}
                 <div style={{ marginBottom: "1.8rem" }}>
                   <h3 style={{ fontSize: "1.05rem", fontWeight: 700, borderBottom: `1.5px solid ${palette.c1}30`, paddingBottom: "0.4rem", marginBottom: "0.8rem", color: resolvedCardTextColor, display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1354,6 +1460,14 @@ export default function ProductDetailPage() {
                           <tr>
                             <td className="label">Volumen</td>
                             <td className="value">{perfumeInfo.ml}</td>
+                          </tr>
+                        )}
+                        {(!isPerfumeProd && parseProductPresentation(prod).presentation) && (
+                          <tr>
+                            <td className="label">Presentación</td>
+                            <td className="value" style={{ fontWeight: 700, color: brandThemeColor }}>
+                              {parseProductPresentation(prod).presentation}
+                            </td>
                           </tr>
                         )}
                         <tr>

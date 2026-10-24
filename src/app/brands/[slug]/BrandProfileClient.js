@@ -1258,9 +1258,16 @@ function BrandProductCard({ prod }) {
             }}>
               {(isPerfume && pInfo.family) || prod.category || brand?.rubro_general || "General"}
             </span>
-            {isPerfume && pInfo.ml && (
-              <span style={{ fontSize: "0.68rem", color: secondaryTextColor, fontWeight: 600 }}>
-                {pInfo.ml}
+            {(pInfo.ml || pInfo.presentation) && (
+              <span style={{ 
+                fontSize: "0.68rem", 
+                color: palette.c1, 
+                background: `${palette.c1}18`,
+                padding: "2px 6px",
+                borderRadius: "6px",
+                fontWeight: 700 
+              }}>
+                {pInfo.ml || pInfo.presentation}
               </span>
             )}
           </div>
