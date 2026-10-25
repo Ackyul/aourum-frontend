@@ -2367,79 +2367,25 @@ function BrandProductCard({ prod }) {
             </div>
 
             {isCollaborator && (
-               <div className="brand-admin-actions-row" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                 {isOwner && (
-                   <button
-                     onClick={() => {
-                       setEditingProdId(null);
-                       setProdName(""); setProdDescription(""); setProdPrice(""); setProdPriceAourum("");
-                       setProdStock(""); setProdCategory(isBrandPerfumery ? "Alta Perfumería" : ""); setProdType("product");
-                       setProdIsVisible(true); setProdImgBgColor("transparent");
-                       setProdImage(""); setProdImagePreview("");
-                       setPerfumeInspiration("");
-                       setPerfumeGender("Unisex");
-                       setPerfumeFamily("Amaderado");
-                       setPerfumeConcentration("");
-                       setPerfumeMl("50 ml");
-                       setPerfumeNotes("");
-                       setProdFormOpen(true);
-                     }}
-                     className="btn-gold"
-                     style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
-                   >
-                     <i className="fa-solid fa-plus"></i> {isBrandPerfumery ? "Añadir Fragancia" : "Añadir Item"}
-                   </button>
-                 )}
-                 {isOwner && brandProducts.length > 0 && (
-                   <button
-                     onClick={() => setAdminCatalogOpen(true)}
-                     className="btn-outline-gold"
-                     style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
-                   >
-                     <i className="fa-solid fa-list-check"></i> Administrar Catálogo
-                   </button>
-                 )}
-                 {userRole === 'creador_original' && (
-                   <button
-                     onClick={async () => {
-                       if (await handleDeleteBrand(brand.id)) {
-                         router.push("/brands");
-                       }
-                     }}
-                     className="btn-outline-gold"
-                     style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px", color: "#ef4444", borderColor: "#ef4444", background: "transparent", cursor: "pointer" }}
-                   >
-                     <i className="fa-solid fa-trash"></i> Eliminar Marca
-                   </button>
-                 )}
-                 {canEditProfile && (
-                    <>
-                      <Link
-                        href={`/dashboard?tab=marcas&brandId=${brand.id}`}
-                        className="btn-gold"
-                        style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
-                      >
-                        <i className="fa-solid fa-sliders"></i> Configurar Vitrina & Estilo
-                      </Link>
-                      <button
-                        onClick={handleEditClick}
-                        className="btn-outline-gold"
-                        style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
-                        title="Abrir editor rápido"
-                      >
-                        <i className="fa-solid fa-gear"></i> Edición Rápida
-                      </button>
-                    </>
+                <div className="brand-admin-actions-row" style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "1rem" }}>
+                  {canEditProfile && (
+                    <Link
+                      href={`/dashboard?tab=marcas&brandId=${brand.id}`}
+                      className="btn-gold"
+                      style={{ padding: "0.55rem 1.2rem", borderRadius: "10px", fontSize: "0.86rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", textDecoration: "none", boxShadow: "0 2px 10px rgba(0,0,0,0.06)" }}
+                    >
+                      <i className="fa-solid fa-sliders"></i> Configuración de Marca
+                    </Link>
                   )}
-                 <button
-                   onClick={() => setQrModalOpen(true)}
-                   className="btn-gold"
-                   style={{ padding: "0.5rem 1rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
-                 >
-                   <i className="fa-solid fa-qrcode"></i> Generar QR Marca
-                 </button>
-               </div>
-             )}
+                  <button
+                    onClick={() => setQrModalOpen(true)}
+                    className="btn-outline-gold"
+                    style={{ padding: "0.55rem 1.2rem", borderRadius: "10px", fontSize: "0.86rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px" }}
+                  >
+                    <i className="fa-solid fa-qrcode"></i> Generar QR Marca
+                  </button>
+                </div>
+              )}
           </div>
 
           <p style={{ fontSize: "0.95rem", color: "var(--text-primary)", marginTop: "1.2rem", lineHeight: 1.65 }}>
@@ -2588,40 +2534,7 @@ function BrandProductCard({ prod }) {
             );
           })()}
 
-          {/* Opciones Desplegables de Administración y Colaboración */}
-          {isCollaborator && (
-            <>
-              <hr style={{ border: 0, borderTop: "1px solid var(--border-color)", margin: "2.2rem 0" }} />
-              
-              {/* Opción 1: Postular Marca a Ferias */}
-              {isOwner && (
-                <div className="glass-panel" style={{ padding: "1.5rem", marginBottom: "1.5rem" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setShowFairs(true)}>
-                    <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0 }}>
-                      <i className="fa-solid fa-paper-plane" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Postular Marca a Ferias
-                    </h3>
-                    <button type="button" className="btn-outline-gold" style={{ padding: "4px 12px", fontSize: "0.75rem", borderRadius: "6px", fontWeight: 700 }}>
-                      Postular
-                    </button>
-                  </div>
-                </div>
-              )}
 
-              {/* Opción 2: Colaboradores de la Marca */}
-              {isOwner && (
-                <div className="glass-panel" style={{ padding: "1.5rem" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setShowCollabs(true)}>
-                    <h3 style={{ fontSize: "1.05rem", fontWeight: 800, margin: 0 }}>
-                      <i className="fa-solid fa-users" style={{ color: "var(--gold-primary)", marginRight: 8 }}></i> Colaboradores de la Marca
-                    </h3>
-                    <button type="button" className="btn-outline-gold" style={{ padding: "4px 12px", fontSize: "0.75rem", borderRadius: "6px", fontWeight: 700 }}>
-                      Administrar
-                    </button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
         </div>
       </div>
       <div className="aourum-tabs-bar-wrapper" style={{ marginTop: "2.5rem", display: "flex", flexDirection: "column", gap: "12px" }}>

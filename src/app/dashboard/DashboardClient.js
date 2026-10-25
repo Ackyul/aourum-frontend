@@ -78,8 +78,34 @@ export default function DashboardClient({ initialTab }) {
     changeEmail,
     parseDescription,
     setShowRegModal,
-    setRegType
+    setRegType,
+    fairs,
+    appFairId,
+    setAppFairId,
+    handleApplyToFair,
+    invitations,
+    sendInvitation,
+    changeCollaboratorRole,
+    removeCollaborator,
+    handleDeleteBrand
   } = useApp();
+
+  // Estados para Modales de Ferias y Colaboradores de Marca
+  const [showFairsModal, setShowFairsModal] = useState(false);
+  const [fairSearchQuery, setFairSearchQuery] = useState("");
+  const [showFairDropdown, setShowFairDropdown] = useState(false);
+
+  const [showCollabsModal, setShowCollabsModal] = useState(false);
+  const [collabSearchQuery, setCollabSearchQuery] = useState("");
+  const [collabSelectedPersonId, setCollabSelectedPersonId] = useState("");
+  const [showCollabPersonDropdown, setShowCollabPersonDropdown] = useState(false);
+  const [collabInviteRole, setCollabInviteRole] = useState("colaborador");
+
+  const filteredFairs = useMemo(() => {
+    if (!fairs || !Array.isArray(fairs)) return [];
+    if (!fairSearchQuery.trim()) return fairs;
+    return fairs.filter(f => f.name?.toLowerCase().includes(fairSearchQuery.toLowerCase()));
+  }, [fairs, fairSearchQuery]);
 
   // Tab activo sincronizado con query param o initialTab o "resumen" por defecto
   const tabParam = initialTab || searchParams.get("tab") || "resumen";
@@ -462,6 +488,13 @@ export default function DashboardClient({ initialTab }) {
   const selectedBrand = useMemo(() => {
     return myBrands.find(b => b.id === Number(selectedBrandId)) || null;
   }, [myBrands, selectedBrandId]);
+
+  const isOwnerOfActiveBrand = useMemo(() => {
+    if (!selectedBrand || !currentPerson) return false;
+    const pId = Number(currentPerson.id);
+    const pBrandIds = (currentPerson.brandIds || []).map(Number);
+    return Number(selectedBrand.personId) === pId || pBrandIds.includes(Number(selectedBrand.id)) || (selectedBrand.owner && currentPerson.name && selectedBrand.owner.toLowerCase().trim() === currentPerson.name.toLowerCase().trim());
+  }, [selectedBrand, currentPerson]);
 
   // Modo de catálogo resuelto considerando la configuración manual y detección automática
   const activeCatalogMode = useMemo(() => {
@@ -1052,11 +1085,11 @@ export default function DashboardClient({ initialTab }) {
         <button 
           className={`dashboard-tab-btn ${activeTab === "marcas" ? "active" : ""}`}
           onClick={() => handleTabChange("marcas")}
-          title={`Mis Marcas & Vitrinas (${myBrands.length})`}
+          title={`Configuración de Marca (${myBrands.length})`}
         >
-          <i className="fa-solid fa-store"></i> 
-          <span className="tab-label-desktop">Mis Marcas & Vitrinas ({myBrands.length})</span>
-          <span className="tab-label-mobile">Marcas ({myBrands.length})</span>
+          <i className="fa-solid fa-sliders"></i> 
+          <span className="tab-label-desktop">Configuración de Marca ({myBrands.length})</span>
+          <span className="tab-label-mobile">Config. Marca</span>
         </button>
         <button 
           className={`dashboard-tab-btn ${activeTab === "productos" ? "active" : ""}`}
@@ -1416,8 +1449,102 @@ export default function DashboardClient({ initialTab }) {
             </div>
           )}
 
+          {/* ── BARRA DE HERRAMIENTAS & ACCIONES DE MARCA ── */}
+          {selectedBrand && (
+            <div style={{
+              background: "var(--bg-card)",
+              border: "1px solid var(--border-color)",
+              borderRadius: "16px",
+              padding: "16px 20px",
+              marginBottom: "1.5rem",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.03)"
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
+                <span style={{ fontSize: "0.82rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <i className="fa-solid fa-wand-magic-sparkles"></i> Herramientas de Marca
+                </span>
+                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                  Acciones clave para gestionar tu catálogo, ferias y equipo
+                </span>
+              </div>
+
+              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+                {/* 1. Añadir Item / Fragancia */}
+                <button
+                  type="button"
+                  onClick={() => handleOpenAddProduct()}
+                  className="btn-gold"
+                  style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+                >
+                  <i className="fa-solid fa-plus"></i> {isBrandPerfume ? "Añadir Fragancia" : "Añadir Item"}
+                </button>
+
+                {/* 2. Administrar Catálogo */}
+                <button
+                  type="button"
+                  onClick={() => handleTabChange("productos")}
+                  className="btn-outline-gold"
+                  style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+                >
+                  <i className="fa-solid fa-boxes-stacked"></i> Administrar Catálogo ({currentBrandProducts.length})
+                </button>
+
+                {/* 3. Postular a Ferias */}
+                <button
+                  type="button"
+                  onClick={() => setShowFairsModal(true)}
+                  className="btn-outline-gold"
+                  style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+                >
+                  <i className="fa-solid fa-paper-plane"></i> Postular a Ferias
+                </button>
+
+                {/* 4. Colaboradores de la Marca */}
+                <button
+                  type="button"
+                  onClick={() => setShowCollabsModal(true)}
+                  className="btn-outline-gold"
+                  style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+                >
+                  <i className="fa-solid fa-users"></i> Colaboradores ({selectedBrand.collaborators?.length || 0})
+                </button>
+
+                {/* 5. Edición Rápida */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEssentialBrandOpen(true);
+                    const el = document.getElementById("dash-essential-brand-sec");
+                    if (el) el.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="btn-outline-gold"
+                  style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+                >
+                  <i className="fa-solid fa-bolt"></i> Edición Rápida
+                </button>
+
+                {/* 6. Eliminar Marca */}
+                {isOwnerOfActiveBrand && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (await handleDeleteBrand(selectedBrand.id)) {
+                        setSelectedBrandId(null);
+                        handleTabChange("resumen");
+                      }
+                    }}
+                    className="btn-outline-gold"
+                    style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", color: "#ef4444", borderColor: "#ef4444", background: "transparent", marginLeft: "auto", cursor: "pointer" }}
+                  >
+                    <i className="fa-solid fa-trash"></i> Eliminar Marca
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* ── DATOS ESENCIALES DE LA MARCA ── */}
-          <div className="dashboard-accordion" style={{ marginBottom: "1.5rem" }}>
+          <div id="dash-essential-brand-sec" className="dashboard-accordion" style={{ marginBottom: "1.5rem" }}>
             <div 
               className="dashboard-accordion-header"
               onClick={() => setIsEssentialBrandOpen(!isEssentialBrandOpen)}
@@ -3209,6 +3336,8 @@ export default function DashboardClient({ initialTab }) {
             </div>,
             document.body
           )}
+
+          
         </div>
       )}
 
@@ -4171,6 +4300,300 @@ export default function DashboardClient({ initialTab }) {
           </div>
         </div>
       )}
+
+      {/* ── MODAL POSTULAR MARCA A FERIAS ── */}
+          {showFairsModal && selectedBrand && typeof document !== "undefined" && createPortal(
+            <div className="modal-overlay" style={{ zIndex: 9999 }}>
+              <div className="modal-backdrop" onClick={() => setShowFairsModal(false)}></div>
+              <div className="modal-panel fade-in" style={{ maxWidth: "560px", width: "95vw", background: "var(--bg-card)", border: "1.5px solid var(--gold-primary)", borderRadius: "20px", padding: 0, overflow: "hidden", margin: "auto" }}>
+                <div className="modal-header" style={{ padding: "1.2rem 1.6rem", borderBottom: "1px solid var(--border-color)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <h3 style={{ fontSize: "1.15rem", fontWeight: 800, margin: 0, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <i className="fa-solid fa-paper-plane" style={{ color: "var(--gold-primary)" }}></i> Postular a Ferias — {selectedBrand.name}
+                  </h3>
+                  <button 
+                    onClick={() => setShowFairsModal(false)} 
+                    style={{ background: "rgba(0,0,0,0.05)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-primary)" }}
+                  >
+                    &times;
+                  </button>
+                </div>
+                <form onSubmit={async (e) => {
+                  await handleApplyToFair(e, "brand", selectedBrand.id);
+                  setShowFairsModal(false);
+                }} style={{ padding: "1.5rem" }}>
+                  <div className="form-group" style={{ marginBottom: "1.5rem", position: "relative" }}>
+                    <label style={{ fontWeight: 700, fontSize: "0.85rem", display: "block", marginBottom: "0.5rem" }}>
+                      Buscar y seleccionar feria del calendario local
+                    </label>
+                    <div style={{ position: "relative" }}>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Escribe el nombre de la feria..."
+                        value={fairSearchQuery}
+                        onChange={(e) => {
+                          setFairSearchQuery(e.target.value);
+                          setShowFairDropdown(true);
+                        }}
+                        onFocus={() => setShowFairDropdown(true)}
+                        onBlur={() => setTimeout(() => setShowFairDropdown(false), 250)}
+                        required
+                      />
+                      {fairSearchQuery && (
+                        <button 
+                          type="button" 
+                          onClick={() => { setFairSearchQuery(""); setAppFairId(""); setShowFairDropdown(false); }}
+                          style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
+                        >
+                          &times;
+                        </button>
+                      )}
+                    </div>
+                    
+                    {showFairDropdown && fairSearchQuery.trim() !== "" && filteredFairs.length > 0 && (
+                      <div 
+                        style={{
+                          position: "absolute", top: "100%", left: 0, right: 0,
+                          background: "var(--bg-card)", border: "1px solid var(--border-color)",
+                          borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                          maxHeight: "220px", overflowY: "auto", zIndex: 1000, marginTop: "6px"
+                        }}
+                      >
+                        {filteredFairs.map(f => (
+                          <div
+                            key={f.id}
+                            onClick={() => {
+                              setAppFairId(f.id.toString());
+                              setFairSearchQuery(`${f.name} (${f.date})`);
+                              setShowFairDropdown(false);
+                            }}
+                            style={{
+                              padding: "0.7rem 1rem", cursor: "pointer",
+                              transition: "background 0.2s", fontSize: "0.85rem",
+                              borderBottom: "1px solid rgba(0,0,0,0.03)",
+                              color: "var(--text-primary)"
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-input)"}
+                            onMouseLeave={(e) => e.currentTarget.style.background = "none"}
+                          >
+                            <strong>{f.name}</strong> <span style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginLeft: "6px" }}>({f.date} · {f.location})</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                    <button type="button" onClick={() => setShowFairsModal(false)} className="btn-outline-gold" style={{ padding: "0.55rem 1.2rem", borderRadius: "8px" }}>Cancelar</button>
+                    <button type="submit" className="btn-gold" style={{ padding: "0.55rem 1.5rem", borderRadius: "8px", fontWeight: 700 }}>Enviar Postulación</button>
+                  </div>
+                </form>
+              </div>
+            </div>,
+            document.body
+          )}
+
+          {/* ── MODAL COLABORADORES DE LA MARCA ── */}
+          {showCollabsModal && selectedBrand && typeof document !== "undefined" && createPortal(
+            <div className="modal-overlay" style={{ zIndex: 9999 }}>
+              <div className="modal-backdrop" onClick={() => setShowCollabsModal(false)}></div>
+              <div className="modal-panel fade-in" style={{ maxWidth: "720px", width: "95vw", background: "var(--bg-card)", border: "1.5px solid var(--gold-primary)", borderRadius: "20px", padding: 0, maxHeight: "90vh", display: "flex", flexDirection: "column", overflow: "hidden", margin: "auto" }}>
+                <div className="modal-header" style={{ padding: "1.2rem 1.6rem", borderBottom: "1px solid var(--border-color)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <h3 style={{ fontSize: "1.15rem", fontWeight: 800, margin: 0, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <i className="fa-solid fa-users" style={{ color: "var(--gold-primary)" }}></i> Colaboradores — {selectedBrand.name}
+                  </h3>
+                  <button 
+                    onClick={() => setShowCollabsModal(false)} 
+                    style={{ background: "rgba(0,0,0,0.05)", border: "none", fontSize: "1.2rem", cursor: "pointer", width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-primary)" }}
+                  >
+                    &times;
+                  </button>
+                </div>
+
+                <div style={{ padding: "1.5rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "20px" }}>
+                  {/* Miembros Actuales */}
+                  <div>
+                    <h4 style={{ fontSize: "0.92rem", fontWeight: 800, marginBottom: "0.8rem", color: "var(--text-gold)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                      Miembros Vinculados ({selectedBrand.collaborators?.length || 0})
+                    </h4>
+                    {(!selectedBrand.collaborators || selectedBrand.collaborators.length === 0) ? (
+                      <p style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>No hay colaboradores adicionales en esta marca.</p>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        {selectedBrand.collaborators.map(c => {
+                          const p = people.find(person => person.id === c.personId);
+                          if (!p) return null;
+                          const isOriginalCreator = c.role === 'creador_original';
+                          return (
+                            <div key={p.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-input)", padding: "0.6rem 0.85rem", borderRadius: "10px", gap: "10px", flexWrap: "wrap" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                                <img src={p.logo || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"} alt={p.name} style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }} />
+                                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                                  <span style={{ fontSize: "0.86rem", fontWeight: 700 }}>{p.name}</span>
+                                  <span style={{ fontSize: "0.78rem", color: "var(--text-gold)", fontWeight: 700 }}>@{p.username || p.id}</span>
+                                  <span style={{ fontSize: "0.70rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>({c.role})</span>
+                                </div>
+                              </div>
+                              {isOwnerOfActiveBrand && !isOriginalCreator && (
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                  <select 
+                                    value={c.role} 
+                                    onChange={(e) => changeCollaboratorRole('brand', selectedBrand.id, p.id, e.target.value)}
+                                    className="form-control" 
+                                    style={{ padding: "4px 8px", fontSize: "0.78rem", width: "auto" }}
+                                  >
+                                    <option value="colaborador">Colaborador</option>
+                                    <option value="gestor">Gestor</option>
+                                    <option value="creador">Creador</option>
+                                  </select>
+                                  <button 
+                                    type="button"
+                                    onClick={() => {
+                                      if (confirm(`¿Seguro que deseas desvincular a ${p.name}?`)) {
+                                        removeCollaborator('brand', selectedBrand.id, p.id);
+                                      }
+                                    }}
+                                    style={{ background: "transparent", border: "none", color: "#ef4444", cursor: "pointer", fontSize: "0.9rem", padding: "4px" }}
+                                    title="Desvincular miembro"
+                                  >
+                                    <i className="fa-solid fa-user-minus"></i>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Invitar Nuevo Colaborador */}
+                  {isOwnerOfActiveBrand && (
+                    <div style={{ borderTop: "1px dashed var(--border-color)", paddingTop: "16px" }}>
+                      <h4 style={{ fontSize: "0.92rem", fontWeight: 800, marginBottom: "0.8rem", color: "var(--text-gold)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        Invitar Nuevo Colaborador
+                      </h4>
+                      {(() => {
+                        const linkedIds = (selectedBrand.collaborators || []).map(c => c.personId);
+                        const pendingReceiverIds = (invitations || []).filter(inv => inv.senderType === "brand" && inv.senderId === selectedBrand.id).map(inv => inv.receiverPersonId);
+                        const candidates = (people || []).filter(p => !linkedIds.includes(p.id) && !pendingReceiverIds.includes(p.id));
+
+                        const cleanQ = collabSearchQuery.toLowerCase().trim().replace(/^@/, '');
+                        const filteredCandidates = candidates.filter(p => {
+                          if (!cleanQ) return true;
+                          const pName = (p.name || '').toLowerCase();
+                          const pUser = (p.username || '').toLowerCase();
+                          const pOcc = (p.occupation || '').toLowerCase();
+                          return pName.includes(cleanQ) || pUser.includes(cleanQ) || pOcc.includes(cleanQ);
+                        });
+
+                        return (
+                          <form onSubmit={(e) => {
+                            e.preventDefault();
+                            const receiverId = Number(collabSelectedPersonId);
+                            if (!receiverId || !collabInviteRole) return;
+                            sendInvitation("brand", selectedBrand.id, selectedBrand.name, receiverId, collabInviteRole);
+                            setCollabSearchQuery("");
+                            setCollabSelectedPersonId("");
+                          }}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "10px", position: "relative" }}>
+                              <div style={{ position: "relative" }}>
+                                <input
+                                  type="text"
+                                  className="form-control"
+                                  placeholder="Buscar usuario por nombre o @usuario..."
+                                  value={collabSearchQuery}
+                                  onChange={(e) => {
+                                    setCollabSearchQuery(e.target.value);
+                                    setShowCollabPersonDropdown(true);
+                                  }}
+                                  onFocus={() => setShowCollabPersonDropdown(true)}
+                                  onBlur={() => setTimeout(() => setShowCollabPersonDropdown(false), 250)}
+                                  required
+                                />
+                                {collabSearchQuery && (
+                                  <button 
+                                    type="button" 
+                                    onClick={() => { setCollabSearchQuery(""); setCollabSelectedPersonId(""); setShowCollabPersonDropdown(false); }}
+                                    style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.1rem" }}
+                                  >
+                                    &times;
+                                  </button>
+                                )}
+
+                                {showCollabPersonDropdown && collabSearchQuery.trim() !== "" && filteredCandidates.length > 0 && (
+                                  <div 
+                                    style={{
+                                      position: "absolute", top: "100%", left: 0, right: 0,
+                                      background: "var(--bg-card)", border: "1px solid var(--border-color)",
+                                      borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                                      maxHeight: "180px", overflowY: "auto", zIndex: 1000, marginTop: "6px"
+                                    }}
+                                  >
+                                    {filteredCandidates.map(p => (
+                                      <div
+                                        key={p.id}
+                                        onClick={() => {
+                                          setCollabSelectedPersonId(p.id.toString());
+                                          setCollabSearchQuery(`${p.name} (@${p.username || p.id})`);
+                                          setShowCollabPersonDropdown(false);
+                                        }}
+                                        style={{
+                                          padding: "0.6rem 1rem", cursor: "pointer",
+                                          transition: "background 0.2s", fontSize: "0.85rem",
+                                          borderBottom: "1px solid rgba(0,0,0,0.03)",
+                                          display: "flex", alignItems: "center", gap: "10px",
+                                          color: "var(--text-primary)"
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-input)"}
+                                        onMouseLeave={(e) => e.currentTarget.style.background = "none"}
+                                      >
+                                        <img src={p.logo || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"} alt={p.name} style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover" }} />
+                                        <div>
+                                          <strong>{p.name}</strong> <span style={{ color: "var(--text-gold)", fontSize: "0.8rem", fontWeight: 700 }}>@{p.username || p.id}</span>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+
+                              <div style={{ display: "flex", gap: "10px" }}>
+                                <select 
+                                  value={collabInviteRole} 
+                                  onChange={(e) => setCollabInviteRole(e.target.value)}
+                                  className="form-control" 
+                                  style={{ fontSize: "0.85rem", flex: 1 }}
+                                >
+                                  <option value="colaborador">Rol: Colaborador</option>
+                                  <option value="gestor">Rol: Gestor</option>
+                                  <option value="creador">Rol: Creador</option>
+                                </select>
+                                <button 
+                                  type="submit" 
+                                  className="btn-gold" 
+                                  style={{ padding: "0.55rem 1.2rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: 700, flexShrink: 0 }}
+                                  disabled={!collabSelectedPersonId}
+                                >
+                                  <i className="fa-solid fa-paper-plane" style={{ marginRight: 6 }}></i> Enviar Invitación
+                                </button>
+                              </div>
+                            </div>
+                          </form>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: "flex", justifyContent: "flex-end", padding: "1rem 1.6rem", borderTop: "1px solid var(--border-color)", background: "var(--bg-card)" }}>
+                  <button type="button" onClick={() => setShowCollabsModal(false)} className="btn-outline-gold" style={{ padding: "0.5rem 1.4rem", borderRadius: "8px" }}>
+                    Cerrar
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
     </div>
   );
 }
