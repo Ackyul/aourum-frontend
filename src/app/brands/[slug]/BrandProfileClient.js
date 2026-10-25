@@ -1758,19 +1758,97 @@ function BrandProductCard({ prod }) {
           -webkit-backdrop-filter: blur(12px) !important;
         }
         header {
-          background: ${bgStyle === "image" ? "rgba(255, 255, 255, 0.85) !important" : `linear-gradient(180deg, ${palette.c1}18 0%, rgba(255, 255, 255, 0.85) 100%) !important`};
-          backdrop-filter: blur(16px) !important;
-          -webkit-backdrop-filter: blur(16px) !important;
-          border-bottom: 1.5px solid ${palette.c1}30 !important;
-          box-shadow: 0 4px 20px ${palette.c1}12 !important;
+          background: ${!isStoreBgLight 
+            ? "rgba(10, 11, 14, 0.92) !important" 
+            : "rgba(255, 255, 255, 0.96) !important"
+          };
+          backdrop-filter: blur(20px) !important;
+          -webkit-backdrop-filter: blur(20px) !important;
+          border-bottom: 1.5px solid ${palette.c1 ? `${palette.c1}35` : (!isStoreBgLight ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)")} !important;
+          box-shadow: ${!isStoreBgLight 
+            ? "0 4px 24px rgba(0, 0, 0, 0.6) !important" 
+            : `0 4px 20px ${palette.c1 ? `${palette.c1}10` : "rgba(0,0,0,0.04)"} !important`
+          };
         }
-        footer.site-footer {
-          background: ${bgStyle === "image" ? "rgba(255, 255, 255, 0.85) !important" : `linear-gradient(0deg, ${palette.c1}18 0%, rgba(255, 255, 255, 0.85) 100%) !important`};
-          backdrop-filter: blur(16px) !important;
-          -webkit-backdrop-filter: blur(16px) !important;
-          border-top: 1.5px solid ${palette.c1}30 !important;
-          box-shadow: 0 -4px 20px ${palette.c1}12 !important;
-        }
+        ${!isStoreBgLight ? `
+          header .aourum-logo-wordmark {
+            background-color: #FFFFFF !important;
+          }
+          header .header-search input {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
+            color: #FFFFFF !important;
+          }
+          header .header-search input:focus {
+            background: rgba(255, 255, 255, 0.14) !important;
+            border-color: ${palette.c1 || "var(--gold-primary)"} !important;
+            box-shadow: 0 0 0 3px ${palette.c1 ? `${palette.c1}30` : "rgba(212,175,55,0.2)"} !important;
+          }
+          header .header-search input::placeholder {
+            color: rgba(255, 255, 255, 0.45) !important;
+          }
+          header .header-search .search-icon {
+            color: rgba(255, 255, 255, 0.55) !important;
+          }
+          header .header-nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+          }
+          header .header-nav-link:hover {
+            color: #FFFFFF !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+          }
+          header .header-nav-link.active {
+            color: ${palette.c1 || "#F3E5AB"} !important;
+            background: ${palette.c1 ? `${palette.c1}25` : "rgba(212, 175, 55, 0.2)"} !important;
+            border-color: ${palette.c1 ? `${palette.c1}50` : "rgba(212, 175, 55, 0.45)"} !important;
+          }
+          header .header-nav-link.active i {
+            color: ${palette.c1 || "#F3E5AB"} !important;
+          }
+          header .header-profile-link {
+            color: ${palette.c1 || "#F3E5AB"} !important;
+            background: ${palette.c1 ? `${palette.c1}18` : "rgba(212, 175, 55, 0.12)"} !important;
+            border-color: ${palette.c1 ? `${palette.c1}45` : "rgba(212, 175, 55, 0.35)"} !important;
+          }
+          header .header-profile-link:hover {
+            background: ${palette.c1 ? `${palette.c1}28` : "rgba(212, 175, 55, 0.2)"} !important;
+            border-color: ${palette.c1 || "var(--gold-primary)"} !important;
+          }
+          header .header-nav-divider {
+            background: rgba(255, 255, 255, 0.15) !important;
+          }
+          header .account-dropdown-wrapper button {
+            color: #FFFFFF !important;
+            border-color: ${palette.c1 || "var(--gold-primary)"} !important;
+          }
+          footer.site-footer {
+            background: rgba(10, 11, 14, 0.95) !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px) !important;
+            border-top: 1.5px solid ${palette.c1}30 !important;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5) !important;
+          }
+          footer.site-footer, footer.site-footer p, footer.site-footer span, footer.site-footer div {
+            color: #9CA3AF !important;
+          }
+        ` : `
+          header .header-nav-link.active {
+            color: ${palette.c1 || "var(--gold-dark)"} !important;
+            background: ${palette.c1 ? `${palette.c1}15` : "rgba(212, 175, 55, 0.1)"} !important;
+            border-color: ${palette.c1 ? `${palette.c1}40` : "rgba(212, 175, 55, 0.35)"} !important;
+          }
+          header .header-profile-link {
+            color: ${palette.c1 || "var(--gold-dark)"} !important;
+            border-color: ${palette.c1 ? `${palette.c1}40` : "rgba(214, 175, 55, 0.35)"} !important;
+          }
+          footer.site-footer {
+            background: rgba(255, 255, 255, 0.96) !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px) !important;
+            border-top: 1.5px solid ${palette.c1}30 !important;
+            box-shadow: 0 -4px 20px ${palette.c1}12 !important;
+          }
+        `}
         footer.site-footer a {
           color: ${palette.c1} !important;
         }

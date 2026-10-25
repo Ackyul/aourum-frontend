@@ -214,22 +214,68 @@ export default function EventDetailPage() {
         <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${design.fontFamily.replace(/ /g, "+")}:wght@400;600;700;800&display=swap`} />
       )}
 
-      <style>{`
-        html, body, .main-workspace {
-          background: ${design.customBgColor || "#FAF9F0"} !important;
+      {(() => {
+        let isEventBgLight = true;
+        if (design.customBgColor && design.customBgColor.startsWith("#")) {
+          let hex = design.customBgColor.replace("#", "").substring(0, 6);
+          if (hex.length === 3) hex = hex.split("").map(c => c + c).join("");
+          if (hex.length === 6) {
+            const r = parseInt(hex.substring(0, 2), 16) || 0;
+            const g = parseInt(hex.substring(2, 4), 16) || 0;
+            const b = parseInt(hex.substring(4, 6), 16) || 0;
+            isEventBgLight = (r * 299 + g * 587 + b * 114) / 1000 >= 130;
+          }
         }
-        header {
-          background: ${design.customBgColor || "#FAF9F0"} !important;
-          border-bottom: 1px solid ${primaryColor}20 !important;
-        }
-        footer, .site-footer {
-          background: ${design.customBgColor || "#FAF9F0"} !important;
-          border-top: 1px solid ${primaryColor}30 !important;
-          margin-top: 0 !important;
-          padding-top: 3.5rem !important;
-          color: #4B5563 !important;
-        }
-      `}</style>
+        return (
+          <style>{`
+            html, body, .main-workspace {
+              background: ${design.customBgColor || "#FAF9F0"} !important;
+            }
+            header {
+              background: ${!isEventBgLight 
+                ? "rgba(10, 11, 14, 0.92) !important" 
+                : (design.customBgColor || "rgba(255, 255, 255, 0.96)")} !important;
+              backdrop-filter: blur(20px) !important;
+              -webkit-backdrop-filter: blur(20px) !important;
+              border-bottom: 1px solid ${primaryColor}25 !important;
+              box-shadow: ${!isEventBgLight ? "0 4px 24px rgba(0, 0, 0, 0.6) !important" : "0 2px 14px rgba(0, 0, 0, 0.04) !important"};
+            }
+            ${!isEventBgLight ? `
+              header .aourum-logo-wordmark {
+                background-color: #FFFFFF !important;
+              }
+              header .header-search input {
+                background: rgba(255, 255, 255, 0.08) !important;
+                border: 1px solid rgba(255, 255, 255, 0.18) !important;
+                color: #FFFFFF !important;
+              }
+              header .header-nav-link {
+                color: rgba(255, 255, 255, 0.8) !important;
+              }
+              header .header-nav-link:hover {
+                color: #FFFFFF !important;
+                background: rgba(255, 255, 255, 0.1) !important;
+              }
+              header .header-nav-link.active {
+                color: ${primaryColor || "#F3E5AB"} !important;
+              }
+              header .header-profile-link {
+                color: ${primaryColor || "#F3E5AB"} !important;
+              }
+              header .account-dropdown-wrapper button {
+                color: #FFFFFF !important;
+              }
+            ` : ''}
+            footer, .site-footer {
+              background: ${design.customBgColor || "#FAF9F0"} !important;
+              border-top: 1px solid ${primaryColor}30 !important;
+              margin-top: 0 !important;
+              padding-top: 3.5rem !important;
+              color: #4B5563 !important;
+            }
+          `}</style>
+        );
+      })()}
 
       {/* ── ACCIONES SUPERIORES (VOLVER, COMPARTIR, QR) ── */}
       <div style={{ padding: "1.2rem 1.5rem 0.5rem 1.5rem", position: "relative", zIndex: 10 }}>

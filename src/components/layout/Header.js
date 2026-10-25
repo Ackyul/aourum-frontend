@@ -243,54 +243,33 @@ export default function Header({
                 { href: "/brands", icon: "fa-store", label: "Marcas" },
                 { href: "/fairs", icon: "fa-calendar-days", label: "Ferias" },
                 { href: "/bands", icon: "fa-guitar", label: "Música" },
-              ].map(({ href, icon, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  style={{
-                    background: pathname === href ? "rgba(212, 175, 55, 0.08)" : "transparent",
-                    border: pathname === href ? "1px solid rgba(212, 175, 55, 0.25)" : "1px solid transparent",
-                    color: pathname === href ? "var(--gold-dark)" : "var(--text-muted)",
-                    padding: "0.4rem 0.75rem",
-                    borderRadius: "20px",
-                    fontWeight: pathname === href ? 700 : 500,
-                    textDecoration: "none",
-                    fontSize: "0.84rem",
-                    transition: "var(--transition-smooth)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "5px"
-                  }}
-                >
-                  <i className={`fa-solid ${icon}`} style={{ fontSize: "0.88rem" }}></i>
-                  {label}
-                </Link>
-              ))}
+              ].map(({ href, icon, label }) => {
+                const isActive = href === "/"
+                  ? pathname === "/"
+                  : (pathname === href || (href !== "/" && pathname?.startsWith(href)));
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={`header-nav-link${isActive ? " active" : ""}`}
+                  >
+                    <i className={`fa-solid ${icon}`}></i>
+                    <span>{label}</span>
+                  </Link>
+                );
+              })}
               {mounted && activePersonId && (
                 <>
                   <Link
                     href={`/people/${getCurrentPerson()?.username || activeUsername || activePersonId}`}
-                    style={{
-                      background: pathname.startsWith('/people/') ? "var(--gold-gradient)" : "rgba(214,175,55,0.06)",
-                      border: "1px solid rgba(214,175,55,0.35)",
-                      padding: "0.4rem 0.75rem",
-                      borderRadius: "20px",
-                      color: pathname.startsWith('/people/') ? "#1C1C1E" : "var(--gold-dark)",
-                      fontWeight: 700,
-                      textDecoration: "none",
-                      fontSize: "0.82rem",
-                      transition: "var(--transition-smooth)",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "5px"
-                    }}
+                    className={`header-profile-link${pathname?.startsWith('/people/') ? " active" : ""}`}
                   >
-                    <i className="fa-solid fa-circle-user" style={{ fontSize: "0.88rem" }}></i>
-                    Mi Perfil
+                    <i className="fa-solid fa-circle-user"></i>
+                    <span>Mi Perfil</span>
                   </Link>
                 </>
               )}
-              {mounted && activePersonId && <span style={{ width: "1px", height: "18px", background: "var(--border-color)" }}></span>}
+              {mounted && activePersonId && <span className="header-nav-divider"></span>}
             </div>
 
             {/* Account button (always visible) */}
