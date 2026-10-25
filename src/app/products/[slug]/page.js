@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useApp } from "../../../context/AppContext";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { isVirtualMenuBrand } from "@/utils/brandUtils";
@@ -246,6 +246,95 @@ export default function ProductDetailPage() {
     }).sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
   }, [prod, allBrandProducts]);
 
+  // Tamaños y presentaciones disponibles (tanto embebidos en el producto como variantes hermanas)
+  const allAvailableSizes = useMemo(() => {
+    if (!prod) return [];
+    const pParsed = parseProductPresentation(prod);
+    const pPerfume = parsePerfumeInfo(prod);
+    const embeddedSizes = (Array.isArray(pPerfume.sizes) && pPerfume.sizes.length > 0)
+      ? pPerfume.sizes
+      : (Array.isArray(pParsed.sizes) && pParsed.sizes.length > 0 ? pParsed.sizes : []);
+
+    const sizeMap = new Map();
+
+    // 1. Tamaños embebidos
+    if (embeddedSizes.length > 0) {
+      embeddedSizes.forEach(s => {
+        const sName = (s.size || s.presentation || "").trim();
+        if (sName) {
+          sizeMap.set(sName.toLowerCase(), {
+            size: sName,
+            presentation: sName,
+            price: Number(s.price != null ? s.price : prod.price || 0),
+            priceAourum: s.priceAourum != null ? Number(s.priceAourum) : (prod.priceAourum ? Number(prod.priceAourum) : null),
+            image: s.image || prod.image || "",
+            id: prod.id,
+            slug: prod.slug || prod.id,
+            isEmbedded: true
+          });
+        }
+      });
+    } else {
+      const currentPres = pParsed.presentation || pPerfume.ml || "";
+      if (currentPres) {
+        sizeMap.set(currentPres.toLowerCase(), {
+          size: currentPres,
+          presentation: currentPres,
+          price: Number(prod.price || 0),
+          priceAourum: prod.priceAourum ? Number(prod.priceAourum) : null,
+          image: prod.image || "",
+          id: prod.id,
+          slug: prod.slug || prod.id,
+          isEmbedded: false
+        });
+      }
+    }
+
+    // 2. Variaciones hermanas desde productos individuales
+    if (siblingVariations.length > 0) {
+      siblingVariations.forEach(sib => {
+        const sibParsed = parseProductPresentation(sib);
+        const sibPerfume = parsePerfumeInfo(sib);
+        const pres = (sibParsed.presentation || sibPerfume.ml || sib.name || "").trim();
+        if (pres && !sizeMap.has(pres.toLowerCase())) {
+          sizeMap.set(pres.toLowerCase(), {
+            size: pres,
+            presentation: pres,
+            price: Number(sib.price || 0),
+            priceAourum: sib.priceAourum ? Number(sib.priceAourum) : null,
+            image: sib.image || prod.image || "",
+            id: sib.id,
+            slug: sib.slug || sib.id,
+            isEmbedded: false
+          });
+        }
+      });
+    }
+
+    const result = Array.from(sizeMap.values());
+    result.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+    return result;
+  }, [prod, siblingVariations]);
+
+  const [selectedVariation, setSelectedVariation] = useState(null);
+
+  useEffect(() => {
+    if (allAvailableSizes.length > 0) {
+      const currentParsed = parseProductPresentation(prod);
+      const currentPerfume = parsePerfumeInfo(prod);
+      const currentPres = (currentParsed.presentation || currentPerfume.ml || "").toLowerCase();
+      const match = allAvailableSizes.find(s => s.id === prod?.id && (!currentPres || s.size.toLowerCase() === currentPres)) || allAvailableSizes[0];
+      setSelectedVariation(match);
+    } else {
+      setSelectedVariation(null);
+    }
+  }, [prod, allAvailableSizes]);
+
+  const activePrice = selectedVariation ? selectedVariation.price : prod?.price;
+  const activePriceAourum = selectedVariation ? selectedVariation.priceAourum : prod?.priceAourum;
+  const activeSizeName = selectedVariation ? (selectedVariation.size || selectedVariation.presentation) : (parseProductPresentation(prod).presentation || perfumeInfo.ml);
+  const activeImage = (selectedVariation && selectedVariation.image) ? selectedVariation.image : prod?.image;
+
   const suggestedCategoryProds = useMemo(() => {
     if (!prod) return [];
     const categoryCandidates = products.filter(
@@ -446,15 +535,16 @@ export default function ProductDetailPage() {
   }
 
   const whatsappNumber = (brand?.whatsappNumber || "51999999999").replace(/[^0-9]/g, "");
-  const productPrice = prod?.priceAourum ?? prod?.price;
+  const productPrice = activePriceAourum ?? activePrice;
   const formattedPriceStr = (productPrice != null && !isNaN(Number(productPrice)))
     ? `S/ ${formatPrice(productPrice)}`
     : null;
+  const targetSlug = (selectedVariation && selectedVariation.slug) ? selectedVariation.slug : (prod?.slug || prod?.id);
   const productUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/products/${prod.slug || prod.id}`
+    ? `${window.location.origin}/products/${targetSlug}`
     : "";
 
-  const productPres = parseProductPresentation(prod).presentation || perfumeInfo.ml;
+  const productPres = activeSizeName;
   let whatsappMsg = `Hola ${brand ? brand.name : "Productor"} desde AOURUM, estoy interesado en el item "${prod.name}".`;
   if (productPres) {
     whatsappMsg += `\nPresentación / Tamaño: ${productPres}`;
@@ -1149,9 +1239,9 @@ export default function ProductDetailPage() {
                   transition: "transform 0.3s ease"
                 }}
               >
-                {prod.image ? (
+                {activeImage ? (
                   <img
-                    src={prod.image}
+                    src={activeImage}
                     alt={prod.name}
                     style={{
                       maxWidth: "100%",
@@ -1168,9 +1258,9 @@ export default function ProductDetailPage() {
                 )}
               </div>
             </div>
-          ) : prod.image ? (
+          ) : activeImage ? (
             <img 
-              src={prod.image} 
+              src={activeImage} 
               alt={prod.name} 
               style={{
                 width: "100%",
@@ -1359,16 +1449,16 @@ export default function ProductDetailPage() {
                 {/* Sección de Precio */}
                 <div style={{ background: resolvedCardBg, backdropFilter: "blur(12px)", padding: "1.2rem 1.5rem", borderRadius: "12px", border: `1.5px solid ${palette.c1}30`, boxShadow: `0 8px 24px ${palette.c1}08`, marginBottom: "1.8rem" }}>
                   <span style={{ fontSize: "0.8rem", color: mutedTextColor, display: "block", marginBottom: "2px", fontWeight: 500 }}>
-                    {prod.priceAourum ? "Oferta Especial AOURUM" : "Precio Exclusivo"}
+                    {activePriceAourum ? "Oferta Especial AOURUM" : "Precio Exclusivo"}
                   </span>
                   <div style={{ display: "flex", alignItems: "baseline", gap: "12px", flexWrap: "wrap" }}>
-                    {prod.priceAourum ? (
+                    {activePriceAourum ? (
                       <>
                         <span style={{ fontSize: "2.2rem", fontWeight: 800, color: palette.c1 || resolvedCardTextColor, letterSpacing: "-0.02em" }}>
-                          S/ {formatPrice(prod.priceAourum)}
+                          S/ {formatPrice(activePriceAourum)}
                         </span>
                         <span style={{ fontSize: "1.3rem", color: mutedTextColor, textDecoration: "line-through", fontWeight: 500 }}>
-                          S/ {formatPrice(prod.price)}
+                          S/ {formatPrice(activePrice)}
                         </span>
                         <span style={{ fontSize: "0.85rem", color: resolvedCardTextColor, fontWeight: 700 }}>
                           <i className="fa-solid fa-gift" style={{ color: palette.c1 }}></i> Precio Especial
@@ -1377,7 +1467,7 @@ export default function ProductDetailPage() {
                     ) : (
                       <>
                         <span style={{ fontSize: "2.2rem", fontWeight: 800, color: palette.c1 || resolvedCardTextColor, letterSpacing: "-0.02em" }}>
-                          S/ {formatPrice(prod.price)}
+                          S/ {formatPrice(activePrice)}
                         </span>
                         <span style={{ fontSize: "0.85rem", color: resolvedCardTextColor, fontWeight: 700 }}>
                           <i className="fa-solid fa-shield-halved" style={{ color: palette.c1 }}></i> Precio Justo Local
@@ -1388,7 +1478,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Selector de Presentaciones & Tamaños Disponibles */}
-                {siblingVariations.length > 1 && (
+                {allAvailableSizes.length > 1 && (
                   <div style={{ 
                     background: resolvedCardBg, 
                     backdropFilter: "blur(12px)", 
@@ -1404,21 +1494,24 @@ export default function ProductDetailPage() {
                         <span>{isPerfumeProd ? "Tamaño / Volumen Disponible:" : "Presentaciones & Tamaños Disponibles:"}</span>
                       </span>
                       <span style={{ fontSize: "0.72rem", color: mutedTextColor }}>
-                        {siblingVariations.length} opciones para este ítem
+                        {allAvailableSizes.length} opciones para este ítem
                       </span>
                     </div>
 
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                      {siblingVariations.map((v) => {
-                        const isCurrent = v.id === prod.id;
+                      {allAvailableSizes.map((v, idx) => {
+                        const isCurrent = (selectedVariation && (selectedVariation.size === v.size || selectedVariation.id === v.id)) || (!selectedVariation && idx === 0);
                         return (
                           <button
-                            key={v.id}
+                            key={idx}
                             type="button"
                             onClick={() => {
-                              if (!isCurrent) router.push(`/products/${v.slug || v.id}`);
+                              setSelectedVariation(v);
+                              if (v.slug && v.slug !== (prod.slug || prod.id)) {
+                                window.history.replaceState(null, "", `/products/${v.slug}`);
+                              }
                             }}
-                            title={`Ver presentación ${v.presentation || v.name}`}
+                            title={`Ver presentación ${v.size || v.presentation || v.name}`}
                             style={{
                               display: "flex",
                               alignItems: "center",
@@ -1452,13 +1545,13 @@ export default function ProductDetailPage() {
                               }}>
                                 <img 
                                   src={v.image} 
-                                  alt={v.presentation || v.name} 
+                                  alt={v.size || v.presentation || v.name} 
                                   style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} 
                                 />
                               </div>
                             )}
                             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "1px" }}>
-                              <span style={{ fontSize: "0.84rem", fontWeight: 800 }}>{v.presentation || v.name}</span>
+                              <span style={{ fontSize: "0.84rem", fontWeight: 800 }}>{v.size || v.presentation || v.name}</span>
                               <span style={{ 
                                 fontSize: "0.74rem", 
                                 fontWeight: 700, 
@@ -1954,7 +2047,7 @@ export default function ProductDetailPage() {
             Precio
           </span>
           <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
-            {prod.priceAourum ? (
+            {activePriceAourum ? (
               <>
                 <span 
                   className="mobile-price-amount"
@@ -1966,7 +2059,7 @@ export default function ProductDetailPage() {
                     letterSpacing: "-0.01em"
                   }}
                 >
-                  S/ {formatPrice(prod.priceAourum)}
+                  S/ {formatPrice(activePriceAourum)}
                 </span>
                 <span 
                   style={{ 
@@ -1976,7 +2069,7 @@ export default function ProductDetailPage() {
                     fontWeight: 600
                   }}
                 >
-                  S/ {formatPrice(prod.price)}
+                  S/ {formatPrice(activePrice)}
                 </span>
               </>
             ) : (
@@ -1990,7 +2083,7 @@ export default function ProductDetailPage() {
                   letterSpacing: "-0.01em"
                 }}
               >
-                S/ {formatPrice(prod.price)}
+                S/ {formatPrice(activePrice)}
               </span>
             )}
           </div>

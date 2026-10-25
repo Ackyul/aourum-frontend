@@ -8,7 +8,7 @@ import PostList from "../../../components/PostList";
 import SocialFeedPublisher from "../../../components/SocialFeedPublisher";
 import BrandQRModal from "../../../components/BrandQRModal";
 import { isVirtualMenuBrand, ensureFullSocialUrl } from "@/utils/brandUtils";
-import PerfumeryShowcase, { parsePerfumeInfo } from "../../../components/PerfumeryShowcase";
+import PerfumeryShowcase, { parsePerfumeInfo, groupCatalogProducts } from "../../../components/PerfumeryShowcase";
 import ProductCardVisual from "../../../components/ProductCardVisual";
 
 // Stable deterministic views generator based on hash of name + id
@@ -748,8 +748,8 @@ export default function BrandProfileClient({ initialBrand }) {
   const allBrandProducts = brand ? products.filter((p) => p.brandId === brand.id) : [];
 
   const brandProducts = useMemo(() => {
-    if (canEditProfile) return allBrandProducts;
-    return allBrandProducts.filter(p => p.isVisible !== false);
+    const list = canEditProfile ? allBrandProducts : allBrandProducts.filter(p => p.isVisible !== false);
+    return groupCatalogProducts(list);
   }, [allBrandProducts, canEditProfile]);
 
   const filteredAdminProducts = useMemo(() => {
@@ -1142,8 +1142,20 @@ function BrandProductCard({ prod }) {
     const isPopular = topBrandProdIds.has(prod.id);
     const brandBadgeColor = palette.c1 || (brand?.color ? brand.color : "var(--gold-primary)");
     const brandBadgeTextDark = getBgBrightness(brandBadgeColor, "#FFFFFF") > 160;
-    const formattedPrice = (prod.price != null && !isNaN(Number(prod.price))) ? Number(prod.price).toLocaleString("es-PE") : "0";
-    const formattedPriceAourum = (prod.priceAourum != null && !isNaN(Number(prod.priceAourum))) ? Number(prod.priceAourum).toLocaleString("es-PE") : null;
+
+    // Multi-size selection state
+    const sizes = Array.isArray(prod.sizes) && prod.sizes.length > 0 ? prod.sizes : [];
+    const hasMultipleSizes = sizes.length > 1;
+    const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
+
+    const activeSize = hasMultipleSizes ? sizes[selectedSizeIndex] : null;
+    const activePrice = activeSize ? activeSize.price : (prod.minPrice != null ? prod.minPrice : prod.price);
+    const activePriceAourum = activeSize ? activeSize.priceAourum : prod.priceAourum;
+    const activeImage = (activeSize && activeSize.image) ? activeSize.image : prod.image;
+    const targetSlug = (activeSize && activeSize.slug) ? activeSize.slug : (prod.slug || prod.id);
+
+    const formattedPrice = (activePrice != null && !isNaN(Number(activePrice))) ? Number(activePrice).toLocaleString("es-PE") : "0";
+    const formattedPriceAourum = (activePriceAourum != null && !isNaN(Number(activePriceAourum))) ? Number(activePriceAourum).toLocaleString("es-PE") : null;
     const pInfo = parsePerfumeInfo(prod);
     const isFoodOrNonPerfume = /comida|snack|gastronom|fruta|alimento|bebida|caf[eé]|postre|joyer|ropa|artesan|textil|esot[eé]ric|servicio|tecnolog|calzado|accesorio/i.test(`${prod.category || ""} ${brand?.category || ""} ${brand?.rubro_general || ""} ${brand?.rubro_especifico || ""}`);
     const isPerfume = !isFoodOrNonPerfume && Boolean(
@@ -1153,11 +1165,15 @@ function BrandProductCard({ prod }) {
       /perfum|fraganc|coloni|eau de|esenci/i.test(`${prod.category || ""} ${brand?.rubro_general || ""}`)
     );
 
+    const visualProd = useMemo(() => {
+      return activeImage ? { ...prod, image: activeImage } : prod;
+    }, [prod, activeImage]);
+
     return (
       <div 
         className="product-card glass-panel" 
         style={cardStyleObj}
-        onClick={() => router.push(`/products/${prod.slug || prod.id}?from=brand`)}
+        onClick={() => router.push(`/products/${targetSlug}?from=brand`)}
       >
         {/* Top Image Box with Badge Overlays */}
         <div 
@@ -1257,7 +1273,7 @@ function BrandProductCard({ prod }) {
           </div>
 
           <ProductCardVisual
-            prod={prod}
+            prod={visualProd}
             perfumeInfo={pInfo}
             brandColor={palette.c1}
             isDark={isCardDark}
@@ -1265,7 +1281,7 @@ function BrandProductCard({ prod }) {
         </div>
 
         {/* Bottom Details Body */}
-        <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+        <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.35rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ 
               fontSize: "0.72rem", 
@@ -1276,7 +1292,7 @@ function BrandProductCard({ prod }) {
             }}>
               {(isPerfume && pInfo.family) || prod.category || brand?.rubro_general || "General"}
             </span>
-            {(pInfo.ml || pInfo.presentation) && (
+            {(activeSize?.size || pInfo.ml || pInfo.presentation) && (
               <span style={{ 
                 fontSize: "0.68rem", 
                 color: palette.c1, 
@@ -1285,7 +1301,7 @@ function BrandProductCard({ prod }) {
                 borderRadius: "6px",
                 fontWeight: 700 
               }}>
-                {pInfo.ml || pInfo.presentation}
+                {activeSize?.size || pInfo.ml || pInfo.presentation}
               </span>
             )}
           </div>
@@ -1315,14 +1331,59 @@ function BrandProductCard({ prod }) {
             </div>
           )}
 
-
-
           <div style={{ fontSize: "0.8rem", color: isCardDark ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}>
             <span>Por:</span>
             <strong style={{ color: titleTextColor, textDecoration: "underline" }}>
               {brand?.name || "Marca Local"}
             </strong>
           </div>
+
+          {/* Pastillas interactivas de tamaños si tiene múltiples opciones */}
+          {hasMultipleSizes && (
+            <div 
+              style={{ 
+                display: "flex", 
+                gap: "5px", 
+                flexWrap: "wrap", 
+                margin: "0.25rem 0 0.05rem 0" 
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {sizes.map((s, idx) => {
+                const isSelected = idx === selectedSizeIndex;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedSizeIndex(idx);
+                    }}
+                    title={`Ver tamaño ${s.size} por S/ ${s.price}`}
+                    style={{
+                      padding: "2px 8px",
+                      borderRadius: "8px",
+                      fontSize: "0.68rem",
+                      fontWeight: isSelected ? 800 : 600,
+                      cursor: "pointer",
+                      border: isSelected 
+                        ? `1.5px solid ${palette.c1 || "var(--gold-primary)"}` 
+                        : (isCardDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.12)"),
+                      background: isSelected 
+                        ? `${palette.c1 || "var(--gold-primary)"}20` 
+                        : "rgba(0,0,0,0.03)",
+                      color: isSelected 
+                        ? (palette.c1 || "var(--gold-primary)") 
+                        : (isCardDark ? "#A1A1AA" : "var(--text-muted)"),
+                      transition: "all 0.18s ease"
+                    }}
+                  >
+                    {s.size}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           
           <div style={{ 
             display: "flex", 
@@ -1348,9 +1409,16 @@ function BrandProductCard({ prod }) {
                   </span>
                 </div>
               ) : (
-                <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: priceTextColor }}>
-                  S/ {formattedPrice}
-                </span>
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  {hasMultipleSizes && (
+                    <span style={{ fontSize: "0.58rem", textTransform: "uppercase", fontWeight: 700, color: isCardDark ? "#A1A1AA" : "var(--text-muted)", letterSpacing: "0.04em", lineHeight: 1 }}>
+                      Desde
+                    </span>
+                  )}
+                  <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: priceTextColor }}>
+                    S/ {formattedPrice}
+                  </span>
+                </div>
               )}
             </div>
 

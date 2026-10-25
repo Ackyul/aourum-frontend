@@ -49,6 +49,21 @@ export function parseProductPresentation(prod) {
     }
   }
 
+  // Parse multiple embedded sizes/variations if present
+  let sizes = [];
+  if (Array.isArray(meta.sizes) && meta.sizes.length > 0) {
+    sizes = meta.sizes;
+  } else if (Array.isArray(prod?.sizes) && prod.sizes.length > 0) {
+    sizes = prod.sizes;
+  } else {
+    const sizesMatch = rawDesc.match(/\[\s*(?:tama[ñn]os|sizes|variaciones|presentaciones)\s*:\s*(\[[^\]]+\])\s*\]/i);
+    if (sizesMatch && sizesMatch[1]) {
+      try {
+        sizes = JSON.parse(sizesMatch[1]);
+      } catch (e) {}
+    }
+  }
+
   // Nombre base limpio sin sufijo de tamaño/presentación entre paréntesis
   let cleanName = name
     .replace(/\s*\((?:tamaño|presentación)?\s*[^)]*(?:gr|g|kg|ml|oz|litros?|l|pack|talla\s+[smlx]+|[smlx]{1,3})[^)]*\)/gi, "")
@@ -57,7 +72,8 @@ export function parseProductPresentation(prod) {
 
   return {
     presentation,
-    cleanName: cleanName || name
+    cleanName: cleanName || name,
+    sizes
   };
 }
 
@@ -73,7 +89,8 @@ export function parsePerfumeInfo(prod) {
       ml: "",
       presentation: "",
       cleanName: "",
-      cleanDesc: ""
+      cleanDesc: "",
+      sizes: []
     };
   }
 
@@ -173,6 +190,23 @@ export function parsePerfumeInfo(prod) {
   }
   const presentation = parsedPres.presentation || ml;
 
+  // Embedded sizes
+  let sizes = Array.isArray(parsedPres.sizes) && parsedPres.sizes.length > 0 ? parsedPres.sizes : [];
+  if (sizes.length === 0) {
+    if (Array.isArray(meta.sizes) && meta.sizes.length > 0) {
+      sizes = meta.sizes;
+    } else if (Array.isArray(prod?.sizes) && prod.sizes.length > 0) {
+      sizes = prod.sizes;
+    } else {
+      const sizesMatch = rawDesc.match(/\[\s*(?:tama[ñn]os|sizes|variaciones|presentaciones)\s*:\s*(\[[^\]]+\])\s*\]/i);
+      if (sizesMatch && sizesMatch[1]) {
+        try {
+          sizes = JSON.parse(sizesMatch[1]);
+        } catch (e) {}
+      }
+    }
+  }
+
   // Family detection — strictly for actual perfume families or explicit bracket tags
   if (!family) {
     const bracketFamily = rawDesc.match(/\[\s*familia\s*:\s*([^\]]+)\]/i);
@@ -199,6 +233,7 @@ export function parsePerfumeInfo(prod) {
     .replace(/\[\s*concentraci[oó]n\s*:[^\]]+\]/gi, "")
     .replace(/\[\s*ml\s*:[^\]]+\]/gi, "")
     .replace(/\[\s*(?:presentaci[oó]n|tama[ñn]o|cantidad|gramaje|porci[oó]n)\s*:[^\]]+\]/gi, "")
+    .replace(/\[\s*(?:tama[ñn]os|sizes|variaciones|presentaciones)\s*:\s*\[[^\]]+\]\s*\]/gi, "")
     .trim();
 
   return {
@@ -210,8 +245,612 @@ export function parsePerfumeInfo(prod) {
     ml,
     presentation,
     cleanName: parsedPres.cleanName || name,
-    cleanDesc
+    cleanDesc,
+    sizes
   };
+}
+
+/**
+ * Unifies products from the same brand that represent the same item into a single card
+ * with multiple size/presentation options.
+ */
+export function groupCatalogProducts(products = []) {
+  if (!Array.isArray(products) || products.length <= 1) return products || [];
+
+  const groups = new Map();
+  const orderedList = [];
+
+  for (const prod of products) {
+    if (!prod) continue;
+    const pBrandId = Number(prod.brandId || prod.brand_id || 0);
+    const pParsed = parseProductPresentation(prod);
+    const pPerfume = parsePerfumeInfo(prod);
+
+    const cleanName = (pParsed.cleanName || prod.name || "").trim().toLowerCase();
+    const insp = (pPerfume.inspiration || "").trim().toLowerCase();
+
+    // Key to group variations of the same product:
+    // Perfume with inspiration: brandId + inspiration
+    // Otherwise: brandId + cleanName + category
+    let groupKey = null;
+    if (insp) {
+      groupKey = `${pBrandId}::insp::${insp}`;
+    } else if (cleanName) {
+      groupKey = `${pBrandId}::name::${cleanName}::${(prod.category || "").trim().toLowerCase()}`;
+    }
+
+    if (!groupKey) {
+      orderedList.push(prod);
+      continue;
+    }
+
+    const itemSizes = (Array.isArray(pPerfume.sizes) && pPerfume.sizes.length > 0)
+      ? pPerfume.sizes
+      : (Array.isArray(pParsed.sizes) && pParsed.sizes.length > 0 ? pParsed.sizes : []);
+
+    if (!groups.has(groupKey)) {
+      const initialSizes = [];
+      if (itemSizes.length > 0) {
+        itemSizes.forEach(s => {
+          initialSizes.push({
+            size: s.size || s.presentation || "",
+            price: Number(s.price != null ? s.price : prod.price || 0),
+            priceAourum: s.priceAourum != null ? Number(s.priceAourum) : (prod.priceAourum ? Number(prod.priceAourum) : null),
+            image: s.image || prod.image || "",
+            id: prod.id,
+            slug: prod.slug || prod.id
+          });
+        });
+      } else {
+        const currentPres = pParsed.presentation || pPerfume.ml;
+        if (currentPres) {
+          initialSizes.push({
+            size: currentPres,
+            price: Number(prod.price || 0),
+            priceAourum: prod.priceAourum ? Number(prod.priceAourum) : null,
+            image: prod.image || "",
+            id: prod.id,
+            slug: prod.slug || prod.id
+          });
+        }
+      }
+
+      const unified = {
+        ...prod,
+        sizes: initialSizes,
+        _allVariations: [prod]
+      };
+      groups.set(groupKey, unified);
+      orderedList.push(unified);
+    } else {
+      const groupItem = groups.get(groupKey);
+      groupItem._allVariations.push(prod);
+
+      if (itemSizes.length > 0) {
+        itemSizes.forEach(s => {
+          const sName = (s.size || s.presentation || "").toLowerCase().trim();
+          if (sName && !groupItem.sizes.some(x => (x.size || "").toLowerCase().trim() === sName)) {
+            groupItem.sizes.push({
+              size: s.size || s.presentation || "",
+              price: Number(s.price != null ? s.price : prod.price || 0),
+              priceAourum: s.priceAourum != null ? Number(s.priceAourum) : null,
+              image: s.image || prod.image || "",
+              id: prod.id,
+              slug: prod.slug || prod.id
+            });
+          }
+        });
+      } else {
+        const siblingPres = pParsed.presentation || pPerfume.ml;
+        if (siblingPres) {
+          const sName = siblingPres.toLowerCase().trim();
+          if (!groupItem.sizes.some(x => (x.size || "").toLowerCase().trim() === sName)) {
+            groupItem.sizes.push({
+              size: siblingPres,
+              price: Number(prod.price || 0),
+              priceAourum: prod.priceAourum ? Number(prod.priceAourum) : null,
+              image: prod.image || "",
+              id: prod.id,
+              slug: prod.slug || prod.id
+            });
+          }
+        }
+      }
+    }
+  }
+
+  // Finalize sizes, minPrice, and hasMultipleSizes flag
+  return orderedList.map(item => {
+    if (Array.isArray(item.sizes) && item.sizes.length > 0) {
+      item.sizes.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+      item.minPrice = item.sizes[0].price;
+      if (item.sizes.length > 1) {
+        item.hasMultipleSizes = true;
+      }
+    }
+    return item;
+  });
+}
+
+function PerfumeryShowcaseCard({
+  prod,
+  info,
+  primaryCol,
+  resolvedCardBg,
+  resolvedCardBorder,
+  resolvedCardShadow,
+  resolvedCardTextColor,
+  secondaryTextColor,
+  isStoreBgLight,
+  isOwner,
+  onEditProduct,
+  onOrderWhatsApp,
+  router
+}) {
+  const sizes = Array.isArray(prod.sizes) && prod.sizes.length > 0 ? prod.sizes : [];
+  const hasMultipleSizes = sizes.length > 1;
+  const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
+
+  const activeSize = hasMultipleSizes ? sizes[selectedSizeIndex] : null;
+  const currentPrice = activeSize ? activeSize.price : (prod.minPrice != null ? prod.minPrice : prod.price);
+  const currentPriceAourum = activeSize ? activeSize.priceAourum : prod.priceAourum;
+  const currentImage = (activeSize && activeSize.image) ? activeSize.image : prod.image;
+  const currentVolume = activeSize?.size || info?.ml || info?.presentation;
+  const targetSlug = (activeSize && activeSize.slug) ? activeSize.slug : (prod.slug || prod.id);
+  const hasImage = Boolean(currentImage);
+
+  return (
+    <div
+      style={{
+        background: resolvedCardBg,
+        border: resolvedCardBorder,
+        borderRadius: "20px",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        boxShadow: resolvedCardShadow,
+        transition: "transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease",
+        cursor: "pointer",
+        position: "relative"
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = "translateY(-4px)";
+        e.currentTarget.style.boxShadow = isStoreBgLight 
+          ? "0 18px 36px rgba(0,0,0,0.1), 0 0 15px rgba(0,0,0,0.03)"
+          : "0 20px 40px rgba(0,0,0,0.6)";
+        e.currentTarget.style.borderColor = primaryCol;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = "translateY(0)";
+        e.currentTarget.style.boxShadow = resolvedCardShadow;
+        e.currentTarget.style.borderColor = "";
+      }}
+      onClick={() => router.push(`/products/${targetSlug}`)}
+    >
+      {/* IMAGEN DEL FRASCO / PRESENTACIÓN */}
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "240px",
+          background: isStoreBgLight 
+            ? "radial-gradient(circle at center, rgba(0,0,0,0.01) 0%, rgba(0,0,0,0.04) 100%)" 
+            : "radial-gradient(circle at center, rgba(255,255,255,0.04) 0%, rgba(10,11,15,0.95) 75%)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden"
+        }}
+      >
+        {/* Badge de Género */}
+        {info?.gender ? (
+          <div
+            style={{
+              position: "absolute",
+              top: "12px",
+              right: "12px",
+              background: isStoreBgLight ? "rgba(255, 255, 255, 0.92)" : "rgba(0, 0, 0, 0.8)",
+              border: isStoreBgLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.2)",
+              color: isStoreBgLight ? "#1F2937" : "#FFFFFF",
+              fontSize: "0.7rem",
+              fontWeight: 700,
+              padding: "3px 10px",
+              borderRadius: "14px",
+              backdropFilter: "blur(6px)",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+              zIndex: 6
+            }}
+          >
+            {info.gender === "Hombre" && "👔 Hombre"}
+            {info.gender === "Mujer" && "👗 Mujer"}
+            {info.gender === "Unisex" && "✨ Unisex"}
+            {info.gender !== "Hombre" && info.gender !== "Mujer" && info.gender !== "Unisex" && info.gender}
+          </div>
+        ) : null}
+
+        {isOwner && onEditProduct && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEditProduct(prod);
+            }}
+            style={{
+              position: "absolute",
+              bottom: "10px",
+              right: "10px",
+              background: isStoreBgLight ? "rgba(255, 255, 255, 0.92)" : "rgba(12, 13, 17, 0.85)",
+              border: `1px solid ${primaryCol}`,
+              color: primaryCol,
+              fontSize: "0.72rem",
+              fontWeight: 700,
+              padding: "4px 10px",
+              borderRadius: "10px",
+              cursor: "pointer",
+              zIndex: 7,
+              display: "flex",
+              alignItems: "center",
+              gap: "5px",
+              backdropFilter: "blur(4px)",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
+            }}
+          >
+            <i className="fa-solid fa-pen-to-square"></i>
+            <span>Editar</span>
+          </button>
+        )}
+
+        {info?.originalImg ? (
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              display: "flex",
+              alignItems: "flex-end",
+              justifyContent: "center",
+              padding: "10px 14px 12px"
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                top: "40%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: "190px",
+                height: "190px",
+                borderRadius: "50%",
+                background: `radial-gradient(circle, ${primaryCol}22 0%, transparent 70%)`,
+                pointerEvents: "none"
+              }}
+            />
+
+            {/* 1. Frasco Original */}
+            <div
+              style={{
+                position: "absolute",
+                left: "6%",
+                bottom: "8%",
+                width: "48%",
+                height: "80%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                zIndex: 2,
+                filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.22))",
+                opacity: 0.94,
+                transition: "all 0.3s ease"
+              }}
+              className="perfume-original-duo"
+              title={`Original de Referencia: ${info.inspiration || "Inspiración"}`}
+            >
+              <img
+                src={info.originalImg}
+                alt={`Inspiración: ${info.inspiration || "Original"}`}
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "90%",
+                  objectFit: "contain",
+                  transition: "transform 0.3s ease"
+                }}
+              />
+            </div>
+
+            {/* 2. Frasco de la Marca */}
+            <div
+              style={{
+                position: "absolute",
+                right: "6%",
+                bottom: "6%",
+                width: "56%",
+                height: "94%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                zIndex: 3,
+                filter: "drop-shadow(0 12px 24px rgba(0,0,0,0.32))",
+                transition: "all 0.3s ease"
+              }}
+              className="perfume-brand-duo"
+            >
+              {hasImage ? (
+                <img
+                  src={currentImage}
+                  alt={prod.name}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "90%",
+                    objectFit: "contain",
+                    transition: "transform 0.3s ease"
+                  }}
+                />
+              ) : (
+                <div style={{ textAlign: "center", marginBottom: "8px" }}>
+                  <i className="fa-solid fa-wine-bottle" style={{ fontSize: "3.5rem", color: primaryCol, opacity: 0.9 }}></i>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          hasImage ? (
+            <img
+              src={currentImage}
+              alt={prod.name}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+                padding: "16px",
+                transition: "transform 0.3s ease"
+              }}
+            />
+          ) : (
+            <div style={{ textAlign: "center", padding: "1rem" }}>
+              <i className="fa-solid fa-wine-bottle" style={{ fontSize: "3.5rem", color: primaryCol, opacity: 0.65, marginBottom: "8px", display: "block" }}></i>
+              <span style={{ fontSize: "0.75rem", color: secondaryTextColor, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700 }}>
+                Frasco de Colección
+              </span>
+            </div>
+          )
+        )}
+      </div>
+
+      {/* CUERPO DE LA TARJETA */}
+      <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", flex: 1, gap: "8px" }}>
+        {/* Familia Olfativa y Volumen */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span 
+            style={{ 
+              fontSize: "0.72rem", 
+              fontWeight: 800, 
+              color: primaryCol, 
+              textTransform: "uppercase", 
+              letterSpacing: "0.06em" 
+            }}
+          >
+            {info?.family || prod.category || "Perfumería"}
+          </span>
+          {currentVolume && (
+            <span style={{ 
+              fontSize: "0.72rem", 
+              color: primaryCol, 
+              background: `${primaryCol}18`,
+              padding: "2px 8px",
+              borderRadius: "6px",
+              fontWeight: 700 
+            }}>
+              {currentVolume}
+            </span>
+          )}
+        </div>
+
+        {/* Nombre del Perfume */}
+        <h3 
+          style={{ 
+            fontSize: "1.15rem", 
+            fontWeight: 900, 
+            color: resolvedCardTextColor, 
+            margin: 0, 
+            lineHeight: 1.3 
+          }}
+        >
+          {prod.name}
+        </h3>
+
+        {/* RECUADRO DE INSPIRACIÓN ORIGINAL */}
+        <div 
+          style={{
+            background: isStoreBgLight 
+              ? `${primaryCol}12` 
+              : `linear-gradient(135deg, ${primaryCol}20 0%, rgba(20, 22, 28, 0.85) 100%)`,
+            border: `1.5px solid ${primaryCol}35`,
+            borderRadius: "12px",
+            padding: "9px 12px",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)"
+          }}
+        >
+          {info?.originalImg ? (
+            <div 
+              style={{ 
+                width: "34px", 
+                height: "42px", 
+                flexShrink: 0, 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center", 
+                background: isStoreBgLight ? "#FFFFFF" : "rgba(255,255,255,0.08)", 
+                borderRadius: "8px", 
+                padding: "3px", 
+                border: `1px solid ${primaryCol}30`,
+                boxShadow: "0 2px 6px rgba(0,0,0,0.08)"
+              }}
+            >
+              <img 
+                src={info.originalImg} 
+                alt={info.inspiration} 
+                style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} 
+              />
+            </div>
+          ) : null}
+
+          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "2px" }}>
+            <div 
+              style={{ 
+                fontSize: "0.68rem", 
+                fontWeight: 800, 
+                color: primaryCol, 
+                textTransform: "uppercase", 
+                letterSpacing: "0.08em",
+                display: "flex",
+                alignItems: "center",
+                gap: "5px"
+              }}
+            >
+              <i className="fa-solid fa-sparkles"></i>
+              <span>Inspirado en:</span>
+            </div>
+            <div 
+              style={{ 
+                fontSize: "0.95rem", 
+                fontWeight: 900, 
+                color: resolvedCardTextColor,
+                letterSpacing: "-0.01em",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis"
+              }}
+              title={info?.inspiration || "Fragancia de Autor"}
+            >
+              {info?.inspiration || "Fragancia de Autor"}
+            </div>
+          </div>
+        </div>
+
+        {/* Descripción */}
+        {info?.cleanDesc && (
+          <p 
+            style={{ 
+              fontSize: "0.82rem", 
+              color: secondaryTextColor, 
+              margin: 0, 
+              lineHeight: 1.45,
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden"
+            }}
+          >
+            {info.cleanDesc}
+          </p>
+        )}
+
+        {/* Pastillas de tamaños interactivos si tiene múltiples presentaciones */}
+        {hasMultipleSizes && (
+          <div 
+            style={{ 
+              display: "flex", 
+              gap: "6px", 
+              flexWrap: "wrap", 
+              margin: "0.2rem 0" 
+            }} 
+            onClick={(e) => e.stopPropagation()}
+          >
+            {sizes.map((s, idx) => {
+              const isSelected = idx === selectedSizeIndex;
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedSizeIndex(idx);
+                  }}
+                  title={`Ver tamaño ${s.size} por S/ ${s.price}`}
+                  style={{
+                    padding: "3px 10px",
+                    borderRadius: "8px",
+                    fontSize: "0.72rem",
+                    fontWeight: isSelected ? 800 : 600,
+                    cursor: "pointer",
+                    border: isSelected 
+                      ? `1.5px solid ${primaryCol}` 
+                      : (isStoreBgLight ? "1px solid rgba(0,0,0,0.15)" : "1px solid rgba(255,255,255,0.15)"),
+                    background: isSelected ? `${primaryCol}22` : "transparent",
+                    color: isSelected ? primaryCol : secondaryTextColor,
+                    transition: "all 0.18s ease"
+                  }}
+                >
+                  {s.size}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Precios y Botón de Acción */}
+        <div style={{ marginTop: "auto", paddingTop: "10px", borderTop: isStoreBgLight ? "1px solid rgba(0,0,0,0.08)" : "1px solid rgba(255,255,255,0.08)" }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "10px" }}>
+            <div>
+              <span style={{ fontSize: "0.72rem", color: secondaryTextColor, display: "block" }}>
+                {hasMultipleSizes ? "Desde" : "Precio"}
+              </span>
+              <span style={{ fontSize: "1.3rem", fontWeight: 900, color: resolvedCardTextColor }}>
+                S/. {Number(currentPrice).toLocaleString("es-PE")}
+              </span>
+            </div>
+
+            {currentPriceAourum && (
+              <div style={{ textAlign: "right" }}>
+                <span style={{ fontSize: "0.68rem", color: primaryCol, fontWeight: 700, display: "block", textTransform: "uppercase" }}>
+                  Precio AOURUM
+                </span>
+                <span style={{ fontSize: "1.1rem", fontWeight: 800, color: primaryCol }}>
+                  S/. {Number(currentPriceAourum).toLocaleString("es-PE")}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Botón de Pedido por WhatsApp */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOrderWhatsApp(prod, activeSize);
+            }}
+            style={{
+              width: "100%",
+              padding: "0.7rem 1rem",
+              borderRadius: "12px",
+              border: "none",
+              background: primaryCol,
+              color: "#FFFFFF",
+              fontSize: "0.85rem",
+              fontWeight: 800,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              transition: "all 0.2s ease",
+              boxShadow: `0 4px 15px ${primaryCol}40`
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.filter = "brightness(1.1)"}
+            onMouseLeave={(e) => e.currentTarget.style.filter = "none"}
+          >
+            <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.1rem" }}></i>
+            <span>Pedir por WhatsApp</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function PerfumeryShowcase({
@@ -320,16 +959,21 @@ export default function PerfumeryShowcase({
   const secondaryTextColor = isStoreBgLight ? "#4B5563" : "#A1A1AA";
   const fontFamily = brandDesign?.fontFamily || "inherit";
 
+  // Unificar productos con múltiples tamaños o variaciones
+  const unifiedProducts = useMemo(() => {
+    return groupCatalogProducts(customProducts || []);
+  }, [customProducts]);
+
   // Enriquecer cada producto con datos olfativos
   const enrichedProducts = useMemo(() => {
-    return (customProducts || []).map((prod) => {
+    return (unifiedProducts || []).map((prod) => {
       const perfumeInfo = parsePerfumeInfo(prod);
       return {
         ...prod,
         perfumeInfo
       };
     });
-  }, [customProducts]);
+  }, [unifiedProducts]);
 
   // Familias olfativas registradas
   const availableFamilies = useMemo(() => {
@@ -387,7 +1031,7 @@ export default function PerfumeryShowcase({
   }, [enrichedProducts, searchQuery, selectedGender, selectedFamily]);
 
   // WhatsApp order handler
-  const handleOrderWhatsApp = (prod) => {
+  const handleOrderWhatsApp = (prod, selectedSize = null) => {
     if (onWhatsAppClick) {
       onWhatsAppClick(prod);
       return;
@@ -396,8 +1040,11 @@ export default function PerfumeryShowcase({
     const cleanPhone = phone.replace(/[^0-9]/g, "");
     const info = prod.perfumeInfo || parsePerfumeInfo(prod);
     const inspText = info.inspiration ? ` (Inspirado en: ${info.inspiration})` : "";
+    const sizeText = selectedSize?.size ? ` - Tamaño: ${selectedSize.size}` : (info.ml ? ` - Tamaño: ${info.ml}` : "");
+    const priceVal = selectedSize?.price != null ? selectedSize.price : prod.price;
+    const priceText = priceVal ? ` (S/ ${priceVal})` : "";
     const text = encodeURIComponent(
-      `¡Hola ${brand.name || "Maison"}! Deseo consultar/pedir el perfume "${prod.name}"${inspText}. ¿Tienen stock disponible para entrega?`
+      `¡Hola ${brand.name || "Maison"}! Deseo consultar/pedir el perfume "${prod.name}"${sizeText}${priceText}${inspText}. ¿Tienen stock disponible para entrega?`
     );
     window.open(`https://wa.me/${cleanPhone}?text=${text}`, "_blank");
   };
@@ -641,415 +1288,24 @@ export default function PerfumeryShowcase({
               gap: "1.5rem"
             }}
           >
-            {filteredProducts.map((prod) => {
-              const info = prod.perfumeInfo;
-              const hasImage = Boolean(prod.image);
-
-              return (
-                <div
-                  key={prod.id}
-                  style={{
-                    background: resolvedCardBg,
-                    border: resolvedCardBorder,
-                    borderRadius: "20px",
-                    overflow: "hidden",
-                    display: "flex",
-                    flexDirection: "column",
-                    boxShadow: resolvedCardShadow,
-                    transition: "transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease",
-                    cursor: "pointer",
-                    position: "relative"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-4px)";
-                    e.currentTarget.style.boxShadow = isStoreBgLight 
-                      ? "0 18px 36px rgba(0,0,0,0.1), 0 0 15px rgba(0,0,0,0.03)"
-                      : "0 20px 40px rgba(0,0,0,0.6)";
-                    e.currentTarget.style.borderColor = primaryCol;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = resolvedCardShadow;
-                    e.currentTarget.style.borderColor = "";
-                  }}
-                  onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
-                >
-                  {/* IMAGEN DEL FRASCO / PRESENTACIÓN (DÚO VISUAL SI EXISTE FOTO ORIGINAL) */}
-                  <div
-                    style={{
-                      position: "relative",
-                      width: "100%",
-                      height: "240px",
-                      background: isStoreBgLight 
-                        ? "radial-gradient(circle at center, rgba(0,0,0,0.01) 0%, rgba(0,0,0,0.04) 100%)" 
-                        : "radial-gradient(circle at center, rgba(255,255,255,0.04) 0%, rgba(10,11,15,0.95) 75%)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      overflow: "hidden"
-                    }}
-                  >
-                    {/* Badge de Género — SOLO si fue configurado por la marca */}
-                    {info.gender ? (
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: "12px",
-                          right: "12px",
-                          background: isStoreBgLight ? "rgba(255, 255, 255, 0.92)" : "rgba(0, 0, 0, 0.8)",
-                          border: isStoreBgLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.2)",
-                          color: isStoreBgLight ? "#1F2937" : "#FFFFFF",
-                          fontSize: "0.7rem",
-                          fontWeight: 700,
-                          padding: "3px 10px",
-                          borderRadius: "14px",
-                          backdropFilter: "blur(6px)",
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                          zIndex: 6
-                        }}
-                      >
-                        {info.gender === "Hombre" && "👔 Hombre"}
-                        {info.gender === "Mujer" && "👗 Mujer"}
-                        {info.gender === "Unisex" && "✨ Unisex"}
-                        {info.gender !== "Hombre" && info.gender !== "Mujer" && info.gender !== "Unisex" && info.gender}
-                      </div>
-                    ) : null}
-
-                    {isOwner && onEditProduct && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEditProduct(prod);
-                        }}
-                        style={{
-                          position: "absolute",
-                          bottom: "10px",
-                          right: "10px",
-                          background: isStoreBgLight ? "rgba(255, 255, 255, 0.92)" : "rgba(12, 13, 17, 0.85)",
-                          border: `1px solid ${primaryCol}`,
-                          color: primaryCol,
-                          fontSize: "0.72rem",
-                          fontWeight: 700,
-                          padding: "4px 10px",
-                          borderRadius: "10px",
-                          cursor: "pointer",
-                          zIndex: 7,
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "5px",
-                          backdropFilter: "blur(4px)",
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
-                        }}
-                      >
-                        <i className="fa-solid fa-pen-to-square"></i>
-                        <span>Editar</span>
-                      </button>
-                    )}
-
-                    {info.originalImg ? (
-                      /* ── OPCIÓN 1: DÚO VISUAL (FRASCO ORIGINAL DETRÁS + FRASCO DE LA MARCA AL FRENTE) ── */
-                      <div
-                        style={{
-                          position: "relative",
-                          width: "100%",
-                          height: "100%",
-                          display: "flex",
-                          alignItems: "flex-end",
-                          justifyContent: "center",
-                          padding: "10px 14px 12px"
-                        }}
-                      >
-                        {/* Resplandor suave con color de marca */}
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: "40%",
-                            left: "50%",
-                            transform: "translate(-50%, -50%)",
-                            width: "190px",
-                            height: "190px",
-                            borderRadius: "50%",
-                            background: `radial-gradient(circle, ${primaryCol}22 0%, transparent 70%)`,
-                            pointerEvents: "none"
-                          }}
-                        />
-
-                        {/* 1. Frasco Original de Inspiración (Segundo Plano - Izquierda) */}
-                        <div
-                          style={{
-                            position: "absolute",
-                            left: "6%",
-                            bottom: "8%",
-                            width: "48%",
-                            height: "80%",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "flex-end",
-                            zIndex: 2,
-                            filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.22))",
-                            opacity: 0.94,
-                            transition: "all 0.3s ease"
-                          }}
-                          className="perfume-original-duo"
-                          title={`Original de Referencia: ${info.inspiration || "Inspiración"}`}
-                        >
-                          <img
-                            src={info.originalImg}
-                            alt={`Inspiración: ${info.inspiration || "Original"}`}
-                            style={{
-                              maxWidth: "100%",
-                              maxHeight: "90%",
-                              objectFit: "contain",
-                              transition: "transform 0.3s ease"
-                            }}
-                          />
-                        </div>
-
-                        {/* 2. Frasco de la Marca (Primer Plano - Protagonista a la Derecha) */}
-                        <div
-                          style={{
-                            position: "absolute",
-                            right: "6%",
-                            bottom: "6%",
-                            width: "56%",
-                            height: "94%",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "flex-end",
-                            zIndex: 3,
-                            filter: "drop-shadow(0 12px 24px rgba(0,0,0,0.32))",
-                            transition: "all 0.3s ease"
-                          }}
-                          className="perfume-brand-duo"
-                        >
-                          {hasImage ? (
-                            <img
-                              src={prod.image}
-                              alt={prod.name}
-                              style={{
-                                maxWidth: "100%",
-                                maxHeight: "90%",
-                                objectFit: "contain",
-                                transition: "transform 0.3s ease"
-                              }}
-                            />
-                          ) : (
-                            <div style={{ textAlign: "center", marginBottom: "8px" }}>
-                              <i className="fa-solid fa-wine-bottle" style={{ fontSize: "3.5rem", color: primaryCol, opacity: 0.9 }}></i>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      /* Frasco único cuando no hay foto de original */
-                      hasImage ? (
-                        <img
-                          src={prod.image}
-                          alt={prod.name}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "contain",
-                            padding: "16px",
-                            transition: "transform 0.3s ease"
-                          }}
-                        />
-                      ) : (
-                        <div style={{ textAlign: "center", padding: "1rem" }}>
-                          <i className="fa-solid fa-wine-bottle" style={{ fontSize: "3.5rem", color: primaryCol, opacity: 0.65, marginBottom: "8px", display: "block" }}></i>
-                          <span style={{ fontSize: "0.75rem", color: secondaryTextColor, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700 }}>
-                            Frasco de Colección
-                          </span>
-                        </div>
-                      )
-                    )}
-                  </div>
-
-                  {/* CUERPO DE LA TARJETA */}
-                  <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", flex: 1, gap: "10px" }}>
-                    {/* Familia Olfativa / Categoría y Volumen */}
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span 
-                        style={{ 
-                          fontSize: "0.72rem", 
-                          fontWeight: 800, 
-                          color: primaryCol, 
-                          textTransform: "uppercase", 
-                          letterSpacing: "0.06em" 
-                        }}
-                      >
-                        {info.family || prod.category || "Perfumería"}
-                      </span>
-                      {info.ml && (
-                        <span style={{ fontSize: "0.72rem", color: secondaryTextColor, fontWeight: 600 }}>
-                          {info.ml}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Nombre del Perfume (Modelo que ellos dan) */}
-                    <h3 
-                      style={{ 
-                        fontSize: "1.15rem", 
-                        fontWeight: 900, 
-                        color: resolvedCardTextColor, 
-                        margin: 0, 
-                        lineHeight: 1.3 
-                      }}
-                    >
-                      {prod.name}
-                    </h3>
-
-                    {/* RECUADRO DE INSPIRACIÓN ORIGINAL (CON MINIATURA SI EXISTE FOTO) */}
-                    <div 
-                      style={{
-                        background: isStoreBgLight 
-                          ? `${primaryCol}12` 
-                          : `linear-gradient(135deg, ${primaryCol}20 0%, rgba(20, 22, 28, 0.85) 100%)`,
-                        border: `1.5px solid ${primaryCol}35`,
-                        borderRadius: "12px",
-                        padding: "9px 12px",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
-                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)"
-                      }}
-                    >
-                      {info.originalImg ? (
-                        <div 
-                          style={{ 
-                            width: "34px", 
-                            height: "42px", 
-                            flexShrink: 0, 
-                            display: "flex", 
-                            alignItems: "center", 
-                            justifyContent: "center", 
-                            background: isStoreBgLight ? "#FFFFFF" : "rgba(255,255,255,0.08)", 
-                            borderRadius: "8px", 
-                            padding: "3px", 
-                            border: `1px solid ${primaryCol}30`,
-                            boxShadow: "0 2px 6px rgba(0,0,0,0.08)"
-                          }}
-                        >
-                          <img 
-                            src={info.originalImg} 
-                            alt={info.inspiration} 
-                            style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} 
-                          />
-                        </div>
-                      ) : null}
-
-                      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: "2px" }}>
-                        <div 
-                          style={{ 
-                            fontSize: "0.68rem", 
-                            fontWeight: 800, 
-                            color: primaryCol, 
-                            textTransform: "uppercase", 
-                            letterSpacing: "0.08em",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "5px"
-                          }}
-                        >
-                          <i className="fa-solid fa-sparkles"></i>
-                          <span>Inspirado en:</span>
-                        </div>
-                        <div 
-                          style={{ 
-                            fontSize: "0.95rem", 
-                            fontWeight: 900, 
-                            color: resolvedCardTextColor,
-                            letterSpacing: "-0.01em",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis"
-                          }}
-                          title={info.inspiration || "Fragancia de Autor"}
-                        >
-                          {info.inspiration || "Fragancia de Autor"}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Descripción o Notas Olfativas */}
-                    {info.cleanDesc && (
-                      <p 
-                        style={{ 
-                          fontSize: "0.82rem", 
-                          color: secondaryTextColor, 
-                          margin: 0, 
-                          lineHeight: 1.45,
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden"
-                        }}
-                      >
-                        {info.cleanDesc}
-                      </p>
-                    )}
-
-                    {/* Precios y Botón de Acción */}
-                    <div style={{ marginTop: "auto", paddingTop: "10px", borderTop: isStoreBgLight ? "1px solid rgba(0,0,0,0.08)" : "1px solid rgba(255,255,255,0.08)" }}>
-                      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "10px" }}>
-                        <div>
-                          <span style={{ fontSize: "0.72rem", color: secondaryTextColor, display: "block" }}>Precio</span>
-                          <span style={{ fontSize: "1.3rem", fontWeight: 900, color: resolvedCardTextColor }}>
-                            S/. {prod.price}
-                          </span>
-                        </div>
-
-                        {prod.priceAourum && (
-                          <div style={{ textAlign: "right" }}>
-                            <span style={{ fontSize: "0.68rem", color: primaryCol, fontWeight: 700, display: "block", textTransform: "uppercase" }}>
-                              Precio AOURUM
-                            </span>
-                            <span style={{ fontSize: "1.1rem", fontWeight: 800, color: primaryCol }}>
-                              S/. {prod.priceAourum}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Botón de Pedido por WhatsApp */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOrderWhatsApp(prod);
-                        }}
-                        style={{
-                          width: "100%",
-                          padding: "0.7rem 1rem",
-                          borderRadius: "12px",
-                          border: "none",
-                          background: primaryCol,
-                          color: "#FFFFFF",
-                          fontSize: "0.85rem",
-                          fontWeight: 800,
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: "8px",
-                          transition: "all 0.2s ease",
-                          boxShadow: `0 4px 15px ${primaryCol}40`
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.filter = "brightness(1.1)"}
-                        onMouseLeave={(e) => e.currentTarget.style.filter = "none"}
-                      >
-                        <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.1rem" }}></i>
-                        <span>Pedir por WhatsApp</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {filteredProducts.map((prod) => (
+              <PerfumeryShowcaseCard
+                key={prod.id}
+                prod={prod}
+                info={prod.perfumeInfo}
+                primaryCol={primaryCol}
+                resolvedCardBg={resolvedCardBg}
+                resolvedCardBorder={resolvedCardBorder}
+                resolvedCardShadow={resolvedCardShadow}
+                resolvedCardTextColor={resolvedCardTextColor}
+                secondaryTextColor={secondaryTextColor}
+                isStoreBgLight={isStoreBgLight}
+                isOwner={isOwner}
+                onEditProduct={onEditProduct}
+                onOrderWhatsApp={handleOrderWhatsApp}
+                router={router}
+              />
+            ))}
           </div>
         </div>
       )}

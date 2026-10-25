@@ -9,7 +9,7 @@ import { isVirtualMenuBrand, isPerfumeryBrand } from "@/utils/brandUtils";
 import SocialFeedPublisher from "@/components/SocialFeedPublisher";
 import PostList from "@/components/PostList";
 import ProductCardVisual from "@/components/ProductCardVisual";
-import { parsePerfumeInfo } from "@/components/PerfumeryShowcase";
+import { parsePerfumeInfo, groupCatalogProducts } from "@/components/PerfumeryShowcase";
 
 // Helper to interleave products of different brands to guarantee representation and bypass entry order, prioritizing user's city
 const interleaveProducts = (productList, brands = [], userCity = "") => {
@@ -498,7 +498,7 @@ export default function Home() {
   };
 
   const visibleProducts = useMemo(() => {
-    return products.filter(p => p.isVisible !== false);
+    return groupCatalogProducts(products.filter(p => p.isVisible !== false));
   }, [products]);
 
   // Filter products based on global search & sidebar filters
@@ -651,11 +651,26 @@ export default function Home() {
 
     const isPerfume = isProductPerfume(prod);
 
+    // Multi-size selection state
+    const sizes = Array.isArray(prod.sizes) && prod.sizes.length > 0 ? prod.sizes : [];
+    const hasMultipleSizes = sizes.length > 1;
+    const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
+
+    const activeSize = hasMultipleSizes ? sizes[selectedSizeIndex] : null;
+    const displayPrice = activeSize ? activeSize.price : (prod.minPrice != null ? prod.minPrice : prod.price);
+    const displayPriceAourum = activeSize ? activeSize.priceAourum : prod.priceAourum;
+    const displayImage = (activeSize && activeSize.image) ? activeSize.image : prod.image;
+    const targetSlug = (activeSize && activeSize.slug) ? activeSize.slug : (prod.slug || prod.id);
+
+    const visualProd = useMemo(() => {
+      return displayImage ? { ...prod, image: displayImage } : prod;
+    }, [prod, displayImage]);
+
     return (
       <div 
         className="glass-panel product-card" 
         style={{ overflow: "hidden", display: "flex", flexDirection: "column", cursor: "pointer", height: "100%" }}
-        onClick={() => router.push(`/products/${prod.slug || prod.id}`)}
+        onClick={() => router.push(`/products/${targetSlug}`)}
       >
         <div 
           className="card-img-container" 
@@ -754,18 +769,18 @@ export default function Home() {
           </div>
 
           <ProductCardVisual
-            prod={prod}
+            prod={visualProd}
             perfumeInfo={perfumeInfo}
             brandColor={brandColor}
             isDark={isDarkBg}
           />
         </div>
-        <div style={{ padding: "1.2rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.45rem" }}>
+        <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.35rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: "0.72rem", color: categoryTextColor, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
               {isPerfume ? (perfumeInfo.family && !/jean paul|dior|baccarat|sauvage|elixir|creed|versace|chanel/i.test(perfumeInfo.family) ? perfumeInfo.family : "Perfumería") : prod.category}
             </span>
-            {(perfumeInfo.ml || perfumeInfo.presentation) && (
+            {(activeSize?.size || perfumeInfo.ml || perfumeInfo.presentation) && (
               <span style={{ 
                 fontSize: "0.68rem", 
                 color: isDarkBg ? "#FDE047" : "var(--text-gold)", 
@@ -774,7 +789,7 @@ export default function Home() {
                 borderRadius: "6px",
                 fontWeight: 700 
               }}>
-                {perfumeInfo.ml || perfumeInfo.presentation}
+                {activeSize?.size || perfumeInfo.ml || perfumeInfo.presentation}
               </span>
             )}
           </div>
@@ -792,8 +807,6 @@ export default function Home() {
             </div>
           )}
 
-
-          
           <div 
             style={{ fontSize: "0.8rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px", marginTop: "2px" }}
             onClick={(e) => {
@@ -806,6 +819,53 @@ export default function Home() {
             <span>Por:</span>
             <strong style={{ color: titleTextColor, cursor: "pointer", textDecoration: "underline" }}>{getBrandName(prod.brandId)}</strong>
           </div>
+
+          {/* Pastillas interactivas de tamaños si tiene múltiples opciones */}
+          {hasMultipleSizes && (
+            <div 
+              style={{ 
+                display: "flex", 
+                gap: "5px", 
+                flexWrap: "wrap", 
+                margin: "0.3rem 0 0.1rem 0" 
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {sizes.map((s, idx) => {
+                const isSelected = idx === selectedSizeIndex;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedSizeIndex(idx);
+                    }}
+                    title={`Ver tamaño ${s.size} por S/ ${s.price}`}
+                    style={{
+                      padding: "2px 8px",
+                      borderRadius: "8px",
+                      fontSize: "0.68rem",
+                      fontWeight: isSelected ? 800 : 600,
+                      cursor: "pointer",
+                      border: isSelected 
+                        ? `1.5px solid ${brandColor || "var(--gold-primary)"}` 
+                        : "1px solid rgba(0,0,0,0.12)",
+                      background: isSelected 
+                        ? `${brandColor || "var(--gold-primary)"}18` 
+                        : "rgba(0,0,0,0.03)",
+                      color: isSelected 
+                        ? (brandColor || "var(--gold-primary)") 
+                        : "var(--text-muted)",
+                      transition: "all 0.18s ease"
+                    }}
+                  >
+                    {s.size}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           
           {/* Price and Stock / Agenda */}
           <div style={{ 
@@ -813,28 +873,35 @@ export default function Home() {
             justifyContent: "space-between", 
             alignItems: "center", 
             borderTop: dividerBorder, 
-            paddingTop: "0.8rem", 
+            paddingTop: "0.7rem", 
             marginTop: "auto" 
           }}>
             <div>
-              {prod.priceAourum ? (
+              {displayPriceAourum ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                     <span style={{ fontSize: "0.68rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", textDecoration: "line-through", lineHeight: 1 }}>
-                      S/ {prod.price.toLocaleString("es-PE")}
+                      S/ {Number(displayPrice).toLocaleString("es-PE")}
                     </span>
                     <span style={{ fontSize: "0.5rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "800", textTransform: "uppercase", whiteSpace: "nowrap", lineHeight: 1 }}>
                       Aourum
                     </span>
                   </div>
                   <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: priceTextColor, lineHeight: 1 }}>
-                    S/ {prod.priceAourum.toLocaleString("es-PE")}
+                    S/ {Number(displayPriceAourum).toLocaleString("es-PE")}
                   </span>
                 </div>
               ) : (
-                <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: priceTextColor }}>
-                  S/ {prod.price.toLocaleString("es-PE")}
-                </span>
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  {hasMultipleSizes && (
+                    <span style={{ fontSize: "0.58rem", textTransform: "uppercase", fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.04em", lineHeight: 1 }}>
+                      Desde
+                    </span>
+                  )}
+                  <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: priceTextColor }}>
+                    S/ {Number(displayPrice).toLocaleString("es-PE")}
+                  </span>
+                </div>
               )}
             </div>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>

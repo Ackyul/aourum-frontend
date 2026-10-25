@@ -167,6 +167,11 @@ export default function DashboardClient({ initialTab }) {
     imgBgColor: "transparent",
     isVisible: true,
     presentation: "",
+    hasMultipleSizes: false,
+    sizes: [
+      { size: "50 ml", price: "", priceAourum: "", image: "" },
+      { size: "100 ml", price: "", priceAourum: "", image: "" }
+    ],
     // Perfume
     perfumeInspiration: "",
     perfumeOriginalImg: "",
@@ -588,6 +593,16 @@ export default function DashboardClient({ initialTab }) {
       imgBgColor: "transparent",
       isVisible: true,
       presentation: "",
+      hasMultipleSizes: isBrandPerfume,
+      sizes: isBrandPerfume
+        ? [
+            { size: "50 ml", price: "", priceAourum: "", image: "" },
+            { size: "100 ml", price: "", priceAourum: "", image: "" }
+          ]
+        : [
+            { size: "Tamaño 1", price: "", priceAourum: "", image: "" },
+            { size: "Tamaño 2", price: "", priceAourum: "", image: "" }
+          ],
       perfumeInspiration: "",
       perfumeOriginalImg: "",
       perfumeGender: "Unisex",
@@ -616,6 +631,15 @@ export default function DashboardClient({ initialTab }) {
     const presMatch = desc.match(/\[\s*(?:presentaci[oó]n|tama[ñn]o|cantidad|gramaje)\s*:\s*([^\]]+)\]/i);
     const portionMatch = desc.match(/\[\s*(?:porci[oó]n|tama[ñn]o)\s*:\s*([^\]]+)\]/i);
     const ingredientsMatch = desc.match(/\[\s*ingredientes\s*:\s*([^\]]+)\]/i);
+    const sizesMatch = desc.match(/\[\s*(?:tama[ñn]os|sizes|variaciones|presentaciones)\s*:\s*(\[[^\]]+\])\s*\]/i);
+
+    let parsedSizes = [];
+    if (sizesMatch && sizesMatch[1]) {
+      try {
+        parsedSizes = JSON.parse(sizesMatch[1]);
+      } catch (e) {}
+    }
+    const hasExistingSizes = Array.isArray(parsedSizes) && parsedSizes.length > 0;
 
     const parsedPres = parseProductPresentation(prod);
     const resolvedPres = presMatch ? presMatch[1].trim() : (parsedPres.presentation || (mlMatch ? mlMatch[1].trim() : (portionMatch ? portionMatch[1].trim() : "")));
@@ -649,6 +673,12 @@ export default function DashboardClient({ initialTab }) {
       imgBgColor: prod.imgBgColor || "transparent",
       isVisible: prod.isVisible !== false,
       presentation: resolvedPres,
+      hasMultipleSizes: hasExistingSizes,
+      sizes: hasExistingSizes
+        ? parsedSizes
+        : [
+            { size: resolvedPres || (isBrandPerfume ? "50 ml" : "Estándar"), price: prod.price || "", priceAourum: prod.priceAourum || "", image: prod.image || "" }
+          ],
       perfumeInspiration: inspMatch ? inspMatch[1].trim() : "",
       perfumeOriginalImg: origImgMatch ? origImgMatch[1].trim() : "",
       perfumeGender: genderMatch ? genderMatch[1].trim() : "Unisex",
@@ -731,13 +761,33 @@ export default function DashboardClient({ initialTab }) {
   // Guardar Producto
   const handleSaveProductSubmit = async (e) => {
     e.preventDefault();
-    if (!prodForm.name.trim() || !prodForm.price) {
+    if (!prodForm.name.trim() || (!prodForm.price && (!prodForm.hasMultipleSizes || !prodForm.sizes?.length))) {
       triggerNotification(false, "Completa el nombre y el precio del ítem.");
       return;
     }
 
     setSubmittingProd(true);
     let finalDesc = prodForm.description.trim();
+
+    // Validar y ordenar tamaños múltiples
+    let validSizes = [];
+    if (prodForm.hasMultipleSizes && Array.isArray(prodForm.sizes)) {
+      validSizes = prodForm.sizes
+        .filter(s => (s.size || "").trim() && s.price !== "" && s.price != null && !isNaN(Number(s.price)))
+        .map(s => ({
+          size: s.size.trim(),
+          price: Number(s.price),
+          priceAourum: (s.priceAourum !== "" && s.priceAourum != null && !isNaN(Number(s.priceAourum))) ? Number(s.priceAourum) : null,
+          image: s.image || ""
+        }));
+      if (validSizes.length > 0) {
+        validSizes.sort((a, b) => a.price - b.price);
+      }
+    }
+
+    const basePrice = (validSizes.length > 0) ? validSizes[0].price : Number(prodForm.price);
+    const basePriceAourum = (validSizes.length > 0) ? validSizes[0].priceAourum : (prodForm.priceAourum ? Number(prodForm.priceAourum) : null);
+    const baseImage = prodForm.image || (validSizes.length > 0 && validSizes[0].image ? validSizes[0].image : null);
 
     if (productType === "perfume") {
       const tags = [];
@@ -746,21 +796,32 @@ export default function DashboardClient({ initialTab }) {
       if (prodForm.perfumeGender) tags.push(`[Género: ${prodForm.perfumeGender}]`);
       if (prodForm.category || prodForm.perfumeFamily) tags.push(`[Familia: ${prodForm.category || prodForm.perfumeFamily}]`);
       if (prodForm.perfumeConcentration) tags.push(`[Concentración: ${prodForm.perfumeConcentration}]`);
-      if (prodForm.perfumeMl) tags.push(`[ML: ${prodForm.perfumeMl}]`);
-      if (prodForm.presentation.trim() && prodForm.presentation.trim() !== prodForm.perfumeMl) {
-        tags.push(`[Presentación: ${prodForm.presentation.trim()}]`);
+      if (validSizes.length > 0) {
+        tags.push(`[ML: ${validSizes[0].size}]`);
+        tags.push(`[Tamaños: ${JSON.stringify(validSizes)}]`);
+      } else {
+        if (prodForm.perfumeMl) tags.push(`[ML: ${prodForm.perfumeMl}]`);
+        if (prodForm.presentation.trim() && prodForm.presentation.trim() !== prodForm.perfumeMl) {
+          tags.push(`[Presentación: ${prodForm.presentation.trim()}]`);
+        }
       }
       finalDesc = `${tags.join(' ')}\n\n${prodForm.perfumeNotes.trim()}`.trim();
     } else if (productType === "gastro" || productType === "drink") {
       const tags = [];
-      if (prodForm.presentation.trim() || prodForm.gastroPortion.trim()) {
-        tags.push(`[Porción: ${(prodForm.presentation || prodForm.gastroPortion).trim()}]`);
+      if (validSizes.length > 0) {
+        tags.push(`[Tamaños: ${JSON.stringify(validSizes)}]`);
+      } else {
+        if (prodForm.presentation.trim() || prodForm.gastroPortion.trim()) {
+          tags.push(`[Porción: ${(prodForm.presentation || prodForm.gastroPortion).trim()}]`);
+        }
       }
       if (prodForm.gastroIngredients.trim()) tags.push(`[Ingredientes: ${prodForm.gastroIngredients.trim()}]`);
       finalDesc = `${tags.join(' ')}\n\n${prodForm.description.trim()}`.trim();
     } else {
       const tags = [];
-      if (prodForm.presentation.trim()) {
+      if (validSizes.length > 0) {
+        tags.push(`[Tamaños: ${JSON.stringify(validSizes)}]`);
+      } else if (prodForm.presentation.trim()) {
         tags.push(`[Presentación: ${prodForm.presentation.trim()}]`);
       }
       finalDesc = tags.length > 0 ? `${tags.join(' ')}\n\n${prodForm.description.trim()}`.trim() : prodForm.description.trim();
@@ -773,10 +834,10 @@ export default function DashboardClient({ initialTab }) {
       category: prodForm.category.trim() || (productType === "perfume" ? "Alta Perfumería" : productType === "drink" ? "Bebidas & Refrescos" : productType === "gastro" ? "Platos & Especialidades" : "General"),
       type: productType === "service" ? "service" : "product",
       stock: productType === "service" ? 99999 : (prodForm.stock === "" ? null : Number(prodForm.stock)),
-      price: Number(prodForm.price),
-      priceAourum: prodForm.priceAourum ? Number(prodForm.priceAourum) : null,
+      price: Number(basePrice),
+      priceAourum: basePriceAourum ? Number(basePriceAourum) : null,
       isVisible: prodForm.isVisible !== false,
-      image: prodForm.image || null,
+      image: baseImage || null,
       imgBgColor: prodForm.imgBgColor || "transparent",
       description: finalDesc
     };
@@ -2572,6 +2633,191 @@ export default function DashboardClient({ initialTab }) {
                         />
                       </div>
                     )}
+                </div>
+
+                {/* ── MÚLTIPLES PRESENTACIONES / TAMAÑOS CON PRECIOS INDEPENDIENTES ── */}
+                <div style={{
+                  marginBottom: "1.2rem",
+                  background: prodForm.hasMultipleSizes ? "rgba(212, 175, 55, 0.06)" : "var(--bg-card)",
+                  border: prodForm.hasMultipleSizes ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                  borderRadius: "14px",
+                  padding: "12px 14px",
+                  transition: "all 0.2s ease"
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "8px" }}>
+                        <i className="fa-solid fa-layer-group"></i>
+                        <span>Opciones de Tamaños / Presentaciones</span>
+                      </div>
+                      <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "2px" }}>
+                        Permite que el producto salga como 1 solo ítem con selector de tamaños ({isBrandPerfume ? "ej. 50 ml y 100 ml" : "ej. 250 gr, 500 gr, 1 kg"}).
+                      </div>
+                    </div>
+                    <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "0.82rem", fontWeight: 700, padding: "4px 10px", borderRadius: "8px", background: prodForm.hasMultipleSizes ? "var(--gold-primary)" : "var(--bg-input)", color: prodForm.hasMultipleSizes ? "#1C1C1E" : "inherit", transition: "all 0.2s ease" }}>
+                      <input
+                        type="checkbox"
+                        checked={prodForm.hasMultipleSizes}
+                        onChange={e => {
+                          const checked = e.target.checked;
+                          setProdForm(prev => {
+                            const defaultSizes = isBrandPerfume
+                              ? [
+                                  { size: "50 ml", price: prev.price || "50", priceAourum: prev.priceAourum || "", image: prev.image || "" },
+                                  { size: "100 ml", price: "100", priceAourum: "", image: "" }
+                                ]
+                              : [
+                                  { size: prev.presentation || "Tamaño 1", price: prev.price || "", priceAourum: prev.priceAourum || "", image: prev.image || "" },
+                                  { size: "Tamaño 2", price: "", priceAourum: "", image: "" }
+                                ];
+                            return {
+                              ...prev,
+                              hasMultipleSizes: checked,
+                              sizes: (prev.sizes && prev.sizes.length > 0) ? prev.sizes : defaultSizes
+                            };
+                          });
+                        }}
+                        style={{ width: "16px", height: "16px", cursor: "pointer" }}
+                      />
+                      <span>{prodForm.hasMultipleSizes ? "✓ Múltiples Tamaños Activado" : "Activar Tamaños"}</span>
+                    </label>
+                  </div>
+
+                  {prodForm.hasMultipleSizes && (
+                    <div style={{ marginTop: "14px", borderTop: "1px dashed var(--border-color)", paddingTop: "12px" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        {prodForm.sizes.map((sz, idx) => (
+                          <div key={idx} style={{
+                            display: "grid",
+                            gridTemplateColumns: "1.4fr 1fr 1fr auto",
+                            gap: "8px",
+                            alignItems: "center",
+                            background: "rgba(0,0,0,0.03)",
+                            padding: "8px 10px",
+                            borderRadius: "10px",
+                            border: "1px solid var(--border-color)"
+                          }}>
+                            <div>
+                              <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: "2px" }}>
+                                {isBrandPerfume ? "Mililitros (ml)" : "Presentación / Tamaño"}
+                              </label>
+                              <input
+                                type="text"
+                                className="form-control"
+                                placeholder={isBrandPerfume ? "Ej. 50 ml, 100 ml" : "Ej. 250 gr, 500 gr"}
+                                value={sz.size}
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  setProdForm(prev => {
+                                    const newSizes = [...prev.sizes];
+                                    newSizes[idx] = { ...newSizes[idx], size: val };
+                                    return { ...prev, sizes: newSizes };
+                                  });
+                                }}
+                                style={{ fontSize: "0.82rem", padding: "6px 8px" }}
+                              />
+                            </div>
+
+                            <div>
+                              <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: "2px" }}>
+                                Precio (S/.) *
+                              </label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                className="form-control"
+                                placeholder="0.00"
+                                value={sz.price}
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  setProdForm(prev => {
+                                    const newSizes = [...prev.sizes];
+                                    newSizes[idx] = { ...newSizes[idx], price: val };
+                                    const validPrices = newSizes.map(s => Number(s.price)).filter(p => !isNaN(p) && p > 0);
+                                    const minP = validPrices.length > 0 ? Math.min(...validPrices) : prev.price;
+                                    return { ...prev, sizes: newSizes, price: String(minP) };
+                                  });
+                                }}
+                                style={{ fontSize: "0.82rem", padding: "6px 8px" }}
+                              />
+                            </div>
+
+                            <div>
+                              <label style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: "2px" }}>
+                                Precio AOURUM
+                              </label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                className="form-control"
+                                placeholder="Opcional"
+                                value={sz.priceAourum}
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  setProdForm(prev => {
+                                    const newSizes = [...prev.sizes];
+                                    newSizes[idx] = { ...newSizes[idx], priceAourum: val };
+                                    return { ...prev, sizes: newSizes };
+                                  });
+                                }}
+                                style={{ fontSize: "0.82rem", padding: "6px 8px" }}
+                              />
+                            </div>
+
+                            <div style={{ paddingTop: "14px" }}>
+                              <button
+                                type="button"
+                                disabled={prodForm.sizes.length <= 1}
+                                onClick={() => {
+                                  setProdForm(prev => {
+                                    const newSizes = prev.sizes.filter((_, i) => i !== idx);
+                                    const validPrices = newSizes.map(s => Number(s.price)).filter(p => !isNaN(p) && p > 0);
+                                    const minP = validPrices.length > 0 ? Math.min(...validPrices) : prev.price;
+                                    return { ...prev, sizes: newSizes, price: String(minP) };
+                                  });
+                                }}
+                                style={{
+                                  background: "none",
+                                  border: "none",
+                                  color: prodForm.sizes.length <= 1 ? "var(--text-muted)" : "#EF4444",
+                                  cursor: prodForm.sizes.length <= 1 ? "not-allowed" : "pointer",
+                                  fontSize: "0.95rem",
+                                  padding: "4px"
+                                }}
+                                title="Eliminar este tamaño"
+                              >
+                                <i className="fa-solid fa-trash-can"></i>
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div style={{ marginTop: "10px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProdForm(prev => ({
+                              ...prev,
+                              sizes: [
+                                ...prev.sizes,
+                                { size: "", price: "", priceAourum: "", image: "" }
+                              ]
+                            }));
+                          }}
+                          className="btn-outline-gold"
+                          style={{ padding: "4px 12px", borderRadius: "8px", fontSize: "0.75rem", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}
+                        >
+                          <i className="fa-solid fa-plus"></i>
+                          <span>Agregar Otro Tamaño</span>
+                        </button>
+
+                        <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
+                          💡 La vitrina mostrará <strong>"Desde S/ {prodForm.price || '0'}"</strong> con pastillas interactivas de cada tamaño.
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Atajos Rápidos de Tamaño / Presentación para productos estándar */}
