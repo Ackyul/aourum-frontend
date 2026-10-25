@@ -520,6 +520,7 @@ export default function ProductDetailPage() {
     let categoryTextColor = isCardDark ? "var(--text-gold)" : "#854D0E";
     let titleTextColor = isCardDark ? "#FFFFFF" : "#1C1C1E";
     let priceTextColor = isCardDark ? "#FFFFFF" : "#1C1C1E";
+    let secondaryTextColor = isCardDark ? "#A1A1AA" : "#71717A";
     let dividerBorder = isCardDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.1)";
 
     if (rawCardText === "brand") {
@@ -848,6 +849,25 @@ export default function ProductDetailPage() {
         .product-theme-scope .glass-panel:not(.product-card) {
           border: 1px solid ${palette.c1}25 !important;
           box-shadow: 0 8px 24px ${palette.c1}08 !important;
+        }
+        .product-theme-scope .product-mobile-sticky-bar {
+          background: ${!isStoreBgLight 
+            ? (customBgColor && customBgColor.startsWith("#") ? `${customBgColor}F5` : "rgba(10, 11, 14, 0.95)") 
+            : "rgba(255, 255, 255, 0.96)"
+          } !important;
+          backdrop-filter: blur(24px) !important;
+          -webkit-backdrop-filter: blur(24px) !important;
+          border-top: 1.5px solid ${palette.c1 ? `${palette.c1}45` : (!isStoreBgLight ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)")} !important;
+          box-shadow: ${!isStoreBgLight 
+            ? `0 -8px 30px rgba(0, 0, 0, 0.7), 0 -2px 10px ${palette.c1 ? `${palette.c1}15` : "transparent"}` 
+            : `0 -8px 24px rgba(0, 0, 0, 0.08), 0 -2px 10px ${palette.c1 ? `${palette.c1}10` : "transparent"}`
+          } !important;
+        }
+        .product-theme-scope .product-mobile-sticky-bar .mobile-price-label {
+          color: ${!isStoreBgLight ? (palette.c1 || "#D4AF37") : "var(--text-muted)"} !important;
+        }
+        .product-theme-scope .product-mobile-sticky-bar .mobile-price-amount {
+          color: ${palette.c1 || "var(--gold-dark)"} !important;
         }
         header {
           background: ${!isStoreBgLight 
@@ -1344,23 +1364,23 @@ export default function ProductDetailPage() {
                   <div style={{ display: "flex", alignItems: "baseline", gap: "12px", flexWrap: "wrap" }}>
                     {prod.priceAourum ? (
                       <>
-                        <span style={{ fontSize: "2.2rem", fontWeight: 800, color: resolvedCardTextColor, letterSpacing: "-0.02em" }}>
+                        <span style={{ fontSize: "2.2rem", fontWeight: 800, color: palette.c1 || resolvedCardTextColor, letterSpacing: "-0.02em" }}>
                           S/ {formatPrice(prod.priceAourum)}
                         </span>
                         <span style={{ fontSize: "1.3rem", color: mutedTextColor, textDecoration: "line-through", fontWeight: 500 }}>
                           S/ {formatPrice(prod.price)}
                         </span>
                         <span style={{ fontSize: "0.85rem", color: resolvedCardTextColor, fontWeight: 700 }}>
-                          <i className="fa-solid fa-gift"></i> Precio Especial
+                          <i className="fa-solid fa-gift" style={{ color: palette.c1 }}></i> Precio Especial
                         </span>
                       </>
                     ) : (
                       <>
-                        <span style={{ fontSize: "2.2rem", fontWeight: 800, color: resolvedCardTextColor, letterSpacing: "-0.02em" }}>
+                        <span style={{ fontSize: "2.2rem", fontWeight: 800, color: palette.c1 || resolvedCardTextColor, letterSpacing: "-0.02em" }}>
                           S/ {formatPrice(prod.price)}
                         </span>
                         <span style={{ fontSize: "0.85rem", color: resolvedCardTextColor, fontWeight: 700 }}>
-                          <i className="fa-solid fa-shield-halved"></i> Precio Justo Local
+                          <i className="fa-solid fa-shield-halved" style={{ color: palette.c1 }}></i> Precio Justo Local
                         </span>
                       </>
                     )}
@@ -1904,15 +1924,76 @@ export default function ProductDetailPage() {
         </div>
       )}
 
-      {/* ── STICKY BUY BAR EN CELULAR ── */}
-      <div className="product-mobile-sticky-bar">
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <span style={{ fontSize: "0.68rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700 }}>
+      {/* ── STICKY BUY BAR EN CELULAR CON LOS COLORES DE LA MARCA ── */}
+      <div 
+        className="product-mobile-sticky-bar"
+        style={{
+          background: !isStoreBgLight 
+            ? (customBgColor && customBgColor.startsWith("#") ? `${customBgColor}F5` : "rgba(10, 11, 14, 0.95)") 
+            : "rgba(255, 255, 255, 0.96)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          borderTop: `1.5px solid ${palette.c1 ? `${palette.c1}45` : (!isStoreBgLight ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)")}`,
+          boxShadow: !isStoreBgLight 
+            ? `0 -8px 30px rgba(0, 0, 0, 0.7), 0 -2px 10px ${palette.c1}15` 
+            : `0 -8px 24px rgba(0, 0, 0, 0.08), 0 -2px 10px ${palette.c1}10`
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+          <span 
+            className="mobile-price-label"
+            style={{ 
+              fontSize: "0.66rem", 
+              color: !isStoreBgLight ? (palette.c1 || "#D4AF37") : "var(--text-muted)", 
+              textTransform: "uppercase", 
+              fontWeight: 800,
+              letterSpacing: "0.06em",
+              marginBottom: "1px"
+            }}
+          >
             Precio
           </span>
-          <span style={{ fontSize: "1.2rem", fontWeight: 800, color: "var(--gold-dark)", lineHeight: 1 }}>
-            S/ {prod.price}
-          </span>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
+            {prod.priceAourum ? (
+              <>
+                <span 
+                  className="mobile-price-amount"
+                  style={{ 
+                    fontSize: "1.25rem", 
+                    fontWeight: 900, 
+                    color: palette.c1 || "var(--gold-dark)", 
+                    lineHeight: 1,
+                    letterSpacing: "-0.01em"
+                  }}
+                >
+                  S/ {formatPrice(prod.priceAourum)}
+                </span>
+                <span 
+                  style={{ 
+                    fontSize: "0.78rem", 
+                    color: !isStoreBgLight ? "rgba(255, 255, 255, 0.45)" : "#71717A", 
+                    textDecoration: "line-through",
+                    fontWeight: 600
+                  }}
+                >
+                  S/ {formatPrice(prod.price)}
+                </span>
+              </>
+            ) : (
+              <span 
+                className="mobile-price-amount"
+                style={{ 
+                  fontSize: "1.25rem", 
+                  fontWeight: 900, 
+                  color: palette.c1 || "var(--gold-dark)", 
+                  lineHeight: 1,
+                  letterSpacing: "-0.01em"
+                }}
+              >
+                S/ {formatPrice(prod.price)}
+              </span>
+            )}
+          </div>
         </div>
 
         {brand?.whatsappNumber ? (
@@ -1924,7 +2005,7 @@ export default function ProductDetailPage() {
             style={{
               flex: 1,
               maxWidth: "260px",
-              padding: "0.65rem 1rem",
+              padding: "0.7rem 1.1rem",
               borderRadius: "12px",
               fontWeight: 800,
               fontSize: "0.85rem",
@@ -1932,7 +2013,10 @@ export default function ProductDetailPage() {
               alignItems: "center",
               justifyContent: "center",
               gap: "8px",
-              textDecoration: "none"
+              textDecoration: "none",
+              background: `linear-gradient(135deg, ${palette.c1}, ${palette.c2})`,
+              color: "#FFFFFF",
+              boxShadow: `0 4px 16px ${palette.c1}45`
             }}
           >
             <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.1rem" }}></i>
@@ -1945,14 +2029,17 @@ export default function ProductDetailPage() {
             style={{
               flex: 1,
               maxWidth: "260px",
-              padding: "0.65rem 1rem",
+              padding: "0.7rem 1.1rem",
               borderRadius: "12px",
               fontWeight: 800,
               fontSize: "0.85rem",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: "6px"
+              gap: "6px",
+              background: `linear-gradient(135deg, ${palette.c1}, ${palette.c2})`,
+              color: "#FFFFFF",
+              boxShadow: `0 4px 16px ${palette.c1}45`
             }}
           >
             <i className="fa-solid fa-store"></i>
