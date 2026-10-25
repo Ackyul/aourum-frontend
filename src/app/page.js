@@ -667,78 +667,91 @@ export default function Home() {
             transition: "background-color 0.3s ease"
           }}
         >
-          {(featuredIds.has(prod.id) && getProductViews(prod) > 0) ? (
-            <span style={{
-              position: "absolute",
-              top: "10px",
-              left: "10px",
-              background: "linear-gradient(135deg, #d4af37 0%, #b8860b 100%)",
-              color: "#1C1C1E",
-              fontWeight: 800,
-              fontSize: "0.65rem",
-              padding: "3px 9px",
-              borderRadius: "12px",
-              backdropFilter: "blur(4px)",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              zIndex: 6,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
-              display: "flex",
-              alignItems: "center",
-              gap: "4px"
-            }}>
-              <i className="fa-solid fa-fire"></i>
-              Más Visto
-            </span>
-          ) : (
-            <span style={{
-              position: "absolute",
-              top: "10px",
-              left: "10px",
-              background: "rgba(15, 23, 42, 0.85)",
-              color: "#F8FAFC",
-              fontWeight: 700,
-              fontSize: "0.65rem",
-              padding: "3px 9px",
-              borderRadius: "12px",
-              backdropFilter: "blur(4px)",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              zIndex: 6,
-              border: "1px solid rgba(255, 255, 255, 0.2)",
-              display: "flex",
-              alignItems: "center",
-              gap: "4px"
-            }}>
-              <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "#FCD34D" }}></i>
-              Descubre
-            </span>
-          )}
+          {/* Top Badges Bar: avoids collision on narrow mobile cards */}
+          <div style={{
+            position: "absolute",
+            top: "8px",
+            left: "8px",
+            right: "8px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: "4px",
+            zIndex: 6,
+            pointerEvents: "none"
+          }}>
+            {/* Left badge: Más Visto or (for non-perfumes) Descubre */}
+            <div>
+              {(featuredIds.has(prod.id) && getProductViews(prod) > 0) ? (
+                <span style={{
+                  background: "linear-gradient(135deg, #d4af37 0%, #b8860b 100%)",
+                  color: "#1C1C1E",
+                  fontWeight: 800,
+                  fontSize: "0.62rem",
+                  padding: "3px 8px",
+                  borderRadius: "12px",
+                  backdropFilter: "blur(4px)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.04em",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  whiteSpace: "nowrap"
+                }}>
+                  <i className="fa-solid fa-fire"></i>
+                  Más Visto
+                </span>
+              ) : !isPerfume ? (
+                <span style={{
+                  background: "rgba(15, 23, 42, 0.85)",
+                  color: "#F8FAFC",
+                  fontWeight: 700,
+                  fontSize: "0.62rem",
+                  padding: "3px 8px",
+                  borderRadius: "12px",
+                  backdropFilter: "blur(4px)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.04em",
+                  border: "1px solid rgba(255, 255, 255, 0.2)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  whiteSpace: "nowrap"
+                }}>
+                  <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "#FCD34D" }}></i>
+                  Descubre
+                </span>
+              ) : null}
+            </div>
 
-          {/* Badge de Género si es perfume */}
-          {isPerfume && perfumeInfo.gender ? (
-            <span
-              style={{
-                position: "absolute",
-                top: "10px",
-                right: "10px",
-                background: "rgba(15, 23, 42, 0.85)",
-                color: "#F8FAFC",
-                fontWeight: 700,
-                fontSize: "0.62rem",
-                padding: "3px 8px",
-                borderRadius: "12px",
-                backdropFilter: "blur(4px)",
-                border: "1px solid rgba(255, 255, 255, 0.2)",
-                zIndex: 6
-              }}
-            >
-              {perfumeInfo.gender === "Hombre" && "👔 Hombre"}
-              {perfumeInfo.gender === "Mujer" && "👗 Mujer"}
-              {perfumeInfo.gender === "Unisex" && "✨ Unisex"}
-              {perfumeInfo.gender !== "Hombre" && perfumeInfo.gender !== "Mujer" && perfumeInfo.gender !== "Unisex" && perfumeInfo.gender}
-            </span>
-          ) : null}
+            {/* Right badge: Gender badge if perfume */}
+            <div>
+              {isPerfume && perfumeInfo.gender ? (
+                <span
+                  style={{
+                    background: "rgba(15, 23, 42, 0.85)",
+                    color: "#F8FAFC",
+                    fontWeight: 700,
+                    fontSize: "0.62rem",
+                    padding: "3px 8px",
+                    borderRadius: "12px",
+                    backdropFilter: "blur(4px)",
+                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    whiteSpace: "nowrap"
+                  }}
+                >
+                  {perfumeInfo.gender === "Hombre" && "👔 Hombre"}
+                  {perfumeInfo.gender === "Mujer" && "👗 Mujer"}
+                  {perfumeInfo.gender === "Unisex" && "✨ Unisex"}
+                  {perfumeInfo.gender !== "Hombre" && perfumeInfo.gender !== "Mujer" && perfumeInfo.gender !== "Unisex" && perfumeInfo.gender}
+                </span>
+              ) : null}
+            </div>
+          </div>
 
           <ProductCardVisual
             prod={prod}

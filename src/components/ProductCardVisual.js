@@ -39,13 +39,15 @@ export default function ProductCardVisual({
         <div
           style={{
             position: "absolute",
-            top: "45%",
+            top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: "160px",
-            height: "160px",
+            width: "150px",
+            height: "150px",
             borderRadius: "50%",
-            background: `radial-gradient(circle, ${brandColor || "var(--gold-primary)"}22 0%, transparent 70%)`,
+            background: isDark
+              ? `radial-gradient(circle, ${brandColor || "var(--gold-primary)"}20 0%, transparent 70%)`
+              : `radial-gradient(circle, ${brandColor || "var(--gold-primary)"}10 0%, transparent 65%)`,
             pointerEvents: "none"
           }}
         />
@@ -63,7 +65,7 @@ export default function ProductCardVisual({
               width: "auto",
               height: "auto",
               maxWidth: "100%",
-              maxHeight: "88%",
+              maxHeight: "96%",
               objectFit: "contain"
             }}
           />
@@ -83,7 +85,7 @@ export default function ProductCardVisual({
                 width: "auto",
                 height: "auto",
                 maxWidth: "100%",
-                maxHeight: "90%",
+                maxHeight: "98%",
                 objectFit: "contain"
               }}
             />

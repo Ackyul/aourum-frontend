@@ -593,70 +593,88 @@ export default function ProductDetailPage() {
             overflow: "hidden"
           }}
         >
-          {/* Badges on Image top-left */}
-          <div style={{ position: "absolute", top: "10px", left: "10px", display: "flex", flexDirection: "column", gap: "6px", zIndex: 6 }}>
-            {isPop ? (
-              <span style={{ 
-                background: brandBadgeColor, 
-                color: brandBadgeTextDark ? "#1C1C1E" : "#FFFFFF", 
-                fontSize: "0.62rem", 
-                padding: "3px 9px", 
-                borderRadius: "12px", 
-                fontWeight: 800, 
-                letterSpacing: "0.03em", 
-                textTransform: "uppercase", 
-                boxShadow: "0 2px 8px rgba(0,0,0,0.2)", 
-                display: "flex", 
-                alignItems: "center", 
-                gap: "4px" 
-              }}>
-                <i className="fa-solid fa-fire"></i> Más Visto
-              </span>
-            ) : (
-              <span style={{ 
-                background: isCardDark ? "rgba(15, 23, 42, 0.85)" : "rgba(255, 255, 255, 0.92)", 
-                color: isCardDark ? "#F8FAFC" : "#1C1C1E", 
-                fontSize: "0.62rem", 
-                padding: "3px 9px", 
-                borderRadius: "12px", 
-                fontWeight: 700, 
-                letterSpacing: "0.03em", 
-                textTransform: "uppercase", 
-                border: `1.5px solid ${brandBadgeColor}`, 
-                backdropFilter: "blur(4px)", 
-                display: "flex", 
-                alignItems: "center", 
-                gap: "4px" 
-              }}>
-                <i className="fa-solid fa-wand-magic-sparkles" style={{ color: brandBadgeColor }}></i> Descubre
-              </span>
-            )}
-          </div>
+          {/* Top Badges Bar: prevents collisions on mobile cards */}
+          <div style={{
+            position: "absolute",
+            top: "8px",
+            left: "8px",
+            right: "8px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: "4px",
+            zIndex: 6,
+            pointerEvents: "none"
+          }}>
+            {/* Left badge: Más Visto or (for non-perfumes) Descubre */}
+            <div>
+              {isPop ? (
+                <span style={{ 
+                  background: brandBadgeColor, 
+                  color: brandBadgeTextDark ? "#1C1C1E" : "#FFFFFF", 
+                  fontSize: "0.62rem", 
+                  padding: "3px 8px", 
+                  borderRadius: "12px", 
+                  fontWeight: 800, 
+                  letterSpacing: "0.03em", 
+                  textTransform: "uppercase", 
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.2)", 
+                  display: "inline-flex", 
+                  alignItems: "center", 
+                  gap: "4px",
+                  whiteSpace: "nowrap"
+                }}>
+                  <i className="fa-solid fa-fire"></i> Más Visto
+                </span>
+              ) : !isPerfume ? (
+                <span style={{ 
+                  background: isCardDark ? "rgba(15, 23, 42, 0.85)" : "rgba(255, 255, 255, 0.92)", 
+                  color: isCardDark ? "#F8FAFC" : "#1C1C1E", 
+                  fontSize: "0.62rem", 
+                  padding: "3px 8px", 
+                  borderRadius: "12px", 
+                  fontWeight: 700, 
+                  letterSpacing: "0.03em", 
+                  textTransform: "uppercase", 
+                  border: `1.5px solid ${brandBadgeColor}`, 
+                  backdropFilter: "blur(4px)", 
+                  display: "inline-flex", 
+                  alignItems: "center", 
+                  gap: "4px",
+                  whiteSpace: "nowrap"
+                }}>
+                  <i className="fa-solid fa-wand-magic-sparkles" style={{ color: brandBadgeColor }}></i> Descubre
+                </span>
+              ) : null}
+            </div>
 
-          {/* Gender badge top-right si es perfume */}
-          {isPerfume && rpPerfumeInfo.gender ? (
-            <span
-              style={{
-                position: "absolute",
-                top: "10px",
-                right: "10px",
-                background: isCardDark ? "rgba(15, 23, 42, 0.85)" : "rgba(255, 255, 255, 0.92)",
-                color: isCardDark ? "#F8FAFC" : "#1C1C1E",
-                fontWeight: 700,
-                fontSize: "0.62rem",
-                padding: "3px 8px",
-                borderRadius: "12px",
-                backdropFilter: "blur(4px)",
-                border: `1px solid ${brandBadgeColor}`,
-                zIndex: 6
-              }}
-            >
-              {rpPerfumeInfo.gender === "Hombre" && "👔 Hombre"}
-              {rpPerfumeInfo.gender === "Mujer" && "👗 Mujer"}
-              {rpPerfumeInfo.gender === "Unisex" && "✨ Unisex"}
-              {rpPerfumeInfo.gender !== "Hombre" && rpPerfumeInfo.gender !== "Mujer" && rpPerfumeInfo.gender !== "Unisex" && rpPerfumeInfo.gender}
-            </span>
-          ) : null}
+            {/* Right badge: Gender badge if perfume */}
+            <div>
+              {isPerfume && rpPerfumeInfo.gender ? (
+                <span
+                  style={{
+                    background: isCardDark ? "rgba(15, 23, 42, 0.85)" : "rgba(255, 255, 255, 0.92)",
+                    color: isCardDark ? "#F8FAFC" : "#1C1C1E",
+                    fontWeight: 700,
+                    fontSize: "0.62rem",
+                    padding: "3px 8px",
+                    borderRadius: "12px",
+                    backdropFilter: "blur(4px)",
+                    border: `1px solid ${brandBadgeColor}`,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    whiteSpace: "nowrap"
+                  }}
+                >
+                  {rpPerfumeInfo.gender === "Hombre" && "👔 Hombre"}
+                  {rpPerfumeInfo.gender === "Mujer" && "👗 Mujer"}
+                  {rpPerfumeInfo.gender === "Unisex" && "✨ Unisex"}
+                  {rpPerfumeInfo.gender !== "Hombre" && rpPerfumeInfo.gender !== "Mujer" && rpPerfumeInfo.gender !== "Unisex" && rpPerfumeInfo.gender}
+                </span>
+              ) : null}
+            </div>
+          </div>
 
           <ProductCardVisual
             prod={rp}
@@ -1003,19 +1021,16 @@ export default function ProductDetailPage() {
       <div className="product-split-layout" style={{ position: "relative", zIndex: 1 }}>
         {/* Imagen del Producto */}
         <div 
-          className="product-image-box"
+          className={`product-image-box ${isPerfumeProd && perfumeInfo.originalImg ? "product-perfume-stage" : ""}`}
           style={{
             position: "sticky",
             top: "2rem",
             alignSelf: "start",
             width: "100%",
             ...(isPerfumeProd && perfumeInfo.originalImg ? {
-              height: "520px",
-              maxHeight: "82vh",
               backgroundColor: (prod.imgBgColor && prod.imgBgColor !== "transparent" && prod.imgBgColor !== "page_bg") 
                 ? (prod.imgBgColor === "brand" ? palette.c1 : prod.imgBgColor) 
                 : resolvedCardBg,
-              padding: "20px"
             } : {
               aspectRatio: "1 / 1",
               maxHeight: "560px",
@@ -1045,7 +1060,7 @@ export default function ProductDetailPage() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                padding: "20px"
+                padding: "8px"
               }}
             >
               {/* Resplandor central con el color de la marca */}
@@ -1055,8 +1070,8 @@ export default function ProductDetailPage() {
                   top: "50%",
                   left: "50%",
                   transform: "translate(-50%, -50%)",
-                  width: "320px",
-                  height: "320px",
+                  width: "80%",
+                  height: "80%",
                   borderRadius: "50%",
                   background: `radial-gradient(circle, ${palette.c1}25 0%, transparent 70%)`,
                   pointerEvents: "none"
@@ -1065,18 +1080,19 @@ export default function ProductDetailPage() {
 
               {/* 1. Frasco Original de Inspiración (Segundo Plano - Izquierda) */}
               <div
+                className="product-duo-stage-orig"
                 style={{
                   position: "absolute",
-                  left: "8%",
-                  bottom: "10%",
-                  width: "44%",
-                  height: "76%",
+                  left: "6%",
+                  bottom: "6%",
+                  width: "48%",
+                  height: "86%",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "flex-end",
                   zIndex: 1,
-                  filter: "drop-shadow(0 12px 24px rgba(0,0,0,0.22))",
+                  filter: "drop-shadow(0 8px 18px rgba(0,0,0,0.22))",
                   opacity: 0.95,
                   transition: "transform 0.3s ease"
                 }}
@@ -1087,7 +1103,9 @@ export default function ProductDetailPage() {
                   alt={`Original: ${perfumeInfo.inspiration || "Inspiración"}`}
                   style={{
                     maxWidth: "100%",
-                    maxHeight: "92%",
+                    maxHeight: "96%",
+                    width: "auto",
+                    height: "auto",
                     objectFit: "contain"
                   }}
                 />
@@ -1095,18 +1113,19 @@ export default function ProductDetailPage() {
 
               {/* 2. Frasco de la Marca (Primer Plano - Protagonista a la Derecha) */}
               <div
+                className="product-duo-stage-brand"
                 style={{
                   position: "absolute",
-                  right: "8%",
-                  bottom: "6%",
-                  width: "52%",
-                  height: "88%",
+                  right: "6%",
+                  bottom: "4%",
+                  width: "56%",
+                  height: "94%",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "flex-end",
                   zIndex: 2,
-                  filter: "drop-shadow(0 18px 36px rgba(0,0,0,0.32))",
+                  filter: "drop-shadow(0 12px 28px rgba(0,0,0,0.32))",
                   transition: "transform 0.3s ease"
                 }}
               >
@@ -1116,7 +1135,9 @@ export default function ProductDetailPage() {
                     alt={prod.name}
                     style={{
                       maxWidth: "100%",
-                      maxHeight: "92%",
+                      maxHeight: "98%",
+                      width: "auto",
+                      height: "auto",
                       objectFit: "contain"
                     }}
                   />
