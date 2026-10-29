@@ -1076,11 +1076,11 @@ export default function DashboardClient({ initialTab }) {
         <button 
           className={`dashboard-tab-btn ${activeTab === "resumen" ? "active" : ""}`}
           onClick={() => handleTabChange("resumen")}
-          title="Resumen & Atajos"
+          title="Mis Marcas & Proyectos"
         >
-          <i className="fa-solid fa-bolt"></i> 
-          <span className="tab-label-desktop">Resumen & Atajos</span>
-          <span className="tab-label-mobile">Resumen</span>
+          <i className="fa-solid fa-folder-open"></i> 
+          <span className="tab-label-desktop">Mis Marcas & Proyectos</span>
+          <span className="tab-label-mobile">Marcas & Proyectos</span>
         </button>
         <button 
           className={`dashboard-tab-btn ${activeTab === "marcas" ? "active" : ""}`}
@@ -1121,157 +1121,16 @@ export default function DashboardClient({ initialTab }) {
       </div>
 
       {/* ═════════════════════════════════════════════════════════════════════
-          TAB 1: RESUMEN Y ATAJOS RÁPIDOS
+          TAB 1: MIS MARCAS & PROYECTOS VINCULADOS
           ═════════════════════════════════════════════════════════════════════ */}
       {activeTab === "resumen" && (
         <div className="fade-in">
-          {/* Métricas y Diagnóstico Rápido */}
-          <div className="quick-metrics-grid">
-            <div className="quick-metric-card">
-              <div className="quick-metric-icon" style={{ background: "rgba(212,175,55,0.12)", color: "var(--gold-primary)" }}>
-                <i className="fa-solid fa-store"></i>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Marca Activa</span>
-                <h4 style={{ fontSize: "1.1rem", fontWeight: 800, margin: "2px 0 0" }}>{selectedBrand?.name || "Sin marca"}</h4>
-                <p style={{ fontSize: "0.75rem", color: "var(--text-gold)", margin: 0 }}>{selectedBrand?.category || "Configura tu categoría"}</p>
-              </div>
-            </div>
-
-            <div className="quick-metric-card">
-              <div className="quick-metric-icon" style={{ background: "rgba(59,130,246,0.12)", color: "#3B82F6" }}>
-                <i className="fa-solid fa-boxes-stacked"></i>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Total de Ítems</span>
-                <h4 style={{ fontSize: "1.1rem", fontWeight: 800, margin: "2px 0 0" }}>{currentBrandProducts.length} Productos</h4>
-                <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: 0 }}>
-                  {currentBrandProducts.filter(p => p.isVisible !== false).length} activos en vitrina
-                </p>
-              </div>
-            </div>
-
-            <div className="quick-metric-card">
-              <div className="quick-metric-icon" style={{ background: brandForm.whatsappNumber ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)", color: brandForm.whatsappNumber ? "#22C55E" : "#EF4444" }}>
-                <i className="fa-brands fa-whatsapp"></i>
-              </div>
-              <div>
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Pedidos por WhatsApp</span>
-                <h4 style={{ fontSize: "1.1rem", fontWeight: 800, margin: "2px 0 0" }}>
-                  {brandForm.whatsappNumber ? `+51 ${brandForm.whatsappNumber}` : "No configurado"}
-                </h4>
-                <p style={{ fontSize: "0.75rem", color: brandForm.whatsappNumber ? "#22C55E" : "#EF4444", margin: 0 }}>
-                  {brandForm.whatsappNumber ? "Botón directo conectado" : "Añade tu número para recibir ventas"}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Atajos en 1 Clic */}
-          <div className="glass-panel" style={{ padding: "1.8rem", borderRadius: "20px", marginBottom: "2rem" }}>
-            <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "0.4rem" }}>
-              ⚡ Acciones Rápidas (Configura todo sin perder tiempo)
-            </h3>
-            <p style={{ color: "var(--text-muted)", fontSize: "0.88rem", marginBottom: "1.5rem" }}>
-              Elige qué deseas resolver ahora. Cada herramienta está diseñada para tardar menos de 60 segundos.
-            </p>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 250px), 1fr))", gap: "14px" }}>
-              <div 
-                onClick={() => handleTabChange("marcas")}
-                style={{ background: "var(--bg-card)", border: "1.5px solid var(--border-color)", borderRadius: "14px", padding: "1.2rem", cursor: "pointer", transition: "var(--transition-smooth)" }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = "var(--gold-primary)"}
-                onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border-color)"}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                  <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(212,175,55,0.15)", color: "var(--gold-primary)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
-                    🎨
-                  </div>
-                  <h4 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0 }}>Cambiar Estilo de Marca</h4>
-                </div>
-                <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: 0, lineHeight: 1.4 }}>
-                  Aplica una de nuestras 5 plantillas profesionales en 5 segundos sin tocar códigos ni paletas manuales.
-                </p>
-              </div>
-
-              {isBrandPerfume ? (
-                <div 
-                  onClick={() => { handleTabChange("productos"); handleOpenAddProduct("perfume"); }}
-                  style={{ background: "var(--bg-card)", border: "1.5px solid var(--border-color)", borderRadius: "14px", padding: "1.2rem", cursor: "pointer", transition: "var(--transition-smooth)" }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = "var(--gold-primary)"}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border-color)"}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                    <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(138,74,243,0.15)", color: "#8A4AF3", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
-                      💎
-                    </div>
-                    <h4 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0 }}>Publicar Fragancia / Dúo</h4>
-                  </div>
-                  <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: 0, lineHeight: 1.4 }}>
-                    Añade un perfume con frasco de referencia original y notas olfativas listas para el Dúo Visual.
-                  </p>
-                </div>
-              ) : isBrandMenu ? (
-                <div 
-                  onClick={() => { handleTabChange("productos"); handleOpenAddProduct("gastro"); }}
-                  style={{ background: "var(--bg-card)", border: "1.5px solid var(--border-color)", borderRadius: "14px", padding: "1.2rem", cursor: "pointer", transition: "var(--transition-smooth)" }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = "var(--gold-primary)"}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border-color)"}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                    <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(234,179,8,0.15)", color: "#EAB308", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
-                      🍽️
-                    </div>
-                    <h4 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0 }}>Añadir al Menú & Carta</h4>
-                  </div>
-                  <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: 0, lineHeight: 1.4 }}>
-                    Publica platillos, snacks o bebidas con porciones e ingredientes destacados.
-                  </p>
-                </div>
-              ) : (
-                <div 
-                  onClick={() => { handleTabChange("productos"); handleOpenAddProduct("standard"); }}
-                  style={{ background: "var(--bg-card)", border: "1.5px solid var(--border-color)", borderRadius: "14px", padding: "1.2rem", cursor: "pointer", transition: "var(--transition-smooth)" }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = "var(--gold-primary)"}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border-color)"}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                    <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(59,130,246,0.15)", color: "#3B82F6", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
-                      🛍️
-                    </div>
-                    <h4 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0 }}>Añadir Producto o Servicio</h4>
-                  </div>
-                  <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: 0, lineHeight: 1.4 }}>
-                    Publica artículos, moda, creaciones o servicios disponibles para compra.
-                  </p>
-                </div>
-              )}
-
-              <div 
-                onClick={() => handleTabChange("perfil")}
-                style={{ background: "var(--bg-card)", border: "1.5px solid var(--border-color)", borderRadius: "14px", padding: "1.2rem", cursor: "pointer", transition: "var(--transition-smooth)" }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = "var(--gold-primary)"}
-                onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border-color)"}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                  <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(34,197,94,0.15)", color: "#22C55E", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold" }}>
-                    👤
-                  </div>
-                  <h4 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0 }}>Actualizar Mi Perfil & Preferencias</h4>
-                </div>
-                <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", margin: 0, lineHeight: 1.4 }}>
-                  Personaliza tu biografía, ciudad, avatar, portada, color temático y estilo de fondo.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Cuentas Vinculadas y Acceso Rápido a Registrar Proyectos en Resumen */}
+          {/* Cuentas Vinculadas y Acceso a Registrar Entidades */}
           <div className="glass-panel" style={{ padding: "1.8rem", borderRadius: "20px", marginBottom: "2rem" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.2rem", flexWrap: "wrap", gap: "10px" }}>
               <div>
                 <h3 style={{ fontSize: "1.15rem", fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-                  <i className="fa-solid fa-folder-open" style={{ color: "var(--gold-primary)" }}></i> Mis Cuentas Vinculadas & Proyectos
+                  <i className="fa-solid fa-folder-open" style={{ color: "var(--gold-primary)" }}></i> Mis Marcas & Proyectos
                 </h3>
                 <p style={{ color: "var(--text-muted)", fontSize: "0.82rem", margin: "4px 0 0" }}>
                   Gestiona tus marcas, productoras y bandas registradas o crea una nueva entidad.
@@ -1348,6 +1207,13 @@ export default function DashboardClient({ initialTab }) {
                   </Link>
                 </div>
               ))}
+              {myBrands.length === 0 && myOrganizers.length === 0 && myBands.length === 0 && (
+                <div style={{ textAlign: "center", padding: "2.5rem 1rem", color: "var(--text-muted)", gridColumn: "1 / -1" }}>
+                  <i className="fa-solid fa-folder-open" style={{ fontSize: "2rem", color: "var(--gold-primary)", opacity: 0.5, marginBottom: "0.75rem", display: "block" }}></i>
+                  <p style={{ margin: 0, fontSize: "0.92rem", fontWeight: 600 }}>Aún no tienes marcas o proyectos vinculados.</p>
+                  <p style={{ margin: "4px 0 0", fontSize: "0.8rem", opacity: 0.8 }}>¡Crea una nueva marca, productora o banda usando los botones de arriba!</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
