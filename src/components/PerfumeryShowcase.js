@@ -4,6 +4,31 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import ProductCardVisual from "./ProductCardVisual";
 
+// Helper universal para extraer volumen o gramaje numérico de un tamaño
+export function parseVolNumber(s) {
+  if (!s) return 0;
+  const str = typeof s === "object" ? (s.size || s.presentation || "") : String(s);
+  const m = str.match(/(\d+(?:\.\d+)?)\s*(?:ml|g|gr|oz|l|lt)?/i);
+  if (!m) return 0;
+  let val = parseFloat(m[1]);
+  if (/oz/i.test(str)) val *= 29.5735;
+  if (/\bl(?:t)?\b/i.test(str)) val *= 1000;
+  return val;
+}
+
+// Ordena tamaños descendente: 100 ml primero, luego 50 ml, luego 25 ml...
+export function sortSizesDescending(sizesList) {
+  if (!Array.isArray(sizesList) || sizesList.length <= 1) return sizesList || [];
+  return [...sizesList].sort((a, b) => {
+    const volA = parseVolNumber(a);
+    const volB = parseVolNumber(b);
+    if (volB !== volA) return volB - volA;
+    const priceA = Number(a?.price != null ? a.price : 0);
+    const priceB = Number(b?.price != null ? b.price : 0);
+    return priceB - priceA;
+  });
+}
+
 // Helper universal para extraer presentación, tamaño, gramaje o cantidad de CUALQUIER producto
 export function parseProductPresentation(prod) {
   if (!prod) {
@@ -70,6 +95,10 @@ export function parseProductPresentation(prod) {
     .replace(/\s*\((?:tamaño|presentación)?\s*[^)]*(?:gr|g|kg|ml|oz|litros?|l|pack|talla\s+[smlx]+|[smlx]{1,3})[^)]*\)/gi, "")
     .replace(/\s*-\s*\d+(?:\.\d+)?\s*(?:gr|g|kg|ml|oz)/gi, "")
     .trim();
+
+  if (Array.isArray(sizes) && sizes.length > 0) {
+    sizes = sortSizesDescending(sizes);
+  }
 
   return {
     presentation,
@@ -251,6 +280,10 @@ export function parsePerfumeInfo(prod) {
     }
   }
 
+  if (Array.isArray(sizes) && sizes.length > 0) {
+    sizes = sortSizesDescending(sizes);
+  }
+
   // Family detection — prioritize explicit family, bracket tag, or user-written category
   if (!family) {
     const bracketFamily = rawDesc.match(/\[\s*familia\s*:\s*([^\]]+)\]/i);
@@ -419,8 +452,9 @@ export function groupCatalogProducts(products = []) {
   // Finalize sizes, minPrice, and hasMultipleSizes flag
   return orderedList.map(item => {
     if (Array.isArray(item.sizes) && item.sizes.length > 0) {
-      item.sizes.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
-      item.minPrice = item.sizes[0].price;
+      item.sizes = sortSizesDescending(item.sizes);
+      const validPrices = item.sizes.map(s => Number(s.price || 0)).filter(p => p > 0);
+      item.minPrice = validPrices.length > 0 ? Math.min(...validPrices) : Number(item.sizes[0].price || 0);
       if (item.sizes.length > 1) {
         item.hasMultipleSizes = true;
       }
@@ -443,9 +477,10 @@ function PerfumeryShowcaseCard({
   onOrderWhatsApp,
   router
 }) {
-  const sizes = (Array.isArray(prod.sizes) && prod.sizes.length > 0)
+  const rawSizes = (Array.isArray(prod.sizes) && prod.sizes.length > 0)
     ? prod.sizes
     : (Array.isArray(info?.sizes) && info.sizes.length > 0 ? info.sizes : []);
+  const sizes = sortSizesDescending(rawSizes);
   const hasMultipleSizes = sizes.length > 0;
   const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
 

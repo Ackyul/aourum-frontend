@@ -8,7 +8,7 @@ import PostList from "../../../components/PostList";
 import SocialFeedPublisher from "../../../components/SocialFeedPublisher";
 import BrandQRModal from "../../../components/BrandQRModal";
 import { isVirtualMenuBrand, ensureFullSocialUrl } from "@/utils/brandUtils";
-import PerfumeryShowcase, { parsePerfumeInfo, groupCatalogProducts } from "../../../components/PerfumeryShowcase";
+import PerfumeryShowcase, { parsePerfumeInfo, groupCatalogProducts, sortSizesDescending } from "../../../components/PerfumeryShowcase";
 import ProductCardVisual from "../../../components/ProductCardVisual";
 
 // Stable deterministic views generator based on hash of name + id
@@ -1144,11 +1144,13 @@ function BrandProductCard({ prod }) {
     const brandBadgeTextDark = getBgBrightness(brandBadgeColor, "#FFFFFF") > 160;
 
     // Multi-size selection state
-    const sizes = Array.isArray(prod.sizes) && prod.sizes.length > 0 ? prod.sizes : [];
+    const rawSizes = (Array.isArray(prod.sizes) && prod.sizes.length > 0)
+      ? prod.sizes
+      : (Array.isArray(pInfo?.sizes) && pInfo.sizes.length > 0 ? pInfo.sizes : []);
+    const sizes = sortSizesDescending(rawSizes);
     const hasMultipleSizes = sizes.length > 1;
     const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
-
-    const activeSize = hasMultipleSizes ? sizes[selectedSizeIndex] : null;
+    const activeSize = hasMultipleSizes ? sizes[selectedSizeIndex] : (sizes[0] || null);
     const activePrice = activeSize ? activeSize.price : (prod.minPrice != null ? prod.minPrice : prod.price);
     const activePriceAourum = activeSize ? activeSize.priceAourum : prod.priceAourum;
     const activeImage = (activeSize && activeSize.image) ? activeSize.image : prod.image;

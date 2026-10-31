@@ -890,7 +890,7 @@ export default function DashboardClient({ initialTab }) {
           image: s.image || ""
         }));
       if (validSizes.length > 0) {
-        validSizes.sort((a, b) => a.price - b.price);
+        validSizes = sortSizesDescending(validSizes);
       }
     }
 
@@ -3541,7 +3541,8 @@ export default function DashboardClient({ initialTab }) {
                           </div>
 
                           {(() => {
-                            const validSizes = (prodForm.sizes || []).filter(s => s && (s.size || s.price));
+                            const rawValidSizes = (prodForm.sizes || []).filter(s => s && (s.size || s.price));
+                            const validSizes = sortSizesDescending(rawValidSizes);
                             const activeSize = prodForm.hasMultipleSizes && validSizes.length > 0
                               ? (validSizes[previewSizeIndex] || validSizes[0])
                               : null;

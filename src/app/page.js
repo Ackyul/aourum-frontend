@@ -9,7 +9,7 @@ import { isVirtualMenuBrand, isPerfumeryBrand } from "@/utils/brandUtils";
 import SocialFeedPublisher from "@/components/SocialFeedPublisher";
 import PostList from "@/components/PostList";
 import ProductCardVisual from "@/components/ProductCardVisual";
-import { parsePerfumeInfo, groupCatalogProducts } from "@/components/PerfumeryShowcase";
+import { parsePerfumeInfo, groupCatalogProducts, sortSizesDescending } from "@/components/PerfumeryShowcase";
 
 // Helper to interleave products of different brands to guarantee representation and bypass entry order, prioritizing user's city
 const interleaveProducts = (productList, brands = [], userCity = "") => {
@@ -652,11 +652,13 @@ export default function Home() {
     const isPerfume = isProductPerfume(prod);
 
     // Multi-size selection state
-    const sizes = Array.isArray(prod.sizes) && prod.sizes.length > 0 ? prod.sizes : [];
+    const rawSizes = (Array.isArray(prod.sizes) && prod.sizes.length > 0)
+      ? prod.sizes
+      : (Array.isArray(perfumeInfo?.sizes) && perfumeInfo.sizes.length > 0 ? perfumeInfo.sizes : []);
+    const sizes = sortSizesDescending(rawSizes);
     const hasMultipleSizes = sizes.length > 1;
     const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
-
-    const activeSize = hasMultipleSizes ? sizes[selectedSizeIndex] : null;
+    const activeSize = hasMultipleSizes ? sizes[selectedSizeIndex] : (sizes[0] || null);
     const displayPrice = activeSize ? activeSize.price : (prod.minPrice != null ? prod.minPrice : prod.price);
     const displayPriceAourum = activeSize ? activeSize.priceAourum : prod.priceAourum;
     const displayImage = (activeSize && activeSize.image) ? activeSize.image : prod.image;
