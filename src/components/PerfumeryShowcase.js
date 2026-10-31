@@ -437,7 +437,6 @@ function PerfumeryShowcaseCard({
   secondaryTextColor,
   isStoreBgLight,
   isOwner,
-  onEditProduct,
   onOrderWhatsApp,
   router
 }) {
@@ -521,38 +520,6 @@ function PerfumeryShowcaseCard({
             {info.gender !== "Hombre" && info.gender !== "Mujer" && info.gender !== "Unisex" && info.gender}
           </div>
         ) : null}
-
-        {isOwner && onEditProduct && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEditProduct(prod);
-            }}
-            style={{
-              position: "absolute",
-              bottom: "10px",
-              right: "10px",
-              background: isStoreBgLight ? "rgba(255, 255, 255, 0.92)" : "rgba(12, 13, 17, 0.85)",
-              border: `1px solid ${primaryCol}`,
-              color: primaryCol,
-              fontSize: "0.72rem",
-              fontWeight: 700,
-              padding: "4px 10px",
-              borderRadius: "10px",
-              cursor: "pointer",
-              zIndex: 7,
-              display: "flex",
-              alignItems: "center",
-              gap: "5px",
-              backdropFilter: "blur(4px)",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.08)"
-            }}
-          >
-            <i className="fa-solid fa-pen-to-square"></i>
-            <span>Editar</span>
-          </button>
-        )}
 
         {info?.originalImg ? (
           <div
@@ -926,8 +893,7 @@ export default function PerfumeryShowcase({
   subtitle = "",
   onWhatsAppClick = null,
   isOwner = false,
-  onOpenAddModal = null,
-  onEditProduct = null
+  onOpenAddModal = null
 }) {
   const router = useRouter();
 
@@ -1365,7 +1331,6 @@ export default function PerfumeryShowcase({
                 secondaryTextColor={secondaryTextColor}
                 isStoreBgLight={isStoreBgLight}
                 isOwner={isOwner}
-                onEditProduct={onEditProduct}
                 onOrderWhatsApp={handleOrderWhatsApp}
                 router={router}
               />

@@ -2854,31 +2854,6 @@ function BrandProductCard({ prod }) {
                   setPerfumeNotes("");
                   setProdFormOpen(true);
                 }}
-                onEditProduct={(prod) => {
-                  setEditingProdId(prod.id); 
-                  setProdName(prod.name); 
-                  setProdPrice(prod.price);
-                  setProdPriceAourum(prod.priceAourum == null ? "" : prod.priceAourum);
-                  setProdStock(prod.stock == null ? "" : prod.stock); 
-                  setProdCategory(prod.category); 
-                  setProdType(prod.type);
-                  setProdIsVisible(prod.isVisible !== false);
-                  setProdImgBgColor(prod.imgBgColor || "transparent");
-                  setProdImage(prod.image); 
-                  setProdImagePreview(prod.image); 
-
-                  const pInfo = parsePerfumeInfo(prod);
-                  setPerfumeInspiration(pInfo.inspiration || "");
-                  setPerfumeOriginalImg(pInfo.originalImg || "");
-                  setPerfumeGender(pInfo.gender || "");
-                  setPerfumeFamily(pInfo.family || "");
-                  setPerfumeConcentration(pInfo.concentration || "");
-                  setPerfumeMl(pInfo.ml || "");
-                  setPerfumeNotes(pInfo.cleanDesc || "");
-                  setProdDescription(pInfo.cleanDesc || prod.description || "");
-
-                  setProdFormOpen(true);
-                }}
               />
             );
           }
