@@ -1143,6 +1143,8 @@ function BrandProductCard({ prod }) {
     const brandBadgeColor = palette.c1 || (brand?.color ? brand.color : "var(--gold-primary)");
     const brandBadgeTextDark = getBgBrightness(brandBadgeColor, "#FFFFFF") > 160;
 
+    const pInfo = parsePerfumeInfo(prod);
+
     // Multi-size selection state
     const rawSizes = (Array.isArray(prod.sizes) && prod.sizes.length > 0)
       ? prod.sizes
@@ -1158,7 +1160,6 @@ function BrandProductCard({ prod }) {
 
     const formattedPrice = (activePrice != null && !isNaN(Number(activePrice))) ? Number(activePrice).toLocaleString("es-PE") : "0";
     const formattedPriceAourum = (activePriceAourum != null && !isNaN(Number(activePriceAourum))) ? Number(activePriceAourum).toLocaleString("es-PE") : null;
-    const pInfo = parsePerfumeInfo(prod);
     const isFoodOrNonPerfume = /comida|snack|gastronom|fruta|alimento|bebida|caf[eé]|postre|joyer|ropa|artesan|textil|esot[eé]ric|servicio|tecnolog|calzado|accesorio/i.test(`${prod.category || ""} ${brand?.category || ""} ${brand?.rubro_general || ""} ${brand?.rubro_especifico || ""}`);
     const isPerfume = !isFoodOrNonPerfume && Boolean(
       pInfo.originalImg ||
