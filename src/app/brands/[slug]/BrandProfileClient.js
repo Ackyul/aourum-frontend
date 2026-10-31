@@ -1180,7 +1180,7 @@ function BrandProductCard({ prod }) {
           className="card-img-container" 
           style={{ 
             width: "100%",
-            aspectRatio: "4 / 3",
+            aspectRatio: "1 / 1",
             position: "relative", 
             backgroundColor: (prod.imgBgColor && prod.imgBgColor !== "transparent" && prod.imgBgColor !== "page_bg") 
               ? (prod.imgBgColor === "brand" ? palette.c1 : prod.imgBgColor)

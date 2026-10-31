@@ -27,8 +27,8 @@ export function getBottleSizeScaleFactor(currentSizeStr, allSizes = []) {
       return val.trim().toLowerCase() === curr.trim().toLowerCase();
     });
     if (idx >= 0) {
-      const step = 0.16 / (allSizes.length - 1);
-      return 0.90 + idx * step;
+      const step = 0.12 / (allSizes.length - 1);
+      return 0.88 + idx * step;
     }
     return 1.0;
   }
@@ -37,13 +37,14 @@ export function getBottleSizeScaleFactor(currentSizeStr, allSizes = []) {
   const maxVol = Math.max(...volumes);
   if (minVol === maxVol) return 1.0;
 
-  // Gentle volumetric scaling: min size is 88%, max size is 106% of configured scale
+  // Controlled volumetric scaling: min size (e.g. 25 ml) is 88%, max size (e.g. 100 ml) is 100% of configured scale.
+  // This ensures the brand bottle never exceeds 100% of the calibrated scale set in the dashboard!
   const cubeMin = Math.cbrt(minVol);
   const cubeMax = Math.cbrt(maxVol);
   const cubeCurr = Math.cbrt(currentVol);
 
   const ratio = (cubeCurr - cubeMin) / (cubeMax - cubeMin);
-  return 0.88 + ratio * 0.18;
+  return 0.88 + ratio * 0.12;
 }
 
 /**
@@ -114,7 +115,7 @@ export default function ProductCardVisual({
           style={{
             left: `calc(6% + ${(info.origX || 0)}%)`,
             bottom: `calc(4% + ${(info.origY || 0)}%)`,
-            transform: `scale(${(info.origScale || 100) / 100})`,
+            transform: `scale(${(info.origScale || 115) / 100})`,
             transformOrigin: "bottom center"
           }}
         >
@@ -126,7 +127,7 @@ export default function ProductCardVisual({
               width: "auto",
               height: "auto",
               maxWidth: "100%",
-              maxHeight: "96%",
+              maxHeight: "100%",
               objectFit: "contain"
             }}
           />
@@ -151,8 +152,8 @@ export default function ProductCardVisual({
               style={{
                 width: "auto",
                 height: "auto",
-                maxWidth: "100%",
-                maxHeight: "98%",
+                maxWidth: "92%",
+                maxHeight: "88%",
                 objectFit: "contain"
               }}
             />

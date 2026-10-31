@@ -212,7 +212,7 @@ export default function DashboardClient({ initialTab }) {
     perfumeDuoScale: 85,
     perfumeDuoX: 0,
     perfumeDuoY: 0,
-    perfumeOrigScale: 100,
+    perfumeOrigScale: 115,
     perfumeOrigX: 0,
     perfumeOrigY: 0,
     perfumeNotes: "",
@@ -655,7 +655,7 @@ export default function DashboardClient({ initialTab }) {
       perfumeDuoScale: 85,
       perfumeDuoX: 0,
       perfumeDuoY: 0,
-      perfumeOrigScale: 100,
+      perfumeOrigScale: 115,
       perfumeOrigX: 0,
       perfumeOrigY: 0,
       perfumeNotes: "",
@@ -772,7 +772,7 @@ export default function DashboardClient({ initialTab }) {
           if (m) return Number(m[1]);
         }
         const m = desc.match(/\[\s*(?:origscale)\s*:\s*(\d+)\s*%?\s*\]/i);
-        return m ? Number(m[1]) : 100;
+        return m ? Number(m[1]) : 115;
       })(),
       perfumeOrigX: (() => {
         const desc = prod.description || "";
@@ -908,7 +908,7 @@ export default function DashboardClient({ initialTab }) {
       const duoScale = prodForm.perfumeDuoScale || 85;
       const duoX = prodForm.perfumeDuoX || 0;
       const duoY = prodForm.perfumeDuoY || 0;
-      const origScale = prodForm.perfumeOrigScale || 100;
+      const origScale = prodForm.perfumeOrigScale || 115;
       const origX = prodForm.perfumeOrigX || 0;
       const origY = prodForm.perfumeOrigY || 0;
       if (duoScale !== 85 || duoX !== 0 || duoY !== 0 || origScale !== 100 || origX !== 0 || origY !== 0) {
@@ -3466,7 +3466,7 @@ export default function DashboardClient({ initialTab }) {
                                 <div style={{ display: "flex", alignItems: "flex-end" }}>
                                   <button
                                     type="button"
-                                    onClick={() => setProdForm({ ...prodForm, perfumeOrigScale: 100, perfumeOrigX: 0, perfumeOrigY: 0 })}
+                                    onClick={() => setProdForm({ ...prodForm, perfumeOrigScale: 115, perfumeOrigX: 0, perfumeOrigY: 0 })}
                                     style={{
                                       padding: "6px 12px",
                                       borderRadius: "8px",
@@ -3567,7 +3567,7 @@ export default function DashboardClient({ initialTab }) {
                               duoScale: prodForm.perfumeDuoScale || 85,
                               duoX: prodForm.perfumeDuoX || 0,
                               duoY: prodForm.perfumeDuoY || 0,
-                              origScale: prodForm.perfumeOrigScale || 100,
+                              origScale: prodForm.perfumeOrigScale || 115,
                               origX: prodForm.perfumeOrigX || 0,
                               origY: prodForm.perfumeOrigY || 0
                             };

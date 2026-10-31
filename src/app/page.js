@@ -676,6 +676,7 @@ export default function Home() {
           className="card-img-container" 
           style={{ 
             position: "relative",
+            aspectRatio: "1 / 1",
             backgroundColor: (prod.imgBgColor && prod.imgBgColor !== "transparent") 
               ? (prod.imgBgColor === "brand" ? brandColor : prod.imgBgColor)
               : "transparent",

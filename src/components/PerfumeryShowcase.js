@@ -301,7 +301,7 @@ export function parsePerfumeInfo(prod) {
     duoScale: duoScale || 85,
     duoX: duoX || 0,
     duoY: duoY || 0,
-    origScale: origScale || 100,
+    origScale: origScale || 115,
     origX: origX || 0,
     origY: origY || 0
   };
