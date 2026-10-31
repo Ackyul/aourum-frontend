@@ -992,7 +992,7 @@ export default function DashboardClient({ initialTab }) {
     }
   };
 
-  // ── RENDER COMPONENTE: BARRA DE HERRAMIENTAS & ACCIONES DE MARCA ──
+  // ── RENDER COMPONENTE: BARRA DE HERRAMIENTAS & ACCIONES DE MARCA (CONFIGURACIÓN DE MARCA) ──
   const renderBrandTools = () => {
     if (!selectedBrand) return null;
     return (
@@ -1009,39 +1009,12 @@ export default function DashboardClient({ initialTab }) {
             <i className="fa-solid fa-wand-magic-sparkles"></i> Herramientas de Marca
           </span>
           <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-            Acciones clave para gestionar tu catálogo, ferias y equipo
+            Acciones clave para ferias, equipo y edición
           </span>
         </div>
 
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
-          {/* 1. Añadir Item / Fragancia */}
-          <button
-            type="button"
-            onClick={() => handleOpenAddProduct()}
-            className="btn-gold"
-            style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
-          >
-            <i className="fa-solid fa-plus"></i> {isBrandPerfume ? "Añadir Fragancia" : (isBrandMenu ? "Añadir al Menú" : "Añadir Item")}
-          </button>
-
-          {/* 2. Administrar Catálogo */}
-          <button
-            type="button"
-            onClick={() => {
-              if (activeTab === "productos") {
-                const el = document.getElementById("dash-catalog-search-row");
-                if (el) el.scrollIntoView({ behavior: "smooth" });
-              } else {
-                handleTabChange("productos");
-              }
-            }}
-            className="btn-outline-gold"
-            style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
-          >
-            <i className="fa-solid fa-boxes-stacked"></i> Administrar Catálogo ({currentBrandProducts.length})
-          </button>
-
-          {/* 3. Postular a Ferias */}
+          {/* 1. Postular a Ferias */}
           <button
             type="button"
             onClick={() => setShowFairsModal(true)}
@@ -1051,7 +1024,7 @@ export default function DashboardClient({ initialTab }) {
             <i className="fa-solid fa-paper-plane"></i> Postular a Ferias
           </button>
 
-          {/* 4. Colaboradores de la Marca */}
+          {/* 2. Colaboradores de la Marca */}
           <button
             type="button"
             onClick={() => setShowCollabsModal(true)}
@@ -1061,7 +1034,7 @@ export default function DashboardClient({ initialTab }) {
             <i className="fa-solid fa-users"></i> Colaboradores ({selectedBrand.collaborators?.length || 0})
           </button>
 
-          {/* 5. Edición Rápida */}
+          {/* 3. Edición Rápida */}
           <button
             type="button"
             onClick={() => {
@@ -1078,7 +1051,7 @@ export default function DashboardClient({ initialTab }) {
             <i className="fa-solid fa-bolt"></i> Edición Rápida
           </button>
 
-          {/* 6. Eliminar Marca */}
+          {/* 4. Eliminar Marca */}
           {isOwnerOfActiveBrand && (
             <button
               type="button"
@@ -2291,14 +2264,14 @@ export default function DashboardClient({ initialTab }) {
               )}
             </div>
 
-            <div className="dash-catalog-actions-wrap">
+            <div className="dash-catalog-actions-wrap" style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
               {isBrandPerfume && (
                 <button 
                   onClick={() => handleOpenAddProduct("perfume")}
                   className="btn-gold"
-                  style={{ padding: "0.55rem 1.2rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                  style={{ padding: "0.55rem 1.2rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}
                 >
-                  <i className="fa-solid fa-spray-can-sparkles"></i> + Nueva Fragancia
+                  <i className="fa-solid fa-plus"></i> Añadir Fragancia
                 </button>
               )}
 
@@ -2306,9 +2279,9 @@ export default function DashboardClient({ initialTab }) {
                 <button 
                   onClick={() => handleOpenAddProduct("gastro")}
                   className="btn-gold"
-                  style={{ padding: "0.55rem 1.2rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                  style={{ padding: "0.55rem 1.2rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}
                 >
-                  <i className="fa-solid fa-utensils"></i> + Añadir al Menú / Carta
+                  <i className="fa-solid fa-plus"></i> Añadir al Menú / Carta
                 </button>
               )}
 
@@ -2316,16 +2289,25 @@ export default function DashboardClient({ initialTab }) {
                 <button 
                   onClick={() => handleOpenAddProduct("standard")}
                   className="btn-gold"
-                  style={{ padding: "0.55rem 1.2rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}
+                  style={{ padding: "0.55rem 1.2rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}
                 >
-                  <i className="fa-solid fa-plus"></i> + Nuevo Producto / Servicio
+                  <i className="fa-solid fa-plus"></i> Añadir Producto
                 </button>
               )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById("dash-catalog-search-row");
+                  if (el) el.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="btn-outline-gold"
+                style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+              >
+                <i className="fa-solid fa-boxes-stacked"></i> Administrar Catálogo ({currentBrandProducts.length})
+              </button>
             </div>
           </div>
-
-          {/* ── BARRA DE HERRAMIENTAS & ACCIONES DE MARCA ── */}
-          {renderBrandTools()}
 
           {/* Filtros y Buscador Rápido */}
           <div id="dash-catalog-search-row" style={{ display: "flex", gap: "10px", marginBottom: "1.5rem", flexWrap: "wrap" }}>
