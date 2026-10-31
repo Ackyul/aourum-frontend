@@ -14,10 +14,10 @@ import { parseProductPresentation, parsePerfumeInfo } from "../../components/Per
 export const PRODUCT_TYPE_TEMPLATES = [
   {
     id: "perfume",
-    name: "Fragancia de Alta Perfumería",
+    name: "Fragancia de Perfumería",
     icon: "fa-spray-can-sparkles",
     badge: "💎 Dúo Visual",
-    defaultCategory: "Alta Perfumería",
+    defaultCategory: "Amaderado",
     description: "Para fragancias: frasco de referencia original, notas y pirámide olfativa."
   },
   {
@@ -205,6 +205,7 @@ export default function DashboardClient({ initialTab }) {
     perfumeFamily: "Amaderado",
     perfumeConcentration: "",
     perfumeMl: "50 ml",
+    perfumeDuoScale: 85,
     perfumeNotes: "",
     // Gastro
     gastroPortion: "",
@@ -561,7 +562,7 @@ export default function DashboardClient({ initialTab }) {
     }
 
     if (isBrandPerfume) {
-      return ["Alta Perfumería", "Amaderado", "Cítrico / Fresco", "Oriental / Especiado", "Floral", "Gourmand", "Aromático Fougère"];
+      return ["Amaderado", "Cítrico / Fresco", "Oriental / Especiado", "Floral", "Gourmand", "Aromático Fougère", "Acuático / Marino"];
     }
 
     // Modo Estándar
@@ -642,6 +643,7 @@ export default function DashboardClient({ initialTab }) {
       perfumeFamily: "Amaderado",
       perfumeConcentration: "",
       perfumeMl: "50 ml",
+      perfumeDuoScale: 85,
       perfumeNotes: "",
       gastroPortion: "",
       gastroIngredients: "",
@@ -718,6 +720,10 @@ export default function DashboardClient({ initialTab }) {
       perfumeFamily: prod.category || "Amaderado",
       perfumeConcentration: (concMatch && !/50%\s*esencia/i.test(concMatch[1])) ? concMatch[1].trim() : "",
       perfumeMl: mlMatch ? mlMatch[1].trim() : (resolvedPres || "50 ml"),
+      perfumeDuoScale: (() => {
+        const sm = (prod.description || "").match(/\[\s*(?:duoscale|frascoscale|escaladuo|scale)\s*:\s*(\d+)\s*%?\s*\]/i);
+        return sm ? Number(sm[1]) : 85;
+      })(),
       perfumeNotes: cleanNotes,
       gastroPortion: portionMatch ? portionMatch[1].trim() : resolvedPres,
       gastroIngredients: ingredientsMatch ? ingredientsMatch[1].trim() : "",
@@ -829,6 +835,7 @@ export default function DashboardClient({ initialTab }) {
       if (prodForm.perfumeGender) tags.push(`[Género: ${prodForm.perfumeGender}]`);
       if (prodForm.category || prodForm.perfumeFamily) tags.push(`[Familia: ${prodForm.category || prodForm.perfumeFamily}]`);
       if (prodForm.perfumeConcentration) tags.push(`[Concentración: ${prodForm.perfumeConcentration}]`);
+      if (prodForm.perfumeDuoScale && prodForm.perfumeDuoScale !== 85) tags.push(`[DuoScale: ${prodForm.perfumeDuoScale}]`);
       if (validSizes.length > 0) {
         tags.push(`[ML: ${validSizes[0].size}]`);
         tags.push(`[Tamaños: ${JSON.stringify(validSizes)}]`);
@@ -2514,37 +2521,8 @@ export default function DashboardClient({ initialTab }) {
                 <form onSubmit={handleSaveProductSubmit} style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, overflow: "hidden" }}>
                   <div className="modal-body" style={{ flex: 1, overflowY: "auto", padding: "1.4rem 1.6rem", WebkitOverflowScrolling: "touch" }}>
 
-                {/* Selector de Tipo de Producto Adaptativo */}
-                {visibleTemplates.length === 1 ? (
-                  <div 
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                      padding: "0.85rem 1.2rem",
-                      borderRadius: "14px",
-                      background: "rgba(138, 74, 243, 0.08)",
-                      border: "1.5px solid #8A4AF3",
-                      marginBottom: "1.2rem",
-                      boxShadow: "0 4px 12px rgba(138, 74, 243, 0.12)"
-                    }}
-                  >
-                    <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "rgba(138, 74, 243, 0.15)", color: "#8A4AF3", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem" }}>
-                      💎
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <h5 style={{ fontSize: "0.92rem", fontWeight: 800, margin: 0, color: "#8A4AF3" }}>
-                        Fragancia de Alta Perfumería
-                      </h5>
-                      <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
-                        Configuración exclusiva: Frasco de referencia original, Dúo Visual y Pirámide Olfativa
-                      </span>
-                    </div>
-                    <span style={{ fontSize: "0.68rem", fontWeight: 700, padding: "2px 8px", borderRadius: "8px", background: "#8A4AF3", color: "#fff" }}>
-                      💎 Activo
-                    </span>
-                  </div>
-                ) : (
+                {/* Selector de Tipo de Producto Adaptativo (solo si hay más de 1 plantilla visible) */}
+                {visibleTemplates.length > 1 && (
                   <div 
                     className="product-type-grid"
                     style={{
@@ -2571,7 +2549,14 @@ export default function DashboardClient({ initialTab }) {
                 )}
 
                 {/* Campos Esenciales Comunes */}
-                <div style={{ display: "grid", gridTemplateColumns: (productType === "service" || productType === "perfume") ? "2fr 1fr 1fr" : "1.8fr 1fr 1fr 1.2fr", gap: "10px", marginBottom: "0.8rem" }}>
+                <div style={{ 
+                  display: "grid", 
+                  gridTemplateColumns: prodForm.hasMultipleSizes
+                    ? ((productType === "service" || productType === "perfume") ? "3fr 1fr" : "3fr 1fr 1.2fr")
+                    : ((productType === "service" || productType === "perfume") ? "2fr 1fr 1fr" : "1.8fr 1fr 1fr 1.2fr"), 
+                  gap: "10px", 
+                  marginBottom: "0.8rem" 
+                }}>
                     <div className="form-group" style={{ margin: 0 }}>
                       <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>
                         {isBrandPerfume ? "Nombre de la Fragancia *" : isBrandMenu ? "Nombre del Platillo / Ítem *" : "Nombre del Ítem *"}
@@ -2586,18 +2571,20 @@ export default function DashboardClient({ initialTab }) {
                       />
                     </div>
 
-                    <div className="form-group" style={{ margin: 0 }}>
-                      <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>Precio (S/.) *</label>
-                      <input 
-                        type="number"
-                        step="0.01"
-                        className="form-control"
-                        placeholder="0.00"
-                        value={prodForm.price}
-                        onChange={e => setProdForm({ ...prodForm, price: e.target.value })}
-                        required
-                      />
-                    </div>
+                    {!prodForm.hasMultipleSizes && (
+                      <div className="form-group" style={{ margin: 0 }}>
+                        <label style={{ fontSize: "0.82rem", fontWeight: 700 }}>Precio (S/.) *</label>
+                        <input 
+                          type="number"
+                          step="0.01"
+                          className="form-control"
+                          placeholder="0.00"
+                          value={prodForm.price}
+                          onChange={e => setProdForm({ ...prodForm, price: e.target.value })}
+                          required={!prodForm.hasMultipleSizes}
+                        />
+                      </div>
+                    )}
 
                     {productType !== "service" && (
                       <div className="form-group" style={{ margin: 0 }}>
@@ -3043,30 +3030,45 @@ export default function DashboardClient({ initialTab }) {
                         </div>
 
                         <div className="form-group">
-                          <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "4px", display: "block" }}>Mililitros / Tamaño</label>
-                          <div style={{ display: "flex", gap: "6px" }}>
-                            {["30 ml", "50 ml", "100 ml"].map(mlChip => (
-                              <button
-                                key={mlChip}
-                                type="button"
-                                onClick={() => setProdForm(prev => ({ ...prev, perfumeMl: mlChip, presentation: mlChip }))}
-                                style={{
-                                  flex: 1,
-                                  fontSize: "0.78rem",
-                                  padding: "6px 4px",
-                                  borderRadius: "8px",
-                                  border: (prodForm.perfumeMl === mlChip || prodForm.presentation === mlChip) ? "2px solid #8A4AF3" : "1px solid var(--border-color)",
-                                  background: (prodForm.perfumeMl === mlChip || prodForm.presentation === mlChip) ? "rgba(138,74,243,0.18)" : "var(--bg-input)",
-                                  color: (prodForm.perfumeMl === mlChip || prodForm.presentation === mlChip) ? "#8A4AF3" : "inherit",
-                                  cursor: "pointer",
-                                  fontWeight: (prodForm.perfumeMl === mlChip || prodForm.presentation === mlChip) ? 800 : 500,
-                                  transition: "all 0.15s ease"
-                                }}
-                              >
-                                {mlChip}
-                              </button>
-                            ))}
+                          <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span>Ajuste Tamaño Frasco Dúo</span>
+                            <span style={{ color: "#8A4AF3", fontWeight: 800 }}>{prodForm.perfumeDuoScale || 85}%</span>
+                          </label>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <input 
+                              type="range"
+                              min="60"
+                              max="115"
+                              step="5"
+                              value={prodForm.perfumeDuoScale || 85}
+                              onChange={e => setProdForm({ ...prodForm, perfumeDuoScale: Number(e.target.value) })}
+                              style={{ flex: 1, accentColor: "#8A4AF3", cursor: "pointer" }}
+                            />
+                            <div style={{ display: "flex", gap: "4px" }}>
+                              {[75, 85, 100].map(sc => (
+                                <button
+                                  key={sc}
+                                  type="button"
+                                  onClick={() => setProdForm({ ...prodForm, perfumeDuoScale: sc })}
+                                  style={{
+                                    fontSize: "0.68rem",
+                                    padding: "3px 6px",
+                                    borderRadius: "6px",
+                                    border: (prodForm.perfumeDuoScale === sc) ? "1.5px solid #8A4AF3" : "1px solid var(--border-color)",
+                                    background: (prodForm.perfumeDuoScale === sc) ? "rgba(138,74,243,0.15)" : "var(--bg-input)",
+                                    color: (prodForm.perfumeDuoScale === sc) ? "#8A4AF3" : "inherit",
+                                    cursor: "pointer",
+                                    fontWeight: (prodForm.perfumeDuoScale === sc) ? 800 : 500
+                                  }}
+                                >
+                                  {sc}%
+                                </button>
+                              ))}
+                            </div>
                           </div>
+                          <span style={{ fontSize: "0.68rem", color: "var(--text-muted)", marginTop: "3px", display: "block" }}>
+                            Escala de tu frasco frente a la foto del perfume original
+                          </span>
                         </div>
                       </div>
 
@@ -3145,23 +3147,29 @@ export default function DashboardClient({ initialTab }) {
                       onClick={() => setIsAdvancedProdOpen(!isAdvancedProdOpen)}
                       style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", color: "var(--text-muted)", fontSize: "0.82rem", fontWeight: 700 }}
                     >
-                      <span>⚙️ Opciones Avanzadas (Descuento Aourum, Descripción Larga)</span>
+                      <span>
+                        {prodForm.hasMultipleSizes 
+                          ? "⚙️ Opciones Avanzadas (Descripción Larga)" 
+                          : "⚙️ Opciones Avanzadas (Descuento Aourum, Descripción Larga)"}
+                      </span>
                       <i className={`fa-solid fa-chevron-${isAdvancedProdOpen ? "up" : "down"}`}></i>
                     </div>
 
                     {isAdvancedProdOpen && (
                       <div style={{ marginTop: "10px", display: "grid", gridTemplateColumns: "1fr", gap: "10px" }}>
-                        <div className="form-group">
-                          <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Precio Oferta Aourum (Opcional)</label>
-                          <input 
-                            type="number"
-                            step="0.01"
-                            className="form-control"
-                            placeholder="Ej. Precio especial para miembros"
-                            value={prodForm.priceAourum}
-                            onChange={e => setProdForm({ ...prodForm, priceAourum: e.target.value })}
-                          />
-                        </div>
+                        {!prodForm.hasMultipleSizes && (
+                          <div className="form-group">
+                            <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Precio Oferta Aourum (Opcional)</label>
+                            <input 
+                              type="number"
+                              step="0.01"
+                              className="form-control"
+                              placeholder="Ej. Precio especial para miembros"
+                              value={prodForm.priceAourum}
+                              onChange={e => setProdForm({ ...prodForm, priceAourum: e.target.value })}
+                            />
+                          </div>
+                        )}
 
                         <div className="form-group">
                           <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Descripción Detallada / Historia</label>

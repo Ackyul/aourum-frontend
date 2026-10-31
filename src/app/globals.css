@@ -2801,7 +2801,7 @@ img {
   width: 100% !important;
   height: 100% !important;
   max-width: 100% !important;
-  max-height: 96% !important;
+  max-height: 88% !important;
   object-fit: contain !important;
   display: block;
 }
@@ -2810,12 +2810,12 @@ img {
   position: absolute;
   left: 6%;
   bottom: 4%;
-  width: 48%;
-  height: 84%;
+  width: 44%;
+  height: 80%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justifyContent: flex-end;
+  justify-content: flex-end;
   z-index: 2;
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
   opacity: 0.95;
@@ -2824,14 +2824,14 @@ img {
 
 .perfume-duo-brand {
   position: absolute;
-  right: 6%;
-  bottom: 3%;
-  width: 55%;
-  height: 90%;
+  right: 5%;
+  bottom: 4%;
+  width: 48%;
+  height: 82%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justifyContent: flex-end;
+  justify-content: flex-end;
   z-index: 3;
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28));
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
@@ -2920,19 +2920,19 @@ img {
 @media (max-width: 640px) {
   .card-img-container .perfume-duo-wrapper img,
   .product-card .perfume-duo-wrapper img {
-    max-height: 98% !important;
+    max-height: 88% !important;
   }
   .perfume-duo-orig {
     left: 4% !important;
-    bottom: 3% !important;
-    width: 50% !important;
-    height: 88% !important;
+    bottom: 4% !important;
+    width: 44% !important;
+    height: 80% !important;
   }
   .perfume-duo-brand {
     right: 4% !important;
-    bottom: 2% !important;
-    width: 58% !important;
-    height: 94% !important;
+    bottom: 3% !important;
+    width: 48% !important;
+    height: 82% !important;
   }
   .perfume-duo-badge {
     font-size: 0.54rem;

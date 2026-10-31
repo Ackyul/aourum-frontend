@@ -75,6 +75,10 @@ export default function ProductCardVisual({
         <div
           className="perfume-duo-brand"
           title={prod?.name || "Nuestra Creación"}
+          style={info.duoScale ? {
+            transform: `scale(${info.duoScale / 100})`,
+            transformOrigin: "bottom center"
+          } : undefined}
         >
           {brandImg && !brandImgError ? (
             <img

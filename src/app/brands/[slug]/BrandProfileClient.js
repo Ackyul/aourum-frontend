@@ -1294,7 +1294,7 @@ function BrandProductCard({ prod }) {
               textOverflow: "ellipsis",
               flex: 1
             }}>
-              {(isPerfume && pInfo.family) || prod.category || brand?.rubro_general || "General"}
+              {(isPerfume ? (pInfo.family && !/^alta perfumer[ií]a$/i.test(pInfo.family) ? pInfo.family : (prod.category && !/^alta perfumer[ií]a$/i.test(prod.category.trim()) ? prod.category : "Perfumería")) : prod.category) || brand?.rubro_general || "General"}
             </span>
             {(activeSize?.size || pInfo.ml || pInfo.presentation) && (
               <span style={{ 

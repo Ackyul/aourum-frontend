@@ -788,7 +788,7 @@ export default function Home() {
               textOverflow: "ellipsis",
               flex: 1
             }}>
-              {isPerfume ? (perfumeInfo.family && !/jean paul|dior|baccarat|sauvage|elixir|creed|versace|chanel/i.test(perfumeInfo.family) ? perfumeInfo.family : "Perfumería") : prod.category}
+              {isPerfume ? (perfumeInfo.family && !/jean paul|dior|baccarat|sauvage|elixir|creed|versace|chanel|^alta perfumer[ií]a$/i.test(perfumeInfo.family) ? perfumeInfo.family : (prod.category && !/^alta perfumer[ií]a$/i.test(prod.category.trim()) ? prod.category : "Perfumería")) : prod.category}
             </span>
             {(activeSize?.size || perfumeInfo.ml || perfumeInfo.presentation) && (
               <span style={{ 

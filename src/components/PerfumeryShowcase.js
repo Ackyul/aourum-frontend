@@ -108,6 +108,13 @@ export function parsePerfumeInfo(prod) {
   let inspiration = meta.inspiration || meta.original || meta.inspiradoEn || "";
   let originalImg = meta.originalImg || meta.originalImage || meta.inspirationImg || prod.originalImg || prod.originalImage || "";
   let family = meta.family || meta.familia || "";
+  let duoScale = meta.duoScale || meta.scale || null;
+  if (!duoScale) {
+    const scaleMatch = rawDesc.match(/\[\s*(?:duoscale|frascoscale|escaladuo|scale)\s*:\s*(\d+)\s*%?\s*\]/i);
+    if (scaleMatch && scaleMatch[1]) {
+      duoScale = Number(scaleMatch[1]);
+    }
+  }
   let gender = meta.gender || meta.genero || "";
   let concentration = meta.concentration || "";
   let ml = meta.ml || meta.volume || "";
@@ -207,18 +214,20 @@ export function parsePerfumeInfo(prod) {
     }
   }
 
-  // Family detection — strictly for actual perfume families or explicit bracket tags
+  // Family detection — prioritize explicit family, bracket tag, or user-written category
   if (!family) {
     const bracketFamily = rawDesc.match(/\[\s*familia\s*:\s*([^\]]+)\]/i);
     if (bracketFamily && bracketFamily[1]) {
       family = bracketFamily[1].trim();
+    } else if (prod.category && !/^(?:alta perfumer[ií]a|perfumer[ií]a|perfumes?)$/i.test(prod.category.trim())) {
+      family = prod.category.trim();
     } else {
       const combined = `${name} ${rawDesc} ${prod.category || ""}`.toLowerCase();
       if (/amaderad|oud|cedro|sandalo|vetiver/i.test(combined)) family = "Amaderado";
       else if (/c[ií]tric|bergamota|lim[oó]n|mandarina|naranja/i.test(combined)) family = "Cítrico / Fresco";
       else if (/oriental|ambar|especiad|canela|vainilla/i.test(combined)) family = "Oriental / Especiado";
       else if (/floral|rosa|jazm[ií]n|iris|lavanda/i.test(combined)) family = "Floral";
-      else if (/fresco|acu[aá]tic|marino|verde/i.test(combined)) family = "Fresco / Acuático";
+      else if (/fresco|acu[aá]tic|marino|verde|n[aá]utic/i.test(combined)) family = "Fresco / Acuático";
       else if (/gourmand|dulce|caramelo|chocolate/i.test(combined)) family = "Dulce Gourmand";
       else family = "";
     }
@@ -234,6 +243,7 @@ export function parsePerfumeInfo(prod) {
     .replace(/\[\s*ml\s*:[^\]]+\]/gi, "")
     .replace(/\[\s*(?:presentaci[oó]n|tama[ñn]o|cantidad|gramaje|porci[oó]n)\s*:[^\]]+\]/gi, "")
     .replace(/\[\s*(?:tama[ñn]os|sizes|variaciones|presentaciones)\s*:\s*\[[^\]]+\]\s*\]/gi, "")
+    .replace(/\[\s*(?:duoscale|frascoscale|escaladuo|scale)\s*:[^\]]+\]/gi, "")
     .trim();
 
   return {
@@ -246,7 +256,8 @@ export function parsePerfumeInfo(prod) {
     presentation,
     cleanName: parsedPres.cleanName || name,
     cleanDesc,
-    sizes
+    sizes,
+    duoScale
   };
 }
 
