@@ -993,7 +993,114 @@ export default function DashboardClient({ initialTab }) {
   };
 
   if (!mounted) {
+    // ── RENDER COMPONENTE: BARRA DE HERRAMIENTAS & ACCIONES DE MARCA ──
+  const renderBrandTools = () => {
+    if (!selectedBrand) return null;
     return (
+      <div style={{
+        background: "var(--bg-card)",
+        border: "1px solid var(--border-color)",
+        borderRadius: "16px",
+        padding: "16px 20px",
+        marginBottom: "1.5rem",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.03)"
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
+          <span style={{ fontSize: "0.82rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "6px" }}>
+            <i className="fa-solid fa-wand-magic-sparkles"></i> Herramientas de Marca
+          </span>
+          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+            Acciones clave para gestionar tu catálogo, ferias y equipo
+          </span>
+        </div>
+
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+          {/* 1. Añadir Item / Fragancia */}
+          <button
+            type="button"
+            onClick={() => handleOpenAddProduct()}
+            className="btn-gold"
+            style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+          >
+            <i className="fa-solid fa-plus"></i> {isBrandPerfume ? "Añadir Fragancia" : (isBrandMenu ? "Añadir al Menú" : "Añadir Item")}
+          </button>
+
+          {/* 2. Administrar Catálogo */}
+          <button
+            type="button"
+            onClick={() => {
+              if (activeTab === "productos") {
+                const el = document.getElementById("dash-catalog-search-row");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+              } else {
+                handleTabChange("productos");
+              }
+            }}
+            className="btn-outline-gold"
+            style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+          >
+            <i className="fa-solid fa-boxes-stacked"></i> Administrar Catálogo ({currentBrandProducts.length})
+          </button>
+
+          {/* 3. Postular a Ferias */}
+          <button
+            type="button"
+            onClick={() => setShowFairsModal(true)}
+            className="btn-outline-gold"
+            style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+          >
+            <i className="fa-solid fa-paper-plane"></i> Postular a Ferias
+          </button>
+
+          {/* 4. Colaboradores de la Marca */}
+          <button
+            type="button"
+            onClick={() => setShowCollabsModal(true)}
+            className="btn-outline-gold"
+            style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+          >
+            <i className="fa-solid fa-users"></i> Colaboradores ({selectedBrand.collaborators?.length || 0})
+          </button>
+
+          {/* 5. Edición Rápida */}
+          <button
+            type="button"
+            onClick={() => {
+              handleTabChange("marcas");
+              setIsEssentialBrandOpen(true);
+              setTimeout(() => {
+                const el = document.getElementById("dash-essential-brand-sec");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+              }, 100);
+            }}
+            className="btn-outline-gold"
+            style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
+          >
+            <i className="fa-solid fa-bolt"></i> Edición Rápida
+          </button>
+
+          {/* 6. Eliminar Marca */}
+          {isOwnerOfActiveBrand && (
+            <button
+              type="button"
+              onClick={async () => {
+                if (await handleDeleteBrand(selectedBrand.id)) {
+                  setSelectedBrandId(null);
+                  handleTabChange("resumen");
+                }
+              }}
+              className="btn-outline-gold"
+              style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", color: "#ef4444", borderColor: "#ef4444", background: "transparent", marginLeft: "auto", cursor: "pointer" }}
+            >
+              <i className="fa-solid fa-trash"></i> Eliminar Marca
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  return (
       <div style={{ textAlign: "center", padding: "6rem 0" }}>
         <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2rem", color: "var(--gold-primary)" }}></i>
       </div>
@@ -1316,98 +1423,7 @@ export default function DashboardClient({ initialTab }) {
           )}
 
           {/* ── BARRA DE HERRAMIENTAS & ACCIONES DE MARCA ── */}
-          {selectedBrand && (
-            <div style={{
-              background: "var(--bg-card)",
-              border: "1px solid var(--border-color)",
-              borderRadius: "16px",
-              padding: "16px 20px",
-              marginBottom: "1.5rem",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.03)"
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
-                <span style={{ fontSize: "0.82rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "6px" }}>
-                  <i className="fa-solid fa-wand-magic-sparkles"></i> Herramientas de Marca
-                </span>
-                <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                  Acciones clave para gestionar tu catálogo, ferias y equipo
-                </span>
-              </div>
-
-              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
-                {/* 1. Añadir Item / Fragancia */}
-                <button
-                  type="button"
-                  onClick={() => handleOpenAddProduct()}
-                  className="btn-gold"
-                  style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
-                >
-                  <i className="fa-solid fa-plus"></i> {isBrandPerfume ? "Añadir Fragancia" : "Añadir Item"}
-                </button>
-
-                {/* 2. Administrar Catálogo */}
-                <button
-                  type="button"
-                  onClick={() => handleTabChange("productos")}
-                  className="btn-outline-gold"
-                  style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
-                >
-                  <i className="fa-solid fa-boxes-stacked"></i> Administrar Catálogo ({currentBrandProducts.length})
-                </button>
-
-                {/* 3. Postular a Ferias */}
-                <button
-                  type="button"
-                  onClick={() => setShowFairsModal(true)}
-                  className="btn-outline-gold"
-                  style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
-                >
-                  <i className="fa-solid fa-paper-plane"></i> Postular a Ferias
-                </button>
-
-                {/* 4. Colaboradores de la Marca */}
-                <button
-                  type="button"
-                  onClick={() => setShowCollabsModal(true)}
-                  className="btn-outline-gold"
-                  style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
-                >
-                  <i className="fa-solid fa-users"></i> Colaboradores ({selectedBrand.collaborators?.length || 0})
-                </button>
-
-                {/* 5. Edición Rápida */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsEssentialBrandOpen(true);
-                    const el = document.getElementById("dash-essential-brand-sec");
-                    if (el) el.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="btn-outline-gold"
-                  style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
-                >
-                  <i className="fa-solid fa-bolt"></i> Edición Rápida
-                </button>
-
-                {/* 6. Eliminar Marca */}
-                {isOwnerOfActiveBrand && (
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (await handleDeleteBrand(selectedBrand.id)) {
-                        setSelectedBrandId(null);
-                        handleTabChange("resumen");
-                      }
-                    }}
-                    className="btn-outline-gold"
-                    style={{ padding: "0.55rem 1.15rem", borderRadius: "10px", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "8px", color: "#ef4444", borderColor: "#ef4444", background: "transparent", marginLeft: "auto", cursor: "pointer" }}
-                  >
-                    <i className="fa-solid fa-trash"></i> Eliminar Marca
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
+          {renderBrandTools()}
 
           {/* ── DATOS ESENCIALES DE LA MARCA ── */}
           <div id="dash-essential-brand-sec" className="dashboard-accordion" style={{ marginBottom: "1.5rem" }}>
@@ -2308,8 +2324,11 @@ export default function DashboardClient({ initialTab }) {
             </div>
           </div>
 
+          {/* ── BARRA DE HERRAMIENTAS & ACCIONES DE MARCA ── */}
+          {renderBrandTools()}
+
           {/* Filtros y Buscador Rápido */}
-          <div style={{ display: "flex", gap: "10px", marginBottom: "1.5rem", flexWrap: "wrap" }}>
+          <div id="dash-catalog-search-row" style={{ display: "flex", gap: "10px", marginBottom: "1.5rem", flexWrap: "wrap" }}>
             <div style={{ flex: 1, minWidth: "240px", position: "relative" }}>
               <i className="fa-solid fa-magnifying-glass" style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }}></i>
               <input 
