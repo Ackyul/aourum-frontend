@@ -992,8 +992,7 @@ export default function DashboardClient({ initialTab }) {
     }
   };
 
-  if (!mounted) {
-    // ── RENDER COMPONENTE: BARRA DE HERRAMIENTAS & ACCIONES DE MARCA ──
+  // ── RENDER COMPONENTE: BARRA DE HERRAMIENTAS & ACCIONES DE MARCA ──
   const renderBrandTools = () => {
     if (!selectedBrand) return null;
     return (
@@ -1100,7 +1099,8 @@ export default function DashboardClient({ initialTab }) {
     );
   };
 
-  return (
+  if (!mounted) {
+    return (
       <div style={{ textAlign: "center", padding: "6rem 0" }}>
         <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2rem", color: "var(--gold-primary)" }}></i>
       </div>
