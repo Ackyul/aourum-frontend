@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useApp } from "../../context/AppContext";
 import { ensureFullSocialUrl, isPerfumeryBrand, isVirtualMenuBrand } from "../../utils/brandUtils";
 import { parseProductPresentation, parsePerfumeInfo } from "../../components/PerfumeryShowcase";
+import ProductCardVisual from "../../components/ProductCardVisual";
 
 
 
@@ -178,6 +179,7 @@ export default function DashboardClient({ initialTab }) {
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProductId, setEditingProductId] = useState(null);
   const [productType, setProductType] = useState("perfume");
+  const [previewSizeIndex, setPreviewSizeIndex] = useState(0);
   const [submittingProd, setSubmittingProd] = useState(false);
   const [uploadingProdImg, setUploadingProdImg] = useState(false);
   const [uploadingOrigImg, setUploadingOrigImg] = useState(false);
@@ -3070,6 +3072,282 @@ export default function DashboardClient({ initialTab }) {
                             Escala de tu frasco frente a la foto del perfume original
                           </span>
                         </div>
+                      </div>
+
+                      {/* ── VISTA PREVIA EN TIEMPO REAL DE LA TARJETA EN VITRINA ── */}
+                      <div style={{
+                        margin: "14px 0",
+                        background: "var(--bg-card)",
+                        border: "1.5px solid rgba(138,74,243,0.3)",
+                        borderRadius: "16px",
+                        padding: "16px",
+                        boxShadow: "0 6px 20px rgba(138,74,243,0.06)"
+                      }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", flexWrap: "wrap", gap: "6px" }}>
+                          <span style={{ fontSize: "0.82rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: "#8A4AF3", display: "flex", alignItems: "center", gap: "6px" }}>
+                            <i className="fa-solid fa-eye"></i> Vista Previa en Vivo de la Tarjeta ({prodForm.perfumeDuoScale || 85}%)
+                          </span>
+                          <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
+                            ✨ Mueve el control arriba para ver cómo cambia en tiempo real
+                          </span>
+                        </div>
+
+                        {(() => {
+                          const validSizes = (prodForm.sizes || []).filter(s => s && (s.size || s.price));
+                          const activeSize = prodForm.hasMultipleSizes && validSizes.length > 0
+                            ? (validSizes[previewSizeIndex] || validSizes[0])
+                            : null;
+                          const currentPrice = activeSize ? activeSize.price : (prodForm.price || "0");
+                          const currentPriceAourum = activeSize ? activeSize.priceAourum : (prodForm.priceAourum || null);
+                          const currentImg = (activeSize && activeSize.image) ? activeSize.image : prodForm.image;
+
+                          const cardVisualProd = {
+                            id: "preview",
+                            name: prodForm.name || "Nombre de la Fragancia",
+                            category: prodForm.category || "Amaderado",
+                            image: currentImg || null,
+                            imgBgColor: prodForm.imgBgColor || "transparent"
+                          };
+
+                          const cardPerfumeInfo = {
+                            inspiration: prodForm.perfumeInspiration,
+                            originalImg: prodForm.perfumeOriginalImg,
+                            family: prodForm.category,
+                            gender: prodForm.perfumeGender,
+                            concentration: prodForm.perfumeConcentration,
+                            ml: activeSize ? activeSize.size : (prodForm.perfumeMl || "50 ml"),
+                            duoScale: prodForm.perfumeDuoScale || 85
+                          };
+
+                          return (
+                            <div style={{ display: "flex", justifyContent: "center" }}>
+                              <div style={{ width: "230px", maxWidth: "100%" }}>
+                                <div 
+                                  className="glass-panel product-card" 
+                                  style={{ 
+                                    overflow: "hidden", 
+                                    display: "flex", 
+                                    flexDirection: "column", 
+                                    borderRadius: "16px",
+                                    border: "1px solid var(--border-color)",
+                                    boxShadow: "0 6px 18px rgba(0,0,0,0.08)"
+                                  }}
+                                >
+                                  <div 
+                                    className="card-img-container" 
+                                    style={{ 
+                                      position: "relative",
+                                      aspectRatio: "1 / 1",
+                                      backgroundColor: "transparent"
+                                    }}
+                                  >
+                                    {/* Top Badges Bar */}
+                                    <div style={{
+                                      position: "absolute",
+                                      top: "8px",
+                                      left: "8px",
+                                      right: "8px",
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      alignItems: "flex-start",
+                                      gap: "4px",
+                                      zIndex: 6,
+                                      pointerEvents: "none"
+                                    }}>
+                                      <span style={{
+                                        background: "rgba(15, 23, 42, 0.85)",
+                                        color: "#F8FAFC",
+                                        fontWeight: 700,
+                                        fontSize: "0.62rem",
+                                        padding: "3px 8px",
+                                        borderRadius: "12px",
+                                        backdropFilter: "blur(4px)",
+                                        textTransform: "uppercase",
+                                        letterSpacing: "0.04em",
+                                        border: "1px solid rgba(255, 255, 255, 0.2)",
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: "4px",
+                                        whiteSpace: "nowrap"
+                                      }}>
+                                        <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "#FCD34D" }}></i>
+                                        Descubre
+                                      </span>
+
+                                      {prodForm.perfumeGender && (
+                                        <span style={{
+                                          background: "rgba(15, 23, 42, 0.85)",
+                                          color: "#F8FAFC",
+                                          fontWeight: 700,
+                                          fontSize: "0.62rem",
+                                          padding: "3px 8px",
+                                          borderRadius: "12px",
+                                          backdropFilter: "blur(4px)",
+                                          border: "1px solid rgba(255, 255, 255, 0.2)",
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          gap: "4px",
+                                          whiteSpace: "nowrap"
+                                        }}>
+                                          {prodForm.perfumeGender === "Hombre" && "👔 Hombre"}
+                                          {prodForm.perfumeGender === "Mujer" && "👗 Mujer"}
+                                          {prodForm.perfumeGender === "Unisex" && "✨ Unisex"}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <ProductCardVisual
+                                      prod={cardVisualProd}
+                                      perfumeInfo={cardPerfumeInfo}
+                                      brandColor={selectedBrand?.color || "var(--gold-primary)"}
+                                    />
+                                  </div>
+
+                                  {/* Card Body */}
+                                  <div style={{ padding: "0.9rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px" }}>
+                                      <span style={{ 
+                                        fontSize: "0.7rem", 
+                                        color: "var(--text-gold)", 
+                                        letterSpacing: "0.05em", 
+                                        textTransform: "uppercase", 
+                                        fontWeight: 700,
+                                        whiteSpace: "nowrap",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        flex: 1
+                                      }}>
+                                        {prodForm.category || "Perfumería"}
+                                      </span>
+                                      <span style={{ 
+                                        fontSize: "0.65rem", 
+                                        color: "var(--text-gold)", 
+                                        background: "rgba(212, 175, 55, 0.12)",
+                                        padding: "1px 6px",
+                                        borderRadius: "6px",
+                                        fontWeight: 700,
+                                        flexShrink: 0,
+                                        whiteSpace: "nowrap"
+                                      }}>
+                                        {activeSize ? activeSize.size : (prodForm.perfumeMl || "50 ml")}
+                                      </span>
+                                    </div>
+
+                                    <h3 style={{ fontSize: "0.95rem", fontWeight: 800, lineHeight: 1.3, margin: 0 }}>
+                                      {prodForm.name || "Nombre de la Fragancia"}
+                                    </h3>
+
+                                    {prodForm.perfumeInspiration && (
+                                      <div style={{ fontSize: "0.72rem", color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "5px" }}>
+                                        <i className="fa-solid fa-gem" style={{ fontSize: "0.65rem", opacity: 0.85 }}></i>
+                                        <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                          Insp: <strong>{prodForm.perfumeInspiration}</strong>
+                                        </span>
+                                      </div>
+                                    )}
+
+                                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}>
+                                      <span>Por:</span>
+                                      <strong style={{ textDecoration: "underline" }}>{selectedBrand?.name || "Tu Marca"}</strong>
+                                    </div>
+
+                                    {/* Pastillas de tamaños interactivos en la preview */}
+                                    {prodForm.hasMultipleSizes && validSizes.length > 0 && (
+                                      <div 
+                                        className="card-sizes-scroll"
+                                        style={{ 
+                                          display: "flex", 
+                                          gap: "4px", 
+                                          flexWrap: "nowrap",
+                                          overflowX: "auto",
+                                          scrollbarWidth: "none",
+                                          margin: "0.2rem 0 0.05rem 0",
+                                          padding: "1px 0"
+                                        }}
+                                      >
+                                        {validSizes.map((s, sIdx) => {
+                                          const isSelected = sIdx === previewSizeIndex;
+                                          return (
+                                            <button
+                                              key={sIdx}
+                                              type="button"
+                                              className="card-size-pill"
+                                              onClick={() => setPreviewSizeIndex(sIdx)}
+                                              title={`Ver tamaño ${s.size} por S/ ${s.price}`}
+                                              style={{
+                                                flex: "0 0 auto",
+                                                whiteSpace: "nowrap",
+                                                padding: "2px 7px",
+                                                borderRadius: "6px",
+                                                fontSize: "0.64rem",
+                                                fontWeight: isSelected ? 800 : 600,
+                                                cursor: "pointer",
+                                                border: isSelected ? "1.5px solid var(--gold-primary)" : "1px solid rgba(0,0,0,0.12)",
+                                                background: isSelected ? "rgba(212,175,55,0.15)" : "rgba(0,0,0,0.03)",
+                                                color: isSelected ? "var(--gold-primary)" : "var(--text-muted)",
+                                                transition: "all 0.15s ease"
+                                              }}
+                                            >
+                                              {s.size}
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    )}
+
+                                    {/* Precio */}
+                                    <div style={{ 
+                                      display: "flex", 
+                                      justifyContent: "space-between", 
+                                      alignItems: "center", 
+                                      borderTop: "1px solid var(--border-color)", 
+                                      paddingTop: "0.5rem", 
+                                      marginTop: "auto" 
+                                    }}>
+                                      <div>
+                                        {currentPriceAourum ? (
+                                          <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+                                            <div style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+                                              <span style={{ fontSize: "0.64rem", color: "var(--text-muted)", textDecoration: "line-through", lineHeight: 1 }}>
+                                                S/ {currentPrice}
+                                              </span>
+                                              <span style={{ fontSize: "0.48rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 3px", borderRadius: "3px", fontWeight: "800", textTransform: "uppercase" }}>
+                                                Aourum
+                                              </span>
+                                            </div>
+                                            <span style={{ fontSize: "0.95rem", fontWeight: 800, lineHeight: 1 }}>
+                                              S/ {currentPriceAourum}
+                                            </span>
+                                          </div>
+                                        ) : (
+                                          <div style={{ display: "flex", flexDirection: "column" }}>
+                                            {prodForm.hasMultipleSizes && (
+                                              <span style={{ fontSize: "0.55rem", textTransform: "uppercase", fontWeight: 700, color: "var(--text-muted)", lineHeight: 1 }}>
+                                                Desde
+                                              </span>
+                                            )}
+                                            <span style={{ fontSize: "0.95rem", fontWeight: 800 }}>
+                                              S/ {currentPrice || "0"}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+
+                                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+                                        <span style={{ fontSize: "0.58rem", fontWeight: 700, textTransform: "uppercase", color: "#78350f" }}>
+                                          Producto
+                                        </span>
+                                        <span style={{ fontSize: "0.58rem", fontWeight: 700, padding: "1px 5px", borderRadius: "6px", background: "#dcfce7", color: "#15803d" }}>
+                                          Stock
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       <div className="form-group">
