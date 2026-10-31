@@ -56,6 +56,12 @@ export default function ProductCardVisual({
         <div
           className="perfume-duo-orig"
           title={`Original de Referencia: ${info.inspiration || "Inspiración Original"}`}
+          style={{
+            left: `calc(6% + ${(info.origX || 0)}%)`,
+            bottom: `calc(4% + ${(info.origY || 0)}%)`,
+            transform: `scale(${(info.origScale || 100) / 100})`,
+            transformOrigin: "bottom center"
+          }}
         >
           <img
             src={info.originalImg}
@@ -75,10 +81,12 @@ export default function ProductCardVisual({
         <div
           className="perfume-duo-brand"
           title={prod?.name || "Nuestra Creación"}
-          style={info.duoScale ? {
-            transform: `scale(${info.duoScale / 100})`,
+          style={{
+            right: `calc(5% - ${(info.duoX || 0)}%)`,
+            bottom: `calc(4% + ${(info.duoY || 0)}%)`,
+            transform: `scale(${(info.duoScale || 85) / 100})`,
             transformOrigin: "bottom center"
-          } : undefined}
+          }}
         >
           {brandImg && !brandImgError ? (
             <img

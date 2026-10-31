@@ -180,6 +180,8 @@ export default function DashboardClient({ initialTab }) {
   const [editingProductId, setEditingProductId] = useState(null);
   const [productType, setProductType] = useState("perfume");
   const [previewSizeIndex, setPreviewSizeIndex] = useState(0);
+  const [activeDuoBottle, setActiveDuoBottle] = useState("brand"); // "brand" | "orig"
+  const [previewDevice, setPreviewDevice] = useState("mobile"); // "mobile" (165px) | "desktop" (205px)
   const [submittingProd, setSubmittingProd] = useState(false);
   const [uploadingProdImg, setUploadingProdImg] = useState(false);
   const [uploadingOrigImg, setUploadingOrigImg] = useState(false);
@@ -208,6 +210,11 @@ export default function DashboardClient({ initialTab }) {
     perfumeConcentration: "",
     perfumeMl: "50 ml",
     perfumeDuoScale: 85,
+    perfumeDuoX: 0,
+    perfumeDuoY: 0,
+    perfumeOrigScale: 100,
+    perfumeOrigX: 0,
+    perfumeOrigY: 0,
     perfumeNotes: "",
     // Gastro
     gastroPortion: "",
@@ -646,6 +653,11 @@ export default function DashboardClient({ initialTab }) {
       perfumeConcentration: "",
       perfumeMl: "50 ml",
       perfumeDuoScale: 85,
+      perfumeDuoX: 0,
+      perfumeDuoY: 0,
+      perfumeOrigScale: 100,
+      perfumeOrigX: 0,
+      perfumeOrigY: 0,
       perfumeNotes: "",
       gastroPortion: "",
       gastroIngredients: "",
@@ -723,8 +735,64 @@ export default function DashboardClient({ initialTab }) {
       perfumeConcentration: (concMatch && !/50%\s*esencia/i.test(concMatch[1])) ? concMatch[1].trim() : "",
       perfumeMl: mlMatch ? mlMatch[1].trim() : (resolvedPres || "50 ml"),
       perfumeDuoScale: (() => {
-        const sm = (prod.description || "").match(/\[\s*(?:duoscale|frascoscale|escaladuo|scale)\s*:\s*(\d+)\s*%?\s*\]/i);
+        const desc = prod.description || "";
+        const configMatch = desc.match(/\[\s*DuoConfig\s*:\s*([^\]]+)\]/i);
+        if (configMatch) {
+          const m = configMatch[1].match(/\bscale\s*=\s*(\d+)/i);
+          if (m) return Number(m[1]);
+        }
+        const sm = desc.match(/\[\s*(?:duoscale|frascoscale|escaladuo|scale)\s*:\s*(\d+)\s*%?\s*\]/i);
         return sm ? Number(sm[1]) : 85;
+      })(),
+      perfumeDuoX: (() => {
+        const desc = prod.description || "";
+        const configMatch = desc.match(/\[\s*DuoConfig\s*:\s*([^\]]+)\]/i);
+        if (configMatch) {
+          const m = configMatch[1].match(/\bx\s*=\s*(-?\d+)/i);
+          if (m) return Number(m[1]);
+        }
+        const m = desc.match(/\[\s*(?:duox|brandx)\s*:\s*(-?\d+)\s*%?\s*\]/i);
+        return m ? Number(m[1]) : 0;
+      })(),
+      perfumeDuoY: (() => {
+        const desc = prod.description || "";
+        const configMatch = desc.match(/\[\s*DuoConfig\s*:\s*([^\]]+)\]/i);
+        if (configMatch) {
+          const m = configMatch[1].match(/\by\s*=\s*(-?\d+)/i);
+          if (m) return Number(m[1]);
+        }
+        const m = desc.match(/\[\s*(?:duoy|brandy)\s*:\s*(-?\d+)\s*%?\s*\]/i);
+        return m ? Number(m[1]) : 0;
+      })(),
+      perfumeOrigScale: (() => {
+        const desc = prod.description || "";
+        const configMatch = desc.match(/\[\s*DuoConfig\s*:\s*([^\]]+)\]/i);
+        if (configMatch) {
+          const m = configMatch[1].match(/\boScale\s*=\s*(\d+)/i);
+          if (m) return Number(m[1]);
+        }
+        const m = desc.match(/\[\s*(?:origscale)\s*:\s*(\d+)\s*%?\s*\]/i);
+        return m ? Number(m[1]) : 100;
+      })(),
+      perfumeOrigX: (() => {
+        const desc = prod.description || "";
+        const configMatch = desc.match(/\[\s*DuoConfig\s*:\s*([^\]]+)\]/i);
+        if (configMatch) {
+          const m = configMatch[1].match(/\boX\s*=\s*(-?\d+)/i);
+          if (m) return Number(m[1]);
+        }
+        const m = desc.match(/\[\s*origx\s*:\s*(-?\d+)\s*%?\s*\]/i);
+        return m ? Number(m[1]) : 0;
+      })(),
+      perfumeOrigY: (() => {
+        const desc = prod.description || "";
+        const configMatch = desc.match(/\[\s*DuoConfig\s*:\s*([^\]]+)\]/i);
+        if (configMatch) {
+          const m = configMatch[1].match(/\boY\s*=\s*(-?\d+)/i);
+          if (m) return Number(m[1]);
+        }
+        const m = desc.match(/\[\s*origy\s*:\s*(-?\d+)\s*%?\s*\]/i);
+        return m ? Number(m[1]) : 0;
       })(),
       perfumeNotes: cleanNotes,
       gastroPortion: portionMatch ? portionMatch[1].trim() : resolvedPres,
@@ -837,7 +905,16 @@ export default function DashboardClient({ initialTab }) {
       if (prodForm.perfumeGender) tags.push(`[Género: ${prodForm.perfumeGender}]`);
       if (prodForm.category || prodForm.perfumeFamily) tags.push(`[Familia: ${prodForm.category || prodForm.perfumeFamily}]`);
       if (prodForm.perfumeConcentration) tags.push(`[Concentración: ${prodForm.perfumeConcentration}]`);
-      if (prodForm.perfumeDuoScale && prodForm.perfumeDuoScale !== 85) tags.push(`[DuoScale: ${prodForm.perfumeDuoScale}]`);
+      const duoScale = prodForm.perfumeDuoScale || 85;
+      const duoX = prodForm.perfumeDuoX || 0;
+      const duoY = prodForm.perfumeDuoY || 0;
+      const origScale = prodForm.perfumeOrigScale || 100;
+      const origX = prodForm.perfumeOrigX || 0;
+      const origY = prodForm.perfumeOrigY || 0;
+      if (duoScale !== 85 || duoX !== 0 || duoY !== 0 || origScale !== 100 || origX !== 0 || origY !== 0) {
+        tags.push(`[DuoConfig: scale=${duoScale}, x=${duoX}, y=${duoY}, oScale=${origScale}, oX=${origX}, oY=${origY}]`);
+      }
+      if (duoScale !== 85) tags.push(`[DuoScale: ${duoScale}]`);
       if (validSizes.length > 0) {
         tags.push(`[ML: ${validSizes[0].size}]`);
         tags.push(`[Tamaños: ${JSON.stringify(validSizes)}]`);
@@ -3031,324 +3108,715 @@ export default function DashboardClient({ initialTab }) {
                           </select>
                         </div>
 
-                        <div className="form-group">
-                          <label style={{ fontSize: "0.78rem", fontWeight: 700, marginBottom: "4px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                            <span>Ajuste Tamaño Frasco Dúo</span>
-                            <span style={{ color: "#8A4AF3", fontWeight: 800 }}>{prodForm.perfumeDuoScale || 85}%</span>
-                          </label>
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <input 
-                              type="range"
-                              min="60"
-                              max="115"
-                              step="5"
-                              value={prodForm.perfumeDuoScale || 85}
-                              onChange={e => setProdForm({ ...prodForm, perfumeDuoScale: Number(e.target.value) })}
-                              style={{ flex: 1, accentColor: "#8A4AF3", cursor: "pointer" }}
-                            />
-                            <div style={{ display: "flex", gap: "4px" }}>
-                              {[75, 85, 100].map(sc => (
-                                <button
-                                  key={sc}
-                                  type="button"
-                                  onClick={() => setProdForm({ ...prodForm, perfumeDuoScale: sc })}
-                                  style={{
-                                    fontSize: "0.68rem",
-                                    padding: "3px 6px",
-                                    borderRadius: "6px",
-                                    border: (prodForm.perfumeDuoScale === sc) ? "1.5px solid #8A4AF3" : "1px solid var(--border-color)",
-                                    background: (prodForm.perfumeDuoScale === sc) ? "rgba(138,74,243,0.15)" : "var(--bg-input)",
-                                    color: (prodForm.perfumeDuoScale === sc) ? "#8A4AF3" : "inherit",
-                                    cursor: "pointer",
-                                    fontWeight: (prodForm.perfumeDuoScale === sc) ? 800 : 500
-                                  }}
-                                >
-                                  {sc}%
-                                </button>
-                              ))}
+                        {/* ── PANEL DE AJUSTE DE TAMAÑO Y POSICIÓN DE FRASCOS ── */}
+                        <div style={{
+                          gridColumn: "1 / -1",
+                          background: "var(--bg-card)",
+                          border: "1.5px solid rgba(138,74,243,0.3)",
+                          borderRadius: "16px",
+                          padding: "16px",
+                          marginTop: "6px",
+                          boxShadow: "0 6px 20px rgba(138,74,243,0.06)"
+                        }}>
+                          {/* Cabecera del Panel */}
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <span style={{
+                                width: "28px",
+                                height: "28px",
+                                borderRadius: "8px",
+                                background: "rgba(138,74,243,0.15)",
+                                color: "#8A4AF3",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "0.85rem"
+                              }}>
+                                <i className="fa-solid fa-sliders"></i>
+                              </span>
+                              <div>
+                                <h4 style={{ margin: 0, fontSize: "0.88rem", fontWeight: 800 }}>Acomodar Frascos del Dúo</h4>
+                                <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>Calibra el tamaño y la posición exacta de cada frasco</span>
+                              </div>
+                            </div>
+
+                            {/* Selector de Frasco a Calibrar */}
+                            <div style={{ display: "inline-flex", background: "var(--bg-input)", padding: "3px", borderRadius: "10px", border: "1px solid var(--border-color)", gap: "4px" }}>
+                              <button
+                                type="button"
+                                onClick={() => setActiveDuoBottle("brand")}
+                                style={{
+                                  padding: "5px 12px",
+                                  borderRadius: "7px",
+                                  fontSize: "0.75rem",
+                                  fontWeight: activeDuoBottle === "brand" ? 800 : 600,
+                                  background: activeDuoBottle === "brand" ? "#8A4AF3" : "transparent",
+                                  color: activeDuoBottle === "brand" ? "#FFF" : "inherit",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "6px",
+                                  transition: "all 0.15s ease"
+                                }}
+                              >
+                                <i className="fa-solid fa-wine-bottle"></i> Frasco de tu Marca
+                                <span style={{ opacity: 0.85, fontSize: "0.68rem" }}>({prodForm.perfumeDuoScale || 85}%)</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setActiveDuoBottle("orig")}
+                                style={{
+                                  padding: "5px 12px",
+                                  borderRadius: "7px",
+                                  fontSize: "0.75rem",
+                                  fontWeight: activeDuoBottle === "orig" ? 800 : 600,
+                                  background: activeDuoBottle === "orig" ? "#8A4AF3" : "transparent",
+                                  color: activeDuoBottle === "orig" ? "#FFF" : "inherit",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "6px",
+                                  transition: "all 0.15s ease"
+                                }}
+                              >
+                                <i className="fa-solid fa-gem"></i> Frasco Original Ref.
+                                <span style={{ opacity: 0.85, fontSize: "0.68rem" }}>({prodForm.perfumeOrigScale || 100}%)</span>
+                              </button>
                             </div>
                           </div>
-                          <span style={{ fontSize: "0.68rem", color: "var(--text-muted)", marginTop: "3px", display: "block" }}>
-                            Escala de tu frasco frente a la foto del perfume original
-                          </span>
-                        </div>
-                      </div>
 
-                      {/* ── VISTA PREVIA EN TIEMPO REAL DE LA TARJETA EN VITRINA ── */}
-                      <div style={{
-                        margin: "14px 0",
-                        background: "var(--bg-card)",
-                        border: "1.5px solid rgba(138,74,243,0.3)",
-                        borderRadius: "16px",
-                        padding: "16px",
-                        boxShadow: "0 6px 20px rgba(138,74,243,0.06)"
-                      }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", flexWrap: "wrap", gap: "6px" }}>
-                          <span style={{ fontSize: "0.82rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: "#8A4AF3", display: "flex", alignItems: "center", gap: "6px" }}>
-                            <i className="fa-solid fa-eye"></i> Vista Previa en Vivo de la Tarjeta ({prodForm.perfumeDuoScale || 85}%)
-                          </span>
-                          <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
-                            ✨ Mueve el control arriba para ver cómo cambia en tiempo real
-                          </span>
-                        </div>
+                          {/* Controles del Frasco Seleccionado */}
+                          <div style={{
+                            background: "rgba(138,74,243,0.04)",
+                            border: "1px dashed rgba(138,74,243,0.25)",
+                            borderRadius: "12px",
+                            padding: "12px 14px",
+                            marginBottom: "16px"
+                          }}>
+                            {activeDuoBottle === "brand" ? (
+                              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px 16px" }}>
+                                {/* 1. Tamaño Frasco Marca */}
+                                <div>
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                                    <span style={{ fontSize: "0.75rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "5px" }}>
+                                      <i className="fa-solid fa-maximize" style={{ color: "#8A4AF3" }}></i> Tamaño Frasco de Marca
+                                    </span>
+                                    <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "#8A4AF3" }}>{prodForm.perfumeDuoScale || 85}%</span>
+                                  </div>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                    <input 
+                                      type="range"
+                                      min="50"
+                                      max="125"
+                                      step="1"
+                                      value={prodForm.perfumeDuoScale || 85}
+                                      onChange={e => setProdForm({ ...prodForm, perfumeDuoScale: Number(e.target.value) })}
+                                      style={{ flex: 1, accentColor: "#8A4AF3", cursor: "pointer" }}
+                                    />
+                                    <div style={{ display: "flex", gap: "3px" }}>
+                                      {[75, 85, 100].map(sc => (
+                                        <button
+                                          key={sc}
+                                          type="button"
+                                          onClick={() => setProdForm({ ...prodForm, perfumeDuoScale: sc })}
+                                          style={{
+                                            fontSize: "0.65rem",
+                                            padding: "2px 5px",
+                                            borderRadius: "5px",
+                                            border: (prodForm.perfumeDuoScale === sc) ? "1.5px solid #8A4AF3" : "1px solid var(--border-color)",
+                                            background: (prodForm.perfumeDuoScale === sc) ? "rgba(138,74,243,0.15)" : "var(--bg-input)",
+                                            color: (prodForm.perfumeDuoScale === sc) ? "#8A4AF3" : "inherit",
+                                            cursor: "pointer",
+                                            fontWeight: (prodForm.perfumeDuoScale === sc) ? 800 : 500
+                                          }}
+                                        >
+                                          {sc}%
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
 
-                        {(() => {
-                          const validSizes = (prodForm.sizes || []).filter(s => s && (s.size || s.price));
-                          const activeSize = prodForm.hasMultipleSizes && validSizes.length > 0
-                            ? (validSizes[previewSizeIndex] || validSizes[0])
-                            : null;
-                          const currentPrice = activeSize ? activeSize.price : (prodForm.price || "0");
-                          const currentPriceAourum = activeSize ? activeSize.priceAourum : (prodForm.priceAourum || null);
-                          const currentImg = (activeSize && activeSize.image) ? activeSize.image : prodForm.image;
+                                {/* 2. Posición Horizontal X */}
+                                <div>
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                                    <span style={{ fontSize: "0.75rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "5px" }}>
+                                      <i className="fa-solid fa-arrows-left-right" style={{ color: "#8A4AF3" }}></i> Posición Horizontal
+                                    </span>
+                                    <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "#8A4AF3" }}>
+                                      {(prodForm.perfumeDuoX || 0) === 0 ? "Centro (0%)" : (prodForm.perfumeDuoX > 0 ? `+${prodForm.perfumeDuoX}% Der` : `${prodForm.perfumeDuoX}% Izq`)}
+                                    </span>
+                                  </div>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                    <button 
+                                      type="button" 
+                                      onClick={() => setProdForm({ ...prodForm, perfumeDuoX: Math.max(-30, (prodForm.perfumeDuoX || 0) - 2) })}
+                                      title="Mover a la izquierda"
+                                      style={{ padding: "2px 7px", fontSize: "0.7rem", borderRadius: "5px", border: "1px solid var(--border-color)", background: "var(--bg-input)", cursor: "pointer" }}
+                                    >
+                                      ◀
+                                    </button>
+                                    <input 
+                                      type="range"
+                                      min="-30"
+                                      max="30"
+                                      step="1"
+                                      value={prodForm.perfumeDuoX || 0}
+                                      onChange={e => setProdForm({ ...prodForm, perfumeDuoX: Number(e.target.value) })}
+                                      style={{ flex: 1, accentColor: "#8A4AF3", cursor: "pointer" }}
+                                    />
+                                    <button 
+                                      type="button" 
+                                      onClick={() => setProdForm({ ...prodForm, perfumeDuoX: Math.min(30, (prodForm.perfumeDuoX || 0) + 2) })}
+                                      title="Mover a la derecha"
+                                      style={{ padding: "2px 7px", fontSize: "0.7rem", borderRadius: "5px", border: "1px solid var(--border-color)", background: "var(--bg-input)", cursor: "pointer" }}
+                                    >
+                                      ▶
+                                    </button>
+                                  </div>
+                                </div>
 
-                          const cardVisualProd = {
-                            id: "preview",
-                            name: prodForm.name || "Nombre de la Fragancia",
-                            category: prodForm.category || "Amaderado",
-                            image: currentImg || null,
-                            imgBgColor: prodForm.imgBgColor || "transparent"
-                          };
+                                {/* 3. Posición Vertical Y */}
+                                <div>
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                                    <span style={{ fontSize: "0.75rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "5px" }}>
+                                      <i className="fa-solid fa-arrows-up-down" style={{ color: "#8A4AF3" }}></i> Posición Vertical
+                                    </span>
+                                    <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "#8A4AF3" }}>
+                                      {(prodForm.perfumeDuoY || 0) === 0 ? "Nivel (0%)" : (prodForm.perfumeDuoY > 0 ? `+${prodForm.perfumeDuoY}% Arriba` : `${prodForm.perfumeDuoY}% Abajo`)}
+                                    </span>
+                                  </div>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                    <button 
+                                      type="button" 
+                                      onClick={() => setProdForm({ ...prodForm, perfumeDuoY: Math.max(-25, (prodForm.perfumeDuoY || 0) - 2) })}
+                                      title="Bajar frasco"
+                                      style={{ padding: "2px 7px", fontSize: "0.7rem", borderRadius: "5px", border: "1px solid var(--border-color)", background: "var(--bg-input)", cursor: "pointer" }}
+                                    >
+                                      ▼
+                                    </button>
+                                    <input 
+                                      type="range"
+                                      min="-25"
+                                      max="25"
+                                      step="1"
+                                      value={prodForm.perfumeDuoY || 0}
+                                      onChange={e => setProdForm({ ...prodForm, perfumeDuoY: Number(e.target.value) })}
+                                      style={{ flex: 1, accentColor: "#8A4AF3", cursor: "pointer" }}
+                                    />
+                                    <button 
+                                      type="button" 
+                                      onClick={() => setProdForm({ ...prodForm, perfumeDuoY: Math.min(25, (prodForm.perfumeDuoY || 0) + 2) })}
+                                      title="Subir frasco"
+                                      style={{ padding: "2px 7px", fontSize: "0.7rem", borderRadius: "5px", border: "1px solid var(--border-color)", background: "var(--bg-input)", cursor: "pointer" }}
+                                    >
+                                      ▲
+                                    </button>
+                                  </div>
+                                </div>
 
-                          const cardPerfumeInfo = {
-                            inspiration: prodForm.perfumeInspiration,
-                            originalImg: prodForm.perfumeOriginalImg,
-                            family: prodForm.category,
-                            gender: prodForm.perfumeGender,
-                            concentration: prodForm.perfumeConcentration,
-                            ml: activeSize ? activeSize.size : (prodForm.perfumeMl || "50 ml"),
-                            duoScale: prodForm.perfumeDuoScale || 85
-                          };
-
-                          return (
-                            <div style={{ display: "flex", justifyContent: "center" }}>
-                              <div style={{ width: "230px", maxWidth: "100%" }}>
-                                <div 
-                                  className="glass-panel product-card" 
-                                  style={{ 
-                                    overflow: "hidden", 
-                                    display: "flex", 
-                                    flexDirection: "column", 
-                                    borderRadius: "16px",
-                                    border: "1px solid var(--border-color)",
-                                    boxShadow: "0 6px 18px rgba(0,0,0,0.08)"
-                                  }}
-                                >
-                                  <div 
-                                    className="card-img-container" 
-                                    style={{ 
-                                      position: "relative",
-                                      aspectRatio: "1 / 1",
-                                      backgroundColor: "transparent"
+                                {/* Reset Botón */}
+                                <div style={{ display: "flex", alignItems: "flex-end" }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => setProdForm({ ...prodForm, perfumeDuoScale: 85, perfumeDuoX: 0, perfumeDuoY: 0 })}
+                                    style={{
+                                      padding: "6px 12px",
+                                      borderRadius: "8px",
+                                      border: "1px solid var(--border-color)",
+                                      background: "var(--bg-input)",
+                                      fontSize: "0.72rem",
+                                      fontWeight: 600,
+                                      cursor: "pointer",
+                                      color: "var(--text-muted)",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "5px"
                                     }}
                                   >
-                                    {/* Top Badges Bar */}
-                                    <div style={{
-                                      position: "absolute",
-                                      top: "8px",
-                                      left: "8px",
-                                      right: "8px",
-                                      display: "flex",
-                                      justifyContent: "space-between",
-                                      alignItems: "flex-start",
-                                      gap: "4px",
-                                      zIndex: 6,
-                                      pointerEvents: "none"
-                                    }}>
-                                      <span style={{
-                                        background: "rgba(15, 23, 42, 0.85)",
-                                        color: "#F8FAFC",
-                                        fontWeight: 700,
-                                        fontSize: "0.62rem",
-                                        padding: "3px 8px",
-                                        borderRadius: "12px",
-                                        backdropFilter: "blur(4px)",
-                                        textTransform: "uppercase",
-                                        letterSpacing: "0.04em",
-                                        border: "1px solid rgba(255, 255, 255, 0.2)",
-                                        display: "inline-flex",
-                                        alignItems: "center",
-                                        gap: "4px",
-                                        whiteSpace: "nowrap"
-                                      }}>
-                                        <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "#FCD34D" }}></i>
-                                        Descubre
-                                      </span>
+                                    <i className="fa-solid fa-rotate-left"></i> Restablecer Frasco de Marca
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px 16px" }}>
+                                {/* 1. Tamaño Frasco Original */}
+                                <div>
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                                    <span style={{ fontSize: "0.75rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "5px" }}>
+                                      <i className="fa-solid fa-maximize" style={{ color: "#8A4AF3" }}></i> Tamaño Frasco Original
+                                    </span>
+                                    <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "#8A4AF3" }}>{prodForm.perfumeOrigScale || 100}%</span>
+                                  </div>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                    <input 
+                                      type="range"
+                                      min="50"
+                                      max="125"
+                                      step="1"
+                                      value={prodForm.perfumeOrigScale || 100}
+                                      onChange={e => setProdForm({ ...prodForm, perfumeOrigScale: Number(e.target.value) })}
+                                      style={{ flex: 1, accentColor: "#8A4AF3", cursor: "pointer" }}
+                                    />
+                                    <div style={{ display: "flex", gap: "3px" }}>
+                                      {[80, 90, 100].map(sc => (
+                                        <button
+                                          key={sc}
+                                          type="button"
+                                          onClick={() => setProdForm({ ...prodForm, perfumeOrigScale: sc })}
+                                          style={{
+                                            fontSize: "0.65rem",
+                                            padding: "2px 5px",
+                                            borderRadius: "5px",
+                                            border: (prodForm.perfumeOrigScale === sc) ? "1.5px solid #8A4AF3" : "1px solid var(--border-color)",
+                                            background: (prodForm.perfumeOrigScale === sc) ? "rgba(138,74,243,0.15)" : "var(--bg-input)",
+                                            color: (prodForm.perfumeOrigScale === sc) ? "#8A4AF3" : "inherit",
+                                            cursor: "pointer",
+                                            fontWeight: (prodForm.perfumeOrigScale === sc) ? 800 : 500
+                                          }}
+                                        >
+                                          {sc}%
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
 
-                                      {prodForm.perfumeGender && (
+                                {/* 2. Posición Horizontal X Frasco Original */}
+                                <div>
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                                    <span style={{ fontSize: "0.75rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "5px" }}>
+                                      <i className="fa-solid fa-arrows-left-right" style={{ color: "#8A4AF3" }}></i> Posición Horizontal Original
+                                    </span>
+                                    <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "#8A4AF3" }}>
+                                      {(prodForm.perfumeOrigX || 0) === 0 ? "Centro (0%)" : (prodForm.perfumeOrigX > 0 ? `+${prodForm.perfumeOrigX}% Der` : `${prodForm.perfumeOrigX}% Izq`)}
+                                    </span>
+                                  </div>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                    <button 
+                                      type="button" 
+                                      onClick={() => setProdForm({ ...prodForm, perfumeOrigX: Math.max(-30, (prodForm.perfumeOrigX || 0) - 2) })}
+                                      title="Mover a la izquierda"
+                                      style={{ padding: "2px 7px", fontSize: "0.7rem", borderRadius: "5px", border: "1px solid var(--border-color)", background: "var(--bg-input)", cursor: "pointer" }}
+                                    >
+                                      ◀
+                                    </button>
+                                    <input 
+                                      type="range"
+                                      min="-30"
+                                      max="30"
+                                      step="1"
+                                      value={prodForm.perfumeOrigX || 0}
+                                      onChange={e => setProdForm({ ...prodForm, perfumeOrigX: Number(e.target.value) })}
+                                      style={{ flex: 1, accentColor: "#8A4AF3", cursor: "pointer" }}
+                                    />
+                                    <button 
+                                      type="button" 
+                                      onClick={() => setProdForm({ ...prodForm, perfumeOrigX: Math.min(30, (prodForm.perfumeOrigX || 0) + 2) })}
+                                      title="Mover a la derecha"
+                                      style={{ padding: "2px 7px", fontSize: "0.7rem", borderRadius: "5px", border: "1px solid var(--border-color)", background: "var(--bg-input)", cursor: "pointer" }}
+                                    >
+                                      ▶
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* 3. Posición Vertical Y Frasco Original */}
+                                <div>
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                                    <span style={{ fontSize: "0.75rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "5px" }}>
+                                      <i className="fa-solid fa-arrows-up-down" style={{ color: "#8A4AF3" }}></i> Posición Vertical Original
+                                    </span>
+                                    <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "#8A4AF3" }}>
+                                      {(prodForm.perfumeOrigY || 0) === 0 ? "Nivel (0%)" : (prodForm.perfumeOrigY > 0 ? `+${prodForm.perfumeOrigY}% Arriba` : `${prodForm.perfumeOrigY}% Abajo`)}
+                                    </span>
+                                  </div>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                    <button 
+                                      type="button" 
+                                      onClick={() => setProdForm({ ...prodForm, perfumeOrigY: Math.max(-25, (prodForm.perfumeOrigY || 0) - 2) })}
+                                      title="Bajar frasco"
+                                      style={{ padding: "2px 7px", fontSize: "0.7rem", borderRadius: "5px", border: "1px solid var(--border-color)", background: "var(--bg-input)", cursor: "pointer" }}
+                                    >
+                                      ▼
+                                    </button>
+                                    <input 
+                                      type="range"
+                                      min="-25"
+                                      max="25"
+                                      step="1"
+                                      value={prodForm.perfumeOrigY || 0}
+                                      onChange={e => setProdForm({ ...prodForm, perfumeOrigY: Number(e.target.value) })}
+                                      style={{ flex: 1, accentColor: "#8A4AF3", cursor: "pointer" }}
+                                    />
+                                    <button 
+                                      type="button" 
+                                      onClick={() => setProdForm({ ...prodForm, perfumeOrigY: Math.min(25, (prodForm.perfumeOrigY || 0) + 2) })}
+                                      title="Subir frasco"
+                                      style={{ padding: "2px 7px", fontSize: "0.7rem", borderRadius: "5px", border: "1px solid var(--border-color)", background: "var(--bg-input)", cursor: "pointer" }}
+                                    >
+                                      ▲
+                                    </button>
+                                  </div>
+                                </div>
+
+                                {/* Reset Botón Original */}
+                                <div style={{ display: "flex", alignItems: "flex-end" }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => setProdForm({ ...prodForm, perfumeOrigScale: 100, perfumeOrigX: 0, perfumeOrigY: 0 })}
+                                    style={{
+                                      padding: "6px 12px",
+                                      borderRadius: "8px",
+                                      border: "1px solid var(--border-color)",
+                                      background: "var(--bg-input)",
+                                      fontSize: "0.72rem",
+                                      fontWeight: 600,
+                                      cursor: "pointer",
+                                      color: "var(--text-muted)",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "5px"
+                                    }}
+                                  >
+                                    <i className="fa-solid fa-rotate-left"></i> Restablecer Frasco Original
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* ── TARJETA EN TIEMPO REAL CON TAMAÑO EXACTO DEL CATÁLOGO ── */}
+                          <div style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: "10px",
+                            flexWrap: "wrap",
+                            gap: "6px",
+                            borderTop: "1px solid rgba(138,74,243,0.18)",
+                            paddingTop: "12px"
+                          }}>
+                            <span style={{ fontSize: "0.78rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em", color: "#8A4AF3", display: "flex", alignItems: "center", gap: "6px" }}>
+                              <i className="fa-solid fa-eye"></i> Vista Previa en Vivo (Tamaño Real de Vitrina)
+                            </span>
+
+                            {/* Switch de tamaño de simulación: Celular vs PC */}
+                            <div style={{ display: "inline-flex", background: "var(--bg-input)", padding: "2px", borderRadius: "8px", border: "1px solid var(--border-color)", gap: "2px" }}>
+                              <button
+                                type="button"
+                                onClick={() => setPreviewDevice("mobile")}
+                                style={{
+                                  padding: "3px 8px",
+                                  borderRadius: "6px",
+                                  fontSize: "0.68rem",
+                                  fontWeight: previewDevice === "mobile" ? 800 : 500,
+                                  background: previewDevice === "mobile" ? "#8A4AF3" : "transparent",
+                                  color: previewDevice === "mobile" ? "#FFF" : "inherit",
+                                  border: "none",
+                                  cursor: "pointer"
+                                }}
+                              >
+                                📱 Celular (165px)
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setPreviewDevice("desktop")}
+                                style={{
+                                  padding: "3px 8px",
+                                  borderRadius: "6px",
+                                  fontSize: "0.68rem",
+                                  fontWeight: previewDevice === "desktop" ? 800 : 500,
+                                  background: previewDevice === "desktop" ? "#8A4AF3" : "transparent",
+                                  color: previewDevice === "desktop" ? "#FFF" : "inherit",
+                                  border: "none",
+                                  cursor: "pointer"
+                                }}
+                              >
+                                💻 PC (205px)
+                              </button>
+                            </div>
+                          </div>
+
+                          {(() => {
+                            const validSizes = (prodForm.sizes || []).filter(s => s && (s.size || s.price));
+                            const activeSize = prodForm.hasMultipleSizes && validSizes.length > 0
+                              ? (validSizes[previewSizeIndex] || validSizes[0])
+                              : null;
+                            const currentPrice = activeSize ? activeSize.price : (prodForm.price || "0");
+                            const currentPriceAourum = activeSize ? activeSize.priceAourum : (prodForm.priceAourum || null);
+                            const currentImg = (activeSize && activeSize.image) ? activeSize.image : prodForm.image;
+
+                            const cardVisualProd = {
+                              id: "preview",
+                              name: prodForm.name || "Nombre de la Fragancia",
+                              category: prodForm.category || "Amaderado",
+                              image: currentImg || null,
+                              imgBgColor: prodForm.imgBgColor || "transparent"
+                            };
+
+                            const cardPerfumeInfo = {
+                              inspiration: prodForm.perfumeInspiration,
+                              originalImg: prodForm.perfumeOriginalImg,
+                              family: prodForm.category,
+                              gender: prodForm.perfumeGender,
+                              concentration: prodForm.perfumeConcentration,
+                              ml: activeSize ? activeSize.size : (prodForm.perfumeMl || "50 ml"),
+                              duoScale: prodForm.perfumeDuoScale || 85,
+                              duoX: prodForm.perfumeDuoX || 0,
+                              duoY: prodForm.perfumeDuoY || 0,
+                              origScale: prodForm.perfumeOrigScale || 100,
+                              origX: prodForm.perfumeOrigX || 0,
+                              origY: prodForm.perfumeOrigY || 0
+                            };
+
+                            const isMobilePreview = previewDevice === "mobile";
+                            const cardWidth = isMobilePreview ? "165px" : "205px";
+
+                            return (
+                              <div style={{ display: "flex", justifyContent: "center", padding: "4px 0" }}>
+                                <div style={{ width: cardWidth, maxWidth: "100%", transition: "width 0.2s ease" }}>
+                                  <div 
+                                    className="glass-panel product-card" 
+                                    style={{ 
+                                      overflow: "hidden", 
+                                      display: "flex", 
+                                      flexDirection: "column", 
+                                      borderRadius: "16px",
+                                      border: "1px solid var(--border-color)",
+                                      boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
+                                      background: "var(--bg-card)"
+                                    }}
+                                  >
+                                    <div 
+                                      className="card-img-container" 
+                                      style={{ 
+                                        position: "relative",
+                                        aspectRatio: "1 / 1",
+                                        width: "100%",
+                                        backgroundColor: "transparent"
+                                      }}
+                                    >
+                                      {/* Top Badges Bar */}
+                                      <div style={{
+                                        position: "absolute",
+                                        top: "6px",
+                                        left: "6px",
+                                        right: "6px",
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "flex-start",
+                                        gap: "3px",
+                                        zIndex: 6,
+                                        pointerEvents: "none"
+                                      }}>
                                         <span style={{
                                           background: "rgba(15, 23, 42, 0.85)",
                                           color: "#F8FAFC",
                                           fontWeight: 700,
-                                          fontSize: "0.62rem",
-                                          padding: "3px 8px",
-                                          borderRadius: "12px",
+                                          fontSize: "0.58rem",
+                                          padding: "2px 6px",
+                                          borderRadius: "10px",
                                           backdropFilter: "blur(4px)",
+                                          textTransform: "uppercase",
+                                          letterSpacing: "0.03em",
                                           border: "1px solid rgba(255, 255, 255, 0.2)",
                                           display: "inline-flex",
                                           alignItems: "center",
-                                          gap: "4px",
+                                          gap: "3px",
                                           whiteSpace: "nowrap"
                                         }}>
-                                          {prodForm.perfumeGender === "Hombre" && "👔 Hombre"}
-                                          {prodForm.perfumeGender === "Mujer" && "👗 Mujer"}
-                                          {prodForm.perfumeGender === "Unisex" && "✨ Unisex"}
+                                          <i className="fa-solid fa-wand-magic-sparkles" style={{ color: "#FCD34D", fontSize: "0.52rem" }}></i>
+                                          Descubre
                                         </span>
-                                      )}
-                                    </div>
 
-                                    <ProductCardVisual
-                                      prod={cardVisualProd}
-                                      perfumeInfo={cardPerfumeInfo}
-                                      brandColor={selectedBrand?.color || "var(--gold-primary)"}
-                                    />
-                                  </div>
-
-                                  {/* Card Body */}
-                                  <div style={{ padding: "0.9rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.3rem" }}>
-                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px" }}>
-                                      <span style={{ 
-                                        fontSize: "0.7rem", 
-                                        color: "var(--text-gold)", 
-                                        letterSpacing: "0.05em", 
-                                        textTransform: "uppercase", 
-                                        fontWeight: 700,
-                                        whiteSpace: "nowrap",
-                                        overflow: "hidden",
-                                        textOverflow: "ellipsis",
-                                        flex: 1
-                                      }}>
-                                        {prodForm.category || "Perfumería"}
-                                      </span>
-                                      <span style={{ 
-                                        fontSize: "0.65rem", 
-                                        color: "var(--text-gold)", 
-                                        background: "rgba(212, 175, 55, 0.12)",
-                                        padding: "1px 6px",
-                                        borderRadius: "6px",
-                                        fontWeight: 700,
-                                        flexShrink: 0,
-                                        whiteSpace: "nowrap"
-                                      }}>
-                                        {activeSize ? activeSize.size : (prodForm.perfumeMl || "50 ml")}
-                                      </span>
-                                    </div>
-
-                                    <h3 style={{ fontSize: "0.95rem", fontWeight: 800, lineHeight: 1.3, margin: 0 }}>
-                                      {prodForm.name || "Nombre de la Fragancia"}
-                                    </h3>
-
-                                    {prodForm.perfumeInspiration && (
-                                      <div style={{ fontSize: "0.72rem", color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "5px" }}>
-                                        <i className="fa-solid fa-gem" style={{ fontSize: "0.65rem", opacity: 0.85 }}></i>
-                                        <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                          Insp: <strong>{prodForm.perfumeInspiration}</strong>
-                                        </span>
-                                      </div>
-                                    )}
-
-                                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}>
-                                      <span>Por:</span>
-                                      <strong style={{ textDecoration: "underline" }}>{selectedBrand?.name || "Tu Marca"}</strong>
-                                    </div>
-
-                                    {/* Pastillas de tamaños interactivos en la preview */}
-                                    {prodForm.hasMultipleSizes && validSizes.length > 0 && (
-                                      <div 
-                                        className="card-sizes-scroll"
-                                        style={{ 
-                                          display: "flex", 
-                                          gap: "4px", 
-                                          flexWrap: "nowrap",
-                                          overflowX: "auto",
-                                          scrollbarWidth: "none",
-                                          margin: "0.2rem 0 0.05rem 0",
-                                          padding: "1px 0"
-                                        }}
-                                      >
-                                        {validSizes.map((s, sIdx) => {
-                                          const isSelected = sIdx === previewSizeIndex;
-                                          return (
-                                            <button
-                                              key={sIdx}
-                                              type="button"
-                                              className="card-size-pill"
-                                              onClick={() => setPreviewSizeIndex(sIdx)}
-                                              title={`Ver tamaño ${s.size} por S/ ${s.price}`}
-                                              style={{
-                                                flex: "0 0 auto",
-                                                whiteSpace: "nowrap",
-                                                padding: "2px 7px",
-                                                borderRadius: "6px",
-                                                fontSize: "0.64rem",
-                                                fontWeight: isSelected ? 800 : 600,
-                                                cursor: "pointer",
-                                                border: isSelected ? "1.5px solid var(--gold-primary)" : "1px solid rgba(0,0,0,0.12)",
-                                                background: isSelected ? "rgba(212,175,55,0.15)" : "rgba(0,0,0,0.03)",
-                                                color: isSelected ? "var(--gold-primary)" : "var(--text-muted)",
-                                                transition: "all 0.15s ease"
-                                              }}
-                                            >
-                                              {s.size}
-                                            </button>
-                                          );
-                                        })}
-                                      </div>
-                                    )}
-
-                                    {/* Precio */}
-                                    <div style={{ 
-                                      display: "flex", 
-                                      justifyContent: "space-between", 
-                                      alignItems: "center", 
-                                      borderTop: "1px solid var(--border-color)", 
-                                      paddingTop: "0.5rem", 
-                                      marginTop: "auto" 
-                                    }}>
-                                      <div>
-                                        {currentPriceAourum ? (
-                                          <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
-                                            <div style={{ display: "flex", alignItems: "center", gap: "3px" }}>
-                                              <span style={{ fontSize: "0.64rem", color: "var(--text-muted)", textDecoration: "line-through", lineHeight: 1 }}>
-                                                S/ {currentPrice}
-                                              </span>
-                                              <span style={{ fontSize: "0.48rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 3px", borderRadius: "3px", fontWeight: "800", textTransform: "uppercase" }}>
-                                                Aourum
-                                              </span>
-                                            </div>
-                                            <span style={{ fontSize: "0.95rem", fontWeight: 800, lineHeight: 1 }}>
-                                              S/ {currentPriceAourum}
-                                            </span>
-                                          </div>
-                                        ) : (
-                                          <div style={{ display: "flex", flexDirection: "column" }}>
-                                            {prodForm.hasMultipleSizes && (
-                                              <span style={{ fontSize: "0.55rem", textTransform: "uppercase", fontWeight: 700, color: "var(--text-muted)", lineHeight: 1 }}>
-                                                Desde
-                                              </span>
-                                            )}
-                                            <span style={{ fontSize: "0.95rem", fontWeight: 800 }}>
-                                              S/ {currentPrice || "0"}
-                                            </span>
-                                          </div>
+                                        {prodForm.perfumeGender && (
+                                          <span style={{
+                                            background: "rgba(15, 23, 42, 0.85)",
+                                            color: "#F8FAFC",
+                                            fontWeight: 700,
+                                            fontSize: "0.58rem",
+                                            padding: "2px 6px",
+                                            borderRadius: "10px",
+                                            backdropFilter: "blur(4px)",
+                                            border: "1px solid rgba(255, 255, 255, 0.2)",
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: "3px",
+                                            whiteSpace: "nowrap"
+                                          }}>
+                                            {prodForm.perfumeGender === "Hombre" && "👔 Hombre"}
+                                            {prodForm.perfumeGender === "Mujer" && "👗 Mujer"}
+                                            {prodForm.perfumeGender === "Unisex" && "✨ Unisex"}
+                                          </span>
                                         )}
                                       </div>
 
-                                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
-                                        <span style={{ fontSize: "0.58rem", fontWeight: 700, textTransform: "uppercase", color: "#78350f" }}>
-                                          Producto
+                                      <ProductCardVisual
+                                        prod={cardVisualProd}
+                                        perfumeInfo={cardPerfumeInfo}
+                                        brandColor={selectedBrand?.color || "var(--gold-primary)"}
+                                      />
+                                    </div>
+
+                                    {/* Card Body idéntico a las tarjetas del catálogo */}
+                                    <div style={{ padding: "0.65rem 0.6rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.22rem" }}>
+                                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "4px" }}>
+                                        <span style={{ 
+                                          fontSize: "0.62rem", 
+                                          color: "var(--text-gold)", 
+                                          letterSpacing: "0.04em", 
+                                          textTransform: "uppercase", 
+                                          fontWeight: 700,
+                                          whiteSpace: "nowrap",
+                                          overflow: "hidden",
+                                          textOverflow: "ellipsis",
+                                          flex: 1
+                                        }}>
+                                          {prodForm.category || "Perfumería"}
                                         </span>
-                                        <span style={{ fontSize: "0.58rem", fontWeight: 700, padding: "1px 5px", borderRadius: "6px", background: "#dcfce7", color: "#15803d" }}>
-                                          Stock
+                                        <span style={{ 
+                                          fontSize: "0.6rem", 
+                                          color: "var(--text-gold)", 
+                                          background: "rgba(212, 175, 55, 0.12)",
+                                          padding: "1px 5px",
+                                          borderRadius: "5px",
+                                          fontWeight: 700,
+                                          flexShrink: 0,
+                                          whiteSpace: "nowrap"
+                                        }}>
+                                          {activeSize ? activeSize.size : (prodForm.perfumeMl || "50 ml")}
                                         </span>
+                                      </div>
+
+                                      <h3 style={{ 
+                                        fontSize: "0.82rem", 
+                                        fontWeight: 800, 
+                                        lineHeight: 1.25, 
+                                        margin: 0,
+                                        display: "-webkit-box",
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: "vertical",
+                                        overflow: "hidden",
+                                        height: "2.5em"
+                                      }}>
+                                        {prodForm.name || "Nombre de la Fragancia"}
+                                      </h3>
+
+                                      {prodForm.perfumeInspiration && (
+                                        <div style={{ fontSize: "0.68rem", color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "4px" }}>
+                                          <i className="fa-solid fa-gem" style={{ fontSize: "0.6rem", opacity: 0.85 }}></i>
+                                          <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                            Insp: <strong>{prodForm.perfumeInspiration}</strong>
+                                          </span>
+                                        </div>
+                                      )}
+
+                                      <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px" }}>
+                                        <span>Por:</span>
+                                        <strong style={{ textDecoration: "underline" }}>{selectedBrand?.name || "Tu Marca"}</strong>
+                                      </div>
+
+                                      {/* Pastillas de tamaños interactivos en la preview */}
+                                      {prodForm.hasMultipleSizes && validSizes.length > 0 && (
+                                        <div 
+                                          className="card-sizes-scroll"
+                                          style={{ 
+                                            display: "flex", 
+                                            gap: "3px", 
+                                            flexWrap: "nowrap",
+                                            overflowX: "auto",
+                                            scrollbarWidth: "none",
+                                            margin: "0.15rem 0 0.05rem 0",
+                                            padding: "1px 0"
+                                          }}
+                                        >
+                                          {validSizes.map((s, sIdx) => {
+                                            const isSelected = sIdx === previewSizeIndex;
+                                            return (
+                                              <button
+                                                key={sIdx}
+                                                type="button"
+                                                className="card-size-pill"
+                                                onClick={() => setPreviewSizeIndex(sIdx)}
+                                                title={`Ver tamaño ${s.size} por S/ ${s.price}`}
+                                                style={{
+                                                  flex: "0 0 auto",
+                                                  whiteSpace: "nowrap",
+                                                  padding: "2px 5px",
+                                                  borderRadius: "5px",
+                                                  fontSize: "0.6rem",
+                                                  fontWeight: isSelected ? 800 : 600,
+                                                  cursor: "pointer",
+                                                  border: isSelected ? "1.5px solid var(--gold-primary)" : "1px solid rgba(0,0,0,0.12)",
+                                                  background: isSelected ? "rgba(212,175,55,0.15)" : "rgba(0,0,0,0.03)",
+                                                  color: isSelected ? "var(--gold-primary)" : "var(--text-muted)",
+                                                  transition: "all 0.15s ease"
+                                                }}
+                                              >
+                                                {s.size}
+                                              </button>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
+
+                                      {/* Precio */}
+                                      <div style={{ 
+                                        display: "flex", 
+                                        justifyContent: "space-between", 
+                                        alignItems: "center", 
+                                        borderTop: "1px solid var(--border-color)", 
+                                        paddingTop: "0.4rem", 
+                                        marginTop: "auto" 
+                                      }}>
+                                        <div>
+                                          {currentPriceAourum ? (
+                                            <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+                                              <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+                                                <span style={{ fontSize: "0.6rem", color: "var(--text-muted)", textDecoration: "line-through", lineHeight: 1 }}>
+                                                  S/ {currentPrice}
+                                                </span>
+                                                <span style={{ fontSize: "0.46rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 3px", borderRadius: "3px", fontWeight: "800", textTransform: "uppercase" }}>
+                                                  Aourum
+                                                </span>
+                                              </div>
+                                              <span style={{ fontSize: "0.88rem", fontWeight: 800, lineHeight: 1 }}>
+                                                S/ {currentPriceAourum}
+                                              </span>
+                                            </div>
+                                          ) : (
+                                            <div style={{ display: "flex", flexDirection: "column" }}>
+                                              {prodForm.hasMultipleSizes && (
+                                                <span style={{ fontSize: "0.52rem", textTransform: "uppercase", fontWeight: 700, color: "var(--text-muted)", lineHeight: 1 }}>
+                                                  Desde
+                                                </span>
+                                              )}
+                                              <span style={{ fontSize: "0.88rem", fontWeight: 800 }}>
+                                                S/ {currentPrice || "0"}
+                                              </span>
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "1px" }}>
+                                          <span style={{ fontSize: "0.52rem", fontWeight: 700, textTransform: "uppercase", color: "#78350f" }}>
+                                            Producto
+                                          </span>
+                                          <span style={{ fontSize: "0.52rem", fontWeight: 700, padding: "1px 4px", borderRadius: "5px", background: "#dcfce7", color: "#15803d" }}>
+                                            Stock
+                                          </span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        })()}
-                      </div>
+                            );
+                          })()}
+                        </div>
 
                       <div className="form-group">
                         <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Notas Olfativas (Salida, Corazón, Fondo)</label>

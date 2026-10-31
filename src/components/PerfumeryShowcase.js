@@ -109,12 +109,48 @@ export function parsePerfumeInfo(prod) {
   let originalImg = meta.originalImg || meta.originalImage || meta.inspirationImg || prod.originalImg || prod.originalImage || "";
   let family = meta.family || meta.familia || "";
   let duoScale = meta.duoScale || meta.scale || null;
+  let duoX = meta.duoX !== undefined ? Number(meta.duoX) : 0;
+  let duoY = meta.duoY !== undefined ? Number(meta.duoY) : 0;
+  let origScale = meta.origScale ? Number(meta.origScale) : 100;
+  let origX = meta.origX !== undefined ? Number(meta.origX) : 0;
+  let origY = meta.origY !== undefined ? Number(meta.origY) : 0;
+
+  // Check [DuoConfig: scale=85, x=0, y=0, oScale=100, oX=0, oY=0]
+  const configMatch = rawDesc.match(/\[\s*DuoConfig\s*:\s*([^\]]+)\]/i);
+  if (configMatch && configMatch[1]) {
+    const parts = configMatch[1].split(/[,;]/);
+    parts.forEach(p => {
+      const [k, v] = p.split('=').map(s => s && s.trim());
+      if (k && v !== undefined) {
+        const num = Number(v.replace('%', ''));
+        if (!isNaN(num)) {
+          if (/^scale$/i.test(k)) duoScale = num;
+          if (/^x$/i.test(k)) duoX = num;
+          if (/^y$/i.test(k)) duoY = num;
+          if (/^oScale$/i.test(k)) origScale = num;
+          if (/^oX$/i.test(k)) origX = num;
+          if (/^oY$/i.test(k)) origY = num;
+        }
+      }
+    });
+  }
+
   if (!duoScale) {
     const scaleMatch = rawDesc.match(/\[\s*(?:duoscale|frascoscale|escaladuo|scale)\s*:\s*(\d+)\s*%?\s*\]/i);
     if (scaleMatch && scaleMatch[1]) {
       duoScale = Number(scaleMatch[1]);
     }
   }
+  const dxMatch = rawDesc.match(/\[\s*(?:duox|brandx)\s*:\s*(-?\d+)\s*%?\s*\]/i);
+  if (dxMatch && dxMatch[1]) duoX = Number(dxMatch[1]);
+  const dyMatch = rawDesc.match(/\[\s*(?:duoy|brandy)\s*:\s*(-?\d+)\s*%?\s*\]/i);
+  if (dyMatch && dyMatch[1]) duoY = Number(dyMatch[1]);
+  const osMatch = rawDesc.match(/\[\s*(?:origscale)\s*:\s*(\d+)\s*%?\s*\]/i);
+  if (osMatch && osMatch[1]) origScale = Number(osMatch[1]);
+  const oxMatch = rawDesc.match(/\[\s*(?:origx)\s*:\s*(-?\d+)\s*%?\s*\]/i);
+  if (oxMatch && oxMatch[1]) origX = Number(oxMatch[1]);
+  const oyMatch = rawDesc.match(/\[\s*(?:origy)\s*:\s*(-?\d+)\s*%?\s*\]/i);
+  if (oyMatch && oyMatch[1]) origY = Number(oyMatch[1]);
   let gender = meta.gender || meta.genero || "";
   let concentration = meta.concentration || "";
   let ml = meta.ml || meta.volume || "";
@@ -244,6 +280,8 @@ export function parsePerfumeInfo(prod) {
     .replace(/\[\s*(?:presentaci[oó]n|tama[ñn]o|cantidad|gramaje|porci[oó]n)\s*:[^\]]+\]/gi, "")
     .replace(/\[\s*(?:tama[ñn]os|sizes|variaciones|presentaciones)\s*:\s*\[[^\]]+\]\s*\]/gi, "")
     .replace(/\[\s*(?:duoscale|frascoscale|escaladuo|scale)\s*:[^\]]+\]/gi, "")
+    .replace(/\[\s*DuoConfig\s*:[^\]]+\]/gi, "")
+    .replace(/\[\s*(?:duox|duoy|brandx|brandy|origscale|origx|origy)\s*:[^\]]+\]/gi, "")
     .trim();
 
   return {
@@ -257,7 +295,12 @@ export function parsePerfumeInfo(prod) {
     cleanName: parsedPres.cleanName || name,
     cleanDesc,
     sizes,
-    duoScale
+    duoScale: duoScale || 85,
+    duoX: duoX || 0,
+    duoY: duoY || 0,
+    origScale: origScale || 100,
+    origX: origX || 0,
+    origY: origY || 0
   };
 }
 
