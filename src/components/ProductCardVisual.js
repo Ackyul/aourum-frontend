@@ -27,8 +27,8 @@ export function getBottleSizeScaleFactor(currentSizeStr, allSizes = []) {
       return val.trim().toLowerCase() === curr.trim().toLowerCase();
     });
     if (idx >= 0) {
-      const step = 0.32 / (allSizes.length - 1);
-      return 0.70 + idx * step;
+      const step = 0.16 / (allSizes.length - 1);
+      return 0.90 + idx * step;
     }
     return 1.0;
   }
@@ -37,13 +37,13 @@ export function getBottleSizeScaleFactor(currentSizeStr, allSizes = []) {
   const maxVol = Math.max(...volumes);
   if (minVol === maxVol) return 1.0;
 
-  // Real cube root volumetric scaling, mapped to visually pleasing height range (0.70 to 1.02)
+  // Gentle volumetric scaling: min size is 88%, max size is 106% of configured scale
   const cubeMin = Math.cbrt(minVol);
   const cubeMax = Math.cbrt(maxVol);
   const cubeCurr = Math.cbrt(currentVol);
 
   const ratio = (cubeCurr - cubeMin) / (cubeMax - cubeMin);
-  return 0.70 + ratio * 0.32;
+  return 0.88 + ratio * 0.18;
 }
 
 /**
