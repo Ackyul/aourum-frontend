@@ -2851,28 +2851,25 @@ img {
   max-height: 86% !important;
 }
 
-/* Card hover subtle lift */
+/* Card hover subtle lift - do NOT overwrite custom transform/scale */
 .product-card:hover .perfume-duo-brand,
 .glass-panel:hover .perfume-duo-brand {
-  transform: translateY(-4px) scale(1.04);
-  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.35));
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.35));
 }
 
 .product-card:hover .perfume-duo-orig,
 .glass-panel:hover .perfume-duo-orig {
-  transform: translateY(-2px) scale(1.03);
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28));
 }
 
-/* Interactive hover on each bottle */
+/* Interactive hover on each bottle - preserves exact calibrated scale */
 .perfume-duo-orig:hover {
-  transform: translateY(-6px) scale(1.12) !important;
   z-index: 5 !important;
   opacity: 1 !important;
   filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.35)) !important;
 }
 
 .perfume-duo-brand:hover {
-  transform: translateY(-6px) scale(1.1) !important;
   z-index: 5 !important;
   filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.4)) !important;
 }
