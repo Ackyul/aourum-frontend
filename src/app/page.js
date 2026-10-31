@@ -776,8 +776,18 @@ export default function Home() {
           />
         </div>
         <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.35rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: "0.72rem", color: categoryTextColor, letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 700 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px" }}>
+            <span style={{ 
+              fontSize: "0.72rem", 
+              color: categoryTextColor, 
+              letterSpacing: "0.05em", 
+              textTransform: "uppercase", 
+              fontWeight: 700,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              flex: 1
+            }}>
               {isPerfume ? (perfumeInfo.family && !/jean paul|dior|baccarat|sauvage|elixir|creed|versace|chanel/i.test(perfumeInfo.family) ? perfumeInfo.family : "Perfumería") : prod.category}
             </span>
             {(activeSize?.size || perfumeInfo.ml || perfumeInfo.presentation) && (
@@ -787,7 +797,9 @@ export default function Home() {
                 background: isDarkBg ? "rgba(253, 224, 71, 0.12)" : "rgba(212, 175, 55, 0.12)",
                 padding: "1px 6px",
                 borderRadius: "6px",
-                fontWeight: 700 
+                fontWeight: 700,
+                flexShrink: 0,
+                whiteSpace: "nowrap"
               }}>
                 {activeSize?.size || perfumeInfo.ml || perfumeInfo.presentation}
               </span>
@@ -823,11 +835,18 @@ export default function Home() {
           {/* Pastillas interactivas de tamaños si tiene múltiples opciones */}
           {hasMultipleSizes && (
             <div 
+              className="card-sizes-scroll"
               style={{ 
                 display: "flex", 
-                gap: "5px", 
-                flexWrap: "wrap", 
-                margin: "0.3rem 0 0.1rem 0" 
+                gap: "4px", 
+                flexWrap: "nowrap",
+                overflowX: "auto",
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
+                WebkitOverflowScrolling: "touch",
+                margin: "0.2rem 0 0.05rem 0",
+                padding: "1px 0",
+                maxWidth: "100%"
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -837,15 +856,18 @@ export default function Home() {
                   <button
                     key={idx}
                     type="button"
+                    className="card-size-pill"
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedSizeIndex(idx);
                     }}
                     title={`Ver tamaño ${s.size} por S/ ${s.price}`}
                     style={{
-                      padding: "2px 8px",
-                      borderRadius: "8px",
-                      fontSize: "0.68rem",
+                      flex: "0 0 auto",
+                      whiteSpace: "nowrap",
+                      padding: "2px 7px",
+                      borderRadius: "6px",
+                      fontSize: "0.66rem",
                       fontWeight: isSelected ? 800 : 600,
                       cursor: "pointer",
                       border: isSelected 

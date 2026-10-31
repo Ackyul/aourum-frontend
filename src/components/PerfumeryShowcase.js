@@ -753,11 +753,18 @@ function PerfumeryShowcaseCard({
         {/* Pastillas de tamaños interactivos si tiene múltiples presentaciones */}
         {hasMultipleSizes && (
           <div 
+            className="card-sizes-scroll"
             style={{ 
               display: "flex", 
-              gap: "6px", 
-              flexWrap: "wrap", 
-              margin: "0.2rem 0" 
+              gap: "4px", 
+              flexWrap: "nowrap",
+              overflowX: "auto",
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+              WebkitOverflowScrolling: "touch",
+              margin: "0.2rem 0 0.05rem 0",
+              padding: "1px 0",
+              maxWidth: "100%"
             }} 
             onClick={(e) => e.stopPropagation()}
           >
@@ -767,15 +774,18 @@ function PerfumeryShowcaseCard({
                 <button
                   key={idx}
                   type="button"
+                  className="card-size-pill"
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedSizeIndex(idx);
                   }}
                   title={`Ver tamaño ${s.size} por S/ ${s.price}`}
                   style={{
-                    padding: "3px 10px",
-                    borderRadius: "8px",
-                    fontSize: "0.72rem",
+                    flex: "0 0 auto",
+                    whiteSpace: "nowrap",
+                    padding: "2px 8px",
+                    borderRadius: "6px",
+                    fontSize: "0.68rem",
                     fontWeight: isSelected ? 800 : 600,
                     cursor: "pointer",
                     border: isSelected 

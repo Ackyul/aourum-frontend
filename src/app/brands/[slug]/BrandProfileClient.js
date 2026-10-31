@@ -1282,13 +1282,17 @@ function BrandProductCard({ prod }) {
 
         {/* Bottom Details Body */}
         <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.35rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px" }}>
             <span style={{ 
               fontSize: "0.72rem", 
               color: categoryTextColor, 
               letterSpacing: "0.05em", 
               textTransform: "uppercase", 
-              fontWeight: 800
+              fontWeight: 800,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              flex: 1
             }}>
               {(isPerfume && pInfo.family) || prod.category || brand?.rubro_general || "General"}
             </span>
@@ -1299,7 +1303,9 @@ function BrandProductCard({ prod }) {
                 background: `${palette.c1}18`,
                 padding: "2px 6px",
                 borderRadius: "6px",
-                fontWeight: 700 
+                fontWeight: 700,
+                flexShrink: 0,
+                whiteSpace: "nowrap"
               }}>
                 {activeSize?.size || pInfo.ml || pInfo.presentation}
               </span>
@@ -1341,11 +1347,18 @@ function BrandProductCard({ prod }) {
           {/* Pastillas interactivas de tamaños si tiene múltiples opciones */}
           {hasMultipleSizes && (
             <div 
+              className="card-sizes-scroll"
               style={{ 
                 display: "flex", 
-                gap: "5px", 
-                flexWrap: "wrap", 
-                margin: "0.25rem 0 0.05rem 0" 
+                gap: "4px", 
+                flexWrap: "nowrap",
+                overflowX: "auto",
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
+                WebkitOverflowScrolling: "touch",
+                margin: "0.2rem 0 0.05rem 0",
+                padding: "1px 0",
+                maxWidth: "100%"
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -1355,15 +1368,18 @@ function BrandProductCard({ prod }) {
                   <button
                     key={idx}
                     type="button"
+                    className="card-size-pill"
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedSizeIndex(idx);
                     }}
                     title={`Ver tamaño ${s.size} por S/ ${s.price}`}
                     style={{
-                      padding: "2px 8px",
-                      borderRadius: "8px",
-                      fontSize: "0.68rem",
+                      flex: "0 0 auto",
+                      whiteSpace: "nowrap",
+                      padding: "2px 7px",
+                      borderRadius: "6px",
+                      fontSize: "0.66rem",
                       fontWeight: isSelected ? 800 : 600,
                       cursor: "pointer",
                       border: isSelected 
