@@ -3817,6 +3817,7 @@ export default function DashboardClient({ initialTab }) {
                             );
                           })()}
                         </div>
+                      </div>
 
                       <div className="form-group">
                         <label style={{ fontSize: "0.78rem", fontWeight: 700 }}>Notas Olfativas (Salida, Corazón, Fondo)</label>
