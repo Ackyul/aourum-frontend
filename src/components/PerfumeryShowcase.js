@@ -1,8 +1,8 @@
-import ProductCardVisual from "./ProductCardVisual";
 "use client";
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import ProductCardVisual from "./ProductCardVisual";
 
 // Helper universal para extraer presentación, tamaño, gramaje o cantidad de CUALQUIER producto
 export function parseProductPresentation(prod) {
