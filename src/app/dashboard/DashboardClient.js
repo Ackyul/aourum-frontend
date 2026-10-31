@@ -3657,6 +3657,8 @@ export default function DashboardClient({ initialTab }) {
                                       <ProductCardVisual
                                         prod={cardVisualProd}
                                         perfumeInfo={cardPerfumeInfo}
+                                        activeSize={activeSize}
+                                        allSizes={validSizes}
                                         brandColor={selectedBrand?.color || "var(--gold-primary)"}
                                       />
                                     </div>

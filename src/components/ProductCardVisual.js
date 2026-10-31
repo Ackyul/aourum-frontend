@@ -4,6 +4,49 @@ import { useState } from "react";
 import { parsePerfumeInfo } from "./PerfumeryShowcase";
 
 /**
+ * Calculates a relative volumetric scale factor for different perfume bottle sizes
+ * so that smaller ml (e.g. 25 ml) looks smaller and larger ml (e.g. 100 ml) grows proportionally.
+ */
+export function getBottleSizeScaleFactor(currentSizeStr, allSizes = []) {
+  if (!allSizes || allSizes.length <= 1) return 1.0;
+
+  const parseVol = (s) => {
+    if (!s) return null;
+    const str = typeof s === "object" ? (s.size || "") : String(s);
+    const m = str.match(/(\d+(?:\.\d+)?)\s*(?:ml|g|gr|oz)?/i);
+    return m ? parseFloat(m[1]) : null;
+  };
+
+  const currentVol = parseVol(currentSizeStr);
+  const volumes = allSizes.map(s => parseVol(s)).filter(v => v !== null && v > 0);
+
+  if (!currentVol || volumes.length <= 1) {
+    const idx = allSizes.findIndex(s => {
+      const val = typeof s === "object" ? (s.size || "") : String(s);
+      const curr = typeof currentSizeStr === "object" ? (currentSizeStr.size || "") : String(currentSizeStr);
+      return val.trim().toLowerCase() === curr.trim().toLowerCase();
+    });
+    if (idx >= 0) {
+      const step = 0.32 / (allSizes.length - 1);
+      return 0.70 + idx * step;
+    }
+    return 1.0;
+  }
+
+  const minVol = Math.min(...volumes);
+  const maxVol = Math.max(...volumes);
+  if (minVol === maxVol) return 1.0;
+
+  // Real cube root volumetric scaling, mapped to visually pleasing height range (0.70 to 1.02)
+  const cubeMin = Math.cbrt(minVol);
+  const cubeMax = Math.cbrt(maxVol);
+  const cubeCurr = Math.cbrt(currentVol);
+
+  const ratio = (cubeCurr - cubeMin) / (cubeMax - cubeMin);
+  return 0.70 + ratio * 0.32;
+}
+
+/**
  * ProductCardVisual renders the product image area with automatic support for
  * "El Dúo Visual" (Original Perfume Bottle + Brand Creation Bottle) when
  * originalImg is present for fragrance products.
@@ -11,6 +54,8 @@ import { parsePerfumeInfo } from "./PerfumeryShowcase";
 export default function ProductCardVisual({
   prod,
   perfumeInfo: providedInfo = null,
+  activeSize = null,
+  allSizes = null,
   brandColor = "var(--gold-primary)",
   isDark = false
 }) {
@@ -19,7 +64,17 @@ export default function ProductCardVisual({
 
   const info = providedInfo || parsePerfumeInfo(prod);
   const hasOriginal = Boolean(info.originalImg && !origImgError);
-  const brandImg = prod?.image;
+  
+  // Resolve sizes list and current active size
+  const sizesList = allSizes || prod?.sizes || info?.sizes || [];
+  const currentSizeName = activeSize?.size || activeSize || info?.ml || info?.presentation || "";
+  
+  // Dynamic scale factor based on active size: 25 ml is smaller, 50 ml medium, 100 ml full size
+  const sizeScaleFactor = getBottleSizeScaleFactor(currentSizeName, sizesList);
+  const baseDuoScale = info.duoScale || 85;
+  const effectiveDuoScale = baseDuoScale * sizeScaleFactor;
+
+  const brandImg = activeSize?.image || prod?.image;
 
   if (hasOriginal) {
     return (
@@ -83,8 +138,8 @@ export default function ProductCardVisual({
           title={prod?.name || "Nuestra Creación"}
           style={{
             right: `calc(5% - ${(info.duoX || 0)}%)`,
-            bottom: `calc(4% + ${(info.duoY || 0)}%)`,
-            transform: `scale(${(info.duoScale || 85) / 100})`,
+            bottom: `calc(5% + ${(info.duoY || 0)}%)`,
+            transform: `scale(${effectiveDuoScale / 100})`,
             transformOrigin: "bottom center"
           }}
         >

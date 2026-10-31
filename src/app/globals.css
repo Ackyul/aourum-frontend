@@ -2801,7 +2801,7 @@ img {
   width: 100% !important;
   height: 100% !important;
   max-width: 100% !important;
-  max-height: 88% !important;
+  max-height: 84% !important;
   object-fit: contain !important;
   display: block;
 }
@@ -2809,9 +2809,9 @@ img {
 .perfume-duo-orig {
   position: absolute;
   left: 6%;
-  bottom: 4%;
+  bottom: 5%;
   width: 44%;
-  height: 80%;
+  height: 76%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2825,9 +2825,9 @@ img {
 .perfume-duo-brand {
   position: absolute;
   right: 5%;
-  bottom: 4%;
-  width: 48%;
-  height: 82%;
+  bottom: 5%;
+  width: 46%;
+  height: 78%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2920,19 +2920,19 @@ img {
 @media (max-width: 640px) {
   .card-img-container .perfume-duo-wrapper img,
   .product-card .perfume-duo-wrapper img {
-    max-height: 88% !important;
+    max-height: 84% !important;
   }
   .perfume-duo-orig {
     left: 4% !important;
-    bottom: 4% !important;
+    bottom: 5% !important;
     width: 44% !important;
-    height: 80% !important;
+    height: 76% !important;
   }
   .perfume-duo-brand {
     right: 4% !important;
-    bottom: 3% !important;
-    width: 48% !important;
-    height: 82% !important;
+    bottom: 5% !important;
+    width: 46% !important;
+    height: 78% !important;
   }
   .perfume-duo-badge {
     font-size: 0.54rem;

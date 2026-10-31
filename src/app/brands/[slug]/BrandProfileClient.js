@@ -1275,6 +1275,8 @@ function BrandProductCard({ prod }) {
           <ProductCardVisual
             prod={visualProd}
             perfumeInfo={pInfo}
+            activeSize={activeSize}
+            allSizes={sizes}
             brandColor={palette.c1}
             isDark={isCardDark}
           />

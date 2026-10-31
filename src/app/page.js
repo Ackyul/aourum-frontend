@@ -771,6 +771,8 @@ export default function Home() {
           <ProductCardVisual
             prod={visualProd}
             perfumeInfo={perfumeInfo}
+            activeSize={activeSize}
+            allSizes={sizes}
             brandColor={brandColor}
             isDark={isDarkBg}
           />
