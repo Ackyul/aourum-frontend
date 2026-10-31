@@ -1,3 +1,4 @@
+import ProductCardVisual from "./ProductCardVisual";
 "use client";
 
 import { useState, useMemo } from "react";
@@ -278,10 +279,12 @@ export function parsePerfumeInfo(prod) {
     .replace(/\[\s*concentraci[oó]n\s*:[^\]]+\]/gi, "")
     .replace(/\[\s*ml\s*:[^\]]+\]/gi, "")
     .replace(/\[\s*(?:presentaci[oó]n|tama[ñn]o|cantidad|gramaje|porci[oó]n)\s*:[^\]]+\]/gi, "")
-    .replace(/\[\s*(?:tama[ñn]os|sizes|variaciones|presentaciones)\s*:\s*\[[^\]]+\]\s*\]/gi, "")
+    .replace(/\[\s*(?:tama[ñn]os|sizes|variaciones|presentaciones)\s*:\s*\[.*?\]\s*\]/gis, "")
     .replace(/\[\s*(?:duoscale|frascoscale|escaladuo|scale)\s*:[^\]]+\]/gi, "")
     .replace(/\[\s*DuoConfig\s*:[^\]]+\]/gi, "")
     .replace(/\[\s*(?:duox|duoy|brandx|brandy|origscale|origx|origy)\s*:[^\]]+\]/gi, "")
+    .replace(/\[\s*[^\]]+\]/g, "")
+    .replace(/[\[\]]/g, "")
     .trim();
 
   return {
@@ -440,11 +443,13 @@ function PerfumeryShowcaseCard({
   onOrderWhatsApp,
   router
 }) {
-  const sizes = Array.isArray(prod.sizes) && prod.sizes.length > 0 ? prod.sizes : [];
-  const hasMultipleSizes = sizes.length > 1;
+  const sizes = (Array.isArray(prod.sizes) && prod.sizes.length > 0)
+    ? prod.sizes
+    : (Array.isArray(info?.sizes) && info.sizes.length > 0 ? info.sizes : []);
+  const hasMultipleSizes = sizes.length > 0;
   const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
 
-  const activeSize = hasMultipleSizes ? sizes[selectedSizeIndex] : null;
+  const activeSize = hasMultipleSizes ? (sizes[selectedSizeIndex] || sizes[0]) : null;
   const currentPrice = activeSize ? activeSize.price : (prod.minPrice != null ? prod.minPrice : prod.price);
   const currentPriceAourum = activeSize ? activeSize.priceAourum : prod.priceAourum;
   const currentImage = (activeSize && activeSize.image) ? activeSize.image : prod.image;
@@ -480,12 +485,13 @@ function PerfumeryShowcaseCard({
       }}
       onClick={() => router.push(`/products/${targetSlug}`)}
     >
-      {/* IMAGEN DEL FRASCO / PRESENTACIÓN */}
+      {/* IMAGEN DEL FRASCO / PRESENTACIÓN USANDO ProductCardVisual UNIFICADO */}
       <div
+        className="card-img-container"
         style={{
           position: "relative",
           width: "100%",
-          height: "240px",
+          aspectRatio: "1 / 1",
           background: isStoreBgLight 
             ? "radial-gradient(circle at center, rgba(0,0,0,0.01) 0%, rgba(0,0,0,0.04) 100%)" 
             : "radial-gradient(circle at center, rgba(255,255,255,0.04) 0%, rgba(10,11,15,0.95) 75%)",
@@ -500,15 +506,15 @@ function PerfumeryShowcaseCard({
           <div
             style={{
               position: "absolute",
-              top: "12px",
-              right: "12px",
+              top: "10px",
+              right: "10px",
               background: isStoreBgLight ? "rgba(255, 255, 255, 0.92)" : "rgba(0, 0, 0, 0.8)",
               border: isStoreBgLight ? "1px solid rgba(0,0,0,0.1)" : "1px solid rgba(255,255,255,0.2)",
               color: isStoreBgLight ? "#1F2937" : "#FFFFFF",
-              fontSize: "0.7rem",
+              fontSize: "0.68rem",
               fontWeight: 700,
-              padding: "3px 10px",
-              borderRadius: "14px",
+              padding: "3px 9px",
+              borderRadius: "12px",
               backdropFilter: "blur(6px)",
               boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
               zIndex: 6
@@ -521,122 +527,14 @@ function PerfumeryShowcaseCard({
           </div>
         ) : null}
 
-        {info?.originalImg ? (
-          <div
-            style={{
-              position: "relative",
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              alignItems: "flex-end",
-              justifyContent: "center",
-              padding: "10px 14px 12px"
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                top: "40%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                width: "190px",
-                height: "190px",
-                borderRadius: "50%",
-                background: `radial-gradient(circle, ${primaryCol}22 0%, transparent 70%)`,
-                pointerEvents: "none"
-              }}
-            />
-
-            {/* 1. Frasco Original */}
-            <div
-              style={{
-                position: "absolute",
-                left: "6%",
-                bottom: "8%",
-                width: "48%",
-                height: "80%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "flex-end",
-                zIndex: 2,
-                filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.22))",
-                opacity: 0.94,
-                transition: "all 0.3s ease"
-              }}
-              className="perfume-original-duo"
-              title={`Original de Referencia: ${info.inspiration || "Inspiración"}`}
-            >
-              <img
-                src={info.originalImg}
-                alt={`Inspiración: ${info.inspiration || "Original"}`}
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "90%",
-                  objectFit: "contain",
-                  transition: "transform 0.3s ease"
-                }}
-              />
-            </div>
-
-            {/* 2. Frasco de la Marca */}
-            <div
-              style={{
-                position: "absolute",
-                right: "6%",
-                bottom: "6%",
-                width: "56%",
-                height: "94%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "flex-end",
-                zIndex: 3,
-                filter: "drop-shadow(0 12px 24px rgba(0,0,0,0.32))",
-                transition: "all 0.3s ease"
-              }}
-              className="perfume-brand-duo"
-            >
-              {hasImage ? (
-                <img
-                  src={currentImage}
-                  alt={prod.name}
-                  style={{
-                    maxWidth: "100%",
-                    maxHeight: "90%",
-                    objectFit: "contain",
-                    transition: "transform 0.3s ease"
-                  }}
-                />
-              ) : (
-                <div style={{ textAlign: "center", marginBottom: "8px" }}>
-                  <i className="fa-solid fa-wine-bottle" style={{ fontSize: "3.5rem", color: primaryCol, opacity: 0.9 }}></i>
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          hasImage ? (
-            <img
-              src={currentImage}
-              alt={prod.name}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-                padding: "16px",
-                transition: "transform 0.3s ease"
-              }}
-            />
-          ) : (
-            <div style={{ textAlign: "center", padding: "1rem" }}>
-              <i className="fa-solid fa-wine-bottle" style={{ fontSize: "3.5rem", color: primaryCol, opacity: 0.65, marginBottom: "8px", display: "block" }}></i>
-              <span style={{ fontSize: "0.75rem", color: secondaryTextColor, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 700 }}>
-                Frasco de Colección
-              </span>
-            </div>
-          )
-        )}
+        <ProductCardVisual
+          prod={prod}
+          perfumeInfo={info}
+          activeSize={activeSize}
+          allSizes={sizes}
+          brandColor={primaryCol}
+          isDark={!isStoreBgLight}
+        />
       </div>
 
       {/* CUERPO DE LA TARJETA */}
@@ -754,7 +652,7 @@ function PerfumeryShowcaseCard({
         </div>
 
         {/* Descripción */}
-        {info?.cleanDesc && (
+        {(info?.cleanDesc && info.cleanDesc.replace(/[\[\]]/g, "").trim().length > 0) ? (
           <p 
             style={{ 
               fontSize: "0.82rem", 
@@ -767,9 +665,9 @@ function PerfumeryShowcaseCard({
               overflow: "hidden"
             }}
           >
-            {info.cleanDesc}
+            {info.cleanDesc.replace(/[\[\]]/g, "").trim()}
           </p>
-        )}
+        ) : null}
 
         {/* Pastillas de tamaños interactivos si tiene múltiples presentaciones */}
         {hasMultipleSizes && (
