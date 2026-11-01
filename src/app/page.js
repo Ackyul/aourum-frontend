@@ -780,7 +780,7 @@ export default function Home() {
             isDark={isDarkBg}
           />
         </div>
-        <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+        <div style={{ padding: "0.75rem 0.75rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.22rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px" }}>
             <span style={{ 
               fontSize: "0.72rem", 
@@ -810,7 +810,7 @@ export default function Home() {
               </span>
             )}
           </div>
-          <h3 style={{ fontSize: "1.05rem", fontWeight: 800, lineHeight: 1.35, color: titleTextColor, margin: 0 }}>
+          <h3 style={{ fontSize: "0.85rem", fontWeight: 800, lineHeight: 1.25, color: titleTextColor, margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", minHeight: "2.5em" }}>
             {prod.name}
           </h3>
 
@@ -900,7 +900,7 @@ export default function Home() {
             justifyContent: "space-between", 
             alignItems: "center", 
             borderTop: dividerBorder, 
-            paddingTop: "0.7rem", 
+            paddingTop: "0.45rem", 
             marginTop: "auto" 
           }}>
             <div>
