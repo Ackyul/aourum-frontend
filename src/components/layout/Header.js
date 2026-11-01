@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useApp } from "../../context/AppContext";
 
 export default function Header({
+
   pathname,
   mounted,
   activePersonId,
@@ -26,6 +28,7 @@ export default function Header({
   setShowLoginModal,
   getCurrentPerson
 }) {
+  const { cartCount, setIsCartOpen } = useApp();
   return (
     <>
       {/* ── HEADER ─────────────────────────────────────────────────────────── */}
@@ -271,6 +274,42 @@ export default function Header({
               )}
               {mounted && activePersonId && <span className="header-nav-divider"></span>}
             </div>
+
+            {/* Botón Carrito de Compras */}
+            <button
+              type="button"
+              onClick={() => setIsCartOpen(true)}
+              className="cart-header-btn"
+              title={`Ver Carrito (${cartCount || 0})`}
+              aria-label="Ver Carrito de Compras"
+            >
+              <i className="fa-solid fa-bag-shopping"></i>
+              {mounted && cartCount > 0 && (
+                <span
+                  className="cart-badge-bounce"
+                  style={{
+                    position: "absolute",
+                    top: "-6px",
+                    right: "-6px",
+                    background: "var(--gold-gradient)",
+                    color: "#1C1C1E",
+                    fontSize: "0.65rem",
+                    fontWeight: 800,
+                    borderRadius: "10px",
+                    minWidth: "18px",
+                    height: "18px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "0 4px",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.35)",
+                    border: "1.5px solid var(--bg-card)"
+                  }}
+                >
+                  {cartCount}
+                </span>
+              )}
+            </button>
 
             {/* Account button (always visible) */}
             <div className="account-dropdown-wrapper">

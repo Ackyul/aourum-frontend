@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useApp } from "../../../context/AppContext";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { isVirtualMenuBrand } from "@/utils/brandUtils";
-import { parsePerfumeInfo, parseProductPresentation } from "../../../components/PerfumeryShowcase";
+import { parsePerfumeInfo, parseProductPresentation, sortSizesDescending } from "../../../components/PerfumeryShowcase";
 import ProductCardVisual from "../../../components/ProductCardVisual";
 
 // Helper for URL slug generation
@@ -65,16 +65,31 @@ const cleanDescriptionText = (rawText) => {
       text = parsed.text || parsed.description || "";
     } catch (e) {}
   }
-  return text
-    .replace(/\[\s*(?:originalimg|originalimage|frascooriginal|inspiracionimg|original_img)\s*:[^\]]+\]/gi, "")
-    .replace(/\[\s*(?:inspiraci[oó]n|inspirado en|original|ref|tendencia)\s*:[^\]]+\]/gi, "")
-    .replace(/\[\s*g[eé]nero\s*:[^\]]+\]/gi, "")
-    .replace(/\[\s*familia\s*:[^\]]+\]/gi, "")
-    .replace(/\[\s*concentraci[oó]n\s*:[^\]]+\]/gi, "")
-    .replace(/\[\s*(?:ml|volumen)\s*:[^\]]+\]/gi, "")
-    .replace(/\[[^\]]*(?:http|https|res\.cloudinary|\.png|\.jpg|\.webp)[^\]]*\]/gi, "")
-    .replace(/\[\s*[^\]]+:[^\]]+\]/gi, "")
-    .trim();
+
+  // Remove nested json tags like [Tamaños: [...]]
+  text = text.replace(/\[\s*tamaños\s*:\s*\[[\s\S]*?\]\s*\]/gi, "");
+
+  // Remove all metadata tags
+  text = text.replace(/\[\s*(?:originalimg|originalimage|frascooriginal|inspiracionimg|original_img)\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*(?:inspiraci[oó]n|inspirado en|original|ref|tendencia)\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*g[eé]nero\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*familia\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*concentraci[oó]n\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*(?:ml|volumen)\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*duoconfig\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*duoscale\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*presentaci[oó]n\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*porci[oó]n\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*ingredientes\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[[^\]]*(?:http|https|res\.cloudinary|\.png|\.jpg|\.webp)[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*[^\]]+:[^\]]*\]/gi, "");
+
+  // Remove any leftover orphaned brackets
+  text = text.replace(/^\s*\]+\s*/gm, "");
+  text = text.replace(/\s*\]+\s*$/gm, "");
+  text = text.replace(/^\]+$/gm, "");
+
+  return text.trim();
 };
 
 export default function ProductDetailPage() {
@@ -95,7 +110,8 @@ export default function ProductDetailPage() {
     activePersonId,
     people,
     setShowLoginModal,
-    triggerNotification
+    triggerNotification,
+    addToCart
   } = useApp();
 
   const router = useRouter();
@@ -312,7 +328,7 @@ export default function ProductDetailPage() {
     }
 
     const result = Array.from(sizeMap.values());
-    result.sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+    return sortSizesDescending ? sortSizesDescending(result) : result;
     return result;
   }, [prod, siblingVariations]);
 
@@ -1500,7 +1516,13 @@ export default function ProductDetailPage() {
 
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
                       {allAvailableSizes.map((v, idx) => {
-                        const isCurrent = (selectedVariation && (selectedVariation.size === v.size || selectedVariation.id === v.id)) || (!selectedVariation && idx === 0);
+                        const isCurrent = Boolean(
+                          selectedVariation
+                            ? (v.size && selectedVariation.size
+                                ? v.size.trim().toLowerCase() === selectedVariation.size.trim().toLowerCase()
+                                : (v.id === selectedVariation.id && v.price === selectedVariation.price))
+                            : idx === 0
+                        );
                         return (
                           <button
                             key={idx}
@@ -1516,15 +1538,15 @@ export default function ProductDetailPage() {
                               display: "flex",
                               alignItems: "center",
                               gap: "10px",
-                              padding: "6px 14px 6px 8px",
+                              padding: "7px 14px 7px 8px",
                               borderRadius: "12px",
                               fontSize: "0.86rem",
                               fontWeight: isCurrent ? 800 : 600,
                               cursor: isCurrent ? "default" : "pointer",
-                              border: isCurrent ? `2px solid ${brandThemeColor}` : `1.5px solid ${palette.c1}35`,
-                              background: isCurrent ? `${brandThemeColor}22` : "rgba(255,255,255,0.04)",
+                              border: isCurrent ? `2px solid ${brandThemeColor}` : "1.5px solid rgba(255,255,255,0.12)",
+                              background: isCurrent ? `${brandThemeColor}25` : "rgba(255,255,255,0.03)",
                               color: isCurrent ? brandThemeColor : resolvedCardTextColor,
-                              boxShadow: isCurrent ? `0 4px 14px ${brandThemeColor}35` : "0 2px 6px rgba(0,0,0,0.05)",
+                              boxShadow: isCurrent ? `0 0 0 1px ${brandThemeColor}, 0 4px 14px ${brandThemeColor}35` : "none",
                               transform: isCurrent ? "scale(1.02)" : "scale(1)",
                               transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
                             }}
@@ -1560,7 +1582,7 @@ export default function ProductDetailPage() {
                                 S/ {formatPrice(v.priceAourum || v.price)}
                               </span>
                             </div>
-                            {isCurrent && <i className="fa-solid fa-circle-check" style={{ fontSize: "0.82rem", color: brandThemeColor, marginLeft: "4px" }}></i>}
+                            {isCurrent && <i className="fa-solid fa-circle-check" style={{ fontSize: "0.88rem", color: brandThemeColor, marginLeft: "4px" }}></i>}
                           </button>
                         );
                       })}
@@ -1568,52 +1590,30 @@ export default function ProductDetailPage() {
                   </div>
                 )}
 
-                {/* Información & Contenido del Platillo / Producto / Perfume */}
-                <div style={{ marginBottom: "1.8rem" }}>
-                  <h3 style={{ fontSize: "1.05rem", fontWeight: 700, borderBottom: `1.5px solid ${palette.c1}30`, paddingBottom: "0.4rem", marginBottom: "0.8rem", color: resolvedCardTextColor, display: "flex", alignItems: "center", gap: "8px" }}>
-                    <i className="fa-solid fa-circle-info" style={{ color: brandThemeColor }}></i>
-                    <span>
-                      {isPerfumeProd 
-                        ? "Información y Notas de la Fragancia" 
-                        : isVirtualMenu 
-                        ? "Información y Descripción del Platillo" 
-                        : "Información y Descripción"}
-                    </span>
-                  </h3>
-                  <div style={{ background: resolvedCardBg, backdropFilter: "blur(12px)", padding: "1.2rem 1.4rem", borderRadius: "12px", border: `1.5px solid ${palette.c1}30`, boxShadow: `0 8px 24px ${palette.c1}08` }}>
-                    <p style={{ fontSize: "0.92rem", color: resolvedCardTextColor, lineHeight: 1.65, whiteSpace: "pre-line", margin: 0 }}>
-                      {(() => {
-                        const cleaned = cleanDescriptionText(prod.description);
-                        if (cleaned) {
-                          return cleaned;
-                        }
-                        if (isPerfumeProd) {
-                          return (
-                            <span>
-                              Fragancia exclusiva formulada por <strong>{brand?.name || 'la marca'}</strong>
-                              {perfumeInfo.inspiration ? (
-                                <> inspirada en el perfil olfativo de <strong>{perfumeInfo.inspiration}</strong></>
-                              ) : null}.
-                              {" "}Elaborada con materias primas seleccionadas y alta concentración para brindar una fijación prolongada, estela envolvente y una experiencia sensorial de primer nivel.
-                            </span>
-                          );
-                        }
-                        if (isVirtualMenu) {
-                          return (
-                            <span style={{ color: mutedTextColor, fontStyle: "italic" }}>
-                              Especialidad gastronómica de {brand?.name || 'la marca'}. Platillo preparado fresco al momento de realizar tu pedido.
-                            </span>
-                          );
-                        }
-                        return (
-                          <span style={{ color: mutedTextColor, fontStyle: "italic" }}>
-                            Artículo disponible en la vitrina de {brand?.name || 'la marca'}. Para más detalles, coordina directamente con el vendedor.
-                          </span>
-                        );
-                      })()}
-                    </p>
-                  </div>
-                </div>
+                {/* Información & Contenido del Platillo / Producto / Perfume (Solo si el vendedor redactó descripción) */}
+                {(() => {
+                  const cleaned = cleanDescriptionText(prod.description);
+                  if (!cleaned) return null;
+                  return (
+                    <div style={{ marginBottom: "1.8rem" }}>
+                      <h3 style={{ fontSize: "1.05rem", fontWeight: 700, borderBottom: `1.5px solid ${palette.c1}30`, paddingBottom: "0.4rem", marginBottom: "0.8rem", color: resolvedCardTextColor, display: "flex", alignItems: "center", gap: "8px" }}>
+                        <i className="fa-solid fa-circle-info" style={{ color: brandThemeColor }}></i>
+                        <span>
+                          {isPerfumeProd 
+                            ? "Información y Notas de la Fragancia" 
+                            : isVirtualMenu 
+                            ? "Información y Descripción del Platillo" 
+                            : "Información y Descripción"}
+                        </span>
+                      </h3>
+                      <div style={{ background: resolvedCardBg, backdropFilter: "blur(12px)", padding: "1.2rem 1.4rem", borderRadius: "12px", border: `1.5px solid ${palette.c1}30`, boxShadow: `0 8px 24px ${palette.c1}08` }}>
+                        <p style={{ fontSize: "0.92rem", color: resolvedCardTextColor, lineHeight: 1.65, whiteSpace: "pre-line", margin: 0 }}>
+                          {cleaned}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Tabla de Especificaciones */}
                 <div style={{ marginBottom: "2rem" }}>
@@ -1744,6 +1744,38 @@ export default function ProductDetailPage() {
                       </p>
                     </div>
                   )}
+                  {/* Botón Añadir al Carrito */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      addToCart(prod, {
+                        size: activeSizeName,
+                        price: activePrice,
+                        priceAourum: activePriceAourum,
+                        image: activeImage,
+                        brand: brand,
+                        openDrawer: true
+                      });
+                      triggerNotification(true, `¡"${prod.name}" añadido a tu carrito!`);
+                    }}
+                    className="btn-outline-gold"
+                    style={{
+                      width: "100%",
+                      fontSize: "0.95rem",
+                      cursor: "pointer",
+                      padding: "0.8rem",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                      borderRadius: "12px",
+                      fontWeight: 800
+                    }}
+                  >
+                    <i className="fa-solid fa-cart-plus" style={{ fontSize: "1.1rem" }}></i>
+                    Añadir al Carrito
+                  </button>
+
                   <button 
                     onClick={() => router.push(`/brands/${brand?.slug || prod.brandId}`)}
                     className="btn-outline-gold"

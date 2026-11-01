@@ -144,7 +144,8 @@ export default function BrandProfileClient({ initialBrand }) {
     loadPosts,
     openCreatePostModal,
     authHeaders,
-    getBrandPalette
+    getBrandPalette,
+    addToCart
   } = useApp();
 
   const router = useRouter();
@@ -1443,7 +1444,28 @@ function BrandProductCard({ prod }) {
               )}
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  addToCart(prod, {
+                    size: activeSize,
+                    price: activePrice,
+                    priceAourum: activePriceAourum,
+                    image: activeImage,
+                    brand: brand,
+                    openDrawer: true
+                  });
+                  triggerNotification(true, `¡"${prod.name}" añadido al carrito!`);
+                }}
+                className="card-quick-cart-btn"
+                title="Añadir al Carrito"
+                aria-label="Añadir al Carrito"
+              >
+                <i className="fa-solid fa-cart-plus"></i>
+              </button>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
               <span className="card-type-label" style={{
                 fontSize: "0.65rem",
                 fontWeight: 700,
@@ -1465,6 +1487,7 @@ function BrandProductCard({ prod }) {
               }}>
                 {prod.type === "service" ? "Agenda" : (prod.stock == null || prod.stock > 0) ? "Stock" : "Agotado"}
               </span>
+            </div>
             </div>
           </div>
         </div>

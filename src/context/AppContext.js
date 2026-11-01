@@ -1648,6 +1648,130 @@ export function AppContextProvider({ children }) {
     return p ? p.name : "Persona Local";
   };
 
+  // ── CARRITO DE COMPRAS MULTIMARCA ─────────────────────────
+  const [cart, setCart] = useState(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const raw = localStorage.getItem("aourum_cart");
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // Datos guardados del cliente para autocompletar en los pedidos
+  const [customerOrderInfo, setCustomerOrderInfo] = useState(() => {
+    if (typeof window === "undefined") return { name: "", phone: "", address: "", notes: "" };
+    try {
+      const raw = localStorage.getItem("aourum_customer_order_info");
+      return raw ? JSON.parse(raw) : { name: "", phone: "", address: "", notes: "" };
+    } catch {
+      return { name: "", phone: "", address: "", notes: "" };
+    }
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("aourum_cart", JSON.stringify(cart));
+      } catch (err) {
+        console.error("Error al persistir carrito:", err);
+      }
+    }
+  }, [cart]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("aourum_customer_order_info", JSON.stringify(customerOrderInfo));
+      } catch (err) {
+        console.error("Error al persistir datos de cliente:", err);
+      }
+    }
+  }, [customerOrderInfo]);
+
+  const addToCart = (product, options = {}) => {
+    if (!product) return;
+    const size = options.size || null;
+    const sizeStr = typeof size === "object" ? (size?.size || "") : (typeof size === "string" ? size : "");
+    const price = options.price != null
+      ? Number(options.price)
+      : (typeof size === "object" && size?.price != null
+          ? Number(size.price)
+          : Number(product.minPrice != null ? product.minPrice : product.price || 0));
+    const priceAourum = options.priceAourum != null
+      ? Number(options.priceAourum)
+      : (typeof size === "object" && size?.priceAourum != null
+          ? Number(size.priceAourum)
+          : (product.priceAourum != null ? Number(product.priceAourum) : null));
+    const image = options.image || (typeof size === "object" && size?.image ? size.image : product.image);
+    const quantity = Math.max(1, Number(options.quantity || 1));
+    const brandId = product.brandId || product.brand_id || options.brandId;
+    const brandObj = options.brand || brands.find(b => Number(b.id) === Number(brandId));
+    const brandName = brandObj?.name || options.brandName || "Marca Local";
+    const rawPhone = brandObj?.whatsappNumber || brandObj?.phone || options.brandPhone || "";
+    const brandPhone = String(rawPhone).replace(/[^0-9]/g, "");
+
+    const cartItemId = `${product.id}_${sizeStr.toLowerCase().replace(/[^a-z0-9]/g, "")}_${(options.color || "").toLowerCase().replace(/[^a-z0-9]/g, "")}`;
+
+    setCart(prev => {
+      const idx = prev.findIndex(item => item.id === cartItemId);
+      if (idx > -1) {
+        const updated = [...prev];
+        updated[idx] = {
+          ...updated[idx],
+          quantity: updated[idx].quantity + quantity
+        };
+        return updated;
+      }
+      return [
+        ...prev,
+        {
+          id: cartItemId,
+          productId: product.id,
+          name: product.name,
+          slug: product.slug || product.id,
+          size: sizeStr,
+          price,
+          priceAourum,
+          image,
+          quantity,
+          brandId,
+          brandName,
+          brandPhone,
+          brandLogo: brandObj?.logo || null,
+          brandCategory: brandObj?.category || brandObj?.rubro_general || "Marca Local"
+        }
+      ];
+    });
+
+    if (options.openDrawer !== false) {
+      setIsCartOpen(true);
+    }
+  };
+
+  const updateCartQuantity = (cartItemId, newQty) => {
+    const qty = Number(newQty);
+    if (qty <= 0) {
+      removeFromCart(cartItemId);
+      return;
+    }
+    setCart(prev => prev.map(item => item.id === cartItemId ? { ...item, quantity: qty } : item));
+  };
+
+  const removeFromCart = (cartItemId) => {
+    setCart(prev => prev.filter(item => item.id !== cartItemId));
+  };
+
+  const clearCart = () => {
+    setCart([]);
+  };
+
+  const cartCount = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  const cartSubtotal = cart.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0);
+
   return (
     <AppContext.Provider
       value={{
@@ -1828,7 +1952,18 @@ export function AppContextProvider({ children }) {
         updateEvent,
         deleteEvent,
         parseDescription,
-        getBrandPalette
+        getBrandPalette,
+        cart,
+        isCartOpen,
+        setIsCartOpen,
+        addToCart,
+        updateCartQuantity,
+        removeFromCart,
+        clearCart,
+        cartCount,
+        cartSubtotal,
+        customerOrderInfo,
+        setCustomerOrderInfo
       }}
     >
       {children}

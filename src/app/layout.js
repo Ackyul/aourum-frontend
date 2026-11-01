@@ -8,6 +8,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Script from "next/script";
 import CreatePostModal from "../components/CreatePostModal";
+import CartDrawer from "../components/CartDrawer";
 import ErrorBoundary from "../components/ErrorBoundary";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
@@ -527,6 +528,7 @@ function AppLayoutShell({ children }) {
 
       {/* ── CREATE POST MODAL ────────────────────────────────────────────────── */}
       <CreatePostModal />
+      <CartDrawer />
 
       {/* ── ACCOUNT REGISTRATION MODAL ─────────────────────────────────────── */}
       {showRegModal && (
