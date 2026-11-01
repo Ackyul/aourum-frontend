@@ -48,6 +48,60 @@ export function getBottleSizeScaleFactor(currentSizeStr, allSizes = []) {
 }
 
 /**
+ * Intelligently extracts image adjustments (scale, x, y, fit) for standard,
+ * gastro/menu and service products from direct props or description tags [ImgConfig: ...].
+ */
+export function parseProductImgConfig(prod) {
+  if (!prod) return { scale: 100, x: 0, y: 0, fit: "cover" };
+
+  let scale = prod.imgScale != null ? Number(prod.imgScale) : (prod.imageScale != null ? Number(prod.imageScale) : null);
+  let x = prod.imgX != null ? Number(prod.imgX) : (prod.imageX != null ? Number(prod.imageX) : null);
+  let y = prod.imgY != null ? Number(prod.imgY) : (prod.imageY != null ? Number(prod.imageY) : null);
+  let fit = prod.imgFit || prod.fit || prod.objectFit || null;
+
+  const desc = prod.description || "";
+  if (scale == null || x == null || y == null || !fit) {
+    const configMatch = desc.match(/\[\s*ImgConfig\s*:\s*([^\]]+)\]/i);
+    if (configMatch && configMatch[1]) {
+      const parts = configMatch[1].split(/[;,]/);
+      for (const part of parts) {
+        const [k, v] = part.split('=').map(s => s ? s.trim() : '');
+        if (!k || !v) continue;
+        const num = Number(v.replace('%', ''));
+        if (/^scale$/i.test(k) && scale == null && !isNaN(num)) scale = num;
+        if (/^x$/i.test(k) && x == null && !isNaN(num)) x = num;
+        if (/^y$/i.test(k) && y == null && !isNaN(num)) y = num;
+        if (/^fit$/i.test(k) && !fit) fit = v.toLowerCase();
+      }
+    }
+  }
+
+  if (scale == null) {
+    const sm = desc.match(/\[\s*(?:imgscale|fotoscale|escalafoto)\s*:\s*(\d+)\s*%?\s*\]/i);
+    if (sm && sm[1]) scale = Number(sm[1]);
+  }
+  if (x == null) {
+    const xm = desc.match(/\[\s*(?:imgx|fotox)\s*:\s*(-?\d+)\s*%?\s*\]/i);
+    if (xm && xm[1]) x = Number(xm[1]);
+  }
+  if (y == null) {
+    const ym = desc.match(/\[\s*(?:imgy|fotoy)\s*:\s*(-?\d+)\s*%?\s*\]/i);
+    if (ym && ym[1]) y = Number(ym[1]);
+  }
+  if (!fit) {
+    const fm = desc.match(/\[\s*(?:imgfit|fotofit|ajuste)\s*:\s*(contain|cover)\s*\]/i);
+    if (fm && fm[1]) fit = fm[1].toLowerCase();
+  }
+
+  return {
+    scale: scale != null && !isNaN(scale) ? scale : 100,
+    x: x != null && !isNaN(x) ? x : 0,
+    y: y != null && !isNaN(y) ? y : 0,
+    fit: fit || "cover"
+  };
+}
+
+/**
  * ProductCardVisual renders the product image area with automatic support for
  * "El Dúo Visual" (Original Perfume Bottle + Brand Creation Bottle) when
  * originalImg is present for fragrance products.
@@ -175,9 +229,13 @@ export default function ProductCardVisual({
     const isCustomBg = Boolean(prod?.imgBgColor && prod?.imgBgColor !== "transparent" && prod?.imgBgColor !== "page_bg");
     const bgContainer = isCustomBg
       ? (prod.imgBgColor === "brand" ? brandColor : prod.imgBgColor)
-      : "#FFFFFF";
+      : (prod?.imgBgColor === "transparent" ? "transparent" : "#FFFFFF");
 
-    const fitMode = (prod?.fit || prod?.objectFit) || (isCustomBg ? "contain" : "cover");
+    const imgConfig = parseProductImgConfig(prod);
+    const fitMode = imgConfig.fit || (prod?.fit || prod?.objectFit) || (isCustomBg ? "contain" : "cover");
+    const scale = (imgConfig.scale || 100) / 100;
+    const posX = imgConfig.x || 0;
+    const posY = imgConfig.y || 0;
 
     return (
       <div
@@ -194,20 +252,32 @@ export default function ProductCardVisual({
           overflow: "hidden"
         }}
       >
-        <img
-          src={brandImg}
-          alt={prod?.name || "Producto"}
-          className="product-visual-img card-img-hover"
-          onError={() => setBrandImgError(true)}
+        <div
           style={{
             width: "100%",
             height: "100%",
-            maxWidth: "100%",
-            maxHeight: "100%",
-            objectFit: fitMode,
-            transition: "transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)"
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transform: `scale(${scale}) translate(${posX}%, ${-posY}%)`,
+            transformOrigin: "center center",
+            transition: "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)"
           }}
-        />
+        >
+          <img
+            src={brandImg}
+            alt={prod?.name || "Producto"}
+            className="product-visual-img card-img-hover"
+            onError={() => setBrandImgError(true)}
+            style={{
+              width: "100%",
+              height: "100%",
+              maxWidth: "100%",
+              maxHeight: "100%",
+              objectFit: fitMode
+            }}
+          />
+        </div>
       </div>
     );
   }

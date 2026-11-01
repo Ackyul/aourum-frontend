@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useApp } from "../../context/AppContext";
 import { ensureFullSocialUrl, isPerfumeryBrand, isVirtualMenuBrand } from "../../utils/brandUtils";
 import { parseProductPresentation, parsePerfumeInfo } from "../../components/PerfumeryShowcase";
-import ProductCardVisual from "../../components/ProductCardVisual";
+import ProductCardVisual, { parseProductImgConfig } from "../../components/ProductCardVisual";
 
 
 
@@ -220,6 +220,10 @@ export default function DashboardClient({ initialTab }) {
     gastroPortion: "",
     gastroIngredients: "",
     // General
+    imgScale: 100,
+    imgX: 0,
+    imgY: 0,
+    imgFit: "cover",
     description: ""
   });
 
@@ -661,7 +665,11 @@ export default function DashboardClient({ initialTab }) {
       perfumeNotes: "",
       gastroPortion: "",
       gastroIngredients: "",
-      description: ""
+      imgScale: 100,
+    imgX: 0,
+    imgY: 0,
+    imgFit: "cover",
+    description: ""
     });
     setShowProductModal(true);
   };
@@ -691,6 +699,7 @@ export default function DashboardClient({ initialTab }) {
     const hasExistingSizes = Array.isArray(parsedSizes) && parsedSizes.length > 0;
 
     const parsedPres = parseProductPresentation(prod);
+    const parsedImgConfig = parseProductImgConfig(prod);
     const resolvedPres = presMatch ? presMatch[1].trim() : (parsedPres.presentation || (mlMatch ? mlMatch[1].trim() : (portionMatch ? portionMatch[1].trim() : "")));
 
     const catLower = (prod.category || "").toLowerCase();
@@ -797,6 +806,10 @@ export default function DashboardClient({ initialTab }) {
       perfumeNotes: cleanNotes,
       gastroPortion: portionMatch ? portionMatch[1].trim() : resolvedPres,
       gastroIngredients: ingredientsMatch ? ingredientsMatch[1].trim() : "",
+      imgScale: parsedImgConfig.scale,
+      imgX: parsedImgConfig.x,
+      imgY: parsedImgConfig.y,
+      imgFit: parsedImgConfig.fit || "cover",
       description: cleanNotes
     });
     setShowProductModal(true);
@@ -816,6 +829,7 @@ export default function DashboardClient({ initialTab }) {
     const ingredientsMatch = desc.match(/\[\s*ingredientes\s*:\s*([^\]]+)\]/i);
 
     const parsedPres = parseProductPresentation(prod);
+    const parsedImgConfig = parseProductImgConfig(prod);
     const cleanNotes = desc.replace(/\[[^\]]+\]/g, "").trim();
 
     const catLower = (prod.category || "").toLowerCase();
@@ -861,6 +875,10 @@ export default function DashboardClient({ initialTab }) {
       perfumeNotes: cleanNotes,
       gastroPortion: portionMatch ? portionMatch[1].trim() : "",
       gastroIngredients: ingredientsMatch ? ingredientsMatch[1].trim() : "",
+      imgScale: parsedImgConfig.scale,
+      imgX: parsedImgConfig.x,
+      imgY: parsedImgConfig.y,
+      imgFit: parsedImgConfig.fit || "cover",
       description: cleanNotes
     });
     triggerNotification(true, `Nueva presentación para "${parsedPres.cleanName || prod.name}". Elige el tamaño, sube su foto y define su precio.`);
@@ -935,6 +953,13 @@ export default function DashboardClient({ initialTab }) {
         }
       }
       if (prodForm.gastroIngredients.trim()) tags.push(`[Ingredientes: ${prodForm.gastroIngredients.trim()}]`);
+      const imgScale = prodForm.imgScale != null ? prodForm.imgScale : 100;
+      const imgX = prodForm.imgX != null ? prodForm.imgX : 0;
+      const imgY = prodForm.imgY != null ? prodForm.imgY : 0;
+      const imgFit = prodForm.imgFit || "cover";
+      if (imgScale !== 100 || imgX !== 0 || imgY !== 0 || imgFit !== "cover") {
+        tags.push(`[ImgConfig: scale=${imgScale}, x=${imgX}, y=${imgY}, fit=${imgFit}]`);
+      }
       finalDesc = `${tags.join(' ')}\n\n${prodForm.description.trim()}`.trim();
     } else {
       const tags = [];
@@ -942,6 +967,13 @@ export default function DashboardClient({ initialTab }) {
         tags.push(`[Tamaños: ${JSON.stringify(validSizes)}]`);
       } else if (prodForm.presentation.trim()) {
         tags.push(`[Presentación: ${prodForm.presentation.trim()}]`);
+      }
+      const imgScale = prodForm.imgScale != null ? prodForm.imgScale : 100;
+      const imgX = prodForm.imgX != null ? prodForm.imgX : 0;
+      const imgY = prodForm.imgY != null ? prodForm.imgY : 0;
+      const imgFit = prodForm.imgFit || "cover";
+      if (imgScale !== 100 || imgX !== 0 || imgY !== 0 || imgFit !== "cover") {
+        tags.push(`[ImgConfig: scale=${imgScale}, x=${imgX}, y=${imgY}, fit=${imgFit}]`);
       }
       finalDesc = tags.length > 0 ? `${tags.join(' ')}\n\n${prodForm.description.trim()}`.trim() : prodForm.description.trim();
     }
@@ -3890,6 +3922,516 @@ export default function DashboardClient({ initialTab }) {
                       </div>
                     </div>
                   </div>
+
+                  {/* ── PANEL DE CALIBRACIÓN DE FOTO PARA PRODUCTOS, SERVICIOS Y MENÚ ── */}
+                  {productType !== "perfume" && (
+                    <div style={{
+                      background: "var(--bg-card)",
+                      border: "1.5px solid rgba(212, 175, 55, 0.3)",
+                      borderRadius: "16px",
+                      padding: "16px",
+                      marginBottom: "1.4rem",
+                      boxShadow: "0 6px 20px rgba(0, 0, 0, 0.04)"
+                    }}>
+                      {/* Cabecera del Panel */}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px", flexWrap: "wrap", gap: "8px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <span style={{
+                            width: "28px",
+                            height: "28px",
+                            borderRadius: "8px",
+                            background: "rgba(212, 175, 55, 0.15)",
+                            color: "var(--text-gold)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "0.85rem"
+                          }}>
+                            <i className="fa-solid fa-sliders"></i>
+                          </span>
+                          <div>
+                            <h4 style={{ margin: 0, fontSize: "0.88rem", fontWeight: 800 }}>
+                              {isBrandMenu ? "Acomodar Foto del Platillo / Ítem de Carta" : productType === "service" ? "Acomodar Foto del Servicio" : "Acomodar Foto del Producto"}
+                            </h4>
+                            <span style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
+                              Calibra el tamaño, posición exacta y encuadre de la foto en la vitrina
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Botón Restablecer */}
+                        <button
+                          type="button"
+                          onClick={() => setProdForm(prev => ({ ...prev, imgScale: 100, imgX: 0, imgY: 0, imgFit: "cover", imgBgColor: "transparent" }))}
+                          style={{
+                            padding: "5px 10px",
+                            borderRadius: "8px",
+                            border: "1px solid var(--border-color)",
+                            background: "var(--bg-input)",
+                            fontSize: "0.7rem",
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            color: "var(--text-muted)",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "5px"
+                          }}
+                        >
+                          <i className="fa-solid fa-rotate-left"></i> Restablecer Foto
+                        </button>
+                      </div>
+
+                      {/* Controles de Calibración */}
+                      <div style={{
+                        background: "rgba(212, 175, 55, 0.03)",
+                        border: "1px dashed rgba(212, 175, 55, 0.25)",
+                        borderRadius: "12px",
+                        padding: "12px 14px",
+                        marginBottom: "16px"
+                      }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px 16px" }}>
+                          
+                          {/* 1. Tamaño / Zoom de la Foto */}
+                          <div>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                              <span style={{ fontSize: "0.75rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "5px" }}>
+                                <i className="fa-solid fa-maximize" style={{ color: "var(--text-gold)" }}></i> Tamaño / Zoom Foto
+                              </span>
+                              <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--text-gold)" }}>{prodForm.imgScale || 100}%</span>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                              <input 
+                                type="range"
+                                min="50"
+                                max="160"
+                                step="1"
+                                value={prodForm.imgScale || 100}
+                                onChange={e => setProdForm({ ...prodForm, imgScale: Number(e.target.value) })}
+                                style={{ flex: 1, accentColor: "var(--gold-primary)", cursor: "pointer" }}
+                              />
+                              <div style={{ display: "flex", gap: "3px" }}>
+                                {[75, 100, 125, 150].map(sc => (
+                                  <button
+                                    key={sc}
+                                    type="button"
+                                    onClick={() => setProdForm({ ...prodForm, imgScale: sc })}
+                                    style={{
+                                      fontSize: "0.65rem",
+                                      padding: "2px 5px",
+                                      borderRadius: "5px",
+                                      border: (prodForm.imgScale === sc) ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                      background: (prodForm.imgScale === sc) ? "rgba(212, 175, 55, 0.15)" : "var(--bg-input)",
+                                      color: (prodForm.imgScale === sc) ? "var(--text-gold)" : "inherit",
+                                      cursor: "pointer",
+                                      fontWeight: (prodForm.imgScale === sc) ? 800 : 500
+                                    }}
+                                  >
+                                    {sc}%
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 2. Posición Horizontal */}
+                          <div>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                              <span style={{ fontSize: "0.75rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "5px" }}>
+                                <i className="fa-solid fa-arrows-left-right" style={{ color: "var(--text-gold)" }}></i> Posición Horizontal
+                              </span>
+                              <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--text-gold)" }}>
+                                {(prodForm.imgX || 0) === 0 ? "Centro (0%)" : (prodForm.imgX > 0 ? `+${prodForm.imgX}% Der` : `${prodForm.imgX}% Izq`)}
+                              </span>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                              <button
+                                type="button"
+                                onClick={() => setProdForm({ ...prodForm, imgX: Math.max(-40, (prodForm.imgX || 0) - 2) })}
+                                style={{ padding: "3px 8px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "var(--bg-input)", cursor: "pointer", fontSize: "0.7rem" }}
+                                title="Mover a la izquierda"
+                              >
+                                ◀
+                              </button>
+                              <input 
+                                type="range"
+                                min="-40"
+                                max="40"
+                                step="1"
+                                value={prodForm.imgX || 0}
+                                onChange={e => setProdForm({ ...prodForm, imgX: Number(e.target.value) })}
+                                style={{ flex: 1, accentColor: "var(--gold-primary)", cursor: "pointer" }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setProdForm({ ...prodForm, imgX: Math.min(40, (prodForm.imgX || 0) + 2) })}
+                                style={{ padding: "3px 8px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "var(--bg-input)", cursor: "pointer", fontSize: "0.7rem" }}
+                                title="Mover a la derecha"
+                              >
+                                ▶
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* 3. Posición Vertical */}
+                          <div>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                              <span style={{ fontSize: "0.75rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "5px" }}>
+                                <i className="fa-solid fa-arrows-up-down" style={{ color: "var(--text-gold)" }}></i> Posición Vertical
+                              </span>
+                              <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "var(--text-gold)" }}>
+                                {(prodForm.imgY || 0) === 0 ? "Centro (0%)" : (prodForm.imgY > 0 ? `+${prodForm.imgY}% Arriba` : `${prodForm.imgY}% Abajo`)}
+                              </span>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                              <button
+                                type="button"
+                                onClick={() => setProdForm({ ...prodForm, imgY: Math.max(-40, (prodForm.imgY || 0) - 2) })}
+                                style={{ padding: "3px 8px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "var(--bg-input)", cursor: "pointer", fontSize: "0.7rem" }}
+                                title="Mover abajo"
+                              >
+                                ▼
+                              </button>
+                              <input 
+                                type="range"
+                                min="-40"
+                                max="40"
+                                step="1"
+                                value={prodForm.imgY || 0}
+                                onChange={e => setProdForm({ ...prodForm, imgY: Number(e.target.value) })}
+                                style={{ flex: 1, accentColor: "var(--gold-primary)", cursor: "pointer" }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setProdForm({ ...prodForm, imgY: Math.min(40, (prodForm.imgY || 0) + 2) })}
+                                style={{ padding: "3px 8px", borderRadius: "6px", border: "1px solid var(--border-color)", background: "var(--bg-input)", cursor: "pointer", fontSize: "0.7rem" }}
+                                title="Mover arriba"
+                              >
+                                ▲
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* 4. Modo de Ajuste / Encuadre */}
+                          <div>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                              <span style={{ fontSize: "0.75rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "5px" }}>
+                                <i className="fa-solid fa-crop-simple" style={{ color: "var(--text-gold)" }}></i> Encuadre
+                              </span>
+                            </div>
+                            <div style={{ display: "flex", gap: "6px" }}>
+                              <button
+                                type="button"
+                                onClick={() => setProdForm({ ...prodForm, imgFit: "cover" })}
+                                style={{
+                                  flex: 1,
+                                  padding: "6px 8px",
+                                  borderRadius: "8px",
+                                  border: (prodForm.imgFit || "cover") === "cover" ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                  background: (prodForm.imgFit || "cover") === "cover" ? "rgba(212, 175, 55, 0.15)" : "var(--bg-input)",
+                                  color: (prodForm.imgFit || "cover") === "cover" ? "var(--text-gold)" : "inherit",
+                                  fontSize: "0.72rem",
+                                  fontWeight: (prodForm.imgFit || "cover") === "cover" ? 800 : 500,
+                                  cursor: "pointer"
+                                }}
+                              >
+                                🖼️ Cubrir (Cover)
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setProdForm({ ...prodForm, imgFit: "contain" })}
+                                style={{
+                                  flex: 1,
+                                  padding: "6px 8px",
+                                  borderRadius: "8px",
+                                  border: prodForm.imgFit === "contain" ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                  background: prodForm.imgFit === "contain" ? "rgba(212, 175, 55, 0.15)" : "var(--bg-input)",
+                                  color: prodForm.imgFit === "contain" ? "var(--text-gold)" : "inherit",
+                                  fontSize: "0.72rem",
+                                  fontWeight: prodForm.imgFit === "contain" ? 800 : 500,
+                                  cursor: "pointer"
+                                }}
+                              >
+                                🔍 Contener (Sin cortar)
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* 5. Color de Fondo (Para fotos PNG transparentes) */}
+                          <div>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                              <span style={{ fontSize: "0.75rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "5px" }}>
+                                <i className="fa-solid fa-palette" style={{ color: "var(--text-gold)" }}></i> Fondo de Tarjeta
+                              </span>
+                              <span style={{ fontSize: "0.68rem", color: "var(--text-muted)" }}>Fotos sin fondo (PNG)</span>
+                            </div>
+                            <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                              <button
+                                type="button"
+                                onClick={() => setProdForm({ ...prodForm, imgBgColor: "#FFFFFF" })}
+                                style={{
+                                  flex: 1,
+                                  padding: "6px 8px",
+                                  borderRadius: "8px",
+                                  border: (!prodForm.imgBgColor || prodForm.imgBgColor === "#FFFFFF" || prodForm.imgBgColor === "#fff") ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                  background: (!prodForm.imgBgColor || prodForm.imgBgColor === "#FFFFFF" || prodForm.imgBgColor === "#fff") ? "rgba(212, 175, 55, 0.15)" : "var(--bg-input)",
+                                  color: (!prodForm.imgBgColor || prodForm.imgBgColor === "#FFFFFF" || prodForm.imgBgColor === "#fff") ? "var(--text-gold)" : "inherit",
+                                  fontSize: "0.72rem",
+                                  fontWeight: (!prodForm.imgBgColor || prodForm.imgBgColor === "#FFFFFF" || prodForm.imgBgColor === "#fff") ? 800 : 500,
+                                  cursor: "pointer"
+                                }}
+                              >
+                                ⬜ Blanco
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setProdForm({ ...prodForm, imgBgColor: "transparent" })}
+                                style={{
+                                  flex: 1,
+                                  padding: "6px 8px",
+                                  borderRadius: "8px",
+                                  border: prodForm.imgBgColor === "transparent" ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                  background: prodForm.imgBgColor === "transparent" ? "rgba(212, 175, 55, 0.15)" : "var(--bg-input)",
+                                  color: prodForm.imgBgColor === "transparent" ? "var(--text-gold)" : "inherit",
+                                  fontSize: "0.72rem",
+                                  fontWeight: prodForm.imgBgColor === "transparent" ? 800 : 500,
+                                  cursor: "pointer"
+                                }}
+                              >
+                                🏁 Transparente
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setProdForm({ ...prodForm, imgBgColor: "brand" })}
+                                style={{
+                                  flex: 1,
+                                  padding: "6px 8px",
+                                  borderRadius: "8px",
+                                  border: prodForm.imgBgColor === "brand" ? "1.5px solid var(--gold-primary)" : "1px solid var(--border-color)",
+                                  background: prodForm.imgBgColor === "brand" ? "rgba(212, 175, 55, 0.15)" : "var(--bg-input)",
+                                  color: prodForm.imgBgColor === "brand" ? "var(--text-gold)" : "inherit",
+                                  fontSize: "0.72rem",
+                                  fontWeight: prodForm.imgBgColor === "brand" ? 800 : 500,
+                                  cursor: "pointer"
+                                }}
+                              >
+                                ✨ Marca
+                              </button>
+                            </div>
+                          </div>
+
+                        </div>
+                      </div>
+
+                      {/* ── TARJETA EN TIEMPO REAL CON TAMAÑO EXACTO DEL CATÁLOGO ── */}
+                      <div style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: "10px",
+                        flexWrap: "wrap",
+                        gap: "6px",
+                        borderTop: "1px solid rgba(212, 175, 55, 0.18)",
+                        paddingTop: "12px"
+                      }}>
+                        <span style={{ fontSize: "0.78rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "6px" }}>
+                          <i className="fa-solid fa-eye"></i> Vista Previa en Vivo (Tamaño Real de Vitrina)
+                        </span>
+
+                        {/* Switch de tamaño de simulación: Celular vs PC */}
+                        <div style={{ display: "inline-flex", background: "var(--bg-input)", padding: "2px", borderRadius: "8px", border: "1px solid var(--border-color)", gap: "2px" }}>
+                          <button
+                            type="button"
+                            onClick={() => setPreviewDevice("mobile")}
+                            style={{
+                              padding: "3px 8px",
+                              borderRadius: "6px",
+                              fontSize: "0.68rem",
+                              fontWeight: previewDevice === "mobile" ? 800 : 500,
+                              background: previewDevice === "mobile" ? "var(--gold-primary)" : "transparent",
+                              color: previewDevice === "mobile" ? "#1C1C1E" : "inherit",
+                              border: "none",
+                              cursor: "pointer"
+                            }}
+                          >
+                            📱 Celular (165px)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPreviewDevice("desktop")}
+                            style={{
+                              padding: "3px 8px",
+                              borderRadius: "6px",
+                              fontSize: "0.68rem",
+                              fontWeight: previewDevice === "desktop" ? 800 : 500,
+                              background: previewDevice === "desktop" ? "var(--gold-primary)" : "transparent",
+                              color: previewDevice === "desktop" ? "#1C1C1E" : "inherit",
+                              border: "none",
+                              cursor: "pointer"
+                            }}
+                          >
+                            💻 PC (205px)
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Contenedor Centrado de la Tarjeta Simulada */}
+                      <div style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        padding: "16px 10px",
+                        background: "radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.05) 0%, rgba(0,0,0,0.03) 100%)",
+                        borderRadius: "14px",
+                        border: "1px dashed var(--border-color)",
+                        overflowX: "auto"
+                      }}>
+                        {(() => {
+                          const previewWidth = previewDevice === "mobile" ? 165 : 205;
+                          const currentPrice = prodForm.price || "25";
+                          const currentPriceAourum = prodForm.priceAourum;
+                          const isDrink = productType === "drink";
+                          const isGastro = productType === "gastro";
+                          const isService = productType === "service";
+
+                          const cardVisualProd = {
+                            name: prodForm.name || (isDrink ? "Bebida / Refresco" : isGastro ? "Plato Especial" : isService ? "Servicio" : "Producto"),
+                            image: prodForm.image,
+                            imgBgColor: prodForm.imgBgColor || "transparent",
+                            imgScale: prodForm.imgScale != null ? prodForm.imgScale : 100,
+                            imgX: prodForm.imgX != null ? prodForm.imgX : 0,
+                            imgY: prodForm.imgY != null ? prodForm.imgY : 0,
+                            imgFit: prodForm.imgFit || "cover",
+                            description: prodForm.description
+                          };
+
+                          return (
+                            <div style={{
+                              width: `${previewWidth}px`,
+                              borderRadius: "14px",
+                              overflow: "hidden",
+                              background: "var(--bg-card)",
+                              border: "1px solid var(--border-color)",
+                              boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                              display: "flex",
+                              flexDirection: "column",
+                              transition: "width 0.25s ease",
+                              position: "relative"
+                            }}>
+                              {/* Cabecera / Imagen con relación de aspecto */}
+                              <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1", overflow: "hidden" }}>
+                                <ProductCardVisual
+                                  prod={cardVisualProd}
+                                  brandColor={selectedBrand?.color || "var(--gold-primary)"}
+                                />
+                              </div>
+
+                              {/* Cuerpo de la Tarjeta */}
+                              <div style={{ padding: "0.65rem 0.6rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.22rem" }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "4px" }}>
+                                  <span style={{ 
+                                    fontSize: "0.62rem", 
+                                    color: "var(--text-gold)", 
+                                    letterSpacing: "0.04em", 
+                                    textTransform: "uppercase", 
+                                    fontWeight: 700,
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    flex: 1
+                                  }}>
+                                    {prodForm.category || (isDrink ? "Bebidas" : isGastro ? "Gastronomía" : isService ? "Servicio" : "General")}
+                                  </span>
+                                  {prodForm.presentation && (
+                                    <span style={{ 
+                                      fontSize: "0.6rem", 
+                                      color: "var(--text-gold)", 
+                                      background: "rgba(212, 175, 55, 0.12)", 
+                                      padding: "1px 5px", 
+                                      borderRadius: "5px", 
+                                      fontWeight: 700,
+                                      flexShrink: 0,
+                                      whiteSpace: "nowrap"
+                                    }}>
+                                      {prodForm.presentation}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <h3 style={{ 
+                                  fontSize: "0.82rem", 
+                                  fontWeight: 800, 
+                                  lineHeight: 1.25, 
+                                  margin: 0,
+                                  display: "-webkit-box",
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: "vertical",
+                                  overflow: "hidden",
+                                  height: "2.5em"
+                                }}>
+                                  {prodForm.name || (isDrink ? "Bebida Artesanal" : isGastro ? "Platillo Especial" : isService ? "Nombre del Servicio" : "Nombre del Producto")}
+                                </h3>
+
+                                <div style={{ fontSize: "0.7rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px" }}>
+                                  <span>Por:</span>
+                                  <span style={{ textDecoration: "underline", color: "inherit", fontWeight: 600 }}>
+                                    {selectedBrand?.name || "Tu Marca"}
+                                  </span>
+                                </div>
+
+                                {/* Precio y Stock */}
+                                <div style={{ 
+                                  display: "flex", 
+                                  justifyContent: "space-between", 
+                                  alignItems: "center", 
+                                  borderTop: "1px solid var(--border-color)", 
+                                  paddingTop: "0.4rem", 
+                                  marginTop: "auto" 
+                                }}>
+                                  <div>
+                                    {currentPriceAourum ? (
+                                      <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
+                                        <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+                                          <span style={{ fontSize: "0.6rem", color: "var(--text-muted)", textDecoration: "line-through", lineHeight: 1 }}>
+                                            S/ {currentPrice}
+                                          </span>
+                                          <span style={{ fontSize: "0.46rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 3px", borderRadius: "3px", fontWeight: "800", textTransform: "uppercase" }}>
+                                            Aourum
+                                          </span>
+                                        </div>
+                                        <span style={{ fontSize: "0.88rem", fontWeight: 800, lineHeight: 1 }}>
+                                          S/ {currentPriceAourum}
+                                        </span>
+                                      </div>
+                                    ) : (
+                                      <div style={{ display: "flex", flexDirection: "column" }}>
+                                        {prodForm.hasMultipleSizes && (
+                                          <span style={{ fontSize: "0.52rem", textTransform: "uppercase", fontWeight: 700, color: "var(--text-muted)", lineHeight: 1 }}>
+                                            Desde
+                                          </span>
+                                        )}
+                                        <span style={{ fontSize: "0.88rem", fontWeight: 800 }}>
+                                          S/ {currentPrice}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+                                    <span style={{ fontSize: "0.56rem", textTransform: "uppercase", fontWeight: 800, color: "#854d0e" }}>
+                                      {isService ? "Servicio" : "Producto"}
+                                    </span>
+                                    <span style={{ fontSize: "0.52rem", fontWeight: 700, padding: "1px 4px", borderRadius: "5px", background: "#dcfce7", color: "#15803d" }}>
+                                      {isService ? "Disponible" : "Stock"}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  )}
 
                   {/* ── ACORDEÓN DE DETALLES Y OPCIONES AVANZADAS DE PRODUCTO ── */}
                   <div style={{ borderTop: "1px dashed var(--border-color)", paddingTop: "10px", marginBottom: "1.5rem" }}>
