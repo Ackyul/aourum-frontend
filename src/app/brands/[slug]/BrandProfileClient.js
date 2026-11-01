@@ -145,7 +145,8 @@ export default function BrandProfileClient({ initialBrand }) {
     openCreatePostModal,
     authHeaders,
     getBrandPalette,
-    addToCart
+    addToCart,
+    getItemCartQuantity
   } = useApp();
 
   const router = useRouter();
@@ -1445,25 +1446,32 @@ function BrandProductCard({ prod }) {
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  addToCart(prod, {
-                    size: activeSize,
-                    price: activePrice,
-                    priceAourum: activePriceAourum,
-                    image: activeImage,
-                    brand: brand
-                  });
-                  triggerNotification(true, `¡"${prod.name}" añadido al carrito!`);
-                }}
-                className="card-quick-cart-btn"
-                title="Añadir al Carrito"
-                aria-label="Añadir al Carrito"
-              >
-                <i className="fa-solid fa-cart-plus"></i>
-              </button>
+              {(() => {
+                const inCartQty = typeof getItemCartQuantity === "function" ? getItemCartQuantity(prod.id, activeSize?.size) : 0;
+                return (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addToCart(prod, {
+                        size: activeSize,
+                        price: activePrice,
+                        priceAourum: activePriceAourum,
+                        image: activeImage,
+                        brand: brand
+                      });
+                      const newTotal = inCartQty + 1;
+                      triggerNotification(true, `¡"${prod.name}" añadido al carrito! (${newTotal} en tu carrito)`);
+                    }}
+                    className="card-quick-cart-btn"
+                    title={inCartQty > 0 ? `Tienes ${inCartQty} en tu carrito. Clic para añadir otro.` : "Añadir al Carrito"}
+                    aria-label="Añadir al Carrito"
+                  >
+                    <i className="fa-solid fa-cart-plus"></i>
+                    {inCartQty > 0 && <span className="quick-cart-badge">{inCartQty}</span>}
+                  </button>
+                );
+              })()}
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
               <span className="card-type-label" style={{
                 fontSize: "0.65rem",

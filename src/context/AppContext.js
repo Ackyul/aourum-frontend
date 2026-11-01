@@ -1772,6 +1772,24 @@ export function AppContextProvider({ children }) {
   const cartCount = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
   const cartSubtotal = cart.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0);
 
+  const getItemCartQuantity = (productId, sizeStr = "") => {
+    if (!productId || !cart || cart.length === 0) return 0;
+    const cleanSize = typeof sizeStr === "object" ? (sizeStr?.size || "") : String(sizeStr || "");
+    const sizeNormalized = cleanSize.toLowerCase().replace(/[^a-z0-9]/g, "");
+    
+    if (sizeNormalized) {
+      const match = cart.find(item => 
+        Number(item.productId) === Number(productId) && 
+        (item.size || "").toLowerCase().replace(/[^a-z0-9]/g, "") === sizeNormalized
+      );
+      return match ? (match.quantity || 0) : 0;
+    }
+
+    return cart
+      .filter(item => Number(item.productId) === Number(productId))
+      .reduce((sum, item) => sum + (item.quantity || 0), 0);
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -1963,7 +1981,8 @@ export function AppContextProvider({ children }) {
         cartCount,
         cartSubtotal,
         customerOrderInfo,
-        setCustomerOrderInfo
+        setCustomerOrderInfo,
+        getItemCartQuantity
       }}
     >
       {children}

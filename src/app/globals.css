@@ -1082,9 +1082,9 @@ header {
     margin-top: auto !important;
   }
 
-  /* In carousel items, never show size pills that elongate cards */
+  /* Sizes on mobile cards: compact single row with horizontal scroll */
   .carousel-item .card-sizes-scroll {
-    display: none !important;
+    display: flex !important;
   }
 
   /* Product Card mobile simplified layout to reduce information overload */
@@ -4308,9 +4308,9 @@ img {
   max-height: 2.5em !important;
 }
 
-/* Ensure carousel items always have compact, uniform proportions without size pill expansion */
+/* Ensure carousel items have compact single-row size pills */
 .carousel-item .card-sizes-scroll {
-  display: none !important;
+  display: flex !important;
 }
 
 
@@ -4871,6 +4871,7 @@ img {
 
 /* Card Quick Add To Cart Button */
 .card-quick-cart-btn {
+  position: relative;
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -4897,4 +4898,26 @@ img {
 
 .card-quick-cart-btn:active {
   transform: scale(0.95);
+}
+
+
+.quick-cart-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--gold-gradient);
+  color: #1C1C1E;
+  font-size: 0.58rem;
+  font-weight: 900;
+  min-width: 15px;
+  height: 15px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  border: 1.5px solid var(--bg-card, #ffffff);
+  line-height: 1;
+  pointer-events: none;
 }

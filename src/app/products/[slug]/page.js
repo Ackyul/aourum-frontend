@@ -114,7 +114,8 @@ export default function ProductDetailPage() {
     people,
     setShowLoginModal,
     triggerNotification,
-    addToCart
+    addToCart,
+    getItemCartQuantity
   } = useApp();
 
   const router = useRouter();
@@ -348,10 +349,12 @@ export default function ProductDetailPage() {
     }
   }, [prod, allAvailableSizes]);
 
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
   const activePrice = selectedVariation ? selectedVariation.price : prod?.price;
   const activePriceAourum = selectedVariation ? selectedVariation.priceAourum : prod?.priceAourum;
   const activeSizeName = selectedVariation ? (selectedVariation.size || selectedVariation.presentation) : (parseProductPresentation(prod).presentation || perfumeInfo.ml);
   const activeImage = (selectedVariation && selectedVariation.image) ? selectedVariation.image : prod?.image;
+  const currentInCart = (typeof getItemCartQuantity === "function" && prod) ? getItemCartQuantity(prod.id, activeSizeName) : 0;
 
   const suggestedCategoryProds = useMemo(() => {
     if (!prod) return [];
@@ -1746,7 +1749,75 @@ export default function ProductDetailPage() {
                       </p>
                     </div>
                   )}
-                  {/* Botón Añadir al Carrito */}
+                  {/* Selector de Cantidad para añadir al carrito */}
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "0.55rem 0.85rem",
+                    borderRadius: "12px",
+                    background: resolvedCardBg,
+                    border: `1.5px solid ${palette.c1}30`,
+                    marginBottom: "0.5rem"
+                  }}>
+                    <span style={{ fontSize: "0.84rem", fontWeight: 700, color: resolvedCardTextColor }}>
+                      Cantidad:
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedQuantity(prev => Math.max(1, prev - 1))}
+                        disabled={selectedQuantity <= 1}
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          borderRadius: "8px",
+                          border: `1px solid ${palette.c1}40`,
+                          background: selectedQuantity <= 1 ? "transparent" : `${brandThemeColor}20`,
+                          color: selectedQuantity <= 1 ? mutedTextColor : brandThemeColor,
+                          cursor: selectedQuantity <= 1 ? "not-allowed" : "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "0.95rem",
+                          fontWeight: 700,
+                          transition: "all 0.15s ease"
+                        }}
+                        aria-label="Disminuir cantidad"
+                      >
+                        <i className="fa-solid fa-minus" style={{ fontSize: "0.75rem" }}></i>
+                      </button>
+
+                      <span style={{ minWidth: "28px", textAlign: "center", fontSize: "1.05rem", fontWeight: 800, color: resolvedCardTextColor }}>
+                        {selectedQuantity}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => setSelectedQuantity(prev => Math.min(99, prev + 1))}
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          borderRadius: "8px",
+                          border: `1px solid ${brandThemeColor}`,
+                          background: `${brandThemeColor}25`,
+                          color: brandThemeColor,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "0.95rem",
+                          fontWeight: 700,
+                          transition: "all 0.15s ease"
+                        }}
+                        aria-label="Aumentar cantidad"
+                      >
+                        <i className="fa-solid fa-plus" style={{ fontSize: "0.75rem" }}></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Botón Añadir al Carrito con Cantidad */}
                   <button
                     type="button"
                     onClick={() => {
@@ -1755,9 +1826,11 @@ export default function ProductDetailPage() {
                         price: activePrice,
                         priceAourum: activePriceAourum,
                         image: activeImage,
-                        brand: brand
+                        brand: brand,
+                        quantity: selectedQuantity
                       });
-                      triggerNotification(true, `¡"${prod.name}" añadido a tu carrito!`);
+                      const totalAfter = currentInCart + selectedQuantity;
+                      triggerNotification(true, `¡${selectedQuantity > 1 ? `${selectedQuantity}x ` : ""}"${prod.name}" añadido al carrito! (${totalAfter} en tu carrito)`);
                     }}
                     className="btn-outline-gold"
                     style={{
@@ -1774,8 +1847,29 @@ export default function ProductDetailPage() {
                     }}
                   >
                     <i className="fa-solid fa-cart-plus" style={{ fontSize: "1.1rem" }}></i>
-                    Añadir al Carrito
+                    {selectedQuantity > 1 ? `Añadir ${selectedQuantity} al Carrito` : "Añadir al Carrito"}
+                    {(activePriceAourum || activePrice) != null && (
+                      <span style={{ opacity: 0.85, fontSize: "0.85rem", fontWeight: 600 }}>
+                        (S/ {formatPrice(Number(activePriceAourum != null ? activePriceAourum : activePrice) * selectedQuantity)})
+                      </span>
+                    )}
                   </button>
+
+                  {currentInCart > 0 && (
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px",
+                      fontSize: "0.8rem",
+                      color: brandThemeColor || "var(--gold-primary)",
+                      fontWeight: 700,
+                      marginTop: "-0.2rem"
+                    }}>
+                      <i className="fa-solid fa-circle-check"></i>
+                      <span>Ya tienes {currentInCart} {currentInCart === 1 ? "unidad" : "unidades"} en tu carrito</span>
+                    </div>
+                  )}
 
                   <button 
                     onClick={() => router.push(`/brands/${brand?.slug || prod.brandId}`)}

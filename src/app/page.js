@@ -106,7 +106,8 @@ export default function Home() {
     removeBgAi,
     triggerNotification,
     authHeaders,
-    addToCart
+    addToCart,
+    getItemCartQuantity
   } = useApp();
 
   useEffect(() => {
@@ -681,10 +682,12 @@ export default function Home() {
       : (Array.isArray(perfumeInfo?.sizes) && perfumeInfo.sizes.length > 0 ? perfumeInfo.sizes : []);
     const sizes = typeof sortSizesDescending === "function" ? sortSizesDescending(rawSizes) : (rawSizes || []);
     const hasMultipleSizes = sizes.length > 1;
-    const activeSize = sizes[0] || null;
+    const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
+    const activeSize = hasMultipleSizes ? sizes[selectedSizeIndex] : (sizes[0] || null);
     const displayPrice = activeSize ? activeSize.price : (prod.minPrice != null ? prod.minPrice : prod.price);
     const displayPriceAourum = activeSize ? activeSize.priceAourum : prod.priceAourum;
     const displayImage = (activeSize && activeSize.image) ? activeSize.image : prod.image;
+    const activeImage = displayImage;
     const targetSlug = (activeSize && activeSize.slug) ? activeSize.slug : (prod.slug || prod.id);
 
     const visualProd = useMemo(() => {
@@ -851,6 +854,63 @@ export default function Home() {
             <span>Por:</span>
             <strong style={{ color: titleTextColor, cursor: "pointer", textDecoration: "underline" }}>{getBrandName(prod.brandId)}</strong>
           </div>
+
+          {/* Pastillas interactivas de tamaños si tiene múltiples opciones */}
+          {hasMultipleSizes && (
+            <div 
+              className="card-sizes-scroll"
+              style={{ 
+                display: "flex", 
+                gap: "4px", 
+                flexWrap: "nowrap", 
+                overflowX: "auto", 
+                scrollbarWidth: "none", 
+                msOverflowStyle: "none", 
+                WebkitOverflowScrolling: "touch", 
+                margin: "0.2rem 0 0.05rem 0", 
+                padding: "1px 0", 
+                maxWidth: "100%" 
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {sizes.map((s, idx) => {
+                const isSelected = idx === selectedSizeIndex;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    className="card-size-pill"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedSizeIndex(idx);
+                    }}
+                    title={`Ver tamaño ${s.size} por S/ ${s.price}`}
+                    style={{
+                      flex: "0 0 auto",
+                      whiteSpace: "nowrap",
+                      padding: "2px 7px",
+                      borderRadius: "6px",
+                      fontSize: "0.66rem",
+                      fontWeight: isSelected ? 800 : 600,
+                      cursor: "pointer",
+                      border: isSelected 
+                        ? `1.5px solid ${brandColor || "var(--gold-primary)"}` 
+                        : "1px solid rgba(0,0,0,0.12)",
+                      background: isSelected 
+                        ? `${brandColor || "var(--gold-primary)"}18` 
+                        : "rgba(0,0,0,0.03)",
+                      color: isSelected 
+                        ? (brandColor || "var(--gold-primary)") 
+                        : "var(--text-muted)",
+                      transition: "all 0.18s ease"
+                    }}
+                  >
+                    {s.size}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           
           {/* Price and Stock / Agenda */}
           <div style={{ 
@@ -890,25 +950,32 @@ export default function Home() {
               )}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  addToCart(prod, {
-                    size: activeSize,
-                    price: displayPrice,
-                    priceAourum: displayPriceAourum,
-                    image: activeImage,
-                    brand: brand
-                  });
-                  triggerNotification(true, `¡"${prod.name}" añadido al carrito!`);
-                }}
-                className="card-quick-cart-btn"
-                title="Añadir al Carrito"
-                aria-label="Añadir al Carrito"
-              >
-                <i className="fa-solid fa-cart-plus"></i>
-              </button>
+              {(() => {
+                const inCartQty = typeof getItemCartQuantity === "function" ? getItemCartQuantity(prod.id, activeSize?.size) : 0;
+                return (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addToCart(prod, {
+                        size: activeSize,
+                        price: displayPrice,
+                        priceAourum: displayPriceAourum,
+                        image: displayImage,
+                        brand: brand
+                      });
+                      const newTotal = inCartQty + 1;
+                      triggerNotification(true, `¡"${prod.name}" añadido al carrito! (${newTotal} en tu carrito)`);
+                    }}
+                    className="card-quick-cart-btn"
+                    title={inCartQty > 0 ? `Tienes ${inCartQty} en tu carrito. Clic para añadir otro.` : "Añadir al Carrito"}
+                    aria-label="Añadir al Carrito"
+                  >
+                    <i className="fa-solid fa-cart-plus"></i>
+                    {inCartQty > 0 && <span className="quick-cart-badge">{inCartQty}</span>}
+                  </button>
+                );
+              })()}
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
               <span className="card-type-label" style={{
                 fontSize: "0.65rem",
