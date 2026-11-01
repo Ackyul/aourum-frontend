@@ -59,11 +59,17 @@ export function parseProductPresentation(prod) {
     }
   }
 
-  // 2. Paréntesis en el nombre: ej. "Mixto de fruta deshidratada (200gr)" -> "200gr"
+  // 2. Paréntesis en el nombre: SOLO si realmente contiene gramaje/volumen con números o talla/pack explícito
+  // (NO cualquier texto entre paréntesis como aclaraciones descriptivas o notas de sabor)
   if (!presentation) {
-    const parenMatch = name.match(/\((?:tamaño|presentación)?\s*([^)]*(?:gr|g|kg|ml|oz|litros?|l|pack|talla\s+[smlx]+|[smlx]{1,3})[^)]*)\)/i);
-    if (parenMatch && parenMatch[1]) {
-      presentation = parenMatch[1].trim();
+    const explicitParenMatch = name.match(/\(\s*(?:tama[ñn]o|presentaci[oó]n|peso|volumen|talla|porci[oó]n)\s*:\s*([^)]+)\)/i);
+    if (explicitParenMatch && explicitParenMatch[1]) {
+      presentation = explicitParenMatch[1].trim();
+    } else {
+      const sizeParenMatch = name.match(/\(\s*(?:(?:aprox\.?|cont\.?\s*neto:?)\s*)?((?:\d+(?:[.,]\d+)?\s*(?:gr?|g|kg|kilos?|mg|oz|onzas?|lb|libras?|ml|mililitros?|l|lt|lts|litros?|cc|unid(?:ades)?|piezas?|uds?)(?:\s*[\/-]\s*\d+(?:[.,]\d+)?\s*(?:gr?|g|kg|kilos?|mg|oz|onzas?|lb|libras?|ml|mililitros?|l|lt|lts|litros?|cc))?)|talla\s+[a-z0-9]+|pack\s*(?:x|de)?\s*\d+|xs|s|m|l|xl|xxl|xxxl|[2-4]?xl)\s*\)/i);
+      if (sizeParenMatch && sizeParenMatch[1]) {
+        presentation = sizeParenMatch[1].trim();
+      }
     }
   }
 
@@ -92,7 +98,8 @@ export function parseProductPresentation(prod) {
 
   // Nombre base limpio sin sufijo de tamaño/presentación entre paréntesis
   let cleanName = name
-    .replace(/\s*\((?:tamaño|presentación)?\s*[^)]*(?:gr|g|kg|ml|oz|litros?|l|pack|talla\s+[smlx]+|[smlx]{1,3})[^)]*\)/gi, "")
+    .replace(/\s*\(\s*(?:tama[ñn]o|presentaci[oó]n|peso|volumen|talla|porci[oó]n)\s*:\s*[^)]+\)/gi, "")
+    .replace(/\s*\(\s*(?:(?:aprox\.?|cont\.?\s*neto:?)\s*)?(?:(?:\d+(?:[.,]\d+)?\s*(?:gr?|g|kg|kilos?|mg|oz|onzas?|lb|libras?|ml|mililitros?|l|lt|lts|litros?|cc|unid(?:ades)?|piezas?|uds?)(?:\s*[\/-]\s*\d+(?:[.,]\d+)?\s*(?:gr?|g|kg|kilos?|mg|oz|onzas?|lb|libras?|ml|mililitros?|l|lt|lts|litros?|cc))?)|talla\s+[a-z0-9]+|pack\s*(?:x|de)?\s*\d+|xs|s|m|l|xl|xxl|xxxl|[2-4]?xl)\s*\)/gi, "")
     .replace(/\s*-\s*\d+(?:\.\d+)?\s*(?:gr|g|kg|ml|oz)/gi, "")
     .trim();
 
