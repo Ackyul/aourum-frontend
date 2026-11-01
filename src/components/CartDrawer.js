@@ -17,7 +17,8 @@ export default function CartDrawer() {
     customerOrderInfo,
     setCustomerOrderInfo,
     getCurrentPerson,
-    activePersonId
+    activePersonId,
+    activeUsername
   } = useApp();
 
   const [sentBrands, setSentBrands] = useState({});
@@ -45,14 +46,21 @@ export default function CartDrawer() {
     return Object.values(map);
   }, [cart]);
 
+  const loggedPerson = activePersonId ? getCurrentPerson() : null;
+  const clientName = loggedPerson?.name 
+    ? (loggedPerson.lastName ? `${loggedPerson.name} ${loggedPerson.lastName}` : loggedPerson.name)
+    : (activeUsername || "");
+
   if (!isCartOpen) return null;
 
   // Build formatted WhatsApp message for a specific brand
   const handleCheckoutBrand = (brandGroup) => {
-    const loggedUser = activePersonId ? getCurrentPerson() : null;
-    const clientName = customerOrderInfo.name.trim() || loggedUser?.name || "";
-    const clientAddress = customerOrderInfo.address.trim() || "";
-    const clientNotes = customerOrderInfo.notes.trim() || "";
+    const loggedPerson = activePersonId ? getCurrentPerson() : null;
+    const clientName = loggedPerson?.name 
+      ? (loggedPerson.lastName ? `${loggedPerson.name} ${loggedPerson.lastName}` : loggedPerson.name)
+      : (activeUsername || "");
+    const clientAddress = customerOrderInfo.address?.trim() || "";
+    const clientNotes = customerOrderInfo.notes?.trim() || "";
 
     let text = `¡Hola *${brandGroup.brandName}*! 👋\n`;
     text += `Vi tus productos en *AOURUM* y deseo realizar el siguiente pedido:\n\n`;
@@ -68,7 +76,9 @@ export default function CartDrawer() {
     text += `\n💰 *SUBTOTAL A PAGAR:* S/ ${brandGroup.subtotal.toFixed(2)}\n`;
     text += `──────────────────────\n`;
     text += `👤 *DATOS DE ENTREGA:*\n`;
-    text += `• *Nombre:* ${clientName || "Por coordinar"}\n`;
+    if (clientName) {
+      text += `• *Nombre:* ${clientName}\n`;
+    }
     if (clientAddress) text += `• *Ciudad / Dirección:* ${clientAddress}\n`;
     if (clientNotes) text += `• *Nota / Consulta:* ${clientNotes}\n`;
     text += `\n📍 _Pedido enviado desde AOURUM Marketplace_`;
@@ -148,10 +158,10 @@ export default function CartDrawer() {
                   className="cart-customer-info-toggle"
                 >
                   <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <i className="fa-solid fa-user-pen" style={{ color: "var(--gold-primary)" }}></i>
+                    <i className="fa-solid fa-location-dot" style={{ color: "var(--gold-primary)" }}></i>
                     <strong>Datos para tu entrega</strong>
-                    {(customerOrderInfo.name || customerOrderInfo.address) && (
-                      <span className="cart-tag-ok">Completado</span>
+                    {customerOrderInfo.address && (
+                      <span className="cart-tag-ok">Dirección agregada</span>
                     )}
                   </span>
                   <i className={`fa-solid fa-chevron-${showInfoForm ? "up" : "down"}`} style={{ fontSize: "0.75rem", opacity: 0.7 }}></i>
@@ -159,18 +169,22 @@ export default function CartDrawer() {
 
                 {showInfoForm && (
                   <div className="cart-customer-info-fields fade-in">
-                    <div>
-                      <label style={{ fontSize: "0.74rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 3 }}>
-                        Tu Nombre:
-                      </label>
-                      <input 
-                        type="text" 
-                        value={customerOrderInfo.name} 
-                        onChange={(e) => setCustomerOrderInfo(prev => ({ ...prev, name: e.target.value }))}
-                        placeholder="Ej. Carlos Mendoza"
-                        className="cart-input"
-                      />
-                    </div>
+                    {clientName && (
+                      <div style={{ 
+                        fontSize: "0.78rem", 
+                        color: "var(--text-muted)", 
+                        display: "flex", 
+                        alignItems: "center", 
+                        gap: "8px", 
+                        padding: "6px 10px", 
+                        background: "rgba(212, 175, 55, 0.08)", 
+                        borderRadius: "8px",
+                        border: "1px solid rgba(212, 175, 55, 0.2)"
+                      }}>
+                        <i className="fa-solid fa-circle-user" style={{ color: "var(--gold-primary)", fontSize: "0.95rem" }}></i>
+                        <span>Pedido a nombre de: <strong style={{ color: "var(--text-main)" }}>{clientName}</strong></span>
+                      </div>
+                    )}
                     <div>
                       <label style={{ fontSize: "0.74rem", fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 3 }}>
                         Ciudad / Dirección de Entrega:

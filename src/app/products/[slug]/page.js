@@ -1755,8 +1755,7 @@ export default function ProductDetailPage() {
                         price: activePrice,
                         priceAourum: activePriceAourum,
                         image: activeImage,
-                        brand: brand,
-                        openDrawer: true
+                        brand: brand
                       });
                       triggerNotification(true, `¡"${prod.name}" añadido a tu carrito!`);
                     }}

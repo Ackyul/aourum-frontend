@@ -1747,7 +1747,7 @@ export function AppContextProvider({ children }) {
       ];
     });
 
-    if (options.openDrawer !== false) {
+    if (options.openDrawer === true) {
       setIsCartOpen(true);
     }
   };

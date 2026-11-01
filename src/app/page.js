@@ -899,8 +899,7 @@ export default function Home() {
                     price: displayPrice,
                     priceAourum: displayPriceAourum,
                     image: activeImage,
-                    brand: brand,
-                    openDrawer: true
+                    brand: brand
                   });
                   triggerNotification(true, `¡"${prod.name}" añadido al carrito!`);
                 }}
