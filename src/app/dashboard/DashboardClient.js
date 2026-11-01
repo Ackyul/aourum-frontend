@@ -2534,17 +2534,6 @@ export default function DashboardClient({ initialTab }) {
                           <span>{isVisible ? "Activo" : "Oculto"}</span>
                         </button>
 
-                        {/* Duplicar para crear otro tamaño con la misma foto */}
-                        <button 
-                          type="button"
-                          onClick={() => handleDuplicateProductForNewSize(prod)}
-                          className="btn-outline-gold dash-btn-edit"
-                          style={{ borderColor: "rgba(212, 175, 55, 0.4)", background: "rgba(212, 175, 55, 0.08)", color: "var(--text-gold)" }}
-                          title="Crear otra presentación o tamaño con la misma foto"
-                        >
-                          <i className="fa-solid fa-copy"></i> + Tamaño
-                        </button>
-
                         <button 
                           type="button"
                           onClick={() => handleEditProduct(prod)}
