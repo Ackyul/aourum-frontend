@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useApp } from "../../context/AppContext";
 import { ensureFullSocialUrl, isPerfumeryBrand, isVirtualMenuBrand } from "../../utils/brandUtils";
-import { parseProductPresentation, parsePerfumeInfo } from "../../components/PerfumeryShowcase";
+import { parseProductPresentation, parsePerfumeInfo, sortSizesDescending } from "../../components/PerfumeryShowcase";
 import ProductCardVisual, { parseProductImgConfig } from "../../components/ProductCardVisual";
 
 
