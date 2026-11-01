@@ -4296,3 +4296,99 @@ img {
   line-height: 1.25 !important;
   height: 2.5em !important;
 }
+
+
+/* ── BRAND PROFILE: TAMAÑO INTERMEDIO DE TARJETAS (Balance óptimo entre inicio y compacto) ── */
+.brand-profile-theme-scope .carousel-item {
+  flex: 0 0 calc((100% - 5 * 1rem) / 6) !important;
+  width: calc((100% - 5 * 1rem) / 6) !important;
+  max-width: calc((100% - 5 * 1rem) / 6) !important;
+  min-width: 195px !important;
+}
+
+.brand-profile-theme-scope .grid-catalog {
+  grid-template-columns: repeat(6, 1fr) !important;
+  gap: 1rem !important;
+}
+
+.brand-profile-theme-scope .product-card {
+  border-radius: 15px !important;
+}
+
+.brand-profile-theme-scope .grid-catalog .product-card > div:last-child,
+.brand-profile-theme-scope .carousel-item .product-card > div:last-child,
+.brand-profile-theme-scope .product-card > div:last-child {
+  padding: 0.82rem 0.82rem !important;
+  gap: 0.28rem !important;
+}
+
+.brand-profile-theme-scope .grid-catalog h3,
+.brand-profile-theme-scope .carousel-item h3,
+.brand-profile-theme-scope .product-card h3 {
+  font-size: 0.90rem !important;
+  line-height: 1.28 !important;
+  height: 2.56em !important;
+}
+
+@media (max-width: 1280px) {
+  .brand-profile-theme-scope .carousel-item {
+    flex: 0 0 calc((100% - 4 * 0.95rem) / 5) !important;
+    width: calc((100% - 4 * 0.95rem) / 5) !important;
+    max-width: calc((100% - 4 * 0.95rem) / 5) !important;
+    min-width: 180px !important;
+  }
+  .brand-profile-theme-scope .grid-catalog {
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 0.95rem !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .brand-profile-theme-scope .carousel-item {
+    flex: 0 0 calc((100% - 3 * 0.85rem) / 4) !important;
+    width: calc((100% - 3 * 0.85rem) / 4) !important;
+    max-width: calc((100% - 3 * 0.85rem) / 4) !important;
+    min-width: 165px !important;
+  }
+  .brand-profile-theme-scope .grid-catalog {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 0.85rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .brand-profile-theme-scope .carousel-item {
+    flex: 0 0 calc((100% - 2 * 0.75rem) / 3) !important;
+    width: calc((100% - 2 * 0.75rem) / 3) !important;
+    max-width: calc((100% - 2 * 0.75rem) / 3) !important;
+    min-width: 145px !important;
+  }
+  .brand-profile-theme-scope .grid-catalog {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .brand-profile-theme-scope .carousel-item {
+    flex: 0 0 calc((100% - 0.65rem) / 2) !important;
+    width: calc((100% - 0.65rem) / 2) !important;
+    max-width: calc((100% - 0.65rem) / 2) !important;
+    min-width: 0 !important;
+  }
+  .brand-profile-theme-scope .grid-catalog {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+  }
+  .brand-profile-theme-scope .grid-catalog .product-card > div:last-child,
+  .brand-profile-theme-scope .carousel-item .product-card > div:last-child,
+  .brand-profile-theme-scope .product-card > div:last-child {
+    padding: 0.7rem 0.65rem !important;
+    gap: 0.22rem !important;
+  }
+  .brand-profile-theme-scope .grid-catalog h3,
+  .brand-profile-theme-scope .carousel-item h3,
+  .brand-profile-theme-scope .product-card h3 {
+    font-size: 0.82rem !important;
+  }
+}

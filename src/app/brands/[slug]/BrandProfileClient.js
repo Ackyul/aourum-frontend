@@ -1286,7 +1286,7 @@ function BrandProductCard({ prod }) {
         </div>
 
         {/* Bottom Details Body */}
-        <div style={{ padding: "0.75rem 0.75rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.22rem" }}>
+        <div style={{ padding: "0.82rem 0.82rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.28rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px" }}>
             <span style={{ 
               fontSize: "0.72rem", 
@@ -1318,9 +1318,9 @@ function BrandProductCard({ prod }) {
           </div>
 
           <h3 style={{ 
-            fontSize: "0.85rem", 
-            fontWeight: 800, 
-            lineHeight: 1.25, 
+            fontSize: "0.90rem",
+            fontWeight: 800,
+            lineHeight: 1.28, 
             color: titleTextColor, 
             fontFamily: fontFamily !== "Inter" ? `"${fontFamily}", sans-serif` : "inherit",
             margin: "0.1rem 0 0 0",
