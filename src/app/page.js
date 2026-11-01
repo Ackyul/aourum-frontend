@@ -675,14 +675,13 @@ export default function Home() {
 
     const isPerfume = isProductPerfume(prod);
 
-    // Multi-size selection state
+    // Sizes calculation
     const rawSizes = (Array.isArray(prod.sizes) && prod.sizes.length > 0)
       ? prod.sizes
       : (Array.isArray(perfumeInfo?.sizes) && perfumeInfo.sizes.length > 0 ? perfumeInfo.sizes : []);
-    const sizes = sortSizesDescending(rawSizes);
+    const sizes = typeof sortSizesDescending === "function" ? sortSizesDescending(rawSizes) : (rawSizes || []);
     const hasMultipleSizes = sizes.length > 1;
-    const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);
-    const activeSize = hasMultipleSizes ? sizes[selectedSizeIndex] : (sizes[0] || null);
+    const activeSize = sizes[0] || null;
     const displayPrice = activeSize ? activeSize.price : (prod.minPrice != null ? prod.minPrice : prod.price);
     const displayPriceAourum = activeSize ? activeSize.priceAourum : prod.priceAourum;
     const displayImage = (activeSize && activeSize.image) ? activeSize.image : prod.image;
@@ -817,7 +816,9 @@ export default function Home() {
               textOverflow: "ellipsis",
               flex: 1
             }}>
-              {isPerfume ? (perfumeInfo.family && !/jean paul|dior|baccarat|sauvage|elixir|creed|versace|chanel|^alta perfumer[ií]a$/i.test(perfumeInfo.family) ? perfumeInfo.family : (prod.category && !/^alta perfumer[ií]a$/i.test(prod.category.trim()) ? prod.category : "Perfumería")) : prod.category}
+              {isPerfume 
+                ? (perfumeInfo.inspiration ? `Insp: ${perfumeInfo.inspiration}` : (perfumeInfo.family && !/jean paul|dior|baccarat|sauvage|elixir|creed|versace|chanel|^alta perfumer[ií]a$/i.test(perfumeInfo.family) ? perfumeInfo.family : (prod.category && !/^alta perfumer[ií]a$/i.test(prod.category.trim()) ? prod.category : "Perfumería"))) 
+                : prod.category}
             </span>
             {(activeSize?.size || perfumeInfo.ml || perfumeInfo.presentation) && (
               <span style={{ 
@@ -834,19 +835,9 @@ export default function Home() {
               </span>
             )}
           </div>
-          <h3 style={{ fontSize: "0.85rem", fontWeight: 800, lineHeight: 1.25, color: titleTextColor, margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", minHeight: "2.5em" }}>
+          <h3 style={{ fontSize: "0.85rem", fontWeight: 800, lineHeight: 1.25, color: titleTextColor, margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", height: "2.5em", minHeight: "2.5em", maxHeight: "2.5em" }}>
             {prod.name}
           </h3>
-
-          {/* Inspiración original si es perfume */}
-          {isPerfume && (perfumeInfo.inspiration || (prod.category && !/perfum/i.test(prod.category))) && (
-            <div style={{ fontSize: "0.74rem", color: "var(--text-gold)", display: "flex", alignItems: "center", gap: "5px" }}>
-              <i className="fa-solid fa-gem" style={{ fontSize: "0.65rem", opacity: 0.85 }}></i>
-              <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                Insp: <strong style={{ color: titleTextColor }}>{perfumeInfo.inspiration || prod.category}</strong>
-              </span>
-            </div>
-          )}
 
           <div 
             style={{ fontSize: "0.8rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px", marginTop: "2px" }}
@@ -860,63 +851,6 @@ export default function Home() {
             <span>Por:</span>
             <strong style={{ color: titleTextColor, cursor: "pointer", textDecoration: "underline" }}>{getBrandName(prod.brandId)}</strong>
           </div>
-
-          {/* Pastillas interactivas de tamaños si tiene múltiples opciones */}
-          {hasMultipleSizes && (
-            <div 
-              className="card-sizes-scroll"
-              style={{ 
-                display: "flex", 
-                gap: "4px", 
-                flexWrap: "nowrap",
-                overflowX: "auto",
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
-                WebkitOverflowScrolling: "touch",
-                margin: "0.2rem 0 0.05rem 0",
-                padding: "1px 0",
-                maxWidth: "100%"
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {sizes.map((s, idx) => {
-                const isSelected = idx === selectedSizeIndex;
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    className="card-size-pill"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedSizeIndex(idx);
-                    }}
-                    title={`Ver tamaño ${s.size} por S/ ${s.price}`}
-                    style={{
-                      flex: "0 0 auto",
-                      whiteSpace: "nowrap",
-                      padding: "2px 7px",
-                      borderRadius: "6px",
-                      fontSize: "0.66rem",
-                      fontWeight: isSelected ? 800 : 600,
-                      cursor: "pointer",
-                      border: isSelected 
-                        ? `1.5px solid ${brandColor || "var(--gold-primary)"}` 
-                        : "1px solid rgba(0,0,0,0.12)",
-                      background: isSelected 
-                        ? `${brandColor || "var(--gold-primary)"}18` 
-                        : "rgba(0,0,0,0.03)",
-                      color: isSelected 
-                        ? (brandColor || "var(--gold-primary)") 
-                        : "var(--text-muted)",
-                      transition: "all 0.18s ease"
-                    }}
-                  >
-                    {s.size}
-                  </button>
-                );
-              })}
-            </div>
-          )}
           
           {/* Price and Stock / Agenda */}
           <div style={{ 

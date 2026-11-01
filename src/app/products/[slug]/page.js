@@ -88,6 +88,9 @@ const cleanDescriptionText = (rawText) => {
   text = text.replace(/^\s*\]+\s*/gm, "");
   text = text.replace(/\s*\]+\s*$/gm, "");
   text = text.replace(/^\]+$/gm, "");
+  if (!text.includes("[")) {
+    text = text.replace(/\]+/g, "");
+  }
 
   return text.trim();
 };
@@ -328,8 +331,7 @@ export default function ProductDetailPage() {
     }
 
     const result = Array.from(sizeMap.values());
-    return sortSizesDescending ? sortSizesDescending(result) : result;
-    return result;
+    return typeof sortSizesDescending === "function" ? sortSizesDescending(result) : result;
   }, [prod, siblingVariations]);
 
   const [selectedVariation, setSelectedVariation] = useState(null);

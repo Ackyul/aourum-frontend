@@ -1072,10 +1072,19 @@ header {
   .carousel-item [style*="1.05rem"] {
     font-size: 0.9rem !important;
   }
+  .grid-catalog [style*="border-top"],
   .grid-catalog [style*="borderTop"],
-  .carousel-item [style*="borderTop"] {
-    padding-top: 0.5rem !important;
-    margin-top: 0.25rem !important;
+  .carousel-item [style*="border-top"],
+  .carousel-item [style*="borderTop"],
+  .product-card [style*="border-top"],
+  .product-card [style*="borderTop"] {
+    padding-top: 0.45rem !important;
+    margin-top: auto !important;
+  }
+
+  /* In carousel items, never show size pills that elongate cards */
+  .carousel-item .card-sizes-scroll {
+    display: none !important;
   }
 
   /* Product Card mobile simplified layout to reduce information overload */
@@ -4295,6 +4304,13 @@ img {
   font-size: 0.85rem !important;
   line-height: 1.25 !important;
   height: 2.5em !important;
+  min-height: 2.5em !important;
+  max-height: 2.5em !important;
+}
+
+/* Ensure carousel items always have compact, uniform proportions without size pill expansion */
+.carousel-item .card-sizes-scroll {
+  display: none !important;
 }
 
 
