@@ -3,8 +3,39 @@
 import { useState, useEffect, useRef } from "react";
 import QRCode from "qrcode";
 
-export default function BrandQRModal({ isOpen, onClose, brand, profileType = "brand" }) {
-  const [theme, setTheme] = useState("light"); // "light" | "gold"
+/**
+ * Adjusts color brightness to ensure high contrast against a white canvas,
+ * guaranteeing that mobile cameras scan the QR code effortlessly.
+ */
+export function getContrastingQRColor(colorStr) {
+  if (!colorStr || typeof colorStr !== "string") return "#B8901D";
+  let hex = colorStr.trim();
+  if (hex.startsWith("#")) {
+    let c = hex.replace("#", "");
+    if (c.length === 3) c = c.split("").map(x => x + x).join("");
+    if (c.length >= 6) {
+      const r = parseInt(c.substring(0, 2), 16) || 0;
+      const g = parseInt(c.substring(2, 4), 16) || 0;
+      const b = parseInt(c.substring(4, 6), 16) || 0;
+      // Perceived luminance (ITU-R BT.709)
+      const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      // If too light (> 180) for a white background, darken it so QR readers never fail
+      if (lum > 180) {
+        const factor = 160 / lum;
+        const dr = Math.max(0, Math.min(255, Math.round(r * factor))).toString(16).padStart(2, "0");
+        const dg = Math.max(0, Math.min(255, Math.round(g * factor))).toString(16).padStart(2, "0");
+        const db = Math.max(0, Math.min(255, Math.round(b * factor))).toString(16).padStart(2, "0");
+        return `#${dr}${dg}${db}`;
+      }
+    }
+    return hex.substring(0, 7);
+  }
+  return hex;
+}
+
+export default function BrandQRModal({ isOpen, onClose, brand, palette = null, profileType = "brand" }) {
+  const [qrType, setQrType] = useState("logo"); // "logo" (con imagen de marca) | "pure" (qr puro sin logo)
+  const [theme, setTheme] = useState("brand"); // "brand" (color de marca) | "contrast" (módulos oscuros con esquinas de marca) | "gold" (oro clásico)
   const [includeCardFrame, setIncludeCardFrame] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
   const [isStandMode, setIsStandMode] = useState(false);
@@ -13,6 +44,12 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
 
   const canvasRef = useRef(null);
   const standCanvasRef = useRef(null);
+
+  // Resolved brand colors (SI O SI con los colores oficiales de la marca)
+  const brandColor = getContrastingQRColor(
+    palette?.c1 || brand?.color || brand?.theme_color || brand?.themeColor || "#D4AF37"
+  );
+  const brandSecondary = palette?.c2 || brand?.secondary_color || brand?.color_secondary || brandColor;
 
   // Canonical permanent URL for the brand / band
   const getBrandUrl = () => {
@@ -32,7 +69,7 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
     setTimeout(() => setToastMsg(""), 3000);
   };
 
-  // Function to render QR on canvas with Aourum colors & logo emblem
+  // Function to render QR on canvas with Brand colors & optional Brand Logo emblem
   const drawQRCanvas = async (canvas, size = 800, isCard = false) => {
     if (!canvas || !brand) return;
     const ctx = canvas.getContext("2d");
@@ -45,24 +82,28 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
     const width = canvas.width;
     const height = canvas.height;
 
-    // Define Palette (All themes feature a clean white background matching Aourum brand identity)
+    // Define Palette (SI O SI con los colores de la marca)
     let bgColor = "#FAF9F6";
-    let moduleColor = "#18181B";
-    let eyeOuterColor = "#B8901D";
-    let eyeInnerColor = "#D4AF37";
+    let moduleColor = brandColor;
+    let eyeOuterColor = brandColor;
+    let eyeInnerColor = brandSecondary;
     let textColor = "#1C1C1E";
     let mutedTextColor = "#71717A";
-    let badgeBg = "#FFFFFF";
-    let badgeBorder = "#D4AF37";
+    let badgeBorder = brandColor;
 
-    if (theme === "gold") {
+    if (theme === "contrast") {
+      bgColor = "#FAF9F6";
+      moduleColor = "#18181B";
+      eyeOuterColor = brandColor;
+      eyeInnerColor = brandColor;
+      badgeBorder = brandColor;
+    } else if (theme === "gold") {
       bgColor = "#FFFFFF";
       moduleColor = "#B8901D";
       eyeOuterColor = "#D4AF37";
       eyeInnerColor = "#B8901D";
       textColor = "#1C1C1E";
       mutedTextColor = "#8E742A";
-      badgeBg = "#FFFFFF";
       badgeBorder = "#D4AF37";
     }
 
@@ -72,13 +113,13 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
 
     // 2. Outer & Inner Decorative Borders (if isCard)
     if (isCard) {
-      // Outer Gold Frame
-      ctx.strokeStyle = "rgba(212, 175, 55, 0.45)";
+      // Outer Brand Color Frame
+      ctx.strokeStyle = `${brandColor}65`;
       ctx.lineWidth = width * 0.012;
       ctx.strokeRect(width * 0.03, width * 0.03, width * 0.94, height - width * 0.06);
 
       // Inner Fine Frame
-      ctx.strokeStyle = "rgba(212, 175, 55, 0.25)";
+      ctx.strokeStyle = `${brandColor}35`;
       ctx.lineWidth = width * 0.003;
       ctx.strokeRect(width * 0.045, width * 0.045, width * 0.91, height - width * 0.09);
     }
@@ -98,8 +139,10 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
 
     const centerStart = Math.floor(moduleCount * 0.38);
     const centerEnd = Math.ceil(moduleCount * 0.62);
+
+    // Only reserve center when qrType === "logo" (QR con imagen de marca)
     const isCenterModule = (r, c) =>
-      r >= centerStart && r <= centerEnd && c >= centerStart && c <= centerEnd;
+      qrType === "logo" && r >= centerStart && r <= centerEnd && c >= centerStart && c <= centerEnd;
 
     // Draw QR Modules (Rounded Dots)
     ctx.fillStyle = moduleColor;
@@ -116,7 +159,7 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
       }
     }
 
-    // Draw Custom Finder Eyes
+    // Draw Custom Finder Eyes with Brand Colors
     const drawEye = (startR, startC) => {
       const eyeX = qrMargin + startC * cellSize;
       const eyeY = qrTopOffset + startR * cellSize;
@@ -125,21 +168,33 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
       ctx.fillStyle = eyeOuterColor;
       const outerRadius = cellSize * 1.5;
       ctx.beginPath();
-      ctx.roundRect(eyeX, eyeY, eyeSize, eyeSize, outerRadius);
+      if (typeof ctx.roundRect === "function") {
+        ctx.roundRect(eyeX, eyeY, eyeSize, eyeSize, outerRadius);
+      } else {
+        ctx.rect(eyeX, eyeY, eyeSize, eyeSize);
+      }
       ctx.fill();
 
       ctx.fillStyle = bgColor;
       const innerGap = cellSize * 1;
       const innerSize = 5 * cellSize;
       ctx.beginPath();
-      ctx.roundRect(eyeX + innerGap, eyeY + innerGap, innerSize, innerSize, outerRadius * 0.7);
+      if (typeof ctx.roundRect === "function") {
+        ctx.roundRect(eyeX + innerGap, eyeY + innerGap, innerSize, innerSize, outerRadius * 0.7);
+      } else {
+        ctx.rect(eyeX + innerGap, eyeY + innerGap, innerSize, innerSize);
+      }
       ctx.fill();
 
       ctx.fillStyle = eyeInnerColor;
       const centerGap = cellSize * 2;
       const dotSize = 3 * cellSize;
       ctx.beginPath();
-      ctx.roundRect(eyeX + centerGap, eyeY + centerGap, dotSize, dotSize, outerRadius * 0.5);
+      if (typeof ctx.roundRect === "function") {
+        ctx.roundRect(eyeX + centerGap, eyeY + centerGap, dotSize, dotSize, outerRadius * 0.5);
+      } else {
+        ctx.rect(eyeX + centerGap, eyeY + centerGap, dotSize, dotSize);
+      }
       ctx.fill();
     };
 
@@ -147,80 +202,84 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
     drawEye(0, moduleCount - 7);
     drawEye(moduleCount - 7, 0);
 
-    // Center Emblem Badge (White rounded square fitting the logo)
-    const centerSize = (centerEnd - centerStart + 1.2) * cellSize;
-    const centerX = qrMargin + (moduleCount / 2) * cellSize;
-    const centerY = qrTopOffset + (moduleCount / 2) * cellSize;
-    const boxSize = centerSize * 1.05;
-    const boxX = centerX - boxSize / 2;
-    const boxY = centerY - boxSize / 2;
-    const borderRadius = boxSize * 0.22;
+    // Center Emblem Badge: ONLY when qrType === "logo" (QR con imagen de marca)
+    if (qrType === "logo") {
+      const centerSize = (centerEnd - centerStart + 1.2) * cellSize;
+      const centerX = qrMargin + (moduleCount / 2) * cellSize;
+      const centerY = qrTopOffset + (moduleCount / 2) * cellSize;
+      const boxSize = centerSize * 1.05;
+      const boxX = centerX - boxSize / 2;
+      const boxY = centerY - boxSize / 2;
+      const borderRadius = boxSize * 0.22;
 
-    ctx.save();
-    ctx.fillStyle = "#FFFFFF";
-    ctx.strokeStyle = badgeBorder;
-    ctx.lineWidth = cellSize * 0.6;
-    ctx.beginPath();
-    if (typeof ctx.roundRect === "function") {
-      ctx.roundRect(boxX, boxY, boxSize, boxSize, borderRadius);
-    } else {
-      const r = borderRadius;
-      ctx.moveTo(boxX + r, boxY);
-      ctx.arcTo(boxX + boxSize, boxY, boxX + boxSize, boxY + boxSize, r);
-      ctx.arcTo(boxX + boxSize, boxY + boxSize, boxX, boxY + boxSize, r);
-      ctx.arcTo(boxX, boxY + boxSize, boxX, boxY, r);
-      ctx.arcTo(boxX, boxY, boxX + boxSize, boxY, r);
-      ctx.closePath();
-    }
-    ctx.fill();
-    ctx.stroke();
-
-    try {
-      const logoImg = new Image();
-      logoImg.crossOrigin = "anonymous";
-      logoImg.src = "/aourum-logo-a.png";
-      await new Promise((resolve) => {
-        logoImg.onload = resolve;
-        logoImg.onerror = () => {
-          logoImg.src = "/icon.png";
-          logoImg.onload = resolve;
-          logoImg.onerror = resolve;
-        };
-      });
-
-      if (logoImg.complete && logoImg.naturalWidth !== 0) {
-        const imgSize = boxSize * 0.72;
-        const offCanvas = document.createElement("canvas");
-        offCanvas.width = logoImg.naturalWidth;
-        offCanvas.height = logoImg.naturalHeight;
-        const offCtx = offCanvas.getContext("2d");
-        if (offCtx) {
-          offCtx.drawImage(logoImg, 0, 0);
-          offCtx.globalCompositeOperation = "source-in";
-          offCtx.fillStyle = "#121214";
-          offCtx.fillRect(0, 0, offCanvas.width, offCanvas.height);
-          ctx.drawImage(offCanvas, centerX - imgSize / 2, centerY - imgSize / 2, imgSize, imgSize);
-        } else {
-          ctx.drawImage(logoImg, centerX - imgSize / 2, centerY - imgSize / 2, imgSize, imgSize);
-        }
+      ctx.save();
+      ctx.fillStyle = "#FFFFFF";
+      ctx.strokeStyle = badgeBorder;
+      ctx.lineWidth = cellSize * 0.6;
+      ctx.beginPath();
+      if (typeof ctx.roundRect === "function") {
+        ctx.roundRect(boxX, boxY, boxSize, boxSize, borderRadius);
       } else {
-        ctx.fillStyle = "#121214";
-        ctx.font = `bold ${Math.round(boxSize * 0.22)}px 'Tenor Sans', sans-serif`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText("AOURUM", centerX, centerY);
+        const r = borderRadius;
+        ctx.moveTo(boxX + r, boxY);
+        ctx.arcTo(boxX + boxSize, boxY, boxX + boxSize, boxY + boxSize, r);
+        ctx.arcTo(boxX + boxSize, boxY + boxSize, boxX, boxY + boxSize, r);
+        ctx.arcTo(boxX, boxY + boxSize, boxX, boxY, r);
+        ctx.arcTo(boxX, boxY, boxX + boxSize, boxY, r);
+        ctx.closePath();
       }
-    } catch (e) {
-      console.warn(e);
+      ctx.fill();
+      ctx.stroke();
+
+      try {
+        const logoImg = new Image();
+        logoImg.crossOrigin = "anonymous";
+        logoImg.src = brand.logo || "/aourum-logo-a.png";
+        await new Promise((resolve) => {
+          logoImg.onload = resolve;
+          logoImg.onerror = () => {
+            logoImg.src = "/aourum-logo-a.png";
+            logoImg.onload = resolve;
+            logoImg.onerror = () => {
+              logoImg.src = "/icon.png";
+              logoImg.onload = resolve;
+              logoImg.onerror = resolve;
+            };
+          };
+        });
+
+        if (logoImg.complete && logoImg.naturalWidth !== 0) {
+          const imgSize = boxSize * 0.72;
+          ctx.save();
+          if (brand.logo) {
+            // Circular clipping for clean brand logo presentation
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, imgSize / 2, 0, Math.PI * 2);
+            ctx.clip();
+            ctx.drawImage(logoImg, centerX - imgSize / 2, centerY - imgSize / 2, imgSize, imgSize);
+          } else {
+            ctx.drawImage(logoImg, centerX - imgSize / 2, centerY - imgSize / 2, imgSize, imgSize);
+          }
+          ctx.restore();
+        } else {
+          ctx.fillStyle = brandColor;
+          ctx.font = `bold ${Math.round(boxSize * 0.22)}px 'Tenor Sans', sans-serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText((brand.name || "AOURUM").substring(0, 8), centerX, centerY);
+        }
+      } catch (e) {
+        console.warn(e);
+      }
+      ctx.restore();
     }
-    ctx.restore();
 
     // Card Header & Footer Text Layout
     if (isCard) {
       ctx.save();
       const headerY = width * 0.065;
 
-      // Brand Logo
+      // Brand Logo in Card Header
       if (brand.logo) {
         try {
           const bLogo = new Image();
@@ -299,14 +358,14 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
     return () => {
       active = false;
     };
-  }, [theme, includeCardFrame, brand, isOpen]);
+  }, [qrType, theme, includeCardFrame, brand, isOpen, palette]);
 
   // Handle Stand Canvas render when stand mode toggled
   useEffect(() => {
     if (isStandMode && standCanvasRef.current) {
       drawQRCanvas(standCanvasRef.current, 900, true);
     }
-  }, [isStandMode, theme, brand]);
+  }, [isStandMode, qrType, theme, brand, palette]);
 
   if (!isOpen || !brand) return null;
 
@@ -316,10 +375,11 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
     await drawQRCanvas(exportCanvas, 2000, includeCardFrame);
     const dataUrl = exportCanvas.toDataURL("image/png");
     const link = document.createElement("a");
-    link.download = `QR-AOURUM-${(brand.slug || brand.name || "marca").toLowerCase()}.png`;
+    const typeLabel = qrType === "pure" ? "Puro" : "Logo";
+    link.download = `QR-${typeLabel}-${(brand.slug || brand.name || "marca").toLowerCase()}.png`;
     link.href = dataUrl;
     link.click();
-    showToast("¡QR PNG en Alta Definición (2000px) descargado!");
+    showToast(`¡QR ${typeLabel} en Alta Definición (2000px) descargado!`);
   };
 
   // Export 2: Pure SVG Vector Download
@@ -331,19 +391,20 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
       const cellSize = 10;
       const totalSize = size * cellSize;
 
+      let modColor = theme === "contrast" ? "#18181B" : (theme === "gold" ? "#B8901D" : brandColor);
+      let eyeOuter = theme === "gold" ? "#D4AF37" : brandColor;
+      let eyeInner = theme === "gold" ? "#B8901D" : brandSecondary;
+      let bg = theme === "gold" ? "#FFFFFF" : "#FAF9F6";
+
       let svgPaths = "";
       const isEyeModule = (r, c) =>
         (r < 7 && c < 7) || (r < 7 && c >= size - 7) || (r >= size - 7 && c < 7);
       const isCenterModule = (r, c) =>
+        qrType === "logo" &&
         r >= Math.floor(size * 0.38) &&
         r <= Math.ceil(size * 0.62) &&
         c >= Math.floor(size * 0.38) &&
         c <= Math.ceil(size * 0.62);
-
-      let modColor = theme === "gold" ? "#B8901D" : "#18181B";
-      let eyeOuter = theme === "gold" ? "#D4AF37" : "#B8901D";
-      let eyeInner = theme === "gold" ? "#B8901D" : "#D4AF37";
-      let bg = theme === "gold" ? "#FFFFFF" : "#FAF9F6";
 
       for (let r = 0; r < size; r++) {
         for (let c = 0; c < size; c++) {
@@ -367,34 +428,45 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
         makeEyeSVG((size - 7) * cellSize, 0) +
         makeEyeSVG(0, (size - 7) * cellSize);
 
-      // Center Emblem Badge SVG (White rounded square)
-      const cCenter = totalSize / 2;
-      const boxSizeSVG = totalSize * 0.24;
-      const boxRadiusSVG = boxSizeSVG * 0.22;
-      const boxXSVG = cCenter - boxSizeSVG / 2;
-      const boxYSVG = cCenter - boxSizeSVG / 2;
+      // Center Emblem Badge SVG: ONLY when qrType === "logo"
+      let badgeSVG = "";
+      if (qrType === "logo") {
+        const cCenter = totalSize / 2;
+        const boxSizeSVG = totalSize * 0.24;
+        const boxRadiusSVG = boxSizeSVG * 0.22;
+        const boxXSVG = cCenter - boxSizeSVG / 2;
+        const boxYSVG = cCenter - boxSizeSVG / 2;
 
-      const badgeSVG = `
-        <rect x="${boxXSVG}" y="${boxYSVG}" width="${boxSizeSVG}" height="${boxSizeSVG}" rx="${boxRadiusSVG}" fill="#FFFFFF" stroke="${eyeOuter}" stroke-width="${cellSize * 0.6}" />
-        <text x="${cCenter}" y="${cCenter}" font-family="sans-serif" font-weight="bold" font-size="${boxSizeSVG * 0.25}" fill="#121214" text-anchor="middle" dominant-baseline="central">AOURUM</text>
-      `;
+        if (brand.logo) {
+          badgeSVG = `
+            <rect x="${boxXSVG}" y="${boxYSVG}" width="${boxSizeSVG}" height="${boxSizeSVG}" rx="${boxRadiusSVG}" fill="#FFFFFF" stroke="${eyeOuter}" stroke-width="${cellSize * 0.6}" />
+            <image href="${brand.logo}" x="${boxXSVG + boxSizeSVG * 0.14}" y="${boxYSVG + boxSizeSVG * 0.14}" width="${boxSizeSVG * 0.72}" height="${boxSizeSVG * 0.72}" preserveAspectRatio="xMidYMid slice" />
+          `;
+        } else {
+          badgeSVG = `
+            <rect x="${boxXSVG}" y="${boxYSVG}" width="${boxSizeSVG}" height="${boxSizeSVG}" rx="${boxRadiusSVG}" fill="#FFFFFF" stroke="${eyeOuter}" stroke-width="${cellSize * 0.6}" />
+            <text x="${cCenter}" y="${cCenter}" font-family="sans-serif" font-weight="bold" font-size="${boxSizeSVG * 0.22}" fill="${eyeOuter}" text-anchor="middle" dominant-baseline="central">${(brand.name || "AOURUM").substring(0, 8)}</text>
+          `;
+        }
+      }
 
       const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalSize} ${totalSize}" width="1000" height="1000">
   <rect width="${totalSize}" height="${totalSize}" fill="${bg}" />
   <g>${svgPaths}</g>
   <g>${eyesSVG}</g>
-  <g>${badgeSVG}</g>
+  ${badgeSVG ? `<g>${badgeSVG}</g>` : ""}
 </svg>`;
 
       const blob = new Blob([svgContent], { type: "image/svg+xml;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.download = `QR-Vector-AOURUM-${(brand.slug || brand.name || "marca").toLowerCase()}.svg`;
+      const typeLabel = qrType === "pure" ? "Puro" : "Logo";
+      link.download = `QR-${typeLabel}-${(brand.slug || brand.name || "marca").toLowerCase()}.svg`;
       link.href = url;
       link.click();
       URL.revokeObjectURL(url);
-      showToast("¡Vector SVG descargado con éxito!");
+      showToast(`¡Vector SVG (${typeLabel}) descargado con éxito!`);
     } catch (err) {
       console.error(err);
       showToast("Error al exportar SVG.");
@@ -463,7 +535,6 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
           showToast("¡Imagen del QR copiada al portapapeles!");
           setTimeout(() => setIsCopied(false), 2500);
         } catch (e) {
-          // Fallback to text link
           await navigator.clipboard.writeText(brandUrl);
           showToast("¡Enlace del QR copiado al portapapeles!");
         }
@@ -516,10 +587,10 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
           className="modal-panel"
           style={{
             background: "#FFFFFF",
-            border: "1.5px solid var(--gold-primary)",
+            border: `1.5px solid ${brandColor}`,
             maxWidth: "680px",
             color: "#1C1C1E",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.18), 0 0 35px rgba(212,175,55,0.15)",
+            boxShadow: `0 20px 60px rgba(0,0,0,0.18), 0 0 35px ${brandColor}25`,
             padding: 0
           }}
           onClick={(e) => e.stopPropagation()}
@@ -539,8 +610,8 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
                 <span
                   style={{
-                    background: "linear-gradient(135deg, #D4AF37, #F3E5AB)",
-                    color: "#121214",
+                    background: `linear-gradient(135deg, ${brandColor}, ${brandSecondary})`,
+                    color: "#FFFFFF",
                     fontSize: "0.65rem",
                     fontWeight: "800",
                     padding: "2px 8px",
@@ -552,12 +623,12 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
                   Exclusivo AOURUM
                 </span>
                 <span style={{ fontSize: "0.75rem", color: "#71717A" }}>
-                  <i className="fa-solid fa-lock" style={{ marginRight: "4px", color: "#B8901D" }}></i>
+                  <i className="fa-solid fa-lock" style={{ marginRight: "4px", color: brandColor }}></i>
                   Código QR Permanente e Inalterable
                 </span>
               </div>
               <h2 style={{ fontSize: "1.25rem", fontWeight: "800", margin: 0, color: "#1C1C1E" }}>
-                Código QR de <span style={{ color: "#B8901D" }}>{brand.name}</span>
+                Código QR de <span style={{ color: brandColor }}>{brand.name}</span>
               </h2>
             </div>
             <button
@@ -583,89 +654,164 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
 
           {/* Scrollable Body */}
           <div className="modal-body" style={{ background: "#FFFFFF" }}>
-            {/* Controls Bar: Theme & Format switch */}
+            {/* Controls Bar: QR Type, Style/Color & Format switch */}
             <div
               style={{
                 display: "flex",
+                flexDirection: "column",
                 gap: "10px",
-                flexWrap: "wrap",
-                justifyContent: "space-between",
-                alignItems: "center",
                 marginBottom: "1rem",
                 background: "#FBFBFA",
-                padding: "10px 12px",
-                borderRadius: "12px",
+                padding: "12px 14px",
+                borderRadius: "14px",
                 border: "1px solid #EAE6DF"
               }}
             >
-              {/* Theme Selector */}
-              <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "0.75rem", color: "#71717A", fontWeight: 600 }}>Estilo:</span>
-                <button
-                  onClick={() => setTheme("light")}
-                  style={{
-                    padding: "4px 12px",
-                    borderRadius: "6px",
-                    fontSize: "0.75rem",
-                    fontWeight: "700",
-                    cursor: "pointer",
-                    border: theme === "light" ? "1.5px solid #D4AF37" : "1px solid #E4E4E7",
-                    background: theme === "light" ? "rgba(212, 175, 55, 0.12)" : "#FFFFFF",
-                    color: theme === "light" ? "#B8901D" : "#52525B"
-                  }}
-                >
-                  Claridad
-                </button>
-                <button
-                  onClick={() => setTheme("gold")}
-                  style={{
-                    padding: "4px 12px",
-                    borderRadius: "6px",
-                    fontSize: "0.75rem",
-                    fontWeight: "700",
-                    cursor: "pointer",
-                    border: theme === "gold" ? "1.5px solid #D4AF37" : "1px solid #E4E4E7",
-                    background: theme === "gold" ? "rgba(212, 175, 55, 0.12)" : "#FFFFFF",
-                    color: theme === "gold" ? "#B8901D" : "#52525B"
-                  }}
-                >
-                  Oro Puro
-                </button>
+              {/* Row 1: Tipo de QR (Puro vs Con Logo) */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
+                <span style={{ fontSize: "0.78rem", color: "#1C1C1E", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}>
+                  <i className="fa-solid fa-shapes" style={{ color: brandColor }}></i>
+                  Tipo de QR:
+                </span>
+                <div style={{ display: "inline-flex", background: "#FFFFFF", padding: "2px", borderRadius: "8px", border: "1px solid #E4E4E7", gap: "3px" }}>
+                  <button
+                    type="button"
+                    onClick={() => setQrType("logo")}
+                    style={{
+                      padding: "5px 12px",
+                      borderRadius: "6px",
+                      fontSize: "0.75rem",
+                      fontWeight: qrType === "logo" ? 800 : 600,
+                      cursor: "pointer",
+                      border: qrType === "logo" ? `1.5px solid ${brandColor}` : "1px solid transparent",
+                      background: qrType === "logo" ? `${brandColor}18` : "transparent",
+                      color: qrType === "logo" ? brandColor : "#52525B",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      transition: "all 0.15s ease"
+                    }}
+                  >
+                    <i className="fa-solid fa-image"></i> Con Imagen de Marca
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQrType("pure")}
+                    style={{
+                      padding: "5px 12px",
+                      borderRadius: "6px",
+                      fontSize: "0.75rem",
+                      fontWeight: qrType === "pure" ? 800 : 600,
+                      cursor: "pointer",
+                      border: qrType === "pure" ? `1.5px solid ${brandColor}` : "1px solid transparent",
+                      background: qrType === "pure" ? `${brandColor}18` : "transparent",
+                      color: qrType === "pure" ? brandColor : "#52525B",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      transition: "all 0.15s ease"
+                    }}
+                  >
+                    <i className="fa-solid fa-qrcode"></i> QR Puro (Sin Logo)
+                  </button>
+                </div>
               </div>
 
-              {/* Layout Toggle */}
-              <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "0.75rem", color: "#71717A", fontWeight: 600 }}>Formato:</span>
-                <button
-                  onClick={() => setIncludeCardFrame(false)}
-                  style={{
-                    padding: "4px 10px",
-                    borderRadius: "6px",
-                    fontSize: "0.75rem",
-                    fontWeight: "700",
-                    cursor: "pointer",
-                    border: !includeCardFrame ? "1.5px solid #D4AF37" : "1px solid #E4E4E7",
-                    background: !includeCardFrame ? "rgba(212, 175, 55, 0.12)" : "#FFFFFF",
-                    color: !includeCardFrame ? "#B8901D" : "#52525B"
-                  }}
-                >
-                  Solo QR
-                </button>
-                <button
-                  onClick={() => setIncludeCardFrame(true)}
-                  style={{
-                    padding: "4px 10px",
-                    borderRadius: "6px",
-                    fontSize: "0.75rem",
-                    fontWeight: "700",
-                    cursor: "pointer",
-                    border: includeCardFrame ? "1.5px solid #D4AF37" : "1px solid #E4E4E7",
-                    background: includeCardFrame ? "rgba(212, 175, 55, 0.12)" : "#FFFFFF",
-                    color: includeCardFrame ? "#B8901D" : "#52525B"
-                  }}
-                >
-                  Tarjeta Impresa / Stand
-                </button>
+              {/* Row 2: Selector de Color y Formato */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px", borderTop: "1px dashed #EAE6DF", paddingTop: "8px" }}>
+                {/* Selector de Color */}
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                  <span style={{ fontSize: "0.75rem", color: "#71717A", fontWeight: 600 }}>Color:</span>
+                  <button
+                    type="button"
+                    onClick={() => setTheme("brand")}
+                    style={{
+                      padding: "4px 10px",
+                      borderRadius: "6px",
+                      fontSize: "0.75rem",
+                      fontWeight: theme === "brand" ? 800 : 600,
+                      cursor: "pointer",
+                      border: theme === "brand" ? `1.5px solid ${brandColor}` : "1px solid #E4E4E7",
+                      background: theme === "brand" ? `${brandColor}18` : "#FFFFFF",
+                      color: theme === "brand" ? brandColor : "#52525B",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "5px"
+                    }}
+                  >
+                    <span style={{ width: "9px", height: "9px", borderRadius: "50%", background: brandColor, display: "inline-block" }}></span>
+                    Color Marca
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTheme("contrast")}
+                    style={{
+                      padding: "4px 10px",
+                      borderRadius: "6px",
+                      fontSize: "0.75rem",
+                      fontWeight: theme === "contrast" ? 800 : 600,
+                      cursor: "pointer",
+                      border: theme === "contrast" ? `1.5px solid ${brandColor}` : "1px solid #E4E4E7",
+                      background: theme === "contrast" ? `${brandColor}18` : "#FFFFFF",
+                      color: theme === "contrast" ? brandColor : "#52525B"
+                    }}
+                  >
+                    Alto Contraste
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTheme("gold")}
+                    style={{
+                      padding: "4px 10px",
+                      borderRadius: "6px",
+                      fontSize: "0.75rem",
+                      fontWeight: theme === "gold" ? 800 : 600,
+                      cursor: "pointer",
+                      border: theme === "gold" ? "1.5px solid #D4AF37" : "1px solid #E4E4E7",
+                      background: theme === "gold" ? "rgba(212, 175, 55, 0.12)" : "#FFFFFF",
+                      color: theme === "gold" ? "#B8901D" : "#52525B"
+                    }}
+                  >
+                    Oro Aourum
+                  </button>
+                </div>
+
+                {/* Selector de Formato */}
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                  <span style={{ fontSize: "0.75rem", color: "#71717A", fontWeight: 600 }}>Formato:</span>
+                  <button
+                    type="button"
+                    onClick={() => setIncludeCardFrame(false)}
+                    style={{
+                      padding: "4px 10px",
+                      borderRadius: "6px",
+                      fontSize: "0.75rem",
+                      fontWeight: !includeCardFrame ? 800 : 600,
+                      cursor: "pointer",
+                      border: !includeCardFrame ? `1.5px solid ${brandColor}` : "1px solid #E4E4E7",
+                      background: !includeCardFrame ? `${brandColor}18` : "#FFFFFF",
+                      color: !includeCardFrame ? brandColor : "#52525B"
+                    }}
+                  >
+                    Solo QR
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIncludeCardFrame(true)}
+                    style={{
+                      padding: "4px 10px",
+                      borderRadius: "6px",
+                      fontSize: "0.75rem",
+                      fontWeight: includeCardFrame ? 800 : 600,
+                      cursor: "pointer",
+                      border: includeCardFrame ? `1.5px solid ${brandColor}` : "1px solid #E4E4E7",
+                      background: includeCardFrame ? `${brandColor}18` : "#FFFFFF",
+                      color: includeCardFrame ? brandColor : "#52525B"
+                    }}
+                  >
+                    Tarjeta / Stand
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -697,7 +843,7 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
                     zIndex: 2
                   }}
                 >
-                  <i className="fa-solid fa-spinner fa-spin" style={{ color: "#D4AF37", fontSize: "2rem" }}></i>
+                  <i className="fa-solid fa-spinner fa-spin" style={{ color: brandColor, fontSize: "2rem" }}></i>
                 </div>
               )}
               <canvas
@@ -709,13 +855,13 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
                   height: "auto",
                   aspectRatio: includeCardFrame ? "1 / 1.45" : "1 / 1",
                   borderRadius: "12px",
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
+                  boxShadow: `0 10px 30px rgba(0,0,0,0.12), 0 0 20px ${brandColor}15`,
                   objectFit: "contain"
                 }}
               />
               <div style={{ marginTop: "8px", textAlign: "center", width: "100%", overflow: "hidden", textOverflow: "ellipsis" }}>
                 <span style={{ fontSize: "0.72rem", color: "#71717A", wordBreak: "break-all" }}>
-                  Enlace inalterable: <strong style={{ color: "#B8901D" }}>{brandUrl}</strong>
+                  Enlace inalterable: <strong style={{ color: brandColor }}>{brandUrl}</strong>
                 </span>
               </div>
             </div>
@@ -723,10 +869,11 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
             {/* Download & Action Options Grid */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: "8px" }}>
               <button
+                type="button"
                 onClick={downloadPNGHD}
                 style={{
-                  background: "linear-gradient(135deg, #D4AF37, #A68015)",
-                  color: "#121214",
+                  background: `linear-gradient(135deg, ${brandColor}, #1C1C1E)`,
+                  color: "#FFFFFF",
                   border: "none",
                   padding: "10px 12px",
                   borderRadius: "10px",
@@ -737,18 +884,19 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
                   alignItems: "center",
                   justifyContent: "center",
                   gap: "6px",
-                  boxShadow: "0 4px 14px rgba(212,175,55,0.25)"
+                  boxShadow: `0 4px 14px ${brandColor}35`
                 }}
               >
                 <i className="fa-solid fa-download"></i> PNG HD (2000px)
               </button>
 
               <button
+                type="button"
                 onClick={downloadSVG}
                 style={{
                   background: "#FFFFFF",
                   color: "#1C1C1E",
-                  border: "1px solid #D4AF37",
+                  border: `1px solid ${brandColor}`,
                   padding: "10px 12px",
                   borderRadius: "10px",
                   fontWeight: "700",
@@ -760,10 +908,11 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
                   gap: "6px"
                 }}
               >
-                <i className="fa-solid fa-vector-square" style={{ color: "#B8901D" }}></i> Vector SVG
+                <i className="fa-solid fa-vector-square" style={{ color: brandColor }}></i> Vector SVG
               </button>
 
               <button
+                type="button"
                 onClick={handlePrintCard}
                 style={{
                   background: "#FFFFFF",
@@ -784,6 +933,7 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
               </button>
 
               <button
+                type="button"
                 onClick={copyToClipboard}
                 style={{
                   background: "#FFFFFF",
@@ -805,13 +955,13 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
               </button>
 
               <button
+                type="button"
                 onClick={() => setIsStandMode(true)}
                 style={{
                   gridColumn: "1 / -1",
                   background: "#FFFFFF",
-                  backgroundColor: "#FFFFFF",
                   color: "#1C1C1E",
-                  border: "1.5px solid #D4AF37",
+                  border: `1.5px solid ${brandColor}`,
                   padding: "12px 16px",
                   borderRadius: "12px",
                   fontWeight: "800",
@@ -822,10 +972,10 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
                   justifyContent: "center",
                   gap: "8px",
                   marginTop: "4px",
-                  boxShadow: "0 4px 14px rgba(212,175,55,0.15)"
+                  boxShadow: `0 4px 14px ${brandColor}20`
                 }}
               >
-                <i className="fa-solid fa-tablet-screen-button" style={{ fontSize: "1.05rem", color: "#B8901D" }}></i>
+                <i className="fa-solid fa-tablet-screen-button" style={{ fontSize: "1.05rem", color: brandColor }}></i>
                 Abrir Modo Mostrador / Stand (Para pantalla en Feria)
               </button>
             </div>
@@ -865,7 +1015,7 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <img src="/aourum-gold-badge.png" alt="Aourum" style={{ width: "32px", height: "32px" }} />
               <div>
-                <span style={{ fontSize: "0.68rem", color: "#D4AF37", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: "800", display: "block" }}>
+                <span style={{ fontSize: "0.68rem", color: brandColor, letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: "800", display: "block" }}>
                   STAND OFICIAL AOURUM
                 </span>
                 <h1 style={{ fontSize: "1.15rem", fontWeight: "800", margin: 0, color: "#FFFFFF", lineHeight: 1.2, WebkitTextFillColor: "#FFFFFF" }}>
@@ -913,8 +1063,8 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
                 padding: "10px",
                 background: "#121214",
                 borderRadius: "20px",
-                border: "1.5px solid #D4AF37",
-                boxShadow: "0 0 50px rgba(212,175,55,0.25), 0 15px 35px rgba(0,0,0,0.8)",
+                border: `1.5px solid ${brandColor}`,
+                boxShadow: `0 0 50px ${brandColor}35, 0 15px 35px rgba(0,0,0,0.8)`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -942,14 +1092,14 @@ export default function BrandQRModal({ isOpen, onClose, brand, profileType = "br
           <div
             style={{
               textAlign: "center",
-              background: "rgba(212, 175, 55, 0.12)",
-              border: "1px solid rgba(212, 175, 55, 0.3)",
+              background: `${brandColor}18`,
+              border: `1px solid ${brandColor}40`,
               padding: "8px 20px",
               borderRadius: "30px",
               marginTop: "0.5rem"
             }}
           >
-            <p style={{ fontSize: "0.85rem", fontWeight: "700", color: "#FFD700", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
+            <p style={{ fontSize: "0.85rem", fontWeight: "700", color: brandColor, margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
               <i className="fa-solid fa-qrcode" style={{ fontSize: "1rem" }}></i>
               Escanea para ver catálogo e información en vivo
             </p>

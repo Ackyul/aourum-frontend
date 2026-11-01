@@ -4668,6 +4668,7 @@ function BrandProductCard({ prod }) {
         isOpen={qrModalOpen}
         onClose={() => setQrModalOpen(false)}
         brand={brand}
+        palette={palette}
       />
 
       {/* ── MODAL DETALLE DE EVENTO / FLYER COMPLETO ── */}
