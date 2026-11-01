@@ -572,6 +572,18 @@ export default function Home() {
     return interleaveProducts(filteredProducts, brands, userCity);
   }, [filteredProducts, brands, userCity]);
 
+  // Helper para verificar coincidencia por palabra completa (evita que "plata" coincida con "plátano" o "plataní")
+  const matchesKeywordWord = (text, word) => {
+    if (!text || !word) return false;
+    const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp("(^|[^a-záéíóúüñ])" + escaped + "([^a-záéíóúüñ]|$)", "i").test(text);
+  };
+
+  const isFoodOrDrinkProduct = (p, pBrand) => {
+    const text = (p.category || "") + " " + (p.name || "") + " " + (pBrand?.rubro_especifico || "") + " " + (pBrand?.rubro_general || "") + " " + (pBrand?.category || "");
+    return /comida|snack|gastronom|fruta|alimento|bebida|caf[eé]|postre|panader|reposter|infusi[oó]n|deshidratad/i.test(text);
+  };
+
   // Thematic sections specifications
   const themeSpecs = [
     {
@@ -586,7 +598,7 @@ export default function Home() {
       id: "joyeria",
       title: "Novedades en Joyería",
       subtitle: "Diseños únicos, brillo local e identidad cultural",
-      keywords: ["joyeria", "joyería", "anillo", "collar", "pulsera", "arete", "esmeralda", "plata", "oro"],
+      keywords: ["joyeria", "joyería", "joyas", "dije", "dijes", "anillo", "collar", "pulsera", "arete", "aretes", "esmeralda", "plata", "oro", "cuarzo"],
       fallbackCategory: "Joyería"
     },
     {
@@ -610,12 +622,23 @@ export default function Home() {
       if (spec.isPerfumeSection) {
         return isProductPerfume(p);
       }
+      if (isProductPerfume(p)) return false;
+
+      const pBrandId = Number(p.brandId || p.brand_id);
+      const pBrand = brands.find(b => Number(b.id) === pBrandId);
+      const isFood = isFoodOrDrinkProduct(p, pBrand);
+
+      // Si el producto es comida, fruta o bebida, jamás debe salir en joyería, ropa o accesorios
+      if (isFood && (spec.id === "joyeria" || spec.id === "ropa" || spec.id === "accesorios")) {
+        return false;
+      }
+
       const categoryMatch = p.category && (
-        spec.keywords.some(kw => p.category.toLowerCase().includes(kw)) ||
-        p.category.toLowerCase() === spec.fallbackCategory.toLowerCase()
+        spec.keywords.some(kw => matchesKeywordWord(p.category, kw)) ||
+        p.category.toLowerCase().trim() === spec.fallbackCategory.toLowerCase().trim()
       );
-      const nameMatch = p.name && spec.keywords.some(kw => p.name.toLowerCase().includes(kw));
-      return (categoryMatch || nameMatch) && !isProductPerfume(p);
+      const nameMatch = p.name && spec.keywords.some(kw => matchesKeywordWord(p.name, kw));
+      return categoryMatch || nameMatch;
     });
   };
 
