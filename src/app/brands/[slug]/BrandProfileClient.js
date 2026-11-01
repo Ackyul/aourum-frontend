@@ -1357,15 +1357,18 @@ function BrandProductCard({ prod }) {
               className="card-sizes-scroll"
               style={{ 
                 display: "flex", 
-                gap: "4px", 
+                gap: "3px", 
                 flexWrap: "nowrap",
                 overflowX: "auto",
                 scrollbarWidth: "none",
                 msOverflowStyle: "none",
                 WebkitOverflowScrolling: "touch",
-                margin: "0.2rem 0 0.05rem 0",
-                padding: "1px 0",
-                maxWidth: "100%"
+                margin: "0.1rem 0 0.04rem 0",
+                padding: "0",
+                maxWidth: "100%",
+                alignItems: "center",
+                height: "20px",
+                maxHeight: "20px"
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -1382,13 +1385,22 @@ function BrandProductCard({ prod }) {
                     }}
                     title={`Ver tamaño ${s.size} por S/ ${s.price}`}
                     style={{
-                      flex: "0 0 auto",
+                      flex: sizes.length <= 4 ? "1 1 0" : "0 0 auto",
+                      minWidth: 0,
                       whiteSpace: "nowrap",
-                      padding: "2px 7px",
-                      borderRadius: "6px",
-                      fontSize: "0.66rem",
+                      padding: sizes.length <= 4 ? "1px 3px" : "1px 5px",
+                      height: "18px",
+                      maxHeight: "18px",
+                      lineHeight: "16px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      textAlign: "center",
+                      borderRadius: "4px",
+                      fontSize: "0.62rem",
                       fontWeight: isSelected ? 800 : 600,
                       cursor: "pointer",
+                      boxSizing: "border-box",
                       border: isSelected 
                         ? `1.5px solid ${palette.c1 || "var(--gold-primary)"}` 
                         : (isCardDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.12)"),

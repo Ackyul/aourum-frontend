@@ -806,10 +806,10 @@ export default function Home() {
             isDark={isDarkBg}
           />
         </div>
-        <div style={{ padding: "0.75rem 0.75rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.22rem" }}>
+        <div style={{ padding: "0.55rem 0.62rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.16rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px" }}>
             <span style={{ 
-              fontSize: "0.72rem", 
+              fontSize: "0.66rem", 
               color: categoryTextColor, 
               letterSpacing: "0.05em", 
               textTransform: "uppercase", 
@@ -838,12 +838,12 @@ export default function Home() {
               </span>
             )}
           </div>
-          <h3 style={{ fontSize: "0.85rem", fontWeight: 800, lineHeight: 1.25, color: titleTextColor, margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", height: "2.5em", minHeight: "2.5em", maxHeight: "2.5em" }}>
+          <h3 style={{ fontSize: "0.80rem", fontWeight: 800, lineHeight: 1.22, color: titleTextColor, margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", height: "2.45em", minHeight: "2.45em", maxHeight: "2.45em" }}>
             {prod.name}
           </h3>
 
           <div 
-            style={{ fontSize: "0.8rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px", marginTop: "2px" }}
+            style={{ fontSize: "0.74rem", color: isDarkBg ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "4px", marginTop: "1px" }}
             onClick={(e) => {
               e.stopPropagation();
               if (brand) {
@@ -861,15 +861,18 @@ export default function Home() {
               className="card-sizes-scroll"
               style={{ 
                 display: "flex", 
-                gap: "4px", 
+                gap: "3px", 
                 flexWrap: "nowrap", 
                 overflowX: "auto", 
                 scrollbarWidth: "none", 
                 msOverflowStyle: "none", 
                 WebkitOverflowScrolling: "touch", 
-                margin: "0.2rem 0 0.05rem 0", 
-                padding: "1px 0", 
-                maxWidth: "100%" 
+                margin: "0.1rem 0 0.04rem 0", 
+                padding: "0", 
+                maxWidth: "100%",
+                alignItems: "center",
+                height: "20px",
+                maxHeight: "20px"
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -886,13 +889,22 @@ export default function Home() {
                     }}
                     title={`Ver tamaño ${s.size} por S/ ${s.price}`}
                     style={{
-                      flex: "0 0 auto",
+                      flex: sizes.length <= 4 ? "1 1 0" : "0 0 auto",
+                      minWidth: 0,
                       whiteSpace: "nowrap",
-                      padding: "2px 7px",
-                      borderRadius: "6px",
-                      fontSize: "0.66rem",
+                      padding: sizes.length <= 4 ? "1px 3px" : "1px 5px",
+                      height: "18px",
+                      maxHeight: "18px",
+                      lineHeight: "16px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      textAlign: "center",
+                      borderRadius: "4px",
+                      fontSize: "0.62rem",
                       fontWeight: isSelected ? 800 : 600,
                       cursor: "pointer",
+                      boxSizing: "border-box",
                       border: isSelected 
                         ? `1.5px solid ${brandColor || "var(--gold-primary)"}` 
                         : "1px solid rgba(0,0,0,0.12)",
@@ -932,7 +944,7 @@ export default function Home() {
                       Aourum
                     </span>
                   </div>
-                  <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: priceTextColor, lineHeight: 1 }}>
+                  <span className="card-price-main" style={{ fontSize: "0.95rem", fontWeight: 800, color: priceTextColor, lineHeight: 1 }}>
                     S/ {Number(displayPriceAourum).toLocaleString("es-PE")}
                   </span>
                 </div>
