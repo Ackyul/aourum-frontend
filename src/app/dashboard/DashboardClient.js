@@ -275,105 +275,64 @@ export default function DashboardClient({ initialTab }) {
     return people.find(p => p.id === Number(activePersonId)) || null;
   }, [activePersonId, people]);
 
-  // Identificadores normalizados del usuario
+  // Identificador de la cuenta autenticada
   const pId = currentPerson ? Number(currentPerson.id) : (activePersonId ? Number(activePersonId) : null);
-  const pName = (currentPerson?.name || "").trim().toLowerCase();
-  const pLastName = (currentPerson?.lastName || "").trim().toLowerCase();
-  const pFullName = `${pName} ${pLastName}`.trim().toLowerCase();
-  const pUsername = (currentPerson?.username || activeUsername || "").trim().toLowerCase();
-  const pEmail = (currentPerson?.email || "").trim().toLowerCase();
   const pBrandIds = (currentPerson?.brandIds || []).map(Number);
   const pOrgIds = (currentPerson?.organizerIds || []).map(Number);
   const pBandIds = (currentPerson?.bandIds || []).map(Number);
 
-  // Marcas del usuario con búsqueda inclusiva y resiliente
+  // Marcas de la cuenta (como creador original o colaborador vinculado por cuenta)
   const myBrands = useMemo(() => {
-    if (!brands || brands.length === 0) return [];
-    if (!pId && !pName && !pUsername) return [];
+    if (!brands || brands.length === 0 || !pId) return [];
 
     return brands.filter(b => {
-      // 1. Por ID directo de creador o person_id
-      if (pId && b.personId && Number(b.personId) === pId) return true;
-      if (pId && b.person_id && Number(b.person_id) === pId) return true;
+      // 1. Por ID directo de la cuenta creadora
+      if (b.personId && Number(b.personId) === pId) return true;
+      if (b.person_id && Number(b.person_id) === pId) return true;
 
-      // 2. Por lista de brandIds en el perfil de la persona
+      // 2. Por lista de marcas vinculadas a esta cuenta (person_brands)
       if (pBrandIds.includes(Number(b.id))) return true;
 
-      // 3. Por personIds / colaboradores de la marca
-      if (pId && Array.isArray(b.personIds) && b.personIds.map(Number).includes(pId)) return true;
-      if (pId && Array.isArray(b.collaborators) && b.collaborators.some(c => Number(c.personId || c.person_id) === pId)) return true;
+      // 3. Por personIds / colaboradores vinculados a la marca
+      if (Array.isArray(b.personIds) && b.personIds.map(Number).includes(pId)) return true;
+      if (Array.isArray(b.collaborators) && b.collaborators.some(c => Number(c.personId || c.person_id) === pId)) return true;
 
-      // 4. Por concordancia de dueño (owner) con nombre, apellido, usuario o correo
-      if (b.owner) {
-        const o = b.owner.trim().toLowerCase();
-        if (pName && o === pName) return true;
-        if (pFullName && o === pFullName) return true;
-        if (pUsername && o === pUsername) return true;
-        if (pEmail && o === pEmail) return true;
-        if (pName && pName.length >= 3 && (o.includes(pName) || pName.includes(o))) return true;
-        if (pUsername && pUsername.length >= 3 && (o.includes(pUsername) || pUsername.includes(o))) return true;
-      }
-
-      // 5. Sesión activa directa
+      // 4. Sesión activa directa
       if (activeBrandId && Number(b.id) === Number(activeBrandId)) return true;
 
       return false;
     });
-  }, [brands, currentPerson, activePersonId, activeUsername, activeBrandId, pBrandIds]);
+  }, [brands, activeBrandId, pBrandIds, pId]);
 
-  // Productoras del usuario
+  // Productoras de la cuenta (vinculadas por cuenta creadora o colaborador)
   const myOrganizers = useMemo(() => {
-    if (!organizers || organizers.length === 0) return [];
-    if (!pId && !pName && !pUsername) return [];
+    if (!organizers || organizers.length === 0 || !pId) return [];
 
     return organizers.filter(o => {
-      if (pId && o.personId && Number(o.personId) === pId) return true;
-      if (pId && o.person_id && Number(o.person_id) === pId) return true;
+      if (o.personId && Number(o.personId) === pId) return true;
+      if (o.person_id && Number(o.person_id) === pId) return true;
       if (pOrgIds.includes(Number(o.id))) return true;
-      if (pId && Array.isArray(o.personIds) && o.personIds.map(Number).includes(pId)) return true;
-      if (pId && Array.isArray(o.collaborators) && o.collaborators.some(c => Number(c.personId || c.person_id) === pId)) return true;
-
-      if (o.owner) {
-        const ownerLower = o.owner.trim().toLowerCase();
-        if (pName && ownerLower === pName) return true;
-        if (pFullName && ownerLower === pFullName) return true;
-        if (pUsername && ownerLower === pUsername) return true;
-        if (pEmail && ownerLower === pEmail) return true;
-        if (pName && pName.length >= 3 && (ownerLower.includes(pName) || pName.includes(ownerLower))) return true;
-        if (pUsername && pUsername.length >= 3 && (ownerLower.includes(pUsername) || pUsername.includes(ownerLower))) return true;
-      }
-
+      if (Array.isArray(o.personIds) && o.personIds.map(Number).includes(pId)) return true;
+      if (Array.isArray(o.collaborators) && o.collaborators.some(c => Number(c.personId || c.person_id) === pId)) return true;
       if (activeOrganizerId && Number(o.id) === Number(activeOrganizerId)) return true;
       return false;
     });
-  }, [organizers, currentPerson, activePersonId, activeUsername, activeOrganizerId, pOrgIds]);
+  }, [organizers, activeOrganizerId, pOrgIds, pId]);
 
-  // Bandas del usuario
+  // Bandas de la cuenta (vinculadas por cuenta creadora o colaborador)
   const myBands = useMemo(() => {
-    if (!bands || bands.length === 0) return [];
-    if (!pId && !pName && !pUsername) return [];
+    if (!bands || bands.length === 0 || !pId) return [];
 
     return bands.filter(b => {
-      if (pId && b.personId && Number(b.personId) === pId) return true;
-      if (pId && b.person_id && Number(b.person_id) === pId) return true;
+      if (b.personId && Number(b.personId) === pId) return true;
+      if (b.person_id && Number(b.person_id) === pId) return true;
       if (pBandIds.includes(Number(b.id))) return true;
-      if (pId && Array.isArray(b.personIds) && b.personIds.map(Number).includes(pId)) return true;
-      if (pId && Array.isArray(b.collaborators) && b.collaborators.some(c => Number(c.personId || c.person_id) === pId)) return true;
-
-      if (b.owner || b.contact) {
-        const ownerLower = (b.owner || b.contact || "").trim().toLowerCase();
-        if (pName && ownerLower === pName) return true;
-        if (pFullName && ownerLower === pFullName) return true;
-        if (pUsername && ownerLower === pUsername) return true;
-        if (pEmail && ownerLower === pEmail) return true;
-        if (pName && pName.length >= 3 && (ownerLower.includes(pName) || pName.includes(ownerLower))) return true;
-        if (pUsername && pUsername.length >= 3 && (ownerLower.includes(pUsername) || pUsername.includes(ownerLower))) return true;
-      }
-
+      if (Array.isArray(b.personIds) && b.personIds.map(Number).includes(pId)) return true;
+      if (Array.isArray(b.collaborators) && b.collaborators.some(c => Number(c.personId || c.person_id) === pId)) return true;
       if (activeBandId && Number(b.id) === Number(activeBandId)) return true;
       return false;
     });
-  }, [bands, currentPerson, activePersonId, activeUsername, activeBandId, pBandIds]);
+  }, [bands, activeBandId, pBandIds, pId]);
 
   // Inicializar selección de marca
   useEffect(() => {
@@ -575,11 +534,15 @@ export default function DashboardClient({ initialTab }) {
   }, [myBrands, selectedBrandId]);
 
   const isOwnerOfActiveBrand = useMemo(() => {
-    if (!selectedBrand || !currentPerson) return false;
-    const pId = Number(currentPerson.id);
-    const pBrandIds = (currentPerson.brandIds || []).map(Number);
-    return Number(selectedBrand.personId) === pId || pBrandIds.includes(Number(selectedBrand.id)) || (selectedBrand.owner && currentPerson.name && selectedBrand.owner.toLowerCase().trim() === currentPerson.name.toLowerCase().trim());
-  }, [selectedBrand, currentPerson]);
+    if (!selectedBrand || !pId) return false;
+    return (
+      Number(selectedBrand.personId) === pId ||
+      Number(selectedBrand.person_id) === pId ||
+      pBrandIds.includes(Number(selectedBrand.id)) ||
+      (Array.isArray(selectedBrand.personIds) && selectedBrand.personIds.map(Number).includes(pId)) ||
+      (Array.isArray(selectedBrand.collaborators) && selectedBrand.collaborators.some(c => Number(c.personId || c.person_id) === pId))
+    );
+  }, [selectedBrand, pId, pBrandIds]);
 
   // Modo de catálogo resuelto considerando la configuración manual y detección automática
   const activeCatalogMode = useMemo(() => {
