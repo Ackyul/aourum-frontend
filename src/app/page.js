@@ -856,7 +856,7 @@ export default function Home() {
           </div>
 
           {/* Pastillas interactivas de tamaños si tiene múltiples opciones */}
-          {hasMultipleSizes && (
+          {hasMultipleSizes ? (
             <div 
               className="card-sizes-scroll"
               style={{ 
@@ -922,8 +922,10 @@ export default function Home() {
                 );
               })}
             </div>
+          ) : (
+            <div style={{ height: "20px", margin: "0.1rem 0 0.04rem 0" }} />
           )}
-          
+
           {/* Price and Stock / Agenda */}
           <div style={{ 
             display: "flex", 

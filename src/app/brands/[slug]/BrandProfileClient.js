@@ -1352,7 +1352,7 @@ function BrandProductCard({ prod }) {
           </div>
 
           {/* Pastillas interactivas de tamaños si tiene múltiples opciones */}
-          {hasMultipleSizes && (
+          {hasMultipleSizes ? (
             <div 
               className="card-sizes-scroll"
               style={{ 
@@ -1418,6 +1418,8 @@ function BrandProductCard({ prod }) {
                 );
               })}
             </div>
+          ) : (
+            <div style={{ height: "20px", margin: "0.1rem 0 0.04rem 0" }} />
           )}
           
           <div style={{ 

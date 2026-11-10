@@ -1,0 +1,2273 @@
+"use client";
+
+import { useState, useMemo, useEffect } from "react";
+import { useApp } from "../../../context/AppContext";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
+import { isVirtualMenuBrand } from "@/utils/brandUtils";
+import { parsePerfumeInfo, parseProductPresentation, sortSizesDescending } from "../../../components/PerfumeryShowcase";
+import ProductCardVisual from "../../../components/ProductCardVisual";
+
+// Helper for URL slug generation
+const slugify = (text) => {
+  if (!text) return "";
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9 -]/g, "")
+    .replace(/\s+/g, "_")
+    .replace(/-+/g, "_");
+};
+
+// Safe price formatter
+const formatPrice = (val) => {
+  if (val == null || val === "" || isNaN(Number(val))) return "0";
+  return Number(val).toLocaleString("es-PE");
+};
+
+// Stable deterministic views generator based on hash of name + id
+const getItemViews = (name, id) => {
+  if (!name) return 0;
+  let hash = 0;
+  const str = name + (id || 0);
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash % 980) + 120; // 120 to 1100 views
+};
+
+const getProductViews = (p) => p.views || p.viewCount || getItemViews(p.name, p.id);
+
+// Balances popularity and discovery: strictly only items with real views > 0 get "popular" badge
+const getBalancedSuggestions = (candidates, limit = 5) => {
+  if (!candidates || candidates.length === 0) return [];
+  
+  const sorted = [...candidates].sort((a, b) => getProductViews(b) - getProductViews(a));
+  const productsWithViews = sorted.filter(p => getProductViews(p) > 0);
+  const popularCount = Math.min(2, Math.floor(productsWithViews.length * 0.3));
+  const popularSet = new Set(productsWithViews.slice(0, popularCount).map(p => p.id));
+
+  return sorted.slice(0, limit).map(item => ({
+    ...item,
+    suggestionType: popularSet.has(item.id) ? "popular" : "discover"
+  }));
+};
+
+// Strips metadata tags like [Inspiración: ...], [OriginalImg: ...], etc. from descriptions
+const cleanDescriptionText = (rawText) => {
+  if (!rawText || typeof rawText !== "string") return "";
+  let text = rawText;
+  if (text.trim().startsWith("{")) {
+    try {
+      const parsed = JSON.parse(text);
+      text = parsed.text || parsed.description || "";
+    } catch (e) {}
+  }
+
+  // Remove nested json tags like [Tamaños: [...]]
+  text = text.replace(/\[\s*tamaños\s*:\s*\[[\s\S]*?\]\s*\]/gi, "");
+
+  // Remove all metadata tags
+  text = text.replace(/\[\s*(?:originalimg|originalimage|frascooriginal|inspiracionimg|original_img)\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*(?:inspiraci[oó]n|inspirado en|original|ref|tendencia)\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*g[eé]nero\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*familia\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*concentraci[oó]n\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*(?:ml|volumen)\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*duoconfig\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*duoscale\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*presentaci[oó]n\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*porci[oó]n\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*ingredientes\s*:[^\]]*\]/gi, "");
+  text = text.replace(/\[[^\]]*(?:http|https|res\.cloudinary|\.png|\.jpg|\.webp)[^\]]*\]/gi, "");
+  text = text.replace(/\[\s*[^\]]+:[^\]]*\]/gi, "");
+
+  // Remove any leftover orphaned brackets
+  text = text.replace(/^\s*\]+\s*/gm, "");
+  text = text.replace(/\s*\]+\s*$/gm, "");
+  text = text.replace(/^\]+$/gm, "");
+  if (!text.includes("[")) {
+    text = text.replace(/\]+/g, "");
+  }
+
+  return text.trim();
+};
+
+export default function ProductDetailClient({ slug: propSlug, initialProduct = null }) {
+  const routeParams = useParams();
+  const rawParam = propSlug || routeParams?.slug || "";
+  const slugParam = typeof rawParam === "string" ? decodeURIComponent(rawParam) : "";
+
+  const {
+    products,
+    brands,
+    loading,
+    getBrandPalette,
+    parseDescription,
+    loadProducts,
+    loadBrands,
+    activeRole,
+    activeBrandId,
+    activePersonId,
+    people,
+    setShowLoginModal,
+    triggerNotification,
+    addToCart,
+    getItemCartQuantity
+  } = useApp();
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromParam = searchParams ? searchParams.get("from") : null;
+
+  useEffect(() => {
+    loadProducts();
+    loadBrands();
+  }, [loadProducts, loadBrands]);
+
+  const prod = useMemo(() => {
+    if (!products || !products.length) return null;
+    const target = slugParam.toLowerCase().trim();
+    const normTarget = target.replace(/-/g, "_");
+
+    const bySlug = products.find((p) => {
+      if (!p) return false;
+      const pSlug = p.slug ? p.slug.toLowerCase().trim() : "";
+      const pNameSlug = p.name ? slugify(p.name) : "";
+      const normSlug = pSlug.replace(/-/g, "_");
+      const normNameSlug = pNameSlug.replace(/-/g, "_");
+
+      return (
+        pSlug === target ||
+        pNameSlug === target ||
+        normSlug === normTarget ||
+        normNameSlug === normTarget ||
+        String(p.id) === target
+      );
+    });
+
+    if (bySlug) return bySlug;
+    const numId = Number(slugParam);
+    if (!isNaN(numId)) return products.find((p) => p.id === numId);
+    return null;
+  }, [products, slugParam]);
+
+  const isNumericSlug = /^\d+$/.test(slugParam);
+
+  // Redirect from numeric ID to slug-based URL
+  useEffect(() => {
+    if (prod && prod.slug && isNumericSlug) {
+      router.replace(`/products/${prod.slug}`);
+    }
+  }, [prod, isNumericSlug, router]);
+
+  const brand = useMemo(() => {
+    if (!prod) return null;
+    return brands.find((b) => b.id === prod.brandId);
+  }, [prod, brands]);
+
+  const perfumeInfo = useMemo(() => parsePerfumeInfo(prod), [prod]);
+  const isFoodOrNonPerfume = /comida|snack|gastronom|fruta|alimento|bebida|caf[eé]|postre|joyer|ropa|artesan|textil|esot[eé]ric|servicio|tecnolog|calzado|accesorio/i.test(`${prod?.category || ""} ${brand?.category || ""} ${brand?.rubro_general || ""} ${brand?.rubro_especifico || ""}`);
+  const isPerfumeProd = useMemo(() => {
+    if (!prod || isFoodOrNonPerfume) return false;
+    const catCheck = `${prod.category || ""} ${brand?.category || ""} ${brand?.rubro_general || ""}`.toLowerCase();
+    const isPerfumeCat = /perfum|fraganc|coloni|eau de|esenci/i.test(catCheck);
+    const isPerfumeBrand = brand?.brandDesign?.catalogDisplayMode === "perfumery" || brand?.brandDesign?.catalogDisplayMode === "perfume";
+    return Boolean(perfumeInfo.originalImg || (isPerfumeBrand && perfumeInfo.inspiration) || (isPerfumeCat && (perfumeInfo.inspiration || perfumeInfo.originalImg)));
+  }, [prod, brand, isFoodOrNonPerfume, perfumeInfo]);
+
+  const isFromBrand = useMemo(() => {
+    if (fromParam === "brand") return true;
+    if (typeof document !== "undefined" && document.referrer) {
+      return document.referrer.includes("/brands/");
+    }
+    return false;
+  }, [fromParam]);
+
+  const handleBack = () => {
+    if (isFromBrand) {
+      if (brand) {
+        router.push(`/brands/${brand.slug || brand.id}`);
+      } else if (prod?.brandId) {
+        router.push(`/brands/${prod.brandId}`);
+      } else {
+        router.push("/");
+      }
+    } else {
+      router.push("/");
+    }
+  };
+
+  const isCreatorOrOwner = useMemo(() => {
+    if (!prod || !brand) return false;
+    const isBrandSessionOwner = (activeRole === 'brand' && activeBrandId != null && Number(activeBrandId) === Number(brand.id));
+    const isDirectOwner = isBrandSessionOwner || (activePersonId != null && brand.personId != null && Number(brand.personId) === Number(activePersonId));
+    const userCollaborator = brand.collaborators ? brand.collaborators.find(c => Number(c.personId) === Number(activePersonId)) : null;
+    return isDirectOwner || !!userCollaborator;
+  }, [prod, brand, activeRole, activeBrandId, activePersonId]);
+
+  // Redirect if product is hidden and visitor is not creator
+  useEffect(() => {
+    if (!loading && prod && prod.isVisible === false && !isCreatorOrOwner) {
+      if (triggerNotification) {
+        triggerNotification(false, "Este enlace no existe o el producto fue ocultado por su creador.");
+      }
+      router.replace("/");
+    }
+  }, [loading, prod, isCreatorOrOwner, router, triggerNotification]);
+
+  const suggestedBrandProds = useMemo(() => {
+    if (!prod) return [];
+    const brandCandidates = products.filter(
+      (p) => p.brandId === prod.brandId && p.id !== prod.id && p.isVisible !== false
+    );
+    return getBalancedSuggestions(brandCandidates, 6);
+  }, [prod, products]);
+
+  const allBrandProducts = useMemo(() => {
+    if (!prod || !products) return [];
+    return products.filter((p) => p.brandId === prod.brandId && p.isVisible !== false);
+  }, [prod, products]);
+
+  // Variaciones de presentación / tamaño del mismo producto (ej. 25gr, 50gr, 100gr, 200gr o 30ml, 50ml, 100ml)
+  const siblingVariations = useMemo(() => {
+    if (!prod || !allBrandProducts || allBrandProducts.length <= 1) return [];
+
+    const currentParsed = parseProductPresentation(prod);
+    const currentClean = (currentParsed.cleanName || prod.name || "").trim().toLowerCase();
+    const currentPerfume = parsePerfumeInfo(prod);
+    const currentInsp = (currentPerfume.inspiration || "").trim().toLowerCase();
+
+    const siblings = allBrandProducts.filter((p) => {
+      const pParsed = parseProductPresentation(p);
+      const pClean = (pParsed.cleanName || p.name || "").trim().toLowerCase();
+      const pPerfume = parsePerfumeInfo(p);
+      const pInsp = (pPerfume.inspiration || "").trim().toLowerCase();
+
+      const sameCleanName = currentClean && pClean && (currentClean === pClean || currentClean.includes(pClean) || pClean.includes(currentClean));
+      const samePerfumeInsp = currentInsp && pInsp && currentInsp === pInsp;
+      const sameImage = prod.image && p.image && prod.image === p.image;
+
+      return (sameCleanName || samePerfumeInsp || sameImage) && (p.category === prod.category || samePerfumeInsp);
+    });
+
+    if (siblings.length <= 1) return [];
+
+    return siblings.map((p) => {
+      const pParsed = parseProductPresentation(p);
+      const pPerfume = parsePerfumeInfo(p);
+      const pres = pParsed.presentation || pPerfume.ml || p.name;
+      return {
+        ...p,
+        presentation: pres
+      };
+    }).sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+  }, [prod, allBrandProducts]);
+
+  // Tamaños y presentaciones disponibles (tanto embebidos en el producto como variantes hermanas)
+  const allAvailableSizes = useMemo(() => {
+    if (!prod) return [];
+    const pParsed = parseProductPresentation(prod);
+    const pPerfume = parsePerfumeInfo(prod);
+    const embeddedSizes = (Array.isArray(pPerfume.sizes) && pPerfume.sizes.length > 0)
+      ? pPerfume.sizes
+      : (Array.isArray(pParsed.sizes) && pParsed.sizes.length > 0 ? pParsed.sizes : []);
+
+    const sizeMap = new Map();
+
+    // 1. Tamaños embebidos
+    if (embeddedSizes.length > 0) {
+      embeddedSizes.forEach(s => {
+        const sName = (s.size || s.presentation || "").trim();
+        if (sName) {
+          sizeMap.set(sName.toLowerCase(), {
+            size: sName,
+            presentation: sName,
+            price: Number(s.price != null ? s.price : prod.price || 0),
+            priceAourum: s.priceAourum != null ? Number(s.priceAourum) : (prod.priceAourum ? Number(prod.priceAourum) : null),
+            image: s.image || prod.image || "",
+            id: prod.id,
+            slug: prod.slug || prod.id,
+            isEmbedded: true
+          });
+        }
+      });
+    } else {
+      const currentPres = pParsed.presentation || pPerfume.ml || "";
+      if (currentPres) {
+        sizeMap.set(currentPres.toLowerCase(), {
+          size: currentPres,
+          presentation: currentPres,
+          price: Number(prod.price || 0),
+          priceAourum: prod.priceAourum ? Number(prod.priceAourum) : null,
+          image: prod.image || "",
+          id: prod.id,
+          slug: prod.slug || prod.id,
+          isEmbedded: false
+        });
+      }
+    }
+
+    // 2. Variaciones hermanas desde productos individuales
+    if (siblingVariations.length > 0) {
+      siblingVariations.forEach(sib => {
+        const sibParsed = parseProductPresentation(sib);
+        const sibPerfume = parsePerfumeInfo(sib);
+        const pres = (sibParsed.presentation || sibPerfume.ml || sib.name || "").trim();
+        if (pres && !sizeMap.has(pres.toLowerCase())) {
+          sizeMap.set(pres.toLowerCase(), {
+            size: pres,
+            presentation: pres,
+            price: Number(sib.price || 0),
+            priceAourum: sib.priceAourum ? Number(sib.priceAourum) : null,
+            image: sib.image || prod.image || "",
+            id: sib.id,
+            slug: sib.slug || sib.id,
+            isEmbedded: false
+          });
+        }
+      });
+    }
+
+    const result = Array.from(sizeMap.values());
+    return typeof sortSizesDescending === "function" ? sortSizesDescending(result) : result;
+  }, [prod, siblingVariations]);
+
+  const [selectedVariation, setSelectedVariation] = useState(null);
+
+  useEffect(() => {
+    if (allAvailableSizes.length > 0) {
+      const currentParsed = parseProductPresentation(prod);
+      const currentPerfume = parsePerfumeInfo(prod);
+      const currentPres = (currentParsed.presentation || currentPerfume.ml || "").toLowerCase();
+      const match = allAvailableSizes.find(s => s.id === prod?.id && (!currentPres || s.size.toLowerCase() === currentPres)) || allAvailableSizes[0];
+      setSelectedVariation(match);
+    } else {
+      setSelectedVariation(null);
+    }
+  }, [prod, allAvailableSizes]);
+
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
+  const activePrice = selectedVariation ? selectedVariation.price : prod?.price;
+  const activePriceAourum = selectedVariation ? selectedVariation.priceAourum : prod?.priceAourum;
+  const activeSizeName = selectedVariation ? (selectedVariation.size || selectedVariation.presentation) : (parseProductPresentation(prod).presentation || perfumeInfo.ml);
+  const activeImage = (selectedVariation && selectedVariation.image) ? selectedVariation.image : prod?.image;
+  const currentInCart = (typeof getItemCartQuantity === "function" && prod) ? getItemCartQuantity(prod.id, activeSizeName) : 0;
+
+  const suggestedCategoryProds = useMemo(() => {
+    if (!prod) return [];
+    const categoryCandidates = products.filter(
+      (p) => p.category && 
+             prod.category && 
+             p.category.trim().toLowerCase() === prod.category.trim().toLowerCase() && 
+             p.id !== prod.id &&
+             p.brandId !== prod.brandId &&
+             p.isVisible !== false
+    );
+    const finalCandidates = categoryCandidates.length > 0 
+      ? categoryCandidates 
+      : products.filter(
+          (p) => p.category && 
+                 prod.category && 
+                 p.category.trim().toLowerCase() === prod.category.trim().toLowerCase() && 
+                 p.id !== prod.id &&
+                 p.isVisible !== false
+        );
+    return getBalancedSuggestions(finalCandidates, 6);
+  }, [prod, products]);
+
+  const otherBrandProds = useMemo(() => {
+    if (!prod || !brand) return [];
+    return products.filter(
+      (p) => p.brandId === brand.id &&
+             p.id !== prod.id &&
+             (p.isVisible !== false || isCreatorOrOwner)
+    );
+  }, [prod, brand, products, isCreatorOrOwner]);
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", padding: "6rem 0" }}>
+        <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2.5rem", color: "var(--gold-primary)" }}></i>
+        <p style={{ color: "var(--text-muted)", marginTop: "10px" }}>Cargando detalles del producto...</p>
+      </div>
+    );
+  }
+
+  if (!prod || (prod.isVisible === false && !isCreatorOrOwner)) {
+    return (
+      <div className="container" style={{ textAlign: "center", padding: "4rem 0" }}>
+        <h3 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "1rem" }}>Este enlace no existe</h3>
+        <p style={{ color: "var(--text-muted)", marginBottom: "1.5rem" }}>El producto o servicio que buscas no está disponible o el enlace no existe. Redireccionando a la página principal...</p>
+        <button onClick={() => router.push("/")} className="btn-gold" style={{ padding: "0.75rem 1.8rem", cursor: "pointer" }}>Ir a la Página Principal</button>
+      </div>
+    );
+  }
+
+  const parsedBrand = brand ? parseDescription(brand.description) : null;
+  const palette = (brand && getBrandPalette) 
+    ? getBrandPalette(parsedBrand, brand) 
+    : { c1: "#D4AF37", c2: "#EAB308", c3: "#D4AF37", c4: "#FAF9F0" };
+  const brandThemeColor = palette.c1;
+
+  const brandDesign = brand?.brandDesign || {};
+  const bgStyle = brandDesign.bgStyle || "solid";
+  const customBgColor = brandDesign.customBgColor || "#FAF9F0";
+  const bgImage = brandDesign.bgImage || "";
+  const bgImageFit = brandDesign.bgImageFit || "cover";
+  const fontFamily = brandDesign.fontFamily || "Inter";
+
+  // Helper to safely calculate luminance for hex colors (including #RRGGBBAA and 3-digit hex)
+  const getBgBrightness = (colorStr, fallbackColor = "#FAF9F0") => {
+    let target = colorStr || fallbackColor;
+    if (target === "brand") target = palette.c1;
+    else if (target === "brand-soft") target = palette.c1 ? `${palette.c1}15` : fallbackColor;
+    if (typeof target !== "string" || !target.startsWith("#")) return 240;
+
+    let hex = target.replace("#", "").substring(0, 6);
+    if (hex.length === 3) {
+      hex = hex.split("").map(c => c + c).join("");
+    }
+    if (hex.length !== 6) return 240;
+
+    const r = parseInt(hex.substring(0, 2), 16) || 0;
+    const g = parseInt(hex.substring(2, 4), 16) || 0;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+    return (r * 299 + g * 587 + b * 114) / 1000;
+  };
+
+  const rawCardBg = (brandDesign.cardBgColor && brandDesign.cardBgColor !== "transparent") ? brandDesign.cardBgColor : null;
+  const rawCardText = brandDesign.cardTextColor || "auto";
+
+  // 1. Calculate overall store background luminance
+  const storeLuminance = getBgBrightness(customBgColor, "#FAF9F0");
+  const isStoreBgLight = storeLuminance >= 130;
+
+  // 2. Determine solid card background color from DB brand design settings
+  let resolvedCardBg = rawCardBg;
+  if (!resolvedCardBg || resolvedCardBg === "auto" || resolvedCardBg === "page_bg") {
+    resolvedCardBg = (customBgColor && customBgColor.startsWith("#"))
+      ? customBgColor
+      : (isStoreBgLight ? "#FFFFFF" : "#18181B");
+  } else if (resolvedCardBg === "brand") {
+    resolvedCardBg = palette.c1;
+  } else if (resolvedCardBg === "brand-soft") {
+    resolvedCardBg = (customBgColor && customBgColor.startsWith("#"))
+      ? customBgColor
+      : (isStoreBgLight ? "#FAF9F0" : "#242427");
+  }
+
+  // Ensure resolvedCardBg is solid 6-digit hex without transparency alpha channel
+  if (typeof resolvedCardBg === "string" && resolvedCardBg.startsWith("#") && resolvedCardBg.length === 9) {
+    resolvedCardBg = resolvedCardBg.substring(0, 7);
+  }
+
+  // 3. Determine brightness of card background
+  const cardLuminance = getBgBrightness(resolvedCardBg, isStoreBgLight ? "#FFFFFF" : "#18181B");
+  const isCardDark = cardLuminance < 140;
+
+  // 4. Text and badge color schemes
+  let resolvedCardTextColor = isCardDark ? "#FFFFFF" : "#1C1C1E";
+  let mutedTextColor = isCardDark ? "#D1D5DB" : "#4B5563";
+
+  if (rawCardText === "brand") {
+    resolvedCardTextColor = palette.c1;
+  } else if (rawCardText && rawCardText !== "auto" && rawCardText.startsWith("#")) {
+    const textLuminance = getBgBrightness(rawCardText, "#1C1C1E");
+    if ((isCardDark && textLuminance > 120) || (!isCardDark && textLuminance < 150)) {
+      resolvedCardTextColor = rawCardText;
+    }
+  }
+
+  // Safety guard: Never allow white text on light card backgrounds
+  if (!isCardDark) {
+    const titleLuminance = getBgBrightness(resolvedCardTextColor, "#1C1C1E");
+    if (titleLuminance > 180) {
+      resolvedCardTextColor = "#1C1C1E";
+    }
+  }
+
+  let pageBgCss = {};
+  if (bgStyle === "image" && bgImage) {
+    const fitMode = bgImageFit || "repeat-small";
+    let bgSize = "280px auto";
+    let bgRepeat = "repeat";
+
+    if (fitMode === "cover") {
+      bgSize = "cover";
+      bgRepeat = "no-repeat";
+    } else if (fitMode === "contain") {
+      bgSize = "contain";
+      bgRepeat = "repeat";
+    } else if (fitMode === "repeat-medium") {
+      bgSize = "480px auto";
+      bgRepeat = "repeat";
+    } else if (fitMode === "auto") {
+      bgSize = "auto";
+      bgRepeat = "repeat";
+    } else {
+      bgSize = "280px auto";
+      bgRepeat = "repeat";
+    }
+
+    pageBgCss = {
+      backgroundImage: `url(${bgImage})`,
+      backgroundSize: bgSize,
+      backgroundRepeat: bgRepeat,
+      backgroundPosition: "center top"
+    };
+  } else if (bgStyle === "solid") {
+    let resolvedColor = customBgColor;
+    if (resolvedColor === "brand") resolvedColor = palette.c1;
+    else if (resolvedColor === "brand-soft") resolvedColor = `${palette.c1}15`;
+    pageBgCss = {
+      background: resolvedColor
+    };
+  } else if (bgStyle === "gradient") {
+    pageBgCss = {
+      background: `
+        radial-gradient(ellipse at 15% 5%, ${palette.c1}25 0%, transparent 55%),
+        radial-gradient(ellipse at 85% 15%, ${palette.c2}25 0%, transparent 55%),
+        radial-gradient(ellipse at 20% 40%, ${palette.c3}20 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 65%, ${palette.c4}22 0%, transparent 50%),
+        linear-gradient(180deg, ${palette.c1}12 0%, ${palette.c2}08 25%, ${palette.c3}06 55%, ${palette.c4}10 85%, ${palette.c1}15 100%)
+      `
+    };
+  } else if (bgStyle === "mesh") {
+    pageBgCss = {
+      background: `
+        radial-gradient(at 0% 0%, ${palette.c1}30 0px, transparent 50%),
+        radial-gradient(at 100% 0%, ${palette.c2}30 0px, transparent 50%),
+        radial-gradient(at 100% 100%, ${palette.c3}25 0px, transparent 50%),
+        radial-gradient(at 0% 100%, ${palette.c4}30 0px, transparent 50%)
+      `
+    };
+  } else if (bgStyle === "dots") {
+    pageBgCss = {
+      background: `radial-gradient(${palette.c1}35 1px, transparent 1px)`,
+      backgroundSize: "20px 20px"
+    };
+  } else if (bgStyle === "none") {
+    pageBgCss = {
+      background: "#FFFFFF"
+    };
+  }
+
+  const whatsappNumber = (brand?.whatsappNumber || "51999999999").replace(/[^0-9]/g, "");
+  const productPrice = activePriceAourum ?? activePrice;
+  const formattedPriceStr = (productPrice != null && !isNaN(Number(productPrice)))
+    ? `S/ ${formatPrice(productPrice)}`
+    : null;
+  const targetSlug = (selectedVariation && selectedVariation.slug) ? selectedVariation.slug : (prod?.slug || prod?.id);
+  const productUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/products/${targetSlug}`
+    : "";
+
+  const productPres = activeSizeName;
+  let whatsappMsg = `Hola ${brand ? brand.name : "Productor"} desde AOURUM, estoy interesado en el item "${prod.name}".`;
+  if (productPres) {
+    whatsappMsg += `\nPresentación / Tamaño: ${productPres}`;
+  }
+  if (formattedPriceStr) {
+    whatsappMsg += `\nPrecio: ${formattedPriceStr}`;
+  }
+  if (productUrl) {
+    whatsappMsg += `\nLink: ${productUrl}`;
+  }
+  const whatsappLink = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodeURIComponent(whatsappMsg)}`;
+
+  const renderSuggestedCard = (rp) => {
+    const rpBrand = brands.find((b) => b.id === rp.brandId);
+    const rpDesign = rpBrand?.brandDesign || {};
+    const rpParsedBrand = rpBrand ? parseDescription(rpBrand.description) : null;
+    const rpPalette = (rpBrand && getBrandPalette)
+      ? getBrandPalette(rpParsedBrand, rpBrand)
+      : { c1: "#D4AF37", c2: "#EAB308", c3: "#D4AF37", c4: "#FAF9F0" };
+
+    const rpCardStyle = rpDesign.cardStyle || "glass";
+    const rawCardBg = (rpDesign.cardBgColor && rpDesign.cardBgColor !== "transparent") ? rpDesign.cardBgColor : null;
+    const rawCardText = rpDesign.cardTextColor || "auto";
+    const rawCardBorder = rpDesign.cardBorderColor || "auto";
+
+    const getBgBrightness = (colorStr, fallbackColor = "#FAF9F0") => {
+      let target = colorStr || fallbackColor;
+      if (target === "brand") target = rpPalette.c1;
+      else if (target === "brand-soft") target = rpPalette.c1 ? `${rpPalette.c1}15` : fallbackColor;
+      if (typeof target !== "string" || !target.startsWith("#")) return 240;
+
+      let hex = target.replace("#", "").substring(0, 6);
+      if (hex.length === 3) {
+        hex = hex.split("").map(c => c + c).join("");
+      }
+      if (hex.length !== 6) return 240;
+
+      const r = parseInt(hex.substring(0, 2), 16) || 0;
+      const g = parseInt(hex.substring(2, 4), 16) || 0;
+      const b = parseInt(hex.substring(4, 6), 16) || 0;
+      return (r * 299 + g * 587 + b * 114) / 1000;
+    };
+
+    const storeLuminance = getBgBrightness(customBgColor, "#FAF9F0");
+    const isStoreBgLight = storeLuminance >= 130;
+
+    let cardBg = rawCardBg;
+    if (!cardBg || cardBg === "auto") {
+      cardBg = (rpDesign.customBgColor && rpDesign.customBgColor.startsWith("#")) ? rpDesign.customBgColor : (isStoreBgLight ? "#FFFFFF" : "#18181B");
+    } else if (cardBg === "brand") {
+      cardBg = rpPalette.c1;
+    } else if (cardBg === "brand-soft") {
+      cardBg = (rpDesign.customBgColor && rpDesign.customBgColor.startsWith("#")) ? rpDesign.customBgColor : (isStoreBgLight ? "#FAF9F0" : "#242427");
+    }
+
+    if (typeof cardBg === "string" && cardBg.startsWith("#") && cardBg.length === 9) {
+      cardBg = cardBg.substring(0, 7);
+    }
+
+    const cardLuminance = getBgBrightness(cardBg, isStoreBgLight ? "#FFFFFF" : "#18181B");
+    const isCardDark = cardLuminance < 140;
+
+    let categoryTextColor = isCardDark ? "var(--text-gold)" : "#854D0E";
+    let titleTextColor = isCardDark ? "#FFFFFF" : "#1C1C1E";
+    let priceTextColor = isCardDark ? "#FFFFFF" : "#1C1C1E";
+    let secondaryTextColor = isCardDark ? "#A1A1AA" : "#71717A";
+    let dividerBorder = isCardDark ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(0,0,0,0.1)";
+
+    if (rawCardText === "brand") {
+      titleTextColor = rpPalette.c1;
+      priceTextColor = rpPalette.c1;
+    } else if (rawCardText && rawCardText !== "auto" && rawCardText.startsWith("#")) {
+      titleTextColor = rawCardText;
+      priceTextColor = rawCardText;
+    }
+
+    let cardStyleObj = {
+      background: cardBg,
+      color: titleTextColor,
+      borderRadius: "16px",
+      overflow: "hidden",
+      display: "flex",
+      flexDirection: "column",
+      height: "100%",
+      cursor: "pointer",
+      fontFamily: rpDesign.fontFamily && rpDesign.fontFamily !== "Inter" ? `"${rpDesign.fontFamily}", sans-serif` : "inherit",
+      boxShadow: rpCardStyle === "elevated" ? "0 12px 30px rgba(0,0,0,0.1)" : "0 4px 16px rgba(0,0,0,0.06)",
+      transition: "all 0.25s ease-in-out"
+    };
+
+    if (rawCardBorder === "brand") {
+      cardStyleObj.border = `1.5px solid ${rpPalette.c1}`;
+    } else if (rawCardBorder === "transparent") {
+      cardStyleObj.border = "none";
+    } else if (rawCardBorder && rawCardBorder !== "auto" && rawCardBorder.startsWith("#")) {
+      cardStyleObj.border = `1.5px solid ${rawCardBorder}`;
+    } else if (rpCardStyle === "bordered") {
+      cardStyleObj.border = `2px solid ${rpPalette.c1}`;
+    } else {
+      cardStyleObj.border = isCardDark ? "1px solid rgba(255,255,255,0.15)" : (isStoreBgLight ? "1px solid rgba(0, 0, 0, 0.12)" : `1px solid ${rpPalette.c1}30`);
+    }
+
+    const views = getProductViews(rp);
+    const isPopular = views > 0;
+    const formattedPrice = (rp.price != null && !isNaN(Number(rp.price))) ? Number(rp.price).toLocaleString("es-PE") : "0";
+    const formattedPriceAourum = (rp.priceAourum != null && !isNaN(Number(rp.priceAourum))) ? Number(rp.priceAourum).toLocaleString("es-PE") : null;
+    const rpPerfumeInfo = parsePerfumeInfo(rp);
+    const isRpFoodOrNonPerfume = /comida|snack|gastronom|fruta|alimento|bebida|caf[eé]|postre|joyer|ropa|artesan|textil|esot[eé]ric|servicio|tecnolog|calzado|accesorio/i.test(`${rp.category || ""} ${rpBrand?.category || ""} ${rpBrand?.rubro_general || ""} ${rpBrand?.rubro_especifico || ""}`);
+    const isPerfume = !isRpFoodOrNonPerfume && Boolean(
+      rpPerfumeInfo.originalImg ||
+      rpBrand?.brandDesign?.catalogDisplayMode === "perfumery" ||
+      rpBrand?.brandDesign?.catalogDisplayMode === "perfume" ||
+      /perfum|fraganc|coloni|eau de|esenci/i.test(`${rp.category || ""} ${rpBrand?.rubro_general || ""}`)
+    );
+    const brandBadgeColor = rpPalette.c1 || (rpBrand?.color ? rpBrand.color : "var(--gold-primary)");
+    const brandBadgeTextDark = getBgBrightness(brandBadgeColor, "#FFFFFF") > 160;
+    const isPop = rp.suggestionType === "popular";
+
+    return (
+      <div 
+        key={rp.id}
+        className="product-card glass-panel" 
+        style={cardStyleObj}
+        onClick={() => router.push(`/products/${rp.slug || rp.id}${fromParam ? `?from=${fromParam}` : ""}`)}
+      >
+        {/* Top Image Box with Badge Overlays */}
+        <div 
+          className="card-img-container" 
+          style={{ 
+            width: "100%",
+            aspectRatio: "4 / 3",
+            position: "relative", 
+            background: (rp.imgBgColor && rp.imgBgColor !== "transparent" && rp.imgBgColor !== "page_bg") 
+              ? (rp.imgBgColor === "brand" ? rpPalette.c1 : rp.imgBgColor)
+              : "transparent",
+            transition: "background-color 0.3s ease",
+            overflow: "hidden"
+          }}
+        >
+          {/* Top Badges Bar: prevents collisions on mobile cards */}
+          <div style={{
+            position: "absolute",
+            top: "8px",
+            left: "8px",
+            right: "8px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: "4px",
+            zIndex: 6,
+            pointerEvents: "none"
+          }}>
+            {/* Left badge: Más Visto or (for non-perfumes) Descubre */}
+            <div>
+              {isPop ? (
+                <span style={{ 
+                  background: brandBadgeColor, 
+                  color: brandBadgeTextDark ? "#1C1C1E" : "#FFFFFF", 
+                  fontSize: "0.62rem", 
+                  padding: "3px 8px", 
+                  borderRadius: "12px", 
+                  fontWeight: 800, 
+                  letterSpacing: "0.03em", 
+                  textTransform: "uppercase", 
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.2)", 
+                  display: "inline-flex", 
+                  alignItems: "center", 
+                  gap: "4px",
+                  whiteSpace: "nowrap"
+                }}>
+                  <i className="fa-solid fa-fire"></i> Más Visto
+                </span>
+              ) : !isPerfume ? (
+                <span style={{ 
+                  background: isCardDark ? "rgba(15, 23, 42, 0.85)" : "rgba(255, 255, 255, 0.92)", 
+                  color: isCardDark ? "#F8FAFC" : "#1C1C1E", 
+                  fontSize: "0.62rem", 
+                  padding: "3px 8px", 
+                  borderRadius: "12px", 
+                  fontWeight: 700, 
+                  letterSpacing: "0.03em", 
+                  textTransform: "uppercase", 
+                  border: `1.5px solid ${brandBadgeColor}`, 
+                  backdropFilter: "blur(4px)", 
+                  display: "inline-flex", 
+                  alignItems: "center", 
+                  gap: "4px",
+                  whiteSpace: "nowrap"
+                }}>
+                  <i className="fa-solid fa-wand-magic-sparkles" style={{ color: brandBadgeColor }}></i> Descubre
+                </span>
+              ) : null}
+            </div>
+
+            {/* Right badge: Gender badge if perfume */}
+            <div>
+              {isPerfume && rpPerfumeInfo.gender ? (
+                <span
+                  style={{
+                    background: isCardDark ? "rgba(15, 23, 42, 0.85)" : "rgba(255, 255, 255, 0.92)",
+                    color: isCardDark ? "#F8FAFC" : "#1C1C1E",
+                    fontWeight: 700,
+                    fontSize: "0.62rem",
+                    padding: "3px 8px",
+                    borderRadius: "12px",
+                    backdropFilter: "blur(4px)",
+                    border: `1px solid ${brandBadgeColor}`,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    whiteSpace: "nowrap"
+                  }}
+                >
+                  {rpPerfumeInfo.gender === "Hombre" && "👔 Hombre"}
+                  {rpPerfumeInfo.gender === "Mujer" && "👗 Mujer"}
+                  {rpPerfumeInfo.gender === "Unisex" && "✨ Unisex"}
+                  {rpPerfumeInfo.gender !== "Hombre" && rpPerfumeInfo.gender !== "Mujer" && rpPerfumeInfo.gender !== "Unisex" && rpPerfumeInfo.gender}
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          <ProductCardVisual
+            prod={rp}
+            perfumeInfo={rpPerfumeInfo}
+            brandColor={rpPalette.c1}
+            isDark={isCardDark}
+          />
+        </div>
+
+        {/* Bottom Details Body */}
+        <div style={{ padding: "1.1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ 
+              fontSize: "0.72rem", 
+              color: categoryTextColor, 
+              letterSpacing: "0.05em", 
+              textTransform: "uppercase", 
+              fontWeight: 800
+            }}>
+              {(isPerfume && rpPerfumeInfo.family) || rp.category || rpBrand?.rubro_general || "General"}
+            </span>
+            {isPerfume && rpPerfumeInfo.ml && (
+              <span style={{ fontSize: "0.68rem", color: secondaryTextColor, fontWeight: 600 }}>
+                {rpPerfumeInfo.ml}
+              </span>
+            )}
+          </div>
+
+          <h3 style={{ 
+            fontSize: "1.02rem", 
+            fontWeight: 800, 
+            lineHeight: 1.35, 
+            color: titleTextColor, 
+            fontFamily: rpDesign.fontFamily && rpDesign.fontFamily !== "Inter" ? `"${rpDesign.fontFamily}", sans-serif` : "inherit",
+            margin: "0.1rem 0 0 0",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden"
+          }}>
+            {rp.name}
+          </h3>
+
+          <div style={{ fontSize: "0.8rem", color: isCardDark ? "#A1A1AA" : "var(--text-muted)", display: "flex", alignItems: "center", gap: "5px" }}>
+            <span>Por:</span>
+            <strong style={{ color: titleTextColor, textDecoration: "underline" }}>
+              {rpBrand?.name || "Marca Local"}
+            </strong>
+          </div>
+          
+          <div style={{ 
+            display: "flex", 
+            justifyContent: "space-between", 
+            alignItems: "center", 
+            borderTop: dividerBorder, 
+            paddingTop: "0.5rem", 
+            marginTop: "auto" 
+          }}>
+            <div>
+              {formattedPriceAourum ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <span style={{ fontSize: "0.68rem", color: isCardDark ? "#A1A1AA" : "#71717A", textDecoration: "line-through", lineHeight: 1 }}>
+                      S/ {formattedPrice}
+                    </span>
+                    <span style={{ fontSize: "0.5rem", background: "var(--gold-gradient)", color: "#1C1C1E", padding: "1px 4px", borderRadius: "3px", fontWeight: "800", textTransform: "uppercase", whiteSpace: "nowrap", lineHeight: 1 }}>
+                      Aourum
+                    </span>
+                  </div>
+                  <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: priceTextColor, lineHeight: 1 }}>
+                    S/ {formattedPriceAourum}
+                  </span>
+                </div>
+              ) : (
+                <span className="card-price-main" style={{ fontSize: "1.02rem", fontWeight: 800, color: priceTextColor }}>
+                  S/ {formattedPrice}
+                </span>
+              )}
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "2px" }}>
+              <span className="card-type-label" style={{
+                fontSize: "0.65rem",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                color: rp.type === "service" ? (isCardDark ? "#93c5fd" : "#1e3a8a") : (isCardDark ? "#fde68a" : "#78350f"),
+                letterSpacing: "0.03em"
+              }}>
+                {rp.type === "service" ? "Servicio" : "Producto"}
+              </span>
+              <span className="card-stock-label" style={{
+                fontSize: "0.65rem",
+                fontWeight: 700,
+                padding: "2px 6px",
+                borderRadius: "8px",
+                textTransform: "uppercase",
+                letterSpacing: "0.02em",
+                background: rp.type === "service" ? "#dbeafe" : (rp.stock == null || rp.stock > 0) ? "#dcfce7" : "#fee2e2",
+                color: rp.type === "service" ? "#1e40af" : (rp.stock == null || rp.stock > 0) ? "#15803d" : "#b91c1c"
+              }}>
+                {rp.type === "service" ? "Agenda" : (rp.stock == null || rp.stock > 0) ? "Stock" : "Agotado"}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="product-details-container product-theme-scope" style={{ position: "relative", minHeight: "100vh", fontFamily: fontFamily !== "Inter" ? `"${fontFamily}", sans-serif` : "inherit" }}>
+      {/* Banner de Producto Oculto para el creador */}
+      {prod.isVisible === false && (
+        <div className="container" style={{ paddingTop: "1.5rem" }}>
+          <div style={{ background: "#fee2e2", color: "#991b1b", padding: "0.85rem 1.2rem", borderRadius: "10px", fontWeight: 700, fontSize: "0.88rem", display: "flex", alignItems: "center", gap: "10px", border: "1px solid #fca5a5" }}>
+            <i className="fa-solid fa-eye-slash" style={{ fontSize: "1.2rem" }}></i>
+            <span>🔒 Producto Oculto: Solo tú como creador(a) de la marca puedes ver este enlace. Para los demás usuarios o visitantes, este enlace saldrá como inexistente y los redirigirá al inicio.</span>
+          </div>
+        </div>
+      )}
+      {/* Import de la fuente de Google seleccionada si no es Inter */}
+      {fontFamily !== "Inter" && (
+        <link rel="stylesheet" href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@400;600;700;800&display=swap`} />
+      )}
+
+      {/* Estilos dinámicos de la Paleta de Marca para la página de producto */}
+      <style>{`
+        ${fontFamily !== "Inter" ? `
+          .product-theme-scope,
+          .product-theme-scope h1,
+          .product-theme-scope h2,
+          .product-theme-scope h3,
+          .product-theme-scope h4,
+          .product-theme-scope h5,
+          .product-theme-scope h6,
+          .product-theme-scope p,
+          .product-theme-scope span:not([class*="fa-"]),
+          .product-theme-scope button:not([class*="fa-"]),
+          .product-theme-scope div:not([class*="fa-"]),
+          .product-theme-scope a:not([class*="fa-"]),
+          .product-theme-scope label:not([class*="fa-"]),
+          .product-theme-scope td,
+          .product-theme-scope th,
+          .product-theme-scope input:not([class*="fa-"]),
+          .product-theme-scope .product-card,
+          .product-theme-scope .product-card *,
+          .product-theme-scope .card-price-main {
+            font-family: "${fontFamily}", sans-serif !important;
+          }
+          .product-theme-scope i,
+          .product-theme-scope [class*="fa-"],
+          .product-theme-scope .fa-solid,
+          .product-theme-scope .fa-regular,
+          .product-theme-scope .fa-brands,
+          .product-theme-scope .fas,
+          .product-theme-scope .far,
+          .product-theme-scope .fab {
+            font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands", FontAwesome !important;
+          }
+        ` : ''}
+        .product-theme-scope .btn-gold {
+          background: linear-gradient(135deg, ${palette.c1}, ${palette.c2}) !important;
+          color: #ffffff !important;
+          border: none !important;
+          box-shadow: 0 4px 14px ${palette.c1}35 !important;
+        }
+        .product-theme-scope .btn-outline-gold {
+          border-color: ${palette.c1} !important;
+          color: ${palette.c1} !important;
+        }
+        .product-theme-scope .glass-panel:not(.product-card) {
+          border: 1px solid ${palette.c1}25 !important;
+          box-shadow: 0 8px 24px ${palette.c1}08 !important;
+        }
+        .product-theme-scope .product-mobile-sticky-bar {
+          background: ${!isStoreBgLight 
+            ? (customBgColor && customBgColor.startsWith("#") ? `${customBgColor}F5` : "rgba(10, 11, 14, 0.95)") 
+            : "rgba(255, 255, 255, 0.96)"
+          } !important;
+          backdrop-filter: blur(24px) !important;
+          -webkit-backdrop-filter: blur(24px) !important;
+          border-top: 1.5px solid ${palette.c1 ? `${palette.c1}45` : (!isStoreBgLight ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)")} !important;
+          box-shadow: ${!isStoreBgLight 
+            ? `0 -8px 30px rgba(0, 0, 0, 0.7), 0 -2px 10px ${palette.c1 ? `${palette.c1}15` : "transparent"}` 
+            : `0 -8px 24px rgba(0, 0, 0, 0.08), 0 -2px 10px ${palette.c1 ? `${palette.c1}10` : "transparent"}`
+          } !important;
+        }
+        .product-theme-scope .product-mobile-sticky-bar .mobile-price-label {
+          color: ${!isStoreBgLight ? (palette.c1 || "#D4AF37") : "var(--text-muted)"} !important;
+        }
+        .product-theme-scope .product-mobile-sticky-bar .mobile-price-amount {
+          color: ${palette.c1 || "var(--gold-dark)"} !important;
+        }
+        header {
+          background: ${!isStoreBgLight 
+            ? "rgba(10, 11, 14, 0.92) !important" 
+            : "rgba(255, 255, 255, 0.96) !important"
+          };
+          backdrop-filter: blur(20px) !important;
+          -webkit-backdrop-filter: blur(20px) !important;
+          border-bottom: 1.5px solid ${palette.c1 ? `${palette.c1}35` : (!isStoreBgLight ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)")} !important;
+          box-shadow: ${!isStoreBgLight 
+            ? "0 4px 24px rgba(0, 0, 0, 0.6) !important" 
+            : `0 4px 20px ${palette.c1 ? `${palette.c1}10` : "rgba(0,0,0,0.04)"} !important`
+          };
+        }
+        ${!isStoreBgLight ? `
+          header .aourum-logo-wordmark {
+            background-color: #FFFFFF !important;
+          }
+          header .header-search input {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
+            color: #FFFFFF !important;
+          }
+          header .header-search input:focus {
+            background: rgba(255, 255, 255, 0.14) !important;
+            border-color: ${palette.c1 || "var(--gold-primary)"} !important;
+            box-shadow: 0 0 0 3px ${palette.c1 ? `${palette.c1}30` : "rgba(212,175,55,0.2)"} !important;
+          }
+          header .header-search input::placeholder {
+            color: rgba(255, 255, 255, 0.45) !important;
+          }
+          header .header-search .search-icon {
+            color: rgba(255, 255, 255, 0.55) !important;
+          }
+          header .header-nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+          }
+          header .header-nav-link:hover {
+            color: #FFFFFF !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+          }
+          header .header-nav-link.active {
+            color: ${palette.c1 || "#F3E5AB"} !important;
+            background: ${palette.c1 ? `${palette.c1}25` : "rgba(212, 175, 55, 0.2)"} !important;
+            border-color: ${palette.c1 ? `${palette.c1}50` : "rgba(212, 175, 55, 0.45)"} !important;
+          }
+          header .header-profile-link {
+            color: ${palette.c1 || "#F3E5AB"} !important;
+            background: ${palette.c1 ? `${palette.c1}18` : "rgba(212, 175, 55, 0.12)"} !important;
+            border-color: ${palette.c1 ? `${palette.c1}45` : "rgba(212, 175, 55, 0.35)"} !important;
+          }
+          header .header-nav-divider {
+            background: rgba(255, 255, 255, 0.15) !important;
+          }
+          header .account-dropdown-wrapper button {
+            color: #FFFFFF !important;
+            border-color: ${palette.c1 || "var(--gold-primary)"} !important;
+          }
+          footer.site-footer {
+            background: rgba(10, 11, 14, 0.95) !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px) !important;
+            border-top: 1.5px solid ${palette.c1}30 !important;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5) !important;
+          }
+          footer.site-footer, footer.site-footer p, footer.site-footer span, footer.site-footer div {
+            color: #9CA3AF !important;
+          }
+        ` : `
+          header .header-nav-link.active {
+            color: ${palette.c1 || "var(--gold-dark)"} !important;
+            background: ${palette.c1 ? `${palette.c1}15` : "rgba(212, 175, 55, 0.1)"} !important;
+            border-color: ${palette.c1 ? `${palette.c1}40` : "rgba(212, 175, 55, 0.35)"} !important;
+          }
+          header .header-profile-link {
+            color: ${palette.c1 || "var(--gold-dark)"} !important;
+            border-color: ${palette.c1 ? `${palette.c1}40` : "rgba(214, 175, 55, 0.35)"} !important;
+          }
+          footer.site-footer {
+            background: rgba(255, 255, 255, 0.96) !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px) !important;
+            border-top: 1.5px solid ${palette.c1}30 !important;
+            box-shadow: 0 -4px 20px ${palette.c1}12 !important;
+          }
+        `}
+        footer.site-footer a {
+          color: ${palette.c1} !important;
+        }
+        .specs-table td.label {
+          color: ${mutedTextColor} !important;
+        }
+        .specs-table td.value {
+          color: ${resolvedCardTextColor} !important;
+        }
+        .specs-table tr {
+          border-bottom: ${isCardDark ? "1px solid rgba(255,255,255,0.12)" : "1px solid rgba(0,0,0,0.08)"} !important;
+        }
+        .product-theme-scope .grid-catalog .product-card,
+        .product-theme-scope .product-card {
+          border-radius: 16px !important;
+          overflow: hidden !important;
+          position: relative !important;
+          z-index: 2 !important;
+          transition: all 0.25s ease-in-out !important;
+        }
+        @media (min-width: 641px) {
+          .product-theme-scope .product-card {
+            min-height: 350px !important;
+          }
+          .product-theme-scope .grid-catalog > div:nth-child(n+6) {
+            display: none !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .product-theme-scope .product-card {
+            min-height: auto !important;
+          }
+          .product-theme-scope .grid-catalog > div:nth-child(n+6) {
+            display: flex !important;
+          }
+          .product-theme-scope .product-card > div:last-child {
+            padding: 0.65rem 0.6rem !important;
+            gap: 0.2rem !important;
+          }
+          .product-theme-scope .product-card h3 {
+            font-size: 0.82rem !important;
+            line-height: 1.25 !important;
+            height: 2.5em !important;
+            margin: 0 !important;
+          }
+          .product-theme-scope .product-card .card-price-main {
+            font-size: 0.88rem !important;
+          }
+        }
+        .product-theme-scope .product-card:hover {
+          border-color: ${palette.c1} !important;
+          box-shadow: 0 12px 32px ${palette.c1}25 !important;
+          transform: translateY(-4px) !important;
+        }
+      `}</style>
+
+      {/* Fondo de la Marca en la Página de su Producto */}
+      {bgStyle !== "none" && (
+        <div 
+          style={{ 
+            position: "fixed", 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0, 
+            pointerEvents: "none", 
+            zIndex: -1,
+            ...pageBgCss
+          }} 
+        />
+      )}
+
+      {/* Botón Volver */}
+      <div style={{ marginBottom: "2rem", position: "relative", zIndex: 1, paddingTop: "1rem" }}>
+        <button 
+          onClick={handleBack} 
+          className="btn-outline-gold" 
+          style={{ padding: "0.5rem 1.2rem", fontSize: "0.85rem", borderRadius: "8px", border: `1.5px solid ${palette.c1}40`, background: resolvedCardBg, color: resolvedCardTextColor, backdropFilter: "blur(12px)", cursor: "pointer", transition: "var(--transition-smooth)" }}
+        >
+          <i className="fa-solid fa-arrow-left" style={{ marginRight: 6 }}></i> {isFromBrand ? `Volver a ${brand?.name || "la Marca"}` : "Volver al Catálogo"}
+        </button>
+      </div>
+
+      {/* Vista Principal del Producto */}
+      <div className="product-split-layout" style={{ position: "relative", zIndex: 1 }}>
+        {/* Imagen del Producto */}
+        <div 
+          className={`product-image-box ${isPerfumeProd && perfumeInfo.originalImg ? "product-perfume-stage" : ""}`}
+          style={{
+            position: "sticky",
+            top: "2rem",
+            alignSelf: "start",
+            width: "100%",
+            ...(isPerfumeProd && perfumeInfo.originalImg ? {
+              backgroundColor: (prod.imgBgColor && prod.imgBgColor !== "transparent" && prod.imgBgColor !== "page_bg") 
+                ? (prod.imgBgColor === "brand" ? palette.c1 : prod.imgBgColor) 
+                : resolvedCardBg,
+            } : {
+              aspectRatio: "1 / 1",
+              maxHeight: "560px",
+              backgroundColor: (prod.imgBgColor && prod.imgBgColor !== "transparent" && prod.imgBgColor !== "page_bg") 
+                ? (prod.imgBgColor === "brand" ? palette.c1 : prod.imgBgColor) 
+                : "#FFFFFF",
+              padding: "24px"
+            }),
+            backdropFilter: "blur(12px)",
+            border: `1.5px solid ${palette.c1}25`,
+            borderRadius: "20px",
+            boxShadow: "0 10px 30px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0,0,0,0.04)",
+            overflow: "hidden",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "background-color 0.3s ease"
+          }}
+        >
+          {isPerfumeProd && perfumeInfo.originalImg ? (
+            /* ── DÚO VISUAL EN LA PÁGINA DEL PRODUCTO ── */
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "8px"
+              }}
+            >
+              {/* Resplandor central con el color de la marca */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: "80%",
+                  height: "80%",
+                  borderRadius: "50%",
+                  background: `radial-gradient(circle, ${palette.c1}25 0%, transparent 70%)`,
+                  pointerEvents: "none"
+                }}
+              />
+
+              {/* 1. Frasco Original de Inspiración (Segundo Plano - Izquierda) */}
+              <div
+                className="product-duo-stage-orig"
+                style={{
+                  position: "absolute",
+                  left: "6%",
+                  bottom: "6%",
+                  width: "48%",
+                  height: "86%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  zIndex: 1,
+                  filter: "drop-shadow(0 8px 18px rgba(0,0,0,0.22))",
+                  opacity: 0.95,
+                  transition: "transform 0.3s ease"
+                }}
+                title={`Original de Referencia: ${perfumeInfo.inspiration || "Inspiración"}`}
+              >
+                <img
+                  src={perfumeInfo.originalImg}
+                  alt={`Original: ${perfumeInfo.inspiration || "Inspiración"}`}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "96%",
+                    width: "auto",
+                    height: "auto",
+                    objectFit: "contain"
+                  }}
+                />
+              </div>
+
+              {/* 2. Frasco de la Marca (Primer Plano - Protagonista a la Derecha) */}
+              <div
+                className="product-duo-stage-brand"
+                style={{
+                  position: "absolute",
+                  right: "6%",
+                  bottom: "4%",
+                  width: "56%",
+                  height: "94%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                  zIndex: 2,
+                  filter: "drop-shadow(0 12px 28px rgba(0,0,0,0.32))",
+                  transition: "transform 0.3s ease"
+                }}
+              >
+                {activeImage ? (
+                  <img
+                    src={activeImage}
+                    alt={prod.name}
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "98%",
+                      width: "auto",
+                      height: "auto",
+                      objectFit: "contain"
+                    }}
+                  />
+                ) : (
+                  <div style={{ textAlign: "center", marginBottom: "12px" }}>
+                    <i className="fa-solid fa-wine-bottle" style={{ fontSize: "5rem", color: palette.c1, opacity: 0.9 }}></i>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : activeImage ? (
+            <img 
+              src={activeImage} 
+              alt={prod.name} 
+              style={{
+                width: "100%",
+                height: "100%",
+                maxWidth: "100%",
+                maxHeight: "100%",
+                objectFit: "contain",
+                transition: "transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)"
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.04)"}
+              onMouseLeave={(e) => e.currentTarget.style.transform = "none"}
+            />
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "350px", color: mutedTextColor }}>
+              <i className="fa-solid fa-image" style={{ fontSize: "4rem", marginBottom: "1rem", opacity: 0.5 }}></i>
+              <p>Sin imagen disponible</p>
+            </div>
+          )}
+        </div>
+
+        {/* Detalles e Información del Producto */}
+        <div>
+          {(() => {
+            const isVirtualMenu = !isPerfumeProd && isVirtualMenuBrand(brand);
+            return (
+              <>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center", marginBottom: "0.5rem", flexWrap: "wrap" }}>
+                  <span style={{
+                    background: `${brandThemeColor}15`,
+                    border: `1px solid ${brandThemeColor}35`,
+                    color: brandThemeColor,
+                    padding: "0.25rem 0.6rem",
+                    borderRadius: "6px",
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    textTransform: "uppercase"
+                  }}>
+                    {prod.category || "General"}
+                  </span>
+                  {isPerfumeProd ? (
+                    <span style={{
+                      background: "#D4AF37",
+                      color: "#000000",
+                      padding: "0.25rem 0.6rem",
+                      borderRadius: "6px",
+                      fontSize: "0.72rem",
+                      fontWeight: 800,
+                      textTransform: "uppercase"
+                    }}>
+                      ✨ Perfume & Fragancia
+                    </span>
+                  ) : isVirtualMenu ? (
+                    <span style={{
+                      background: "#10B981",
+                      color: "#FFFFFF",
+                      padding: "0.25rem 0.6rem",
+                      borderRadius: "6px",
+                      fontSize: "0.72rem",
+                      fontWeight: 800,
+                      textTransform: "uppercase"
+                    }}>
+                      🍽️ Platillo / Menú Virtual
+                    </span>
+                  ) : prod.type === "service" ? (
+                    <span style={{
+                      background: "#2563eb",
+                      color: "#FFFFFF",
+                      padding: "0.25rem 0.6rem",
+                      borderRadius: "6px",
+                      fontSize: "0.72rem",
+                      fontWeight: 800,
+                      textTransform: "uppercase"
+                    }}>
+                      📅 Servicio
+                    </span>
+                  ) : null}
+                  {isPerfumeProd && perfumeInfo.concentration && (
+                    <span style={{
+                      background: "linear-gradient(135deg, #D4AF37 0%, #B45309 100%)",
+                      color: "#0C0D11",
+                      padding: "0.25rem 0.65rem",
+                      borderRadius: "6px",
+                      fontSize: "0.72rem",
+                      fontWeight: 900,
+                      textTransform: "uppercase",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px"
+                    }}>
+                      <i className="fa-solid fa-droplet"></i> {perfumeInfo.concentration}
+                    </span>
+                  )}
+                </div>
+
+                <h1 style={{ fontSize: "2.2rem", fontWeight: 800, color: resolvedCardTextColor, lineHeight: 1.25, letterSpacing: "-0.015em", marginBottom: "0.6rem" }}>
+                  {prod.name}
+                </h1>
+
+                {/* Recuadro de Inspiración Original para Perfumes */}
+                {isPerfumeProd && perfumeInfo.inspiration && (
+                  <div 
+                    style={{
+                      background: "linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(20, 22, 28, 0.85) 100%)",
+                      border: "1.5px solid rgba(212, 175, 55, 0.4)",
+                      borderRadius: "14px",
+                      padding: "14px 18px",
+                      marginBottom: "1.25rem",
+                      boxShadow: "0 6px 20px rgba(0,0,0,0.12)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "14px"
+                    }}
+                  >
+                    {perfumeInfo.originalImg ? (
+                      <div 
+                        style={{ 
+                          width: "48px", 
+                          height: "60px", 
+                          flexShrink: 0, 
+                          display: "flex", 
+                          alignItems: "center", 
+                          justifyContent: "center", 
+                          background: "rgba(255,255,255,0.08)", 
+                          borderRadius: "10px", 
+                          padding: "4px", 
+                          border: "1px solid rgba(212, 175, 55, 0.4)",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
+                        }}
+                      >
+                        <img 
+                          src={perfumeInfo.originalImg} 
+                          alt={perfumeInfo.inspiration} 
+                          style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} 
+                        />
+                      </div>
+                    ) : null}
+
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: "0.72rem", fontWeight: 800, color: "#FDE047", textTransform: "uppercase", letterSpacing: "0.08em", display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+                        <i className="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Inspiración Olfativa Original:</span>
+                      </div>
+                      <div style={{ fontSize: "1.2rem", fontWeight: 900, color: "#FFFFFF", letterSpacing: "-0.01em" }}>
+                        Inspirado en: <span style={{ color: "#FEF08A" }}>{perfumeInfo.inspiration}</span>
+                      </div>
+                      <div style={{ fontSize: "0.8rem", color: "#D4D4D8", marginTop: "4px", display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                        {perfumeInfo.concentration && <span><strong>Concentración:</strong> {perfumeInfo.concentration}</span>}
+                        {perfumeInfo.family && <span>• <strong>Familia:</strong> {perfumeInfo.family}</span>}
+                        {perfumeInfo.gender && <span>• <strong>Género:</strong> {perfumeInfo.gender}</span>}
+                        {perfumeInfo.ml && <span>• <strong>Presentación:</strong> {perfumeInfo.ml}</span>}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Insignia y Enlace a la Marca Personalizada */}
+                <div 
+                  style={{ 
+                    display: "inline-flex", 
+                    alignItems: "center", 
+                    gap: "10px", 
+                    marginBottom: "1.5rem",
+                    padding: "0.5rem 0.9rem",
+                    borderRadius: "10px",
+                    background: resolvedCardBg,
+                    backdropFilter: "blur(10px)",
+                    border: `1.5px solid ${palette.c1}30`,
+                    cursor: "pointer",
+                    transition: "transform 0.2s ease"
+                  }}
+                  onClick={() => router.push(`/brands/${brand?.slug || prod.brandId}`)}
+                >
+                  {brand?.logo && (
+                    <img 
+                      src={brand.logo} 
+                      alt={brand.name} 
+                      style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `1.5px solid ${brandThemeColor}` }} 
+                    />
+                  )}
+                  <span style={{ fontSize: "0.85rem", color: resolvedCardTextColor }}>
+                    Elaborado y vendido por: <strong style={{ color: brandThemeColor }}>{brand ? brand.name : "Marca Local"}</strong>
+                  </span>
+                  <i className="fa-solid fa-chevron-right" style={{ fontSize: "0.75rem", color: brandThemeColor, marginLeft: "4px" }}></i>
+                </div>
+
+                {/* Sección de Precio */}
+                <div style={{ background: resolvedCardBg, backdropFilter: "blur(12px)", padding: "1.2rem 1.5rem", borderRadius: "12px", border: `1.5px solid ${palette.c1}30`, boxShadow: `0 8px 24px ${palette.c1}08`, marginBottom: "1.8rem" }}>
+                  <span style={{ fontSize: "0.8rem", color: mutedTextColor, display: "block", marginBottom: "2px", fontWeight: 500 }}>
+                    {activePriceAourum ? "Oferta Especial AOURUM" : "Precio Exclusivo"}
+                  </span>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: "12px", flexWrap: "wrap" }}>
+                    {activePriceAourum ? (
+                      <>
+                        <span style={{ fontSize: "2.2rem", fontWeight: 800, color: palette.c1 || resolvedCardTextColor, letterSpacing: "-0.02em" }}>
+                          S/ {formatPrice(activePriceAourum)}
+                        </span>
+                        <span style={{ fontSize: "1.3rem", color: mutedTextColor, textDecoration: "line-through", fontWeight: 500 }}>
+                          S/ {formatPrice(activePrice)}
+                        </span>
+                        <span style={{ fontSize: "0.85rem", color: resolvedCardTextColor, fontWeight: 700 }}>
+                          <i className="fa-solid fa-gift" style={{ color: palette.c1 }}></i> Precio Especial
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span style={{ fontSize: "2.2rem", fontWeight: 800, color: palette.c1 || resolvedCardTextColor, letterSpacing: "-0.02em" }}>
+                          S/ {formatPrice(activePrice)}
+                        </span>
+                        <span style={{ fontSize: "0.85rem", color: resolvedCardTextColor, fontWeight: 700 }}>
+                          <i className="fa-solid fa-shield-halved" style={{ color: palette.c1 }}></i> Precio Justo Local
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Selector de Presentaciones & Tamaños Disponibles */}
+                {allAvailableSizes.length > 1 && (
+                  <div style={{ 
+                    background: resolvedCardBg, 
+                    backdropFilter: "blur(12px)", 
+                    padding: "1.1rem 1.3rem", 
+                    borderRadius: "14px", 
+                    border: `1.5px solid ${brandThemeColor}40`, 
+                    boxShadow: `0 6px 20px ${brandThemeColor}10`, 
+                    marginBottom: "1.6rem" 
+                  }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem", flexWrap: "wrap", gap: "6px" }}>
+                      <span style={{ fontSize: "0.85rem", fontWeight: 800, color: resolvedCardTextColor, display: "flex", alignItems: "center", gap: "8px" }}>
+                        <i className={isPerfumeProd ? "fa-solid fa-droplet" : "fa-solid fa-cubes-stacked"} style={{ color: brandThemeColor }}></i>
+                        <span>{isPerfumeProd ? "Tamaño / Volumen Disponible:" : "Presentaciones & Tamaños Disponibles:"}</span>
+                      </span>
+                      <span style={{ fontSize: "0.72rem", color: mutedTextColor }}>
+                        {allAvailableSizes.length} opciones para este ítem
+                      </span>
+                    </div>
+
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                      {allAvailableSizes.map((v, idx) => {
+                        const isCurrent = Boolean(
+                          selectedVariation
+                            ? (v.size && selectedVariation.size
+                                ? v.size.trim().toLowerCase() === selectedVariation.size.trim().toLowerCase()
+                                : (v.id === selectedVariation.id && v.price === selectedVariation.price))
+                            : idx === 0
+                        );
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              setSelectedVariation(v);
+                              if (v.slug && v.slug !== (prod.slug || prod.id)) {
+                                window.history.replaceState(null, "", `/products/${v.slug}`);
+                              }
+                            }}
+                            title={`Ver presentación ${v.size || v.presentation || v.name}`}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "10px",
+                              padding: "7px 14px 7px 8px",
+                              borderRadius: "12px",
+                              fontSize: "0.86rem",
+                              fontWeight: isCurrent ? 800 : 600,
+                              cursor: isCurrent ? "default" : "pointer",
+                              border: isCurrent ? `2px solid ${brandThemeColor}` : "1.5px solid rgba(255,255,255,0.12)",
+                              background: isCurrent ? `${brandThemeColor}25` : "rgba(255,255,255,0.03)",
+                              color: isCurrent ? brandThemeColor : resolvedCardTextColor,
+                              boxShadow: isCurrent ? `0 0 0 1px ${brandThemeColor}, 0 4px 14px ${brandThemeColor}35` : "none",
+                              transform: isCurrent ? "scale(1.02)" : "scale(1)",
+                              transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
+                            }}
+                          >
+                            {v.image && (
+                              <div style={{
+                                width: "36px",
+                                height: "36px",
+                                borderRadius: "8px",
+                                overflow: "hidden",
+                                background: "#FFFFFF",
+                                border: isCurrent ? `1.5px solid ${brandThemeColor}` : "1px solid rgba(0,0,0,0.08)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexShrink: 0,
+                                boxShadow: "0 1px 4px rgba(0,0,0,0.08)"
+                              }}>
+                                <img 
+                                  src={v.image} 
+                                  alt={v.size || v.presentation || v.name} 
+                                  style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} 
+                                />
+                              </div>
+                            )}
+                            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "1px" }}>
+                              <span style={{ fontSize: "0.84rem", fontWeight: 800 }}>{v.size || v.presentation || v.name}</span>
+                              <span style={{ 
+                                fontSize: "0.74rem", 
+                                fontWeight: 700, 
+                                color: isCurrent ? brandThemeColor : mutedTextColor
+                              }}>
+                                S/ {formatPrice(v.priceAourum || v.price)}
+                              </span>
+                            </div>
+                            {isCurrent && <i className="fa-solid fa-circle-check" style={{ fontSize: "0.88rem", color: brandThemeColor, marginLeft: "4px" }}></i>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Información & Contenido del Platillo / Producto / Perfume (Solo si el vendedor redactó descripción) */}
+                {(() => {
+                  const cleaned = cleanDescriptionText(prod.description);
+                  if (!cleaned) return null;
+                  return (
+                    <div style={{ marginBottom: "1.8rem" }}>
+                      <h3 style={{ fontSize: "1.05rem", fontWeight: 700, borderBottom: `1.5px solid ${palette.c1}30`, paddingBottom: "0.4rem", marginBottom: "0.8rem", color: resolvedCardTextColor, display: "flex", alignItems: "center", gap: "8px" }}>
+                        <i className="fa-solid fa-circle-info" style={{ color: brandThemeColor }}></i>
+                        <span>
+                          {isPerfumeProd 
+                            ? "Información y Notas de la Fragancia" 
+                            : isVirtualMenu 
+                            ? "Información y Descripción del Platillo" 
+                            : "Información y Descripción"}
+                        </span>
+                      </h3>
+                      <div style={{ background: resolvedCardBg, backdropFilter: "blur(12px)", padding: "1.2rem 1.4rem", borderRadius: "12px", border: `1.5px solid ${palette.c1}30`, boxShadow: `0 8px 24px ${palette.c1}08` }}>
+                        <p style={{ fontSize: "0.92rem", color: resolvedCardTextColor, lineHeight: 1.65, whiteSpace: "pre-line", margin: 0 }}>
+                          {cleaned}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Tabla de Especificaciones */}
+                <div style={{ marginBottom: "2rem" }}>
+                  <h3 style={{ fontSize: "1.05rem", fontWeight: 700, borderBottom: `1.5px solid ${palette.c1}30`, paddingBottom: "0.4rem", marginBottom: "0.8rem", color: resolvedCardTextColor }}>
+                    <i className="fa-solid fa-list-check" style={{ color: palette.c1, marginRight: 8 }}></i> Especificaciones Técnicas
+                  </h3>
+                  <div style={{ background: resolvedCardBg, backdropFilter: "blur(12px)", padding: "0.8rem 1.4rem", borderRadius: "12px", border: `1.5px solid ${palette.c1}30`, boxShadow: `0 8px 24px ${palette.c1}08` }}>
+                    <table className="specs-table" style={{ marginTop: 0 }}>
+                      <tbody>
+                        {isPerfumeProd && perfumeInfo.inspiration && (
+                          <tr>
+                            <td className="label">Inspiración Olfativa</td>
+                            <td className="value" style={{ fontWeight: 800, color: brandThemeColor }}>{perfumeInfo.inspiration}</td>
+                          </tr>
+                        )}
+                        {isPerfumeProd && perfumeInfo.concentration && (
+                          <tr>
+                            <td className="label">Concentración</td>
+                            <td className="value" style={{ fontWeight: 700 }}>{perfumeInfo.concentration}</td>
+                          </tr>
+                        )}
+                        {isPerfumeProd && perfumeInfo.gender && (
+                          <tr>
+                            <td className="label">Género / Tendencia</td>
+                            <td className="value">{perfumeInfo.gender}</td>
+                          </tr>
+                        )}
+                        {isPerfumeProd && perfumeInfo.family && (
+                          <tr>
+                            <td className="label">Familia Olfativa</td>
+                            <td className="value">{perfumeInfo.family}</td>
+                          </tr>
+                        )}
+                        {isPerfumeProd && perfumeInfo.ml && (
+                          <tr>
+                            <td className="label">Volumen</td>
+                            <td className="value">{perfumeInfo.ml}</td>
+                          </tr>
+                        )}
+                        {(!isPerfumeProd && parseProductPresentation(prod).presentation) && (
+                          <tr>
+                            <td className="label">Presentación</td>
+                            <td className="value" style={{ fontWeight: 700, color: brandThemeColor }}>
+                              {parseProductPresentation(prod).presentation}
+                            </td>
+                          </tr>
+                        )}
+                        <tr>
+                          <td className="label">Rubro o Categoría</td>
+                          <td className="value">{prod.category || "General"}</td>
+                        </tr>
+                        <tr>
+                          <td className="label">Tipo de Catálogo</td>
+                          <td className="value">{isPerfumeProd ? "Fragancia & Perfumería" : isVirtualMenu ? "Platillo Gastronómico (Carta Virtual)" : (prod.type === "service" ? "Servicio / Experiencia" : "Producto Físico")}</td>
+                        </tr>
+                        
+                        {isVirtualMenu ? (
+                          <tr>
+                            <td className="label">Disponibilidad</td>
+                            <td className="value" style={{ color: "#10B981", fontWeight: 700 }}>En Carta / Preparación Fresca</td>
+                          </tr>
+                        ) : prod.type === "service" ? (
+                          <tr>
+                            <td className="label">Disponibilidad</td>
+                            <td className="value" style={{ color: "#2563eb", fontWeight: 700 }}>Por Agenda / Cita</td>
+                          </tr>
+                        ) : (
+                          <tr>
+                            <td className="label">Disponibilidad</td>
+                            <td className="value" style={{ color: (prod.stock == null || prod.stock > 0) ? resolvedCardTextColor : "#ef4444", fontWeight: 700 }}>
+                              {prod.stock == null ? "En Stock (Disponibilidad continua)" : prod.stock > 0 ? `En Stock (${prod.stock} unidades)` : "Agotado Temporalmente"}
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Aviso informativo */}
+                <div style={{ background: resolvedCardBg, backdropFilter: "blur(10px)", border: `1.5px solid ${palette.c1}30`, borderRadius: "12px", padding: "1.2rem", marginBottom: "1.8rem" }}>
+                  <p style={{ fontSize: "0.85rem", color: resolvedCardTextColor, lineHeight: 1.5, display: "flex", gap: "8px", margin: 0 }}>
+                    <i className="fa-solid fa-circle-info" style={{ marginTop: "3px", fontSize: "0.95rem", color: palette.c1 }}></i>
+                    <span>
+                      {isPerfumeProd
+                        ? "Esta fragancia forma parte del catálogo de perfumería e inspiraciones olfativas. Para adquirirla o consultar disponibilidad, comunícate directamente con la marca."
+                        : isVirtualMenu
+                        ? "Este es un plato/ítem de la carta virtual gastronómica. No realizamos transacciones de pago directo. Para realizar tu pedido o consultar, coordina directamente con el restaurante o productor."
+                        : "Este es un catálogo virtual de economía circular y cultural. No realizamos transacciones de pago directo. Para comprar o agendar, coordina directamente con el productor."}
+                    </span>
+                  </p>
+                </div>
+
+                {/* Botones de Acción */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {brand?.whatsappNumber ? (
+                    activeRole ? (
+                      <a 
+                        href={whatsappLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-gold"
+                        style={{ width: "100%", textDecoration: "none", fontSize: "0.95rem", padding: "0.8rem", textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+                      >
+                        <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.2rem" }}></i> {isPerfumeProd ? "Coordinar Fragancia vía WhatsApp" : isVirtualMenu ? "Coordinar Pedido de Platillo vía WhatsApp" : "Coordinar Adquisición vía WhatsApp"}
+                      </a>
+                    ) : (
+                      <button 
+                        onClick={() => {
+                          triggerNotification(false, isPerfumeProd ? "Debes iniciar sesión para coordinar esta fragancia." : isVirtualMenu ? "Debes iniciar sesión para pedir este platillo." : "Debes iniciar sesión para coordinar la adquisición.");
+                          setShowLoginModal(true);
+                        }}
+                        className="btn-gold"
+                        style={{ width: "100%", fontSize: "0.95rem", cursor: "pointer", padding: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
+                      >
+                        <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.2rem" }}></i> {isPerfumeProd ? "Coordinar Fragancia vía WhatsApp" : isVirtualMenu ? "Coordinar Pedido de Platillo vía WhatsApp" : "Coordinar Adquisición vía WhatsApp"}
+                      </button>
+                    )
+                  ) : (
+                    <div style={{ background: "rgba(212,175,55,0.06)", border: "1px dashed rgba(212,175,55,0.4)", borderRadius: "10px", padding: "1rem", textAlign: "center" }}>
+                      <p style={{ fontSize: "0.82rem", color: "var(--text-muted)", margin: "0 0 6px 0" }}>
+                        <i className="fa-brands fa-whatsapp" style={{ color: "#25d366", marginRight: 6 }}></i>
+                        <strong>WhatsApp de la marca:</strong>
+                      </p>
+                      <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: 0 }}>
+                        Esta marca aún no ha configurado su número de contacto.
+                        <br />Visita su galería para más información.
+                      </p>
+                    </div>
+                  )}
+                  {/* Selector de Cantidad para añadir al carrito */}
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "0.55rem 0.85rem",
+                    borderRadius: "12px",
+                    background: resolvedCardBg,
+                    border: `1.5px solid ${palette.c1}30`,
+                    marginBottom: "0.5rem"
+                  }}>
+                    <span style={{ fontSize: "0.84rem", fontWeight: 700, color: resolvedCardTextColor }}>
+                      Cantidad:
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedQuantity(prev => Math.max(1, prev - 1))}
+                        disabled={selectedQuantity <= 1}
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          borderRadius: "8px",
+                          border: `1px solid ${palette.c1}40`,
+                          background: selectedQuantity <= 1 ? "transparent" : `${brandThemeColor}20`,
+                          color: selectedQuantity <= 1 ? mutedTextColor : brandThemeColor,
+                          cursor: selectedQuantity <= 1 ? "not-allowed" : "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "0.95rem",
+                          fontWeight: 700,
+                          transition: "all 0.15s ease"
+                        }}
+                        aria-label="Disminuir cantidad"
+                      >
+                        <i className="fa-solid fa-minus" style={{ fontSize: "0.75rem" }}></i>
+                      </button>
+
+                      <span style={{ minWidth: "28px", textAlign: "center", fontSize: "1.05rem", fontWeight: 800, color: resolvedCardTextColor }}>
+                        {selectedQuantity}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => setSelectedQuantity(prev => Math.min(99, prev + 1))}
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          borderRadius: "8px",
+                          border: `1px solid ${brandThemeColor}`,
+                          background: `${brandThemeColor}25`,
+                          color: brandThemeColor,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "0.95rem",
+                          fontWeight: 700,
+                          transition: "all 0.15s ease"
+                        }}
+                        aria-label="Aumentar cantidad"
+                      >
+                        <i className="fa-solid fa-plus" style={{ fontSize: "0.75rem" }}></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Botón Añadir al Carrito con Cantidad */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      addToCart(prod, {
+                        size: activeSizeName,
+                        price: activePrice,
+                        priceAourum: activePriceAourum,
+                        image: activeImage,
+                        brand: brand,
+                        quantity: selectedQuantity
+                      });
+                      const totalAfter = currentInCart + selectedQuantity;
+                      triggerNotification(true, `¡${selectedQuantity > 1 ? `${selectedQuantity}x ` : ""}"${prod.name}" añadido al carrito! (${totalAfter} en tu carrito)`);
+                    }}
+                    className="btn-outline-gold"
+                    style={{
+                      width: "100%",
+                      fontSize: "0.95rem",
+                      cursor: "pointer",
+                      padding: "0.8rem",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "8px",
+                      borderRadius: "12px",
+                      fontWeight: 800
+                    }}
+                  >
+                    <i className="fa-solid fa-cart-plus" style={{ fontSize: "1.1rem" }}></i>
+                    {selectedQuantity > 1 ? `Añadir ${selectedQuantity} al Carrito` : "Añadir al Carrito"}
+                    {(activePriceAourum || activePrice) != null && (
+                      <span style={{ opacity: 0.85, fontSize: "0.85rem", fontWeight: 600 }}>
+                        (S/ {formatPrice(Number(activePriceAourum != null ? activePriceAourum : activePrice) * selectedQuantity)})
+                      </span>
+                    )}
+                  </button>
+
+                  {currentInCart > 0 && (
+                    <div style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: "6px",
+                      fontSize: "0.8rem",
+                      color: brandThemeColor || "var(--gold-primary)",
+                      fontWeight: 700,
+                      marginTop: "-0.2rem"
+                    }}>
+                      <i className="fa-solid fa-circle-check"></i>
+                      <span>Ya tienes {currentInCart} {currentInCart === 1 ? "unidad" : "unidades"} en tu carrito</span>
+                    </div>
+                  )}
+
+                  <button 
+                    onClick={() => router.push(`/brands/${brand?.slug || prod.brandId}`)}
+                    className="btn-outline-gold"
+                    style={{ width: "100%", fontSize: "0.95rem", padding: "0.8rem" }}
+                  >
+                    <i className="fa-solid fa-store" style={{ marginRight: 6 }}></i> Visitar Galería de la Marca
+                  </button>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      </div>
+
+      {/* Carta & Menú Gastronómico de la Marca (Solo en Modo Menú Virtual y NO si el producto actual es perfume) */}
+      {brand && !isPerfumeProd && isVirtualMenuBrand(brand) && allBrandProducts.length > 0 && (
+        <div style={{ borderTop: `1px solid ${palette.c1}30`, paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
+          <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+            <div>
+              <h3 style={{ fontSize: "1.4rem", fontWeight: 800, margin: 0, color: resolvedCardTextColor, display: "flex", alignItems: "center", gap: "8px" }}>
+                <i className="fa-solid fa-utensils" style={{ color: brandThemeColor }}></i>
+                <span>Carta & Menú Gastronómico de {brand.name}</span>
+              </h3>
+              <p style={{ fontSize: "0.88rem", color: mutedTextColor, margin: "4px 0 0 0" }}>
+                Explora la selección de platillos, bebidas y especialidades de {brand.name}
+              </p>
+            </div>
+            <button 
+              onClick={() => router.push(`/brands/${brand.slug || brand.id}`)}
+              className="btn-outline-gold"
+              style={{ padding: "0.55rem 1.3rem", fontSize: "0.85rem", borderRadius: "20px", cursor: "pointer", fontWeight: 700 }}
+            >
+              Ver perfil de la marca
+            </button>
+          </div>
+
+          {/* Menú de Platos */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {allBrandProducts.map((item) => {
+              const isCurrent = item.id === prod.id;
+              const waNumber = brand?.whatsappNumber;
+              const cleanWa = waNumber ? waNumber.replace(/[^0-9]/g, "") : null;
+              const waMsg = encodeURIComponent(`¡Hola! Quisiera realizar un pedido de "${item.name}" desde la Carta Virtual de ${brand?.name || 'la marca'} en AOURUM.`);
+              const waLink = cleanWa ? `https://wa.me/${cleanWa}?text=${waMsg}` : null;
+
+              return (
+                <div 
+                  key={item.id}
+                  className="glass-panel"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "1.25rem",
+                    padding: "1.1rem 1.3rem",
+                    borderRadius: "16px",
+                    border: isCurrent ? `2px solid ${brandThemeColor}` : `1.5px solid ${palette.c1}30`,
+                    background: isCurrent ? `${brandThemeColor}18` : resolvedCardBg,
+                    backdropFilter: "blur(12px)",
+                    flexWrap: "wrap",
+                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                    cursor: "pointer"
+                  }}
+                  onClick={() => router.push(`/products/${item.slug || item.id}${fromParam ? `?from=${fromParam}` : ""}`)}
+                >
+                  {item.image && (
+                    <div 
+                      style={{ 
+                        width: "80px", 
+                        height: "80px", 
+                        borderRadius: "12px", 
+                        overflow: "hidden", 
+                        flexShrink: 0,
+                        border: `1px solid ${palette.c1}30`
+                      }}
+                    >
+                      <img src={item.image} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    </div>
+                  )}
+                  <div style={{ flex: 1, minWidth: "200px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                      {item.category && (
+                        <span style={{ fontSize: "0.68rem", fontWeight: 800, textTransform: "uppercase", color: brandThemeColor, background: `${brandThemeColor}18`, padding: "2px 8px", borderRadius: "6px" }}>
+                          {item.category}
+                        </span>
+                      )}
+                      {isCurrent && (
+                        <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#10B981", background: "rgba(16, 185, 129, 0.15)", padding: "2px 8px", borderRadius: "6px" }}>
+                          Plato Viendo Ahora
+                        </span>
+                      )}
+                    </div>
+                    <h4 
+                      style={{ fontSize: "1.05rem", fontWeight: 800, margin: "2px 0 4px 0", color: resolvedCardTextColor }}
+                    >
+                      {item.name}
+                    </h4>
+                    {item.description && (
+                      <p style={{ fontSize: "0.82rem", color: mutedTextColor, margin: "0 0 6px 0", lineHeight: 1.4, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                        {item.description}
+                      </p>
+                    )}
+                    <span style={{ fontSize: "1.1rem", fontWeight: 800, color: brandThemeColor }}>
+                      S/ {item.price ? item.price.toLocaleString("es-PE") : "0.00"}
+                    </span>
+                  </div>
+
+                  <div onClick={(e) => e.stopPropagation()} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    {waLink ? (
+                      <a 
+                        href={waLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          background: "#25D366",
+                          color: "#FFFFFF",
+                          textDecoration: "none",
+                          padding: "0.55rem 1.2rem",
+                          borderRadius: "20px",
+                          fontSize: "0.82rem",
+                          fontWeight: 800,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          whiteSpace: "nowrap"
+                        }}
+                      >
+                        <i className="fa-brands fa-whatsapp"></i>
+                        <span>Pedir Plato</span>
+                      </a>
+                    ) : (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/products/${item.slug || item.id}${fromParam ? `?from=${fromParam}` : ""}`);
+                        }}
+                        className="btn-gold"
+                        style={{ padding: "0.55rem 1.2rem", borderRadius: "20px", fontSize: "0.82rem", fontWeight: 800 }}
+                      >
+                        Ver Plato
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Más productos de la misma Marca (Vitrina Virtual) */}
+      {brand && (!isVirtualMenuBrand(brand) || isPerfumeProd) && otherBrandProds.length > 0 && (
+        <div style={{ borderTop: `1px solid ${palette.c1}30`, paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
+          <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+            <div>
+              <h3 style={{ fontSize: "1.2rem", fontWeight: 800, margin: 0, color: resolvedCardTextColor, display: "flex", alignItems: "center", gap: "8px" }}>
+                <i className={isPerfumeProd ? "fa-solid fa-wand-magic-sparkles" : "fa-solid fa-store"} style={{ color: brandThemeColor }}></i>
+                <span>{isPerfumeProd ? `Más creaciones de ${brand.name}` : `Más productos de ${brand.name}`}</span>
+              </h3>
+              <p style={{ fontSize: "0.88rem", color: mutedTextColor, margin: "4px 0 0 0" }}>
+                {isPerfumeProd ? `Explora otras inspiraciones y creaciones de ${brand.name}` : `Explora el catálogo completo y otros artículos disponibles de ${brand.name}`}
+              </p>
+            </div>
+            <button 
+              onClick={() => router.push(`/brands/${brand.slug || brand.id}`)}
+              className="btn-outline-gold"
+              style={{ padding: "0.55rem 1.3rem", fontSize: "0.85rem", borderRadius: "20px", cursor: "pointer", fontWeight: 700 }}
+            >
+              Ver catálogo de la marca
+            </button>
+          </div>
+          <div className="grid-catalog">
+            {otherBrandProds.map(renderSuggestedCard)}
+          </div>
+        </div>
+      )}
+
+      {/* Sugerencias de la misma categoría */}
+      {suggestedCategoryProds.length > 0 && (
+        <div style={{ borderTop: `1px solid ${palette.c1}30`, paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
+          <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "1.5rem", color: resolvedCardTextColor, display: "flex", alignItems: "center", gap: 8 }}>
+            <i className="fa-solid fa-tags" style={{ color: palette.c1 }}></i>
+            Productos recomendados en <span style={{ color: brandThemeColor }}>{prod.category || "esta categoría"}</span>
+          </h3>
+          <div className="grid-catalog">
+            {suggestedCategoryProds.map(renderSuggestedCard)}
+          </div>
+        </div>
+      )}
+
+      {/* Banner de la Marca */}
+      {brand && (
+        <div style={{ borderTop: `1px solid ${palette.c1}30`, paddingTop: "2.5rem", marginBottom: "3.5rem", position: "relative", zIndex: 1 }}>
+          <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "1.2rem", color: resolvedCardTextColor }}>
+            <i className="fa-solid fa-user-tie" style={{ color: brandThemeColor, marginRight: 8 }}></i> Sobre la Marca / Productor
+          </h3>
+          <div 
+            className="brand-banner-card"
+            style={{ 
+              border: `1.5px solid ${brandThemeColor}35`,
+              background: resolvedCardBg,
+              backdropFilter: "blur(12px)",
+              boxShadow: `0 8px 30px ${brandThemeColor}15`,
+              borderRadius: "16px",
+              padding: "1.5rem"
+            }}
+          >
+            {brand.logo && (
+              <img 
+                src={brand.logo} 
+                alt={brand.name} 
+                className="brand-banner-logo"
+                style={{ border: `2px solid ${brandThemeColor}`, width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover" }}
+              />
+            )}
+            <div style={{ flex: 1 }}>
+              <span style={{ fontSize: "0.78rem", color: brandThemeColor, textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.05em" }}>
+                {brand.category || "Marca Local"}
+              </span>
+              <h4 style={{ fontSize: "1.5rem", fontWeight: 800, margin: "2px 0 6px 0", color: resolvedCardTextColor, letterSpacing: "-0.015em" }}>
+                {brand.name}
+              </h4>
+              {brand.owner && (
+                <p style={{ fontSize: "0.82rem", color: mutedTextColor, marginBottom: "0.8rem" }}>
+                  <i className="fa-solid fa-user-tag" style={{ marginRight: 6 }}></i> Fundador: <strong>{brand.owner}</strong>
+                </p>
+              )}
+              {brand.whatsappNumber && (
+                <p style={{ fontSize: "0.82rem", color: mutedTextColor, marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: 6 }}>
+                  <i className="fa-brands fa-whatsapp" style={{ color: "#25d366", fontSize: "1rem" }}></i>
+                  <strong>WhatsApp:</strong>
+                  {activeRole ? (
+                    <span 
+                      style={{ cursor: "pointer", color: "#25d366", fontWeight: 700, textDecoration: "underline" }}
+                      onClick={() => { 
+                        navigator.clipboard?.writeText(brand.whatsappNumber); 
+                        triggerNotification(true, "Número de WhatsApp copiado al portapapeles.");
+                      }}
+                      title="Haz clic para copiar"
+                    >
+                      +{brand.whatsappNumber}
+                    </span>
+                  ) : (
+                    <span 
+                      style={{ cursor: "pointer", color: mutedTextColor, textDecoration: "underline" }}
+                      onClick={() => {
+                        triggerNotification(false, "Debes iniciar sesión para ver el número de contacto.");
+                        setShowLoginModal(true);
+                      }}
+                      title="Inicia sesión para ver número"
+                    >
+                      Iniciar sesión para ver número
+                    </span>
+                  )}
+                </p>
+              )}
+              {brand.description && (
+                <p style={{ fontSize: "0.88rem", color: resolvedCardTextColor, lineHeight: 1.55, marginBottom: "1.2rem" }}>
+                  {parseDescription(brand.description).text}
+                </p>
+              )}
+              <button 
+                onClick={() => router.push(`/brands/${brand.slug || brand.id}`)}
+                className="btn-outline-gold"
+                style={{ padding: "0.45rem 1.2rem", fontSize: "0.82rem", borderRadius: "6px", cursor: "pointer" }}
+              >
+                Ver Catálogo Completo de {brand.name}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── STICKY BUY BAR EN CELULAR CON LOS COLORES DE LA MARCA ── */}
+      <div 
+        className="product-mobile-sticky-bar"
+        style={{
+          background: !isStoreBgLight 
+            ? (customBgColor && customBgColor.startsWith("#") ? `${customBgColor}F5` : "rgba(10, 11, 14, 0.95)") 
+            : "rgba(255, 255, 255, 0.96)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          borderTop: `1.5px solid ${palette.c1 ? `${palette.c1}45` : (!isStoreBgLight ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.1)")}`,
+          boxShadow: !isStoreBgLight 
+            ? `0 -8px 30px rgba(0, 0, 0, 0.7), 0 -2px 10px ${palette.c1}15` 
+            : `0 -8px 24px rgba(0, 0, 0, 0.08), 0 -2px 10px ${palette.c1}10`
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+          <span 
+            className="mobile-price-label"
+            style={{ 
+              fontSize: "0.66rem", 
+              color: !isStoreBgLight ? (palette.c1 || "#D4AF37") : "var(--text-muted)", 
+              textTransform: "uppercase", 
+              fontWeight: 800,
+              letterSpacing: "0.06em",
+              marginBottom: "1px"
+            }}
+          >
+            Precio
+          </span>
+          <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
+            {activePriceAourum ? (
+              <>
+                <span 
+                  className="mobile-price-amount"
+                  style={{ 
+                    fontSize: "1.25rem", 
+                    fontWeight: 900, 
+                    color: palette.c1 || "var(--gold-dark)", 
+                    lineHeight: 1,
+                    letterSpacing: "-0.01em"
+                  }}
+                >
+                  S/ {formatPrice(activePriceAourum)}
+                </span>
+                <span 
+                  style={{ 
+                    fontSize: "0.78rem", 
+                    color: !isStoreBgLight ? "rgba(255, 255, 255, 0.45)" : "#71717A", 
+                    textDecoration: "line-through",
+                    fontWeight: 600
+                  }}
+                >
+                  S/ {formatPrice(activePrice)}
+                </span>
+              </>
+            ) : (
+              <span 
+                className="mobile-price-amount"
+                style={{ 
+                  fontSize: "1.25rem", 
+                  fontWeight: 900, 
+                  color: palette.c1 || "var(--gold-dark)", 
+                  lineHeight: 1,
+                  letterSpacing: "-0.01em"
+                }}
+              >
+                S/ {formatPrice(activePrice)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {brand?.whatsappNumber ? (
+          <a
+            href={whatsappLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-gold"
+            style={{
+              flex: 1,
+              maxWidth: "260px",
+              padding: "0.7rem 1.1rem",
+              borderRadius: "12px",
+              fontWeight: 800,
+              fontSize: "0.85rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              textDecoration: "none",
+              background: `linear-gradient(135deg, ${palette.c1}, ${palette.c2})`,
+              color: "#FFFFFF",
+              boxShadow: `0 4px 16px ${palette.c1}45`
+            }}
+          >
+            <i className="fa-brands fa-whatsapp" style={{ fontSize: "1.1rem" }}></i>
+            <span>Pedir por WhatsApp</span>
+          </a>
+        ) : (
+          <button
+            onClick={() => router.push(`/brands/${brand?.slug || brand?.id}`)}
+            className="btn-gold"
+            style={{
+              flex: 1,
+              maxWidth: "260px",
+              padding: "0.7rem 1.1rem",
+              borderRadius: "12px",
+              fontWeight: 800,
+              fontSize: "0.85rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+              background: `linear-gradient(135deg, ${palette.c1}, ${palette.c2})`,
+              color: "#FFFFFF",
+              boxShadow: `0 4px 16px ${palette.c1}45`
+            }}
+          >
+            <i className="fa-solid fa-store"></i>
+            <span>Ver Tienda</span>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+

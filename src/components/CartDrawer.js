@@ -18,33 +18,49 @@ export default function CartDrawer() {
     setCustomerOrderInfo,
     getCurrentPerson,
     activePersonId,
-    activeUsername
+    activeUsername,
+    brands,
+    products
   } = useApp();
 
   const [sentBrands, setSentBrands] = useState({});
   const [showInfoForm, setShowInfoForm] = useState(false);
 
-  // Group cart items by brand
+  // Group cart items by brand con validación en vivo de marcas y stock
   const groupedByBrand = useMemo(() => {
     const map = {};
     cart.forEach(item => {
       const bId = item.brandId || "general";
+      const liveBrand = brands?.find(b => Number(b.id) === Number(bId));
+      const brandPhone = liveBrand?.whatsappNumber || liveBrand?.phone || item.brandPhone || "";
+      const brandName = liveBrand?.name || item.brandName || "Marca Local";
+      const brandLogo = liveBrand?.logo || item.brandLogo || null;
+      const brandCategory = liveBrand?.category || item.brandCategory || "Marca Local";
+
       if (!map[bId]) {
         map[bId] = {
           brandId: bId,
-          brandName: item.brandName || "Marca Local",
-          brandPhone: item.brandPhone || "",
-          brandLogo: item.brandLogo || null,
-          brandCategory: item.brandCategory || "Marca Local",
+          brandName,
+          brandPhone,
+          brandLogo,
+          brandCategory,
           items: [],
           subtotal: 0
         };
       }
-      map[bId].items.push(item);
+
+      // Validación de stock en vivo
+      const liveProduct = products?.find(p => Number(p.id) === Number(item.productId));
+      const isOutOfStock = liveProduct ? (liveProduct.is_out_of_stock === true || liveProduct.stock === 0) : false;
+
+      map[bId].items.push({
+        ...item,
+        isOutOfStock
+      });
       map[bId].subtotal += (item.price || 0) * (item.quantity || 1);
     });
     return Object.values(map);
-  }, [cart]);
+  }, [cart, brands, products]);
 
   const loggedPerson = activePersonId ? getCurrentPerson() : null;
   const clientName = loggedPerson?.name 
@@ -53,7 +69,7 @@ export default function CartDrawer() {
 
   if (!isCartOpen) return null;
 
-  // Build formatted WhatsApp message for a specific brand
+  // Build formatted WhatsApp message for a specific brand con registro de pedido y fallback
   const handleCheckoutBrand = (brandGroup) => {
     const loggedPerson = activePersonId ? getCurrentPerson() : null;
     const clientName = loggedPerson?.name 
@@ -62,7 +78,19 @@ export default function CartDrawer() {
     const clientAddress = customerOrderInfo.address?.trim() || "";
     const clientNotes = customerOrderInfo.notes?.trim() || "";
 
-    let text = `¡Hola *${brandGroup.brandName}*! 👋\n`;
+    const AOURUM_CENTRAL_PHONE = "51910168393";
+    let cleanPhone = (brandGroup.brandPhone || "").replace(/[^0-9]/g, "");
+    if (cleanPhone.length === 9) {
+      cleanPhone = "51" + cleanPhone; // Código de Perú por defecto
+    }
+
+    const isUsingCentral = !cleanPhone || cleanPhone.length < 8;
+    const targetPhone = isUsingCentral ? AOURUM_CENTRAL_PHONE : cleanPhone;
+
+    let text = isUsingCentral 
+      ? `🛎️ *[CENTRAL AOURUM — PEDIDO PARA MARCA: ${brandGroup.brandName.toUpperCase()}]*\n\n`
+      : `¡Hola *${brandGroup.brandName}*! 👋\n`;
+
     text += `Vi tus productos en *AOURUM* y deseo realizar el siguiente pedido:\n\n`;
     text += `🛍️ *PRODUCTOS SELECCIONADOS:*\n`;
 
@@ -83,18 +111,30 @@ export default function CartDrawer() {
     if (clientNotes) text += `• *Nota / Consulta:* ${clientNotes}\n`;
     text += `\n📍 _Pedido enviado desde AOURUM Marketplace_`;
 
-    let cleanPhone = (brandGroup.brandPhone || "").replace(/[^0-9]/g, "");
-    if (cleanPhone.length === 9) {
-      cleanPhone = "51" + cleanPhone; // Código de Perú por defecto
-    }
+    // 1. Registrar pedido en el backend en segundo plano
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.aourum.com";
+    const token = typeof window !== "undefined" ? localStorage.getItem("aourum_token") : null;
+    fetch(`${API_URL}/api/orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({
+        personId: activePersonId || null,
+        brandId: brandGroup.brandId,
+        brandName: brandGroup.brandName,
+        clientName,
+        deliveryAddress: clientAddress,
+        notes: clientNotes,
+        items: brandGroup.items,
+        subtotal: brandGroup.subtotal
+      })
+    }).catch(err => console.warn("Error guardando orden:", err));
 
-    // Mark this brand as initiated
+    // 2. Marcar marca como iniciada y abrir WhatsApp
     setSentBrands(prev => ({ ...prev, [brandGroup.brandId]: true }));
-
-    const url = cleanPhone
-      ? `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(text)}`
-      : `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-
+    const url = `https://api.whatsapp.com/send?phone=${targetPhone}&text=${encodeURIComponent(text)}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
@@ -325,6 +365,22 @@ export default function CartDrawer() {
 
                       {/* Checkout Button for this Brand */}
                       <div className="cart-brand-checkout-wrap">
+                        {!group.brandPhone && (
+                          <div style={{
+                            fontSize: "0.72rem",
+                            color: "var(--text-muted)",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            marginBottom: "6px",
+                            padding: "4px 8px",
+                            background: "rgba(212, 175, 55, 0.08)",
+                            borderRadius: "6px"
+                          }}>
+                            <i className="fa-solid fa-headset" style={{ color: "var(--gold-primary)" }}></i>
+                            <span>Atención y coordinación mediante Central AOURUM</span>
+                          </div>
+                        )}
                         <button 
                           type="button"
                           onClick={() => handleCheckoutBrand(group)}

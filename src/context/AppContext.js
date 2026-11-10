@@ -1692,6 +1692,88 @@ export function AppContextProvider({ children }) {
     }
   }, [customerOrderInfo]);
 
+  // ── AUTORRELLENO DE DATOS DEL CLIENTE DESDE SU PERFIL ──
+  useEffect(() => {
+    if (activePersonId && (!customerOrderInfo.address || !customerOrderInfo.name)) {
+      const p = people.find(item => Number(item.id) === Number(activePersonId));
+      if (p) {
+        setCustomerOrderInfo(prev => ({
+          ...prev,
+          name: prev.name || (p.lastName ? `${p.name} ${p.lastName}` : p.name) || "",
+          address: prev.address || p.city || ""
+        }));
+      }
+    }
+  }, [activePersonId, people]);
+
+  // ── SINCRONIZACIÓN DE CARRITO EN LA NUBE (PC ↔ CELULAR) ──
+  useEffect(() => {
+    if (!activePersonId) return;
+    let isCancelled = false;
+    const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
+
+    async function loadCloudCart() {
+      try {
+        const res = await fetch(`${API_URL}/api/cart?userId=${activePersonId}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (isCancelled) return;
+        const cloudItems = Array.isArray(data.items) ? data.items : [];
+
+        setCart(localCart => {
+          if (cloudItems.length > 0) {
+            // Fusionar sin duplicar ítems idénticos
+            const merged = [...cloudItems];
+            localCart.forEach(localItem => {
+              const exists = merged.some(ci => ci.id === localItem.id);
+              if (!exists) {
+                merged.push(localItem);
+              }
+            });
+            return merged;
+          } else if (localCart.length > 0) {
+            // Si la nube estaba vacía pero el equipo local tiene items, subirlos a la nube
+            fetch(`${API_URL}/api/cart`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {})
+              },
+              body: JSON.stringify({ userId: activePersonId, items: localCart })
+            }).catch(() => {});
+            return localCart;
+          }
+          return localCart;
+        });
+      } catch (err) {
+        console.warn("No se pudo sincronizar carrito en la nube:", err);
+      }
+    }
+
+    loadCloudCart();
+    return () => { isCancelled = true; };
+  }, [activePersonId, API_URL]);
+
+  // Persistir en la nube con debounce cada vez que el carrito cambie
+  useEffect(() => {
+    if (!activePersonId) return;
+    const token = typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
+    const timeout = setTimeout(() => {
+      fetch(`${API_URL}/api/cart`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ userId: activePersonId, items: cart })
+      }).catch(err => console.warn("Error guardando carrito en la nube:", err));
+    }, 800);
+
+    return () => clearTimeout(timeout);
+  }, [cart, activePersonId, API_URL]);
+
   const addToCart = (product, options = {}) => {
     if (!product) return;
     const size = options.size || null;
