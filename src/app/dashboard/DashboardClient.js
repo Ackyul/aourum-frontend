@@ -62,6 +62,10 @@ export default function DashboardClient({ initialTab }) {
   const searchParams = useSearchParams();
   const {
     activePersonId,
+    activeUsername,
+    activeBrandId,
+    activeOrganizerId,
+    activeBandId,
     people,
     brands,
     organizers,
@@ -271,38 +275,105 @@ export default function DashboardClient({ initialTab }) {
     return people.find(p => p.id === Number(activePersonId)) || null;
   }, [activePersonId, people]);
 
-  // Marcas del usuario (como creador original, colaborador o dueño directo)
+  // Identificadores normalizados del usuario
+  const pId = currentPerson ? Number(currentPerson.id) : (activePersonId ? Number(activePersonId) : null);
+  const pName = (currentPerson?.name || "").trim().toLowerCase();
+  const pLastName = (currentPerson?.lastName || "").trim().toLowerCase();
+  const pFullName = `${pName} ${pLastName}`.trim().toLowerCase();
+  const pUsername = (currentPerson?.username || activeUsername || "").trim().toLowerCase();
+  const pEmail = (currentPerson?.email || "").trim().toLowerCase();
+  const pBrandIds = (currentPerson?.brandIds || []).map(Number);
+  const pOrgIds = (currentPerson?.organizerIds || []).map(Number);
+  const pBandIds = (currentPerson?.bandIds || []).map(Number);
+
+  // Marcas del usuario con búsqueda inclusiva y resiliente
   const myBrands = useMemo(() => {
-    if (!brands || brands.length === 0 || !currentPerson) return [];
-    const pId = Number(currentPerson.id);
-    const pBrandIds = (currentPerson.brandIds || []).map(Number);
-    const userBrands = brands.filter(b => {
-      const isOwner = Number(b.personId) === pId || pBrandIds.includes(Number(b.id));
-      const isCollab = Array.isArray(b.personIds) && b.personIds.map(Number).includes(pId);
-      const isNamed = b.owner && currentPerson.name && (b.owner.toLowerCase().trim() === currentPerson.name.toLowerCase().trim());
-      return isOwner || isCollab || isNamed;
+    if (!brands || brands.length === 0) return [];
+    if (!pId && !pName && !pUsername) return [];
+
+    return brands.filter(b => {
+      // 1. Por ID directo de creador o person_id
+      if (pId && b.personId && Number(b.personId) === pId) return true;
+      if (pId && b.person_id && Number(b.person_id) === pId) return true;
+
+      // 2. Por lista de brandIds en el perfil de la persona
+      if (pBrandIds.includes(Number(b.id))) return true;
+
+      // 3. Por personIds / colaboradores de la marca
+      if (pId && Array.isArray(b.personIds) && b.personIds.map(Number).includes(pId)) return true;
+      if (pId && Array.isArray(b.collaborators) && b.collaborators.some(c => Number(c.personId || c.person_id) === pId)) return true;
+
+      // 4. Por concordancia de dueño (owner) con nombre, apellido, usuario o correo
+      if (b.owner) {
+        const o = b.owner.trim().toLowerCase();
+        if (pName && o === pName) return true;
+        if (pFullName && o === pFullName) return true;
+        if (pUsername && o === pUsername) return true;
+        if (pEmail && o === pEmail) return true;
+        if (pName && pName.length >= 3 && (o.includes(pName) || pName.includes(o))) return true;
+        if (pUsername && pUsername.length >= 3 && (o.includes(pUsername) || pUsername.includes(o))) return true;
+      }
+
+      // 5. Sesión activa directa
+      if (activeBrandId && Number(b.id) === Number(activeBrandId)) return true;
+
+      return false;
     });
-    return userBrands;
-  }, [currentPerson, brands]);
+  }, [brands, currentPerson, activePersonId, activeUsername, activeBrandId, pBrandIds]);
 
   // Productoras del usuario
   const myOrganizers = useMemo(() => {
-    if (!organizers || organizers.length === 0 || !currentPerson) return [];
-    const pOrgIds = (currentPerson.organizerIds || []).map(Number);
+    if (!organizers || organizers.length === 0) return [];
+    if (!pId && !pName && !pUsername) return [];
+
     return organizers.filter(o => {
-      const isLinked = pOrgIds.includes(Number(o.id));
-      const rObj = (currentPerson.organizerRoles || []).find(r => r.organizerId === o.id);
-      const isCreator = rObj && rObj.role === 'creador_original';
-      return isLinked || isCreator;
+      if (pId && o.personId && Number(o.personId) === pId) return true;
+      if (pId && o.person_id && Number(o.person_id) === pId) return true;
+      if (pOrgIds.includes(Number(o.id))) return true;
+      if (pId && Array.isArray(o.personIds) && o.personIds.map(Number).includes(pId)) return true;
+      if (pId && Array.isArray(o.collaborators) && o.collaborators.some(c => Number(c.personId || c.person_id) === pId)) return true;
+
+      if (o.owner) {
+        const ownerLower = o.owner.trim().toLowerCase();
+        if (pName && ownerLower === pName) return true;
+        if (pFullName && ownerLower === pFullName) return true;
+        if (pUsername && ownerLower === pUsername) return true;
+        if (pEmail && ownerLower === pEmail) return true;
+        if (pName && pName.length >= 3 && (ownerLower.includes(pName) || pName.includes(ownerLower))) return true;
+        if (pUsername && pUsername.length >= 3 && (ownerLower.includes(pUsername) || pUsername.includes(ownerLower))) return true;
+      }
+
+      if (activeOrganizerId && Number(o.id) === Number(activeOrganizerId)) return true;
+      return false;
     });
-  }, [currentPerson, organizers]);
+  }, [organizers, currentPerson, activePersonId, activeUsername, activeOrganizerId, pOrgIds]);
 
   // Bandas del usuario
   const myBands = useMemo(() => {
-    if (!bands || bands.length === 0 || !currentPerson) return [];
-    const pBandIds = (currentPerson.bandIds || []).map(Number);
-    return bands.filter(b => pBandIds.includes(Number(b.id)));
-  }, [currentPerson, bands]);
+    if (!bands || bands.length === 0) return [];
+    if (!pId && !pName && !pUsername) return [];
+
+    return bands.filter(b => {
+      if (pId && b.personId && Number(b.personId) === pId) return true;
+      if (pId && b.person_id && Number(b.person_id) === pId) return true;
+      if (pBandIds.includes(Number(b.id))) return true;
+      if (pId && Array.isArray(b.personIds) && b.personIds.map(Number).includes(pId)) return true;
+      if (pId && Array.isArray(b.collaborators) && b.collaborators.some(c => Number(c.personId || c.person_id) === pId)) return true;
+
+      if (b.owner || b.contact) {
+        const ownerLower = (b.owner || b.contact || "").trim().toLowerCase();
+        if (pName && ownerLower === pName) return true;
+        if (pFullName && ownerLower === pFullName) return true;
+        if (pUsername && ownerLower === pUsername) return true;
+        if (pEmail && ownerLower === pEmail) return true;
+        if (pName && pName.length >= 3 && (ownerLower.includes(pName) || pName.includes(ownerLower))) return true;
+        if (pUsername && pUsername.length >= 3 && (ownerLower.includes(pUsername) || pUsername.includes(ownerLower))) return true;
+      }
+
+      if (activeBandId && Number(b.id) === Number(activeBandId)) return true;
+      return false;
+    });
+  }, [bands, currentPerson, activePersonId, activeUsername, activeBandId, pBandIds]);
 
   // Inicializar selección de marca
   useEffect(() => {
@@ -1405,12 +1476,19 @@ export default function DashboardClient({ initialTab }) {
                   </Link>
                 </div>
               ))}
-              {myBrands.length === 0 && myOrganizers.length === 0 && myBands.length === 0 && (
+              {loading && brands.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "2.5rem 1rem", color: "var(--text-muted)", gridColumn: "1 / -1" }}>
-                  <i className="fa-solid fa-folder-open" style={{ fontSize: "2rem", color: "var(--gold-primary)", opacity: 0.5, marginBottom: "0.75rem", display: "block" }}></i>
-                  <p style={{ margin: 0, fontSize: "0.92rem", fontWeight: 600 }}>Aún no tienes marcas o proyectos vinculados.</p>
-                  <p style={{ margin: "4px 0 0", fontSize: "0.8rem", opacity: 0.8 }}>¡Crea una nueva marca, productora o banda usando los botones de arriba!</p>
+                  <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: "2rem", color: "var(--gold-primary)", marginBottom: "0.75rem", display: "block" }}></i>
+                  <p style={{ margin: 0, fontSize: "0.92rem", fontWeight: 600 }}>Cargando tus marcas y proyectos...</p>
                 </div>
+              ) : (
+                myBrands.length === 0 && myOrganizers.length === 0 && myBands.length === 0 && (
+                  <div style={{ textAlign: "center", padding: "2.5rem 1rem", color: "var(--text-muted)", gridColumn: "1 / -1" }}>
+                    <i className="fa-solid fa-folder-open" style={{ fontSize: "2rem", color: "var(--gold-primary)", opacity: 0.5, marginBottom: "0.75rem", display: "block" }}></i>
+                    <p style={{ margin: 0, fontSize: "0.92rem", fontWeight: 600 }}>Aún no tienes marcas o proyectos vinculados.</p>
+                    <p style={{ margin: "4px 0 0", fontSize: "0.8rem", opacity: 0.8 }}>¡Crea una nueva marca, productora o banda usando los botones de arriba!</p>
+                  </div>
+                )
               )}
             </div>
           </div>

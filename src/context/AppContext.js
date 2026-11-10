@@ -598,18 +598,13 @@ export function AppContextProvider({ children }) {
       clearSession();
       logout();
     }
-    Promise.resolve().then(() => {
-      const currentSession = loadSession();
-      if (currentSession?.role) {
-        if (currentSession.role === "person") loadPeople();
-        else if (currentSession.role === "brand") loadBrands();
-        else if (currentSession.role === "fair") loadFairs();
-        else if (currentSession.role === "band") loadBands();
-      } else {
-        setLoading(false);
-      }
-    });
-  }, [loadPeople, loadBrands, loadFairs, loadBands, logout]);
+    // Cargar catálogos completos para que marcas, proyectos y dashboard siempre tengan datos
+    loadBrands();
+    loadPeople();
+    loadFairs();
+    loadBands();
+    loadProducts();
+  }, [loadBrands, loadPeople, loadFairs, loadBands, loadProducts, logout]);
 
   // Float notifications handler
   const triggerNotification = (param1, param2) => {
@@ -956,7 +951,7 @@ export function AppContextProvider({ children }) {
         description: regDescription, 
         logo: regLogo || undefined,
         catalogDisplayMode: regCatalogDisplayMode || "auto",
-        personId: activeRole === "person" ? Number(activePersonId) : undefined
+        personId: activePersonId ? Number(activePersonId) : undefined
       };
     } else if (regType === "organizer") {
       url = `${API_URL}/api/organizers`;
@@ -965,7 +960,7 @@ export function AppContextProvider({ children }) {
         owner: regOwner || "Productor General", 
         description: regDescription, 
         logo: regLogo || undefined,
-        personId: activeRole === "person" ? Number(activePersonId) : undefined
+        personId: activePersonId ? Number(activePersonId) : undefined
       };
     } else if (regType === "band") {
       url = `${API_URL}/api/bands`;
@@ -975,7 +970,7 @@ export function AppContextProvider({ children }) {
         members: Number(regMembers || 1), 
         description: regDescription, 
         image: regLogo || undefined,
-        personId: activeRole === "person" ? Number(activePersonId) : undefined
+        personId: activePersonId ? Number(activePersonId) : undefined
       };
     } else if (regType === "person") {
       // ── Email + password registration via /api/auth/register ──
